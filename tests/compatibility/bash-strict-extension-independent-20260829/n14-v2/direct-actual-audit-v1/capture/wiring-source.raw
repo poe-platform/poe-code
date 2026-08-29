@@ -1,0 +1,279 @@
+["AUTHORIZATION-BINDING.json","AUTHORIZATION-FRESH-INPUTS.json","AUTHORIZATION-HANDOFF.md","AUTHORIZATION-PREFLIGHT.json","AUTHORIZATION-PUBLICATION.json","AUTHORIZATION-RAW-CAPTURE.json.gz.base64","AUTHORIZATION-ROOT-RECORD.md","CANDIDATE-CLOSURE.json","COMMAND-PLAN.json","COMMAND.resolved.txt","COMMAND.template.txt","CONTROL-PRESEAL.json","EXECUTABLE-SEAL.json","FRESH-INPUT-AUTH.json","GO.json","GO.template.json","HANDOFF.md","INDEPENDENT-ACCEPTANCE.json","LIMITS.json","PREPROVISION-RECEIPT.json","PUBLICATION-MANIFEST.json","RAW-CAPTURE.json.gz.base64","README.md","REPAIR-MANIFEST.json","RESULTS.json","REVIEW.template.json","ROOT-AUTHORIZATION.md","SOURCE-CAPSULE.json.gz.base64","SOURCE-PROVENANCE.json","TOOLS.json","actual-run-v1","final-accounting-diagnosis-v1","finalization-controls.mjs","finalization.mjs","outer.mjs","packet-io.mjs","profile","publication-admin.mjs","supervisor.mjs"]
+HANDOFF.md
+# Guarded final-census successor handoff
+
+Source commit: 83f750e57470546a95782cb9ce54a81d4900127a.
+EXECUTABLE-SEAL SHA256: 6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252.
+Command-template SHA256: 4ccb6fa0adb5d523c6effe874ce1ced0ef732c626aec8b561adcfb1376fbb077.
+
+## Delta and historical preservation
+- Original faebb8dc019a6920f56c47b7d48c2c8036b8f5f6 / b38463b727373e11261f05a43b580f6012112baf / seal254e4d2bf3f12583c625b627b9230829f839745fb490abb8421b47d0fdc73781 remain unchanged. ROOT-reported wiring HOLD cc84c2f0fa27f74df0af7fa6a21d2416367d2539 is not rescored.
+- finalization.mjs guards census independently, retains first raw reason using explicit presence, appends ordered present secondary failures, and attempts terminal publication once. supervisor.mjs replaces only its final result/census/publication tail and imports that helper. Failure samples are absent, never fabricated.
+- outer.mjs changes only the new work path. COMMAND-PLAN changes only physical namespace bindings and resulting111 role bytes/hashes. Exact inverse-path/excluded-role-pin comparison equals the old plan. All17 profile files,37 scripts/four fixtures,293source manifest/capsule,954shipping inventory/static edges/native observations unchanged. REPAIR-MANIFEST lists original/new hashes.
+- Source-only provenance and complete tool/archive raw authentication are retained. No archive inflation/compiler/build/case/product/RegexWorker/native activation occurred.
+
+## DATA proof
+Six presealed PURE DATA groups /18 explicitly listed rows passed on the exact source candidate. One direct harmless Node helper retired with exit/close/both stream EOF, status0,386stdout bytes and0stderr. Coverage: no failure; no-primary census failure; existing undefined/null/false/0 primary plus census failure; same falsy census failures as first primary; original falsy primary plus both failures; publication failures with no false success credit. Raw identity uses Object.is; serialized terminal reason uses existing errorRecord. No full supervisor execution or universal failure claim.
+Captured prepublication cut:12known children closed (11metadata/patch plus1PURE DATA Node); no active child. Publication administration is separately retained at /tmp/bash-surface-final-census-repair-FCUajR; final CLOSED.json records the later exact count. No stale group probes/signals. M08 UNKNOWN remains immutable.
+
+## Actual envelope, not activated
+111 planned calls =37source-built +37installed +37physically-moved. All UNRUN. Actual source build from293inputs, separate admitted archive install, physical installed→moved rename,3strict typechecks remain exactly bound in COMMAND-PLAN.json.
+Known starts144 = execution owner1 + build1 + typechecks3 + cases111 + trusted administration allowance28. Administration allowance includes any tracked control/tool owner; it is not28 concurrent processes. Serial execution graph has owner→one build/type/case child; at most one separate declared trusted control role yields proposed peak3. Reviewer peak4 is separate review authority, not this actual envelope. Case synchronous hooks admit0asynchronous-loader threads/0RegexWorkers/0OS-subprocess capability; no processgroup absence/global census/OS containment/RSS guarantee.
+30min inclusive including120s finalization reserve; setup180s aggregate and typechecks180s aggregate.128MiBcapture/512MiBsampled logical work. Case3s abort/8s process/TERM2s/KILL1s,64KiBstreams unchanged. Public exec/dispose settlement is not a private job census. Fresh actual admission reauthenticates everything before decode/import; source prep is not a runtime grant.
+
+## Independent review and ROOT action
+ROOT/review templates remain PENDING, no GO.json or INDEPENDENT-ACCEPTANCE.json created. New actual work parent only preprovisioned. Fresh final-binding review and fresh ROOT GO/window are required; current packet grants no actual111 authority.
+Exact inactive command template follows. Only the existing designated grant hash slot can later resolve after authorization; no extra command suffix or hidden policy changes. Tool workdir is /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2; login:false; trusted initial tool-shell startup remains outside child clean-env/capture qualification.
+
+
+exec /usr/bin/env -i HOME=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/home TMPDIR=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/tmp PATH=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/outer.mjs --seal-sha256 6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252 --grant-sha256 ROOT_GRANTED_RAW_SHA256
+
+INVALID-CLOSED {
+  "schema": "virtual37B-actual-closed-v1",
+  "status": "CLOSED_NO_RETRY_NO_FURTHER_ACTIVATION",
+  "actualEvidenceCommit": "4601270e3bde9239776fdf0168f6fc826088cf41",
+  "finalizationCommit": "b88c36b21b03dd0e558110346fb9d6313c0a8b62",
+  "manifestSha256": "b67a32f83a604a948e18f87fffbe327eb7fc20196fe540ede7ec0cbd86593976",
+  "started": "2026-08-29T11:25:00.140Z",
+  "ownerStarted": "2026-08-29T11:25:36.325Z",
+  "closed": "2026-08-29T11:33:40.317Z",
+  "inclusiveConservativeDeadline": "2026-08-29T11:55:00.140Z",
+  "calls": 111,
+  "qualifiedObservations": 111,
+  "rawEqual": 57,
+  "rawDifferent": 54,
+  "identities": 37,
+  "layouts": 3,
+  "unrun": 0,
+  "nativeWithheld": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "knownStarts": {
+    "executionOwner": 1,
+    "managedChildren": 115,
+    "publicationAdministration": 12,
+    "total": 128,
+    "retired": 128,
+    "active": 0,
+    "unusedStartAllowance": 16
+  },
+  "peakQualification": "serial owner+managed child; one trusted control role gives declared peak3; no universal census",
+  "expectedCasePermissions": {
+    "osChildren": 0,
+    "Workers": 0,
+    "asyncLoaderThreads": 0
+  },
+  "rawCaptureBytes": {
+    "runtime": 35655081,
+    "administration": 13540744,
+    "total": 49195825,
+    "limit": 134217728
+  },
+  "sampledWorkingBytes": 0,
+  "sampledWorkingEntries": 0,
+  "workLimit": 536870912,
+  "sourceScopeClean": true,
+  "primaryPresent": false,
+  "secondaryPresent": false,
+  "adminFiles": [
+    {
+      "path": "001-actual-evidence-scope.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "001-actual-evidence-scope.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "001-actual-evidence-scope.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "002-apply-owned.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "002-apply-owned.stdin",
+      "bytes": 13366465,
+      "sha256": "1105c29a1b9ed2658344cc69d04049a836f2caea57d590b4c824f64b56824339"
+    },
+    {
+      "path": "002-apply-owned.stdout",
+      "bytes": 1065,
+      "sha256": "1b9c94e3fac7f192ae2a1b0971a53cab23584de20b3214d0eac9bee2715678a0"
+    },
+    {
+      "path": "003-stage-actual-evidence.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "003-stage-actual-evidence.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "003-stage-actual-evidence.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "004-check-actual-evidence.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "004-check-actual-evidence.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "004-check-actual-evidence.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "005-commit-actual-evidence.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "005-commit-actual-evidence.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "005-commit-actual-evidence.stdout",
+      "bytes": 1778,
+      "sha256": "f16efd01787d0e9a4287c648ac29abc9440770a4c0142f6f44b6a52c8bf189bb"
+    },
+    {
+      "path": "006-actual-evidence-commit-id.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "006-actual-evidence-commit-id.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "006-actual-evidence-commit-id.stdout",
+      "bytes": 41,
+      "sha256": "28611b5bb8272aa7455f392a2ce53430d49c11e0e65ebbad2f7b2a82f5776c6e"
+    },
+    {
+      "path": "007-apply-owned.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "007-apply-owned.stdin",
+      "bytes": 96034,
+      "sha256": "e2c86f93c344c86973160e0403a0d80e6599810fa1607659664a0ee4354afe03"
+    },
+    {
+      "path": "007-apply-owned.stdout",
+      "bytes": 166,
+      "sha256": "1337fdef280331a54c45936a8750e219c1df973747df93f9517a20fd79999a6e"
+    },
+    {
+      "path": "008-stage-finalization.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "008-stage-finalization.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "008-stage-finalization.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "009-check-finalization.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "009-check-finalization.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "009-check-finalization.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "010-commit-finalization.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "010-commit-finalization.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "010-commit-finalization.stdout",
+      "bytes": 756,
+      "sha256": "f0c3ab7239ead59ef575e8e34d5f899d51feb1e8bbd0b07f9503bbc35c5f76f7"
+    },
+    {
+      "path": "011-finalization-commit-id.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "011-finalization-commit-id.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "011-finalization-commit-id.stdout",
+      "bytes": 41,
+      "sha256": "bfbc3382c3a9bd87c529d584ff4ca88fa4d8b701566958be26fcd1dec3c70322"
+    },
+    {
+      "path": "012-final-actual-owned-status.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "012-final-actual-owned-status.stdin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "012-final-actual-owned-status.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ADMISSION.jsonl",
+      "bytes": 45959,
+      "sha256": "c3b3bbae153058f1d574bbf5e1a0cd2c7f51d63dde9bf23482caf307e40e1d81"
+    },
+    {
+      "path": "EVENTS.jsonl",
+      "bytes": 16716,
+      "sha256": "f0690aab3426c17bcdd499159388a30e9f1e1027b9940e306db88adc8632d758"
+    },
+    {
+      "path": "STATE.json",
+      "bytes": 11723,
+      "sha256": "5714b0832441b22183f4fbf875eae2e8dc3d78a3e5e9a469a10b9c3bdb11adde"
+    }
+  ],
+  "limitsQualification": "logical counts/bytes and known direct settlement only; not RSS/group absence/OS containment/private job census",
+  "unusedCapacity": "closed to reuse, not release/refund or authority for additional cases"
+}

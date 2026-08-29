@@ -1,0 +1,333 @@
+{
+  "at": "2026-08-29T11:46:28.007Z",
+  "shippingPins": 34,
+  "nativeMatrixKeys": [
+    "schema",
+    "candidate",
+    "sourceCommit",
+    "sourceInventorySha256",
+    "candidateAcceptance",
+    "nativeObservationCommit",
+    "nativeObservationSha256",
+    "nativeArtifactAudit",
+    "nativeArchiveSha256",
+    "fixtures",
+    "cases",
+    "withheld",
+    "totalVirtualInvocations",
+    "actualVirtualInvocations",
+    "normalization"
+  ],
+  "excerpts": [
+    {
+      "name": "profile/case-launch.mjs",
+      "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746",
+      "lines": [
+        {
+          "line": 1,
+          "text": "import fs from 'node:fs';"
+        },
+        {
+          "line": 2,
+          "text": "import {readPinned,hash} from './auth.mjs';"
+        },
+        {
+          "line": 3,
+          "text": "import {PROFILE,caseArguments,validateArguments,completion} from './profile.mjs';"
+        },
+        {
+          "line": 4,
+          "text": "import {runDirect} from './direct-child.mjs';"
+        },
+        {
+          "line": 6,
+          "text": "  const closure=JSON.parse(readPinned(spec.closurePath,spec.closurePin,2097152));"
+        },
+        {
+          "line": 7,
+          "text": "  if(closure.decision!=='ACCEPT'||closure.candidate!=='bf079ada185a79aec864b068f3738ddc5520822e'||closure.identityKind!=='DERIVED_COMPOSITION_NOT_GIT_OBJECT'||closure.profile!==PROFILE||!spec.rootGrant||spec.rootGrant.decision!=='GO'||spec.rootGrant.closureSha256!==spec.closurePin.sha256)throw Error('PRODUCT_CLOSURE_OR_GRANT_HOLD');"
+        },
+        {
+          "line": 11,
+          "text": "  if(JSON.stringify(JSON.parse(roleBytes))!==JSON.stringify(spec.role))throw Error('ROLE_OBJECT_BINDING');"
+        },
+        {
+          "line": 12,
+          "text": "  const env={HOME:spec.home,TMPDIR:spec.tmp,PATH:spec.emptyPath,LC_ALL:'C',LANG:'C',TZ:'UTC',SURFACE_ROLE:spec.role.rolePath,SURFACE_ROLE_BYTES:String(roleBytes.length),SURFACE_ROLE_SHA256:hash(roleBytes)};"
+        },
+        {
+          "line": 17,
+          "text": "  const receipt=JSON.parse(Buffer.from(output.base64,'base64'));"
+        },
+        {
+          "line": 18,
+          "text": "  if(!completion(receipt,result.row)||receipt.caseId!==spec.role.caseId||receipt.layout!==spec.role.layout)throw Error('PRODUCT_PUBLIC_SETTLEMENT_RECEIPT');"
+        },
+        {
+          "line": 20,
+          "text": "  const trace=fs.readFileSync(spec.role.trace);ledger.captureBytes+=trace.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('PRODUCT_TRACE_CAPTURE_LIMIT');"
+        },
+        {
+          "line": 21,
+          "text": "  const rows=trace.toString().trim().split('\\n').filter(Boolean).map(line=>JSON.parse(line));"
+        },
+        {
+          "line": 23,
+          "text": "  return {receipt,lifecycle:result.row,loadTrace:{bytes:trace.length,sha256:hash(trace),base64:trace.toString('base64')},qualification:'Public exec/dispose settlement contract and direct-child observations, no private job census/group absence/OS containment'};"
+        }
+      ]
+    },
+    {
+      "name": "profile/case-adapter.mjs",
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e",
+      "lines": [
+        {
+          "line": 1,
+          "text": "import {createHash} from 'node:crypto';"
+        },
+        {
+          "line": 2,
+          "text": "import {posix} from 'node:path';"
+        },
+        {
+          "line": 6,
+          "text": " return {sink:{async write(chunk){if(!(chunk instanceof Uint8Array)||size+chunk.byteLength>65536)throw Error('ADAPTER_CAPTURE_LIMIT');const owned=Buffer.from(chunk);size+=owned.length;chunks.push(owned);}},result(){const bytes=Buffer.concat(chunks,size);return {bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),base64:bytes.toString('base64')};}};"
+        },
+        {
+          "line": 13,
+          "text": "  if(stat.type==='file') {if(stat.size>65536||total+stat.size>262144)throw Error('SNAPSHOT_BYTES');const bytes=await fs.readFile(path);if(bytes.length!==stat.size)throw Error('SNAPSHOT_CHANGED');total+=bytes.length;row.base64=Buffer.from(bytes).toString('base64');}"
+        },
+        {
+          "line": 28,
+          "text": " try {publicEvents.push(\"exec-started\");const result=await shell.exec(row.program,{stdin:new Uint8Array(Buffer.from(row.stdinBase64,'base64')),signal,stdout:stdout.sink,stderr:stderr.sink});publicEvents.push('exec-resolved');settlement={kind:'resolved',status:result.exitCode};const out=stdout.result(),err=stderr.result();if(!Buffer.from(result.stdoutBytes).equals(Buffer.from(out.base64,'base64'))||!Buffer.from(result.stderrBytes).equals(Buffer.from(err.base64,'base64')))throw Error('CAPTURE_RESULT_DISAGREEMENT');}"
+        },
+        {
+          "line": 30,
+          "text": " finally{publicEvents.push(\"dispose-started\");try{await shell.dispose();publicEvents.push(\"dispose-resolved\");}catch(reason){publicEvents.push(\"dispose-rejected\");hasCleanupError=true;cleanupError=reason;}}"
+        }
+      ]
+    },
+    {
+      "name": "profile/case-driver.mjs",
+      "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c",
+      "lines": [
+        {
+          "line": 1,
+          "text": "import fs from 'node:fs';"
+        },
+        {
+          "line": 2,
+          "text": "import {pathToFileURL} from 'node:url';"
+        },
+        {
+          "line": 3,
+          "text": "import {PROFILE} from './profile.mjs';"
+        },
+        {
+          "line": 4,
+          "text": "import {runCase} from './case-adapter.mjs';"
+        },
+        {
+          "line": 5,
+          "text": "import {compareRaw,validateMatrix} from './data.mjs';"
+        },
+        {
+          "line": 6,
+          "text": "const role=JSON.parse(fs.readFileSync(process.env.SURFACE_ROLE));const matrix=JSON.parse(fs.readFileSync(role.matrix));validateMatrix(matrix);const row=matrix.cases.find(value=>value.id===role.caseId);if(!row)throw Error('CASE_MEMBERSHIP');"
+        },
+        {
+          "line": 7,
+          "text": "const api=role.layout==='source-built'?await import(pathToFileURL(role.productEntry)):await import('virtual-bash');"
+        },
+        {
+          "line": 9,
+          "text": "let result;try{result=await runCase(api,row,matrix.fixtures,controller.signal);}finally{clearTimeout(timer);}"
+        },
+        {
+          "line": 14,
+          "text": "const output={profile:PROFILE,publicSettlement:result.publicSettlement,caseId:row.id,layout:role.layout,observation:clean,rawComparison:compareRaw(row.nativeObservation,clean),interpretation:row.comparison.semanticTags,qualification:'Bash3.2 raw observation comparison; no automatic GNU5.3 parity or normalized pass'};"
+        },
+        {
+          "line": 15,
+          "text": "process.stdout.write(JSON.stringify(output)+'\\n');"
+        }
+      ]
+    },
+    {
+      "name": "profile/guard.mjs",
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9",
+      "lines": [
+        {
+          "line": 1,
+          "text": "import fs from 'node:fs';"
+        },
+        {
+          "line": 2,
+          "text": "import {registerHooks} from 'node:module';"
+        },
+        {
+          "line": 3,
+          "text": "import {fileURLToPath} from 'node:url';"
+        },
+        {
+          "line": 4,
+          "text": "import {hash,readPinned} from './auth.mjs';"
+        },
+        {
+          "line": 5,
+          "text": "import {PROFILE,validateRole,validateArguments} from './profile.mjs';"
+        },
+        {
+          "line": 8,
+          "text": "const raw = readPinned(roleName,{bytes:roleSize,sha256:process.env.SURFACE_ROLE_SHA256},2097152);"
+        },
+        {
+          "line": 9,
+          "text": "const role = validateRole(JSON.parse(raw));"
+        },
+        {
+          "line": 15,
+          "text": "  const bytes = Buffer.from(JSON.stringify({...event,profile:PROFILE,role:role.id}) + '\\n');"
+        },
+        {
+          "line": 21,
+          "text": "registerHooks({"
+        },
+        {
+          "line": 40,
+          "text": "    trace({event:'module-loaded',url,bytes:bytes.length,sha256:hash(bytes)});"
+        }
+      ]
+    },
+    {
+      "name": "supervisor.mjs",
+      "sha256": "2bde7e3d1ac042c562e4987f1f6ff272ff8cf82d4518872f09205b50440c0da2",
+      "lines": [
+        {
+          "line": 1,
+          "text": "import fs from 'node:fs';"
+        },
+        {
+          "line": 2,
+          "text": "import path from 'node:path';"
+        },
+        {
+          "line": 3,
+          "text": "import {pathToFileURL} from 'node:url';"
+        },
+        {
+          "line": 4,
+          "text": "import {PROFILE} from './profile/profile.mjs';"
+        },
+        {
+          "line": 5,
+          "text": "import {runDirect} from './profile/direct-child.mjs';"
+        },
+        {
+          "line": 6,
+          "text": "import {launchProductCase} from './profile/case-launch.mjs';"
+        },
+        {
+          "line": 7,
+          "text": "import {readPinned,errorRecord} from './profile/auth.mjs';"
+        },
+        {
+          "line": 8,
+          "text": "import {installSources,installTools,installTypes,admittedPackage,extractValidatedTar,verifyMembers,writeExclusive} from './profile/setup.mjs';"
+        },
+        {
+          "line": 9,
+          "text": "import {validateMatrix} from './profile/data.mjs';"
+        },
+        {
+          "line": 10,
+          "text": "import {preflight,census,checkShipping,retainFile,hash} from './packet-io.mjs';"
+        },
+        {
+          "line": 11,
+          "text": "import {finalize} from './finalization.mjs';"
+        },
+        {
+          "line": 18,
+          "text": "  const write=(name,value,terminal=false)=>{if(!terminal)check();return retainFile(path.join(work,'capture',name),Buffer.from(JSON.stringify(value,null,2)+'\\n'),terminal?finalDeadline:bodyDeadline);};"
+        },
+        {
+          "line": 23,
+          "text": "    const commandPlan=JSON.parse(readPinned(path.join(packet,'COMMAND-PLAN.json'),seal.files['COMMAND-PLAN.json']));"
+        },
+        {
+          "line": 24,
+          "text": "    const matrix=JSON.parse(readPinned(path.join(packet,'profile/MATRIX.json'),seal.files['profile/MATRIX.json']));validateMatrix(matrix);"
+        },
+        {
+          "line": 25,
+          "text": "    const members=JSON.parse(readPinned(path.join(packet,'profile/PACKAGE-MEMBERS.json'),seal.files['profile/PACKAGE-MEMBERS.json']));"
+        },
+        {
+          "line": 26,
+          "text": "    const inputs=JSON.parse(readPinned(path.join(packet,'profile/SOURCE-MEMBERS.json'),seal.files['profile/SOURCE-MEMBERS.json']));"
+        },
+        {
+          "line": 27,
+          "text": "    const staticEdges=JSON.parse(readPinned(path.join(packet,'profile/STATIC-EDGES.json'),seal.files['profile/STATIC-EDGES.json'])).edges;"
+        },
+        {
+          "line": 28,
+          "text": "    if(matrix.cases.length!==37||matrix.fixtures.length!==4||members.length!==954||inputs.length!==293||inputs.some(row=>row.path.startsWith('dist/')))throw Error('MATRIX_MEMBERSHIP');"
+        },
+        {
+          "line": 46,
+          "text": "    write('ARCHIVE-ADMISSION.json',{receipt:archive.receipt,ledger:archive.ledger,events:archive.events});"
+        },
+        {
+          "line": 57,
+          "text": "      const consumer=Buffer.from('import {Shell,MemoryFileSystem,agentCommands,type ShellResult} from '+JSON.stringify(layout==='source-built'?'./dist/index.js':'virtual-bash')+';\\nconst fs=new MemoryFileSystem();const shell=new Shell({fs,env:{LC_ALL:\"C\"}}).use(agentCommands());const value:Promise<ShellResult>=shell.exec(\"\",{stdin:new Uint8Array(),signal:new AbortController().signal});void value;void shell.dispose;\\n');"
+        },
+        {
+          "line": 71,
+          "text": "      for(const row of matrix.cases){"
+        },
+        {
+          "line": 73,
+          "text": "        const role={profile:PROFILE,kind:'product-case',id,caseId:row.id,layout,app,entry:path.join(app,'case-driver.mjs'),guard:path.join(app,'guard.mjs'),rolePath,trace,readFiles:[rolePath,trace,path.join(packet,'profile/MATRIX.json')],files,edges,builtins:seal.builtins,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',nodePath:tools.node.path,matrix:path.join(packet,'profile/MATRIX.json'),productEntry};"
+        },
+        {
+          "line": 74,
+          "text": "        const roleBytes=Buffer.from(JSON.stringify(role)+'\\n');writeExclusive(rolePath,roleBytes);"
+        },
+        {
+          "line": 75,
+          "text": "        const rolePin={bytes:roleBytes.length,sha256:hash(roleBytes)};"
+        },
+        {
+          "line": 77,
+          "text": "        if(!expectedRole||expectedRole.roleBytes!==rolePin.bytes||expectedRole.roleSha256!==rolePin.sha256)throw Error('PRESEALED_ROLE_IDENTITY');"
+        },
+        {
+          "line": 79,
+          "text": "        let observation,invocationFailed=false,invocationReason;"
+        },
+        {
+          "line": 80,
+          "text": "        try{observation=await launchProductCase({id,node:tools.node,role,rolePin,rootGrant:grant,closurePath:path.join(packet,'CANDIDATE-CLOSURE.json'),closurePin:seal.files['CANDIDATE-CLOSURE.json'],home:path.join(work,'home'),tmp:path.join(work,'tmp'),emptyPath:path.join(work,'empty-path'),capture:path.join(work,'capture',id),bodyDeadline,finalDeadline},ledger);}"
+        },
+        {
+          "line": 84,
+          "text": "        const traceRows=Buffer.from(observation.loadTrace.base64,'base64').toString().trim().split('\\n').map(line=>JSON.parse(line));"
+        },
+        {
+          "line": 85,
+          "text": "        if(!traceRows.some(event=>event.event==='module-loaded'&&event.url===pathToFileURL(productEntry).href&&event.sha256===files[productEntry].sha256))throw Error('PRODUCT_ENTRY_NOT_WITNESSED');"
+        },
+        {
+          "line": 86,
+          "text": "        const result={id,layout,caseId:row.id,...observation};records.push(result);write(id+'.json',result);"
+        },
+        {
+          "line": 90,
+          "text": "  const resultFor=state=>({schema:'direct-functional-111-observations-v1',profile:PROFILE,candidate:seal.candidate,archiveSha256:seal.archive.sha256,completed:records.length,planned:111,unrun:111-records.length,primaryPresent:state.primaryPresent,primary:state.primaryPresent?errorRecord(state.primary):undefined,layouts,commands,ledger,setupAggregateMs:setupElapsed,typecheckAggregateMs:typeElapsed,customLoaderThreads:0,productWorkersPermitted:0,caseSubprocessPermission:0,qualification:'Qualified public observations are not compatibility passes. Direct process/cooperative public cleanup only; no group absence/universal census/OS containment/RSS guarantee.',sampledWorkPresent:state.sampledWorkPresent,sampledWork:state.sampledWork,secondary,finalizationSecondaryPresent:state.secondaryPresent,finalizationSecondary:state.secondary.map(entry=>({phase:entry.phase,present:entry.present,reason:errorRecord(entry.reason)}))});"
+        }
+      ]
+    }
+  ]
+}

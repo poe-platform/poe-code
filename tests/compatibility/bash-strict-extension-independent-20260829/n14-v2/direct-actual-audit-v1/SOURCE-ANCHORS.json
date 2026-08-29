@@ -1,0 +1,71 @@
+[
+  {
+    "path": "src/shell/parser.ts",
+    "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+    "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+    "lines": [
+      {
+        "line": 474,
+        "text": "        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error(\"Unsupported indexed-array parameter\");"
+      },
+      {
+        "line": 480,
+        "text": "        if (this.source[this.position] !== \"}\") this.error(\"Unsupported indexed-array operator\");"
+      },
+      {
+        "line": 728,
+        "text": "      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error(\"Invalid for variable\");"
+      },
+      {
+        "line": 752,
+        "text": "      if ([\"!\", \"then\", \"else\", \"elif\", \"fi\", \"do\", \"done\", \"}\", \"case\", \"esac\", \"select\", \"function\", \"[[\", \"]]\"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);"
+      },
+      {
+        "line": 772,
+        "text": "            if (!this.is(\")\")) this.error(\"Unsupported indexed-array compound assignment\");"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/runtime.ts",
+    "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+    "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+    "lines": [
+      {
+        "line": 1071,
+        "text": "        if (state.nounset && typeof key === \"string\" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);"
+      },
+      {
+        "line": 1084,
+        "text": "    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);"
+      },
+      {
+        "line": 1513,
+        "text": "  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {"
+      },
+      {
+        "line": 2198,
+        "text": "          await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);"
+      },
+      {
+        "line": 2619,
+        "text": "      await writeText(forwarded.stderr, `env: ${command}: command not found\\n`);"
+      },
+      {
+        "line": 3285,
+        "text": "        await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (only dotglob is supported)`);"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/shell.ts",
+    "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+    "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+    "lines": [
+      {
+        "line": 163,
+        "text": "  async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {"
+      }
+    ]
+  }
+]

@@ -1,0 +1,213 @@
+{
+  "verdict": "QUALIFIED_SEMANTIC_REVIEW_PASS_WITH_HARNESS_ORDER_QUALIFICATION",
+  "production": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "derived": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceSha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4",
+  "sourceCount": 293,
+  "package": {
+    "bytes": 872281,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "members": 954
+  },
+  "main": {
+    "currentAuthor": 672,
+    "priorNovel": 48,
+    "newIdentity": 24,
+    "total": 744,
+    "pass": 744,
+    "fail": 0,
+    "skipped": 0
+  },
+  "types": [
+    {
+      "layout": "source",
+      "negative": false,
+      "pass": true,
+      "exactDiagnostics": 0
+    },
+    {
+      "layout": "source",
+      "negative": true,
+      "pass": true,
+      "exactDiagnostics": 8
+    },
+    {
+      "layout": "installed",
+      "negative": false,
+      "pass": true,
+      "exactDiagnostics": 0
+    },
+    {
+      "layout": "installed",
+      "negative": true,
+      "pass": true,
+      "exactDiagnostics": 8
+    },
+    {
+      "layout": "moved",
+      "negative": false,
+      "pass": true,
+      "exactDiagnostics": 0
+    },
+    {
+      "layout": "moved",
+      "negative": true,
+      "pass": true,
+      "exactDiagnostics": 8
+    }
+  ],
+  "controls": [
+    {
+      "name": "drop-exact-provenance",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "de281bce9967071cbedcd782d0b9637cb22a01f0d04ed14b8fc7222cda0157d8"
+    },
+    {
+      "name": "expose-private-wrapper",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "3807bfa095c417f03f003fa9b14a0ffa3c08e85ce6fb072fae3877d5d478edc9"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    }
+  ],
+  "restores": 2,
+  "restoresPass": 2,
+  "originalN14FailurePreserved": true,
+  "repaired": [
+    {
+      "layout": "source",
+      "id": "N14-zero-sink-held-cleanup",
+      "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+      "pass": true,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": true,
+      "cleaned": 1,
+      "writes": 1,
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false,
+      "cleanupReasons": []
+    },
+    {
+      "layout": "installed",
+      "id": "N14-zero-sink-held-cleanup",
+      "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+      "pass": true,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": true,
+      "cleaned": 1,
+      "writes": 1,
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false,
+      "cleanupReasons": []
+    },
+    {
+      "layout": "moved",
+      "id": "N14-zero-sink-held-cleanup",
+      "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+      "pass": true,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": true,
+      "cleaned": 1,
+      "writes": 1,
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false,
+      "cleanupReasons": []
+    }
+  ],
+  "cleanup": {
+    "directChildren": 40,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 30,
+    "knownDirectOSChildren": 40,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "initialStartup": {
+    "terminal": {
+      "primaryPresent": false,
+      "cleanupPresent": false,
+      "closed": true,
+      "signals": [],
+      "bytes": 688,
+      "pid": 79894,
+      "exitCode": 1,
+      "ownedGroupAbsent": true,
+      "elapsedSeconds": 0.16242450001300313
+    },
+    "setup": 0,
+    "product": 0,
+    "correctionCommit": "88bcd761007776d8b0743d208b2e4fff3b6310bf"
+  },
+  "terminal": {
+    "primaryPresent": false,
+    "cleanupPresent": false,
+    "closed": true,
+    "signals": [],
+    "bytes": 454,
+    "pid": 82653,
+    "exitCode": 0,
+    "ownedGroupAbsent": true,
+    "elapsedSeconds": 56.32627529097954
+  },
+  "knownRuntimePids": 44,
+  "loaderAdmissions": 30,
+  "individualInternalLoaderExitObserved": false,
+  "regexBirths": 0,
+  "regexExits": 0,
+  "correctedRunElapsedMs": 55516,
+  "rawChildCaptureBytes": 3273959,
+  "scratchBytesAtClose": 73056704,
+  "publicationCapture": "/private/tmp/n14-independent-publication-H5DGJA",
+  "workingRoot": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS",
+  "openIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "nativeRuns": 0,
+  "notes": [
+    "Unit3 accepted dependency, no liveHEAD/Node overlay",
+    "No universal transformed Promise guarantee",
+    "J03 is a negative JavaScript thenable characterization outside the declared CommandHandler Promise return type, not expanded public API acceptance",
+    "Preparation/correction administrative roles are not all independently PID-bound; no full transitive census",
+    "Generated-package expected-hash comparison happened after bounded inflation; see separate qualification; all actual consumers subsequently authenticated"
+  ]
+}

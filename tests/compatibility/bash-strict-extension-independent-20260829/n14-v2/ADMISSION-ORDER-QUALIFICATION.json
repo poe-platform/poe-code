@@ -1,0 +1,25 @@
+{
+  "encodedInheritedData": {
+    "used": false,
+    "decoded": false,
+    "known5916905ExceptionUsed": false
+  },
+  "generatedPackage": {
+    "source": "Owned scripts-disabled offline npm pack from authenticated293source build",
+    "bytes": 872281,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "hashComputedBeforeInflate": true,
+    "expectedHashComparedBeforeInflate": false,
+    "expectedHashComparedAfterInflateBeforeAnyProductConsumer": true,
+    "inflationLimitBytes": 67108864,
+    "admissionAtConsumer": "Each actual loaded module hash checked against the matched package member inventory before evaluation"
+  },
+  "gap": "Inherited runner compares the generated package expected hash after bounded inflation/header walk, not before inflation. No claim that it meets a universal pre-decompression type/size/expected-hash ordering requirement. No inherited external encoded DATA was decoded.",
+  "sourceBinding": {
+    "path": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs",
+    "sha256": "27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac",
+    "inflateOffset": 20859,
+    "expectedCheckOffset": 22179
+  },
+  "disposition": "Report to ROOT as harness qualification, not a source/product semantic defect, no silently retroactive guard correction. Future minimal runner correction: exact generated archive regular-file/known872281byte bound and expectedSHA check before gunzip. No extra product rerun performed."
+}

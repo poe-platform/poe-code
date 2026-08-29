@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T12:26:35.200Z",
+  "budget": {
+    "minutes": 15,
+    "knownOS": 32,
+    "peak": 3,
+    "capture": 50331648,
+    "work": 201326592
+  },
+  "scope": "SOURCE/DATA producer-only; no runtime/build/consumer execution"
+}

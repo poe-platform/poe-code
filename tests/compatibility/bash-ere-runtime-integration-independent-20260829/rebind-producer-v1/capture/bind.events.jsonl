@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:30:58.479Z","event":"owner-start","mode":"bind","pid":10336}
+{"at":"2026-08-29T12:30:58.490Z","event":"capture-open","label":"committed-inputs"}
+{"at":"2026-08-29T12:30:58.496Z","event":"enrolled","label":"committed-inputs","pid":10339,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","cat-file","--batch"]}
+{"at":"2026-08-29T12:30:58.546Z","event":"exit","label":"committed-inputs","pid":10339,"code":0,"signal":null}
+{"at":"2026-08-29T12:30:58.554Z","event":"close","label":"committed-inputs","pid":10339,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:30:58.557Z","event":"capture-closed","label":"committed-inputs"}
+{"at":"2026-08-29T12:30:58.561Z","event":"owner-complete","mode":"bind","pid":10336,"code":0}

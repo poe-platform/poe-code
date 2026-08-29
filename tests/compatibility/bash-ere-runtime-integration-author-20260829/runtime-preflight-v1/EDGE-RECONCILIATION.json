@@ -1,0 +1,136 @@
+{
+  "acceptedCommit": "dcc9e5e7",
+  "acceptedCount": 30,
+  "ourImportScan": 33,
+  "relativeImports": 29,
+  "builtinImports": 4,
+  "additionalStaticWorkerUrl": {
+    "from": "dist/commands/regex-execution/ere/transport/owner.js",
+    "to": "dist/commands/regex-execution/ere/transport/worker-entry.js"
+  },
+  "reconciledExactSet": [
+    {
+      "from": "dist/commands/regex-execution/ere/limits.js",
+      "to": "dist/commands/regex-execution/ere/errors.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/matcher.js",
+      "to": "dist/commands/regex-execution/ere/limits.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/matcher.js",
+      "to": "dist/commands/regex-execution/ere/syntax.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/syntax.js",
+      "to": "dist/commands/regex-execution/ere/errors.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/syntax.js",
+      "to": "dist/commands/regex-execution/ere/limits.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/accounting.js",
+      "to": "dist/commands/regex-execution/ere/limits.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/accounting.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/owner.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/owner.js",
+      "to": "dist/commands/regex-execution/ere/transport/validation.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/owner.js",
+      "to": "dist/commands/regex-execution/ere/transport/worker-entry.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/root.js",
+      "to": "dist/commands/regex-execution/ere/errors.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/root.js",
+      "to": "dist/commands/regex-execution/ere/transport/accounting.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/root.js",
+      "to": "dist/commands/regex-execution/ere/transport/owner.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/root.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/root.js",
+      "to": "dist/commands/regex-execution/ere/transport/validation.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/validation.js",
+      "to": "dist/commands/regex-execution/ere/errors.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/validation.js",
+      "to": "dist/commands/regex-execution/ere/limits.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/validation.js",
+      "to": "dist/commands/regex-execution/ere/transport/accounting.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/validation.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/limits.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/syntax.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/matcher.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/errors.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/transport/accounting.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/wire-engine.js",
+      "to": "dist/commands/regex-execution/ere/transport/validation.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "to": "dist/commands/regex-execution/ere/transport/protocol.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "to": "dist/commands/regex-execution/ere/transport/validation.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "to": "dist/commands/regex-execution/ere/transport/wire-engine.js"
+    },
+    {
+      "from": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "to": "dist/commands/regex-execution/ere/transport/accounting.js"
+    }
+  ],
+  "extraRelativeEdges": [],
+  "ownerSha256": "34f37f35f394aca9337ed8bb895604dc2cc32aa218fe67263b65e7fbbb8f7951",
+  "qualification": "Exact SOURCE/DATA domain reconciliation:29 relative imports+1 static Worker URL=accepted30; four builtin imports are separately inventoried. Zero nested runtime load proof."
+}

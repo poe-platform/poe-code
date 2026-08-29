@@ -1,0 +1,3 @@
+{"pid":15891,"at":"2026-08-29T11:27:36.162Z","role":"SOURCE-DATA-only"}
+{"path":"src/shell/conditional.ts","size":8890,"mode":420,"sha256":"47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0"}
+{"path":"src/shell/parser.ts","size":42620,"mode":420,"sha256":"5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"}

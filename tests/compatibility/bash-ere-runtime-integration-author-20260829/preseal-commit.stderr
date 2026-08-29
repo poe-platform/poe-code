@@ -1,0 +1,13 @@
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/PRESEAL.md' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/BINDINGS.json' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/CASEMAP.json' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/compile.mjs' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/compile-v2.mjs' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/positive.mts' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/negative.mts' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/bind.mjs' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/inspect.mjs' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/seal.outer.jsonl' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/v2-seal.outer.jsonl' did not match any file(s) known to git
+error: pathspec 'tests/compatibility/bash-ere-runtime-integration-author-20260829/helper-v2-preparation.jsonl' did not match any file(s) known to git

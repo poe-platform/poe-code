@@ -1,0 +1,15 @@
+[main e013f817f] feat(shell): prepare private ERE integration source and type seal
+ 17 files changed, 8212 insertions(+), 14 deletions(-)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/BINDINGS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/CASEMAP.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/bind.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/compile-v2.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/compile.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/helper-v2-preparation.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/inspect.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/negative.mts
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/positive.mts
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/seal.outer.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/v2-seal.outer.jsonl

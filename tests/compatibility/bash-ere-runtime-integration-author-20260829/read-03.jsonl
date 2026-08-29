@@ -1,0 +1,3 @@
+{"pid":14356,"at":"2026-08-29T11:26:09.508Z","role":"SOURCE-DATA-only"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/error-control-flow/HANDOFF.md","size":16102,"mode":420,"sha256":"70259fc476fe5f2369569c4fc74b6dbf2bd34e6dbb3947be9dd6e22f48002621"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/CORE-SOURCE.json.data","size":230044,"mode":384,"sha256":"12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"}

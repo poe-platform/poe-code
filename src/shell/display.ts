@@ -4,7 +4,7 @@ const spelling = (word: Word): string => word.spelling ?? word.plain ?? "''";
 
 function scriptText(script: Script, indent: string): string {
   return script.lists.map(list => list.pipelines.map((pipeline, index) =>
-    `${index ? `${list.operators[index - 1]} ` : ""}${pipeline.negate ? "! " : ""}${pipeline.commands.map(command => commandText(command, indent)).join(" | ")}`,
+    `${index ? `${list.operators[index - 1]} ` : ""}${pipeline.negate ? "! " : ""}${pipeline.commands.map((command, commandIndex) => `${commandIndex ? pipeline.commands[commandIndex - 1]!.redirects.some(redirect => redirect.implicitPipeline) ? " |& " : " | " : ""}${commandText(command, indent)}`).join("")}`,
   ).join(" ")).join(`;\n${indent}`);
 }
 
@@ -27,6 +27,7 @@ function commandText(command: Command, indent: string): string {
     case "case": text = `case ${spelling(command.subject)} in\n${command.clauses.map(clause => `${nested}${clause.patterns.map(spelling).join(" | ")})\n${nested}    ${scriptText(clause.body, `${nested}    `)}\n${nested}${clause.terminator === "esac" ? "" : clause.terminator}`).join("\n")}\n${indent}esac`; break;
   }
   for (const redirect of command.redirects) {
+    if (redirect.implicitPipeline) continue;
     const defaultDescriptor = redirect.operator.startsWith("<") ? 0 : 1;
     text += ` ${redirect.descriptor === defaultDescriptor ? "" : redirect.descriptor}${redirect.operator} ${spelling(redirect.target)}${redirect.move ? "-" : ""}`;
     if (redirect.document) text += `\n${redirect.document.body}${redirect.document.delimiter}\n`;

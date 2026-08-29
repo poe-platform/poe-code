@@ -49,6 +49,7 @@ export interface Redirect {
   readonly move?: boolean;
   readonly document?: HereDocument;
   readonly line?: number;
+  readonly implicitPipeline?: boolean;
 }
 
 export interface CaseClause {
@@ -148,9 +149,9 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = /^(?:;;&|<<<|<<-|;&|&&|\|\||>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (["&", "&>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+      if (["&", "&>>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
       if (operator === "\n") this.readDocuments();
@@ -574,8 +575,12 @@ class Parser {
     const negate = this.is("!");
     if (negate) this.advance();
     const commands = [this.command()];
-    while (this.is("|")) {
-      this.advance();
+    while (this.is("|") || this.is("|&")) {
+      const operator = this.advance();
+      if (operator.value === "|&") commands.at(-1)!.redirects.push({
+        descriptor: 2, operator: ">&", implicitPipeline: true,
+        target: { offset: operator.offset, plain: "1", spelling: "1", parts: [{ kind: "text", value: "1", quoted: false }] },
+      });
       this.newlines();
       commands.push(this.command());
     }
@@ -742,7 +747,7 @@ class Parser {
       const next = this.peek();
       if (/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
     }
-    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
+    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\||&>)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
     const operator = this.advance().value;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");

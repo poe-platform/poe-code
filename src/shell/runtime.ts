@@ -1744,6 +1744,10 @@ export class Runtime {
             });
           } }, this.signal);
           descriptors.set(redirect.descriptor, { output });
+          if (redirect.operator === "&>") {
+            replaced.add(2);
+            descriptors.set(2, { output });
+          }
         }
       }
     } } catch (error) {

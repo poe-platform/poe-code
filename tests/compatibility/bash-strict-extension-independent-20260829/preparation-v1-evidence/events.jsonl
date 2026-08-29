@@ -1,0 +1,58 @@
+{"event":"before-spawn","label":"root","args":["rev-parse","--show-toplevel"],"at":1787987433026}
+{"event":"closed","label":"root","pid":42245,"status":0,"signal":null,"errorPresent":false,"at":1787987433061}
+{"event":"before-spawn","label":"status","args":["status","--porcelain=v1","-z"],"at":1787987433061}
+{"event":"closed","label":"status","pid":42246,"status":0,"signal":null,"errorPresent":false,"at":1787987434333}
+{"event":"before-spawn","label":"index","args":["diff","--cached","--raw","-z"],"at":1787987434333}
+{"event":"closed","label":"index","pid":42265,"status":0,"signal":null,"errorPresent":false,"at":1787987434372}
+{"event":"before-spawn","label":"runtime-diff","at":1787987469830}
+{"event":"closed","label":"runtime-diff","pid":43461,"status":0,"signal":null,"errorPresent":false,"at":1787987469881}
+{"event":"before-spawn","label":"selected-source-blobs","at":1787987563565}
+{"event":"closed","label":"selected-source-blobs","pid":47020,"status":0,"signal":null,"errorPresent":false,"at":1787987563608}
+{"event":"tool-expression-parse-failure","reasonPresent":true,"reason":"[26:127-26:128]: The first token after the template expression should be a continuation of the template","children":0,"writes":0,"qualification":"Tool-level parse occurred before evaluation; no complete external raw capture claim for that expression","at":1787987691247}
+{"event":"before-edit-shell","label":"novel-fixture-v1","plannedKnownRoles":2,"editingHelperExtra":1,"at":1787987691247}
+{"event":"edit-shell-closed","label":"novel-fixture-v1","exit":0,"toolChunk":"506d73","at":1787987782589}
+{"event":"data-helper-refusal","reasonPresent":true,"reason":"missing tree witness fdbb9d78316afeeb53523db4302151e791c23634","children":0,"artifactWrites":0,"sourceCandidateChanged":false,"qualification":"Sparse predecessor witnesses do not cover every selected source subtree; retrieve only exact stored missing tree OIDs, never require derived root as stored object. Tool result retained; no product execution.","at":1787987868833}
+{"event":"before-spawn","label":"missing-tree-batch-0","ids":["054017c05ef09463acd41b20e6d336062e92a39c","056792f8e997c7ce6ca225946bda40df1ac5421a","05ae20cad5b40bb8240fe43e6074e3030af889fe","255f2acdbf1cdb1723e80bf50055c221afb4d83f","3d5837b94917df4b8a1d1290a78d25aeb875e671","43f65bbceee5f48e292ffaa4780f0d9447a59872","46a64c03d2f23c040322a46a9db5eaaa2509b06b","4b53dcde4f7668ddad673f6bde6dd06cf56043be","4c8715aa4234a7959c7a92cb6d48c55f8b8eb7b0","5e8ac069bfa6ead7a337130457cd6519f2066e2c","614f17525ac04c9028ff345d45262a99f9ce201e","6ec8075554476709c74eb34b53bf7ed639b785e7","850da5274f3fc2486fc6f270009a36a5245cec76","89f05caec3a6ddf54759cc07c7f4cba94625e859","8b32998383d1372a8624ac41d2e747551e5b6d4c","8eaca87156f26b45ae7d10fa6e8f758863afab11","945acca9e16102e27fa8a15e4b078f1ed9fd531e","a71cef39d747d1c9ad5c76ab09aa63eb7543f9bf","b849635513b21542efb475a689cfbd5f9db17bdf","bb63eb37f4d9af9596b7dc70650bd50ceaf3acb2","c2accc97a51575045b70cfc906c660a4ddd5b1b8","c3387972ad40fbb5dd39333103f124aea2cfb56a","c36032206a8a12054bfbdf36d274ff8297e9d6bc","d0dff7a6a23ebe01acdc5b86e4359712c07ed509","da2cfcbf8a485ed3414523163c4858d27750af2c","dab33c9ecd504c91e066ff63b45084d5ea5ddab7","e5c80eb477963e74d359c704ce0f9853a1975b5a","f2bb7ff0413fda0a3a0b2b20cb14971930606855","f87de2a11bc4b59d0062391da6b1565e01f59181","fa825038fd64db7291006132f584ef7426d0557e","fdbb9d78316afeeb53523db4302151e791c23634"],"at":1787987897911}
+{"event":"closed","label":"missing-tree-batch-0","pid":54767,"status":0,"signal":null,"errorPresent":false,"at":1787987897951}
+{"event":"before-spawn","label":"missing-tree-batch-1","ids":["0644d6e856ceff1163028c84895cf098a6ce94fa","0c620292b0f1676b18227711f2a48b1560f2bb70","4e606ad10340a028d653147af698c21da59bc38b","7b8ead41eebc8382a30bac49b71736820e6b2ea5","94491151be1975f0a9d397b7b9b4844f5b530746","faf8ee9a94d725c24fdbf55f26f7c82c968ea61e"],"at":1787987897960}
+{"event":"closed","label":"missing-tree-batch-1","pid":54768,"status":0,"signal":null,"errorPresent":false,"at":1787987897998}
+{"event":"source-data-error","reasonPresent":true,"reason":"Error: history count\n    at /Users/kjopek/Workspace/.node_repl_cell_17.mjs:6:1874","at":1787987938476}
+{"event":"before-spawn","label":"independent-runner-preseal","editingHelperReserve":1,"at":1787988111470}
+{"event":"closed","label":"independent-runner-preseal","pid":59562,"status":0,"signal":null,"errorPresent":false,"at":1787988111493}
+{"event":"before-spawn","label":"admission-and-preseal-docs","editingHelperReserve":1,"at":1787988201709}
+{"event":"closed","label":"admission-and-preseal-docs","pid":60591,"status":0,"signal":null,"errorPresent":false,"at":1787988201723}
+{"event":"before-spawn","label":"syntax-run.mjs","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/run.mjs"],"at":1787988223483}
+{"event":"closed","label":"syntax-run.mjs","pid":62065,"status":0,"signal":null,"errorPresent":false,"at":1787988223527}
+{"event":"before-spawn","label":"syntax-novel.mjs","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs"],"at":1787988223528}
+{"event":"closed","label":"syntax-novel.mjs","pid":62066,"status":0,"signal":null,"errorPresent":false,"at":1787988223565}
+{"event":"before-spawn","label":"syntax-prepare.mjs","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/prepare.mjs"],"at":1787988223566}
+{"event":"closed","label":"syntax-prepare.mjs","pid":62067,"status":0,"signal":null,"errorPresent":false,"at":1787988223604}
+{"event":"before-spawn","label":"syntax-admission.mjs","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/admission.mjs"],"at":1787988223604}
+{"event":"closed","label":"syntax-admission.mjs","pid":62068,"status":0,"signal":null,"errorPresent":false,"at":1787988223642}
+{"event":"before-spawn","label":"syntax-admission-controls.mjs","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/admission-controls.mjs"],"at":1787988223642}
+{"event":"closed","label":"syntax-admission-controls.mjs","pid":62070,"status":0,"signal":null,"errorPresent":false,"at":1787988223683}
+{"event":"before-spawn","label":"source-data-controls","args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/admission-controls.mjs"],"at":1787988223683}
+{"event":"closed","label":"source-data-controls","pid":62071,"status":0,"signal":null,"errorPresent":false,"at":1787988223770}
+{"event":"before-spawn","label":"final-executable-seal","editingHelperReserve":1,"at":1787988281923}
+{"event":"closed","label":"final-executable-seal","pid":63845,"status":0,"signal":null,"errorPresent":false,"at":1787988281942}
+{"event":"before-spawn","label":"shell-exec-boundary","at":1787988303869}
+{"event":"closed","label":"shell-exec-boundary","pid":64130,"status":0,"signal":null,"errorPresent":false,"at":1787988303906}
+{"event":"before-spawn","label":"novel-same-invocation-v2","editingHelperReserve":1,"at":1787988368285}
+{"event":"closed","label":"novel-same-invocation-v2","pid":65933,"status":0,"signal":null,"errorPresent":false,"at":1787988368309}
+{"event":"before-spawn","label":"syntax-final-novel","at":1787988401736}
+{"event":"closed","label":"syntax-final-novel","pid":66785,"status":0,"signal":null,"errorPresent":false,"at":1787988401774}
+{"event":"before-spawn","label":"syntax-final-runner","at":1787988401774}
+{"event":"closed","label":"syntax-final-runner","pid":66786,"status":0,"signal":null,"errorPresent":false,"at":1787988401813}
+{"event":"before-spawn","label":"diff-check","at":1787988401813}
+{"event":"closed","label":"diff-check","pid":66788,"status":0,"signal":null,"errorPresent":false,"at":1787988401853}
+{"event":"before-spawn","label":"index-before","at":1787988401854}
+{"event":"closed","label":"index-before","pid":66790,"status":0,"signal":null,"errorPresent":false,"at":1787988401905}
+{"event":"ordinary-helper-refusal-disposition","reason":"Previous predicate required empty foreign staging. Root requires preserving foreign staging, not empty index. Explicit owned-only commit preserves it; no foreign edit or reset.","at":1787988580104}
+{"event":"before-spawn","label":"foreign-index-preserved-before","args":["diff","--cached","--raw","-z","--",".",":(exclude)tests/compatibility/bash-strict-extension-independent-20260829"],"at":1787988580104}
+{"event":"closed","label":"foreign-index-preserved-before","pid":72746,"status":0,"signal":null,"errorPresent":false,"at":1787988580185}
+{"event":"before-spawn","label":"stage-owned","args":["add","--","tests/compatibility/bash-strict-extension-independent-20260829"],"at":1787988580186}
+{"event":"closed","label":"stage-owned","pid":72747,"status":0,"signal":null,"errorPresent":false,"at":1787988580295}
+{"event":"before-spawn","label":"commit-preseal","args":["commit","--only","-m","test: seal independent strict extension review and fixtures","--","tests/compatibility/bash-strict-extension-independent-20260829"],"at":1787988580295}
+{"event":"closed","label":"commit-preseal","pid":72752,"status":0,"signal":null,"errorPresent":false,"at":1787988580564}
+{"event":"before-spawn","label":"foreign-index-preserved-after","args":["diff","--cached","--raw","-z","--",".",":(exclude)tests/compatibility/bash-strict-extension-independent-20260829"],"at":1787988580565}
+{"event":"closed","label":"foreign-index-preserved-after","pid":72759,"status":0,"signal":null,"errorPresent":false,"at":1787988580617}

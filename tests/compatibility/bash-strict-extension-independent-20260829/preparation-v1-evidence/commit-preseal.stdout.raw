@@ -1,0 +1,21 @@
+[main b4b1f490b217dadfe01b215d9295fc0c89ed1ce1] test: seal independent strict extension review and fixtures
+ 19 files changed, 19713 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/EXECUTION-SEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/NOVEL-V2-CORRECTION.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/README.md
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/RUNNER-RECIPE.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/SOURCE-REVIEW.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/SOURCE-TREES.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/SOURCE.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/TOOLS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/TYPE-EXPECTATIONS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/admission-controls.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/admission.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/internal-loader-arguments.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/launch.py
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/novel-v1.unrun.mjs.data
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/prepare.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/run.mjs

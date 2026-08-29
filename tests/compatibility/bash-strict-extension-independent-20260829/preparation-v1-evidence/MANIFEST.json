@@ -1,0 +1,186 @@
+{
+  "source": "/private/tmp/strict-extension-independent-prep-3vmDXP",
+  "rows": [
+    {
+      "path": "COMMIT.json",
+      "bytes": 2218,
+      "sha256": "74e62894540a3b84c1bd72697139661fe1785118444fe3503150720378a65e86"
+    },
+    {
+      "path": "FETCHED-TREES.data.json",
+      "bytes": 14655,
+      "sha256": "90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274"
+    },
+    {
+      "path": "START.json",
+      "bytes": 124,
+      "sha256": "5cd01d5ef72d69e033b7b9622034da348fae58d1b86988f6b3955a36f982738e"
+    },
+    {
+      "path": "commit-preseal.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commit-preseal.stdout.raw",
+      "bytes": 2039,
+      "sha256": "8f4af683fed59c59fadd8be4c7c1ea04bae3aafe0510ebfa015a0131e7501c58"
+    },
+    {
+      "path": "events.jsonl",
+      "bytes": 9674,
+      "sha256": "1adafbb65714125a8d086b303100d641904a9303578c5a647b44d1d100c44f7c"
+    },
+    {
+      "path": "foreign-index-preserved-after.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "foreign-index-preserved-after.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "foreign-index-preserved-before.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "foreign-index-preserved-before.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "index.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "missing-tree-0.raw",
+      "bytes": 8819,
+      "sha256": "692e7d3473c1c17363cd4bd5e689fd047ffa0a27eac6b32414da3b1ac2a2ada7"
+    },
+    {
+      "path": "missing-tree-1.raw",
+      "bytes": 1490,
+      "sha256": "ac797e7b3f7918ff0f09bbdd75d7ffac179e84b6976b6876cd6783b4c1de32fa"
+    },
+    {
+      "path": "novel-edit.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "novel-edit.stdout.raw",
+      "bytes": 147,
+      "sha256": "178d2f0836387e276bd6a22c750ca2ce9e73529eb7dc2285daa17d19d471b6b2"
+    },
+    {
+      "path": "root.data",
+      "bytes": 34,
+      "sha256": "da6b983dbf43baf78936b559419a4ec3779fea6f23713729dd82978c79763da6"
+    },
+    {
+      "path": "runtime-diff.data",
+      "bytes": 9855,
+      "sha256": "aa22085d1a87f77507c531b2a70ace6e4fb6da7a4cc841dcd22bf812f0a952f0"
+    },
+    {
+      "path": "selected-source-blobs.raw",
+      "bytes": 212910,
+      "sha256": "3aac93356195bc2a6cb54bbd3dbb2b1c32a142e80103933c658dad4a8e36b8b1"
+    },
+    {
+      "path": "shell-exec-boundary.data",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "source-data-controls.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-data-controls.stdout.raw",
+      "bytes": 312,
+      "sha256": "b80d4d6fc7dffedfba53f364e62c340fe448873427325aec42e2fb8dc66980d2"
+    },
+    {
+      "path": "stage-owned.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "stage-owned.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "status.data",
+      "bytes": 68539,
+      "sha256": "4ab845e3eecf6e5ca192d8db580eaaab6a16b02cbdeb914bd1d8ffcc5008271d"
+    },
+    {
+      "path": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "stdout.raw",
+      "bytes": 81403,
+      "sha256": "68f24bb4f8c0b2a436838467987ae9e370d31107b5a708de6d1d4c3158ea7777"
+    },
+    {
+      "path": "syntax-admission-controls.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-admission-controls.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-admission.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-admission.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-novel.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-novel.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-prepare.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-prepare.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-run.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-run.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "qualification": "No instruction source read was captured. Initial expression parse and first inline sparse-tree refusal are tool-transcript-only; all child journals are retained, no claim of complete external capture for those two tool-level failures."
+}

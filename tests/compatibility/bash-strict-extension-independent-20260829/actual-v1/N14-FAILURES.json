@@ -1,0 +1,88 @@
+{
+  "frozenFixture": "tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs",
+  "sha256": "2019f537a7af54530c3ae23cfa6c395fc5426f5eda9f3d097eebcafd66e4a6d1",
+  "noRerun": true,
+  "rows": [
+    {
+      "layout": "source-novel",
+      "case": {
+        "id": "N14-zero-sink-held-cleanup",
+        "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+        "pass": false,
+        "events": [
+          "registered",
+          "diagnostic",
+          "cleanup-enter",
+          "release",
+          "cleanup-finished",
+          "diagnostic",
+          "settled"
+        ],
+        "kind": "throw",
+        "exactZero": false,
+        "cleaned": 1,
+        "writes": 2,
+        "reasonPresent": true,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:31:1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false,
+        "cleanupReasons": []
+      }
+    },
+    {
+      "layout": "installed-novel",
+      "case": {
+        "id": "N14-zero-sink-held-cleanup",
+        "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+        "pass": false,
+        "events": [
+          "registered",
+          "diagnostic",
+          "cleanup-enter",
+          "release",
+          "cleanup-finished",
+          "diagnostic",
+          "settled"
+        ],
+        "kind": "throw",
+        "exactZero": false,
+        "cleaned": 1,
+        "writes": 2,
+        "reasonPresent": true,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:31:1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false,
+        "cleanupReasons": []
+      }
+    },
+    {
+      "layout": "moved-novel",
+      "case": {
+        "id": "N14-zero-sink-held-cleanup",
+        "role": "INDEPENDENT_RATIFIED_PRODUCT_PROFILE_NOT_NATIVE",
+        "pass": false,
+        "events": [
+          "registered",
+          "diagnostic",
+          "cleanup-enter",
+          "release",
+          "cleanup-finished",
+          "diagnostic",
+          "settled"
+        ],
+        "kind": "throw",
+        "exactZero": false,
+        "cleaned": 1,
+        "writes": 2,
+        "reasonPresent": true,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:31:1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false,
+        "cleanupReasons": []
+      }
+    }
+  ]
+}

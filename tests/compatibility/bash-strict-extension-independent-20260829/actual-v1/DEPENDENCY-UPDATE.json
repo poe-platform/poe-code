@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-29",
+  "authority": "ROOT dependency update received after actual review completed",
+  "source": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "derived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "evidence": [
+    "d7ec5e26",
+    "cccd876f6615020a083adf7ee8c51befa553c2ba"
+  ],
+  "status": "QUALIFIED_ACCEPTED_DEPENDENCY",
+  "sourceChanged": false,
+  "currentExtensionCandidateUnchanged": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "capturedAtLaunch": "PROVISIONAL",
+  "qualification": "840 version-qualified outcomes are inherited acceptance, not rerun here; unsupported regex/extglob/aggregate-v and native GNU-unrun qualifications remain. No extension failure rescored."
+}

@@ -1,0 +1,59 @@
+{
+  "startedAt": 1787988875878,
+  "source": [
+    {
+      "root": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source",
+      "inputs": 293,
+      "allMatch": true
+    }
+  ],
+  "packages": [
+    {
+      "root": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved package/node_modules/virtual-bash",
+      "files": 954,
+      "allMatch": true
+    }
+  ],
+  "tools": [
+    {
+      "name": "typescript",
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "rows": 132,
+      "allMatch": true
+    },
+    {
+      "name": "@types/node",
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "rows": 74,
+      "allMatch": true
+    },
+    {
+      "name": "undici-types",
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "rows": 41,
+      "allMatch": true
+    },
+    {
+      "name": "npm",
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "rows": 2039,
+      "allMatch": true
+    }
+  ],
+  "executor": [
+    {
+      "files": 109,
+      "allMatch": true
+    }
+  ],
+  "capture": [
+    {
+      "files": 180,
+      "copiedBytesEqual": true
+    }
+  ],
+  "instructionFiles": [],
+  "errors": [],
+  "finishedAt": 1787988877029,
+  "qualification": "Actual selected retained-source/package/tool/executor/capture file equality. No whole workspace/private/globalOS attestation; roots retained, no deletion."
+}

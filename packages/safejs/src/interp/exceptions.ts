@@ -67,6 +67,7 @@ type PatternBindingResult<TError> =
 
 type CapturedException = {
   readonly reason: unknown;
+  readonly sandbox: boolean;
   readonly stackFrames: readonly string[];
   readonly [capturedExceptionBrand]: true;
 };
@@ -156,10 +157,12 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
 
 export function createCapturedException(
   reason: unknown,
-  stackFrames: readonly string[]
+  stackFrames: readonly string[],
+  sandbox = false
 ): CapturedException {
   return {
     reason,
+    sandbox,
     stackFrames,
     [capturedExceptionBrand]: true
   };
@@ -173,7 +176,8 @@ export function coerceThrownValue(
   reason: unknown,
   budget: Budget,
   stackFrames: readonly string[],
-  span?: ErrorSourceSpan
+  span?: ErrorSourceSpan,
+  sandbox = false
 ): SandboxValue {
   if (isSubsetErrorValue(reason)) {
     attachErrorSpan(reason, readErrorSpan(reason) ?? span);
@@ -186,6 +190,10 @@ export function coerceThrownValue(
       cause: readErrorCause(reason),
       span
     });
+  }
+
+  if (sandbox) {
+    return reason as SandboxValue;
   }
 
   if (isErrorLikeValue(reason)) {

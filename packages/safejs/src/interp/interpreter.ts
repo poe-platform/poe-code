@@ -444,8 +444,8 @@ async function evaluateNode(
     }
 
     const exception = isCapturedException(error)
-      ? coerceThrownValue(error.reason, context.budget, error.stackFrames, node.span)
-      : coerceThrownValue(error, context.budget, context.callStack, node.span);
+      ? coerceThrownValue(error.reason, context.budget, error.stackFrames, node.span, error.sandbox)
+      : coerceThrownValue(error, context.budget, context.callStack, node.span, true);
 
     return {
       kind: "throw",
@@ -2762,7 +2762,7 @@ async function evaluateStringMethodCall(
       throw error;
     }
 
-    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)], true);
   } finally {
     leaveCall();
   }
@@ -2798,7 +2798,7 @@ async function evaluateArrayMethodCall(
       throw error;
     }
 
-    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)], true);
   } finally {
     leaveCall();
   }
@@ -2832,7 +2832,7 @@ async function evaluateMapMethodCall(
     if (isFatalSandboxError(error)) {
       throw error;
     }
-    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)], true);
   } finally {
     leaveCall();
   }
@@ -2866,7 +2866,7 @@ async function evaluateSetMethodCall(
     if (isFatalSandboxError(error)) {
       throw error;
     }
-    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)], true);
   } finally {
     leaveCall();
   }
@@ -3379,7 +3379,7 @@ async function evaluateNumberMethodCall(
       throw error;
     }
 
-    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)], true);
   }
 }
 
@@ -3443,14 +3443,17 @@ async function invokeSandboxClosure(
     }
 
     return !construct && callee.async === true
-      ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)
-      : await wrapHostResult(result, stack);
+      ? normalizeClosureResult(
+          wrapHostResult(result, stack, callee.sandbox === true),
+          context.budget
+        )
+      : await wrapHostResult(result, stack, callee.sandbox === true);
   } catch (error) {
     if (isFatalSandboxError(error)) {
       throw error;
     }
 
-    throw captureException(error, stack);
+    throw captureException(error, stack, callee.sandbox === true);
   } finally {
     leaveCall();
   }
@@ -3629,7 +3632,8 @@ function hasOwnProperty<Name extends PropertyKey>(
 
 function wrapHostResult(
   result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>,
-  stack: readonly string[]
+  stack: readonly string[],
+  sandbox: boolean
 ): InterpreterValue | Promise<InterpreterValue> {
   if (!isPromiseLikeResult(result)) {
     return result;
@@ -3641,13 +3645,13 @@ function wrapHostResult(
       Promise.reject(
         isInterpreterError(reason) || reason instanceof SandboxError || isCapturedException(reason)
           ? reason
-          : createCapturedException(reason, stack)
+          : createCapturedException(reason, stack, sandbox)
       )
   );
 }
 
-function captureException(error: unknown, stack: readonly string[]) {
-  return isCapturedException(error) ? error : createCapturedException(error, stack);
+function captureException(error: unknown, stack: readonly string[], sandbox: boolean) {
+  return isCapturedException(error) ? error : createCapturedException(error, stack, sandbox);
 }
 
 function isFatalSandboxError(error: unknown): error is SandboxError {

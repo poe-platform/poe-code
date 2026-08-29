@@ -1,0 +1,131 @@
+{
+  "schema": "bash-redirection-n11-v3-execution-seal",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "originalGlobalStart": 1787977926793,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 2790,
+      "mode": 420,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 11442,
+      "mode": 420,
+      "sha256": "561918fa962f3e1d6d055deb741eb0910a89d5c4a9583b8d49bd04cdbf85636a"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 3774,
+      "mode": 420,
+      "sha256": "e628aac39b89bfb9d5f6cedfbff915963c089c8928afb8393ec349316a0e5506"
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 1861,
+      "mode": 420,
+      "sha256": "961dd510c3ef5ecfa9675c5d23e7031e5d4c0cbd011ab00e377147f847b3d1a8"
+    },
+    {
+      "path": "REUSE.json",
+      "bytes": 836,
+      "mode": 420,
+      "sha256": "d7e9657b404306aef7814c9182edd352e5345c762484192d72267d1a801e762f"
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 222390,
+      "mode": 420,
+      "sha256": "d181f7d3b5acfcb5521dd5cc26be0aa4f2ac15b3fed1df4b8c729f25b5e34b17"
+    },
+    {
+      "path": "TOOL-CENSUS.json",
+      "bytes": 558347,
+      "mode": 420,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791"
+    },
+    {
+      "path": "close-observer.mjs",
+      "bytes": 957,
+      "mode": 420,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "path": "consumer.mjs",
+      "bytes": 1484,
+      "mode": 420,
+      "sha256": "6be8a1ad0e7718fcaef5b2e4ebaced9a9ef2b41e0145e268a98927d5b7410325"
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "mode": 420,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "mode": 420,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 5035,
+      "mode": 420,
+      "sha256": "c01efe9a312eb2d0471cc9c588c44d6f524bb3694d8f1ce6e3a7c0fab00a132c"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "mode": 420,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 1484,
+      "mode": 420,
+      "sha256": "6be8a1ad0e7718fcaef5b2e4ebaced9a9ef2b41e0145e268a98927d5b7410325"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 597,
+      "mode": 420,
+      "sha256": "f0f29708352a2426d806dc67118495c12175ea421c8619cfa3a0b113d5e59a8a"
+    },
+    {
+      "path": "redirections-v2.mjs",
+      "bytes": 9508,
+      "mode": 420,
+      "sha256": "b7a74ff38df3a587545c2d28b6ac9adfd6baab9938e54eebdde7e1b3eb094148"
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "mode": 420,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 25835,
+      "mode": 420,
+      "sha256": "b5e5e48109990e2dd21585866e5478de51a43b1cb3323600c4da3fdd1a32e350"
+    },
+    {
+      "path": "tool-closure.mjs",
+      "bytes": 1367,
+      "mode": 420,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d"
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    }
+  ]
+}

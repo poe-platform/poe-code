@@ -1,0 +1,59 @@
+{
+  "files": [
+    {
+      "name": "CAPTURE-MANIFEST.json",
+      "bytes": 24640,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "HANDOFF.md",
+      "bytes": 5049,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "OBSERVATIONS.json",
+      "bytes": 79780,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "PREFLIGHT.json",
+      "bytes": 65715,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "PROTOCOL.md",
+      "bytes": 1620,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "SEAL.json",
+      "bytes": 67586,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "captured",
+      "bytes": 1888,
+      "regular": false,
+      "mode": 448
+    },
+    {
+      "name": "observe.mjs",
+      "bytes": 13675,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "raw",
+      "bytes": 448,
+      "regular": false,
+      "mode": 448
+    }
+  ],
+  "capture": "/tmp/native26-actual-audit-inspect-Esb8G4"
+}

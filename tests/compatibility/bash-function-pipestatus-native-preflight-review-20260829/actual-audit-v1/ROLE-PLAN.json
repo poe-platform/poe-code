@@ -1,0 +1,48 @@
+{
+  "start": "2026-08-29T13:31:06.270Z",
+  "deadline": "2026-08-29T13:46:06.270Z",
+  "limits": {
+    "knownOS": 32,
+    "peak": 3,
+    "capture": 50331648,
+    "work": 201326592
+  },
+  "planned": [
+    {
+      "role": "apply_patch bootstrap and implementation",
+      "count": 2
+    },
+    {
+      "role": "inspect owner and committed handoff Git",
+      "count": 2
+    },
+    {
+      "role": "bounded metadata reader",
+      "count": 1
+    },
+    {
+      "role": "prepare owner and syntax helper",
+      "count": 2
+    },
+    {
+      "role": "seal owner Git add/commit",
+      "count": 3
+    },
+    {
+      "role": "audit owner + PURE DATA helper",
+      "count": 2
+    },
+    {
+      "role": "publication owner Git add/commit/status",
+      "count": 4
+    }
+  ],
+  "plannedKnown": 16,
+  "reserve": 16,
+  "PUREAuditHelpers": 1,
+  "controls": 8,
+  "expectedPeak": 2,
+  "Bash": 0,
+  "Workers": 0,
+  "oldPIDProbes": 0
+}

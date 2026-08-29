@@ -687,7 +687,19 @@ interface InvokeOutcomeRecord {
 /** Internal to the shell/runtime pair; it is not exported by the package root. */
 export class RuntimeCancellationState {
   readonly #records = new Set<InvokeOutcomeRecord>();
+  #diagnostics = new WeakMap<object, NounsetDiagnosticFailure>();
   #closed = false;
+
+  recordDiagnostic(promise: Promise<CommandResult>, failure: NounsetDiagnosticFailure): void {
+    if (!this.#closed) this.#diagnostics.set(promise, failure);
+  }
+
+  consumeDiagnostic(rawReturn: unknown): NounsetDiagnosticFailure | undefined {
+    if (rawReturn === null || typeof rawReturn !== "object" && typeof rawReturn !== "function") return undefined;
+    const failure = this.#diagnostics.get(rawReturn);
+    this.#diagnostics.delete(rawReturn);
+    return failure;
+  }
 
   bind(promise: Promise<CommandResult>, boundary: CancellationBoundary): InvokeOutcomeRecord {
     if (this.#closed) throw new Error("Cancellation outcome admission is closed");
@@ -725,6 +737,7 @@ export class RuntimeCancellationState {
     this.#closed = true;
     for (const record of this.#records) record.consumed = true;
     this.#records.clear();
+    this.#diagnostics = new WeakMap();
   }
 }
 
@@ -911,6 +924,8 @@ export class Runtime {
         const report = this.cancellationState.consume(raw, reason);
         if (report) frame.report = report;
         else if (raw !== downstream()) frame.report = undefined;
+        const diagnostic = this.cancellationState.consumeDiagnostic(raw);
+        if (diagnostic) throw diagnostic;
         throw reason;
       },
     );
@@ -971,13 +986,7 @@ export class Runtime {
         frame,
       );
       let captured: CapturedCancellationOutcome<CommandResult>;
-      const executeChild = async (): Promise<CommandResult> => {
-        try { return await execute(runtime, scope); }
-        catch (error) {
-          if (error instanceof NounsetDiagnosticFailure) throw error.reason;
-          throw error;
-        }
-      };
+      const executeChild = (): Promise<CommandResult> => execute(runtime, scope);
       if (owner) captured = await owner.capture(executeChild, frame);
       else {
         try { captured = { kind: "return", value: await executeChild() }; }
@@ -996,7 +1005,14 @@ export class Runtime {
         scope.failures.push(...close.failures);
         selection = selectRuntimeCancellationOutcome(boundary, captured);
       }
-      if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+      if (selection.outcome.kind === "throw") {
+        const reason = selection.outcome.reason;
+        if (reason instanceof NounsetDiagnosticFailure) {
+          this.cancellationState.recordDiagnostic(publicPromise, reason);
+          throw reason.reason;
+        }
+        throw reason;
+      }
       return selection.outcome.value;
     });
     return publicPromise;

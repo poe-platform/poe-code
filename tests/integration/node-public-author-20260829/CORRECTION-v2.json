@@ -1,0 +1,44 @@
+{
+  "schema": "ordinary-captured-harness-correction-v2",
+  "previousStatus": "FAILED_OR_INCOMPLETE",
+  "previousRoot": "actual-v1",
+  "previousResult": "/private/tmp/node-public-author-active-itphhK/node-public-author-9yMer3/RESULT.json",
+  "previousChildren": 1,
+  "previousProductBuilds": 0,
+  "previousWorkers": 0,
+  "previousGroupAbsent": true,
+  "correction": "Read exact immutable inherited toolBindings values from authenticated strict SOURCE authority; no product/source/permissions change.",
+  "oldRunSha256": "d66de3947fddda9b258da308cb493cac93035e5949fa565358b2474fdf6b789f",
+  "newRunSha256": "1964d62b1853db6158d9f73d1aea3a3e310c5618114765fa9178a5752b5b6dc0",
+  "launcherSha256": "5c0a949e60348fae4da3a6c85b124f2a92b6356d07b441406c3d92d59e275fab",
+  "executorSha256": "863ee59f54ec9896b2214ec9fe98ab5fd37df5d0420209534b5e32a51f89314a",
+  "sourceSha256": "8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949",
+  "toolBindings": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "grant": "ROOT ordinary captured/retired helper correction within same60min/160process/192Worker grant; no budget reset"
+}

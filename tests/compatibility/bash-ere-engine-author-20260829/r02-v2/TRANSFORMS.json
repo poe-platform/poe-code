@@ -1,0 +1,119 @@
+{
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/SEAL.json",
+      "size": 61914,
+      "mode": 420,
+      "sha256": "20ce8940d07d2c032e4d61d321fbdee68e9e5fb6e1b5a4ca96dbc77de88097d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/runner.mjs",
+      "size": 14319,
+      "mode": 420,
+      "sha256": "d8747bb76e6f90bb636f288c17dbd7183dd308f8cd1c41ff9a2ee99679b9ab5b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs",
+      "size": 6422,
+      "mode": 420,
+      "sha256": "87644ddc1086a05e5106528e268814dbe4c2ac995739864e3a0c4cb959b70cc6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/INSPECTION.json",
+      "size": 711,
+      "mode": 420,
+      "sha256": "26f44e3ebd10e385076d85c8f456b3121f85a8b98fdb247921f8a3fd798b93bf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/extra-cases.mjs.txt",
+      "size": 2781,
+      "mode": 420,
+      "sha256": "88507a805a8160a2132e641c6186d40f91efb901851c5358a24ac0d7bff7c1a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs",
+      "size": 6724,
+      "mode": 420,
+      "sha256": "fa5dc0a16853775fc50505108db2a22790e55d6c94a234aae0f9bd0144de8023"
+    }
+  ],
+  "transforms": [
+    {
+      "before": "(mode === 'seal' ? 10 : 35)",
+      "after": "(mode === 'seal' ? 10 : 25)",
+      "count": 1
+    },
+    {
+      "before": "128 * 1024 * 1024) { failure",
+      "after": "96 * 1024 * 1024) { failure",
+      "count": 1
+    },
+    {
+      "before": "join(author, 'SEAL-v3.json')",
+      "after": "join(author, 'r02-v1/SEAL.json')",
+      "count": 1
+    },
+    {
+      "before": "join(author, 'ACTUAL-03/work/source'",
+      "after": "join(author, 'r02-v1/ACTUAL-01/work/source'",
+      "count": 1
+    },
+    {
+      "before": "['matcher.ts','syntax.ts'].includes",
+      "after": "['syntax.ts'].includes",
+      "count": 1
+    },
+    {
+      "before": "previous.inputs.find",
+      "after": "previous.fixtures.find",
+      "count": 1
+    },
+    {
+      "before": "join(author, 'ACTUAL-03/RESULT.json')",
+      "after": "join(author, 'r02-v1/ACTUAL-01/RESULT.json')",
+      "count": 1
+    },
+    {
+      "before": "['runner.mjs','checkpoints.mjs','RECIPE.md']",
+      "after": "['runner.mjs','checkpoints.mjs','empty.mjs','RECIPE.md']",
+      "count": 1
+    },
+    {
+      "before": "engineBaseline: 'f97fd06024cb63edfd01873d81d84576a22189db'",
+      "after": "engineBaseline: '0e97500f41be479e4a266037b03230ab5118d300'",
+      "count": 1
+    },
+    {
+      "before": "expectedChildren: 19, caseGroups: { author: 66, targeted: 8, layouts: 3 }, deadlineMs: 2100000",
+      "after": "expectedChildren: 18, caseGroups: { author: 66, priorCheckpoints: 8, empty: 4, layouts: 3 }, deadlineMs: 1500000",
+      "count": 1
+    },
+    {
+      "before": "const script = target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');",
+      "after": "const script = target === 'empty' ? join(own, 'empty.mjs') : target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');",
+      "count": 1
+    },
+    {
+      "before": "await runCases(`${layout}-checkpoints8`,directory,true);",
+      "after": "await runCases(`${layout}-checkpoints8`,directory,true); await runCases(`${layout}-empty4`,directory,'empty');",
+      "count": 1
+    },
+    {
+      "before": "    const mutations = [\n      {id:'M01',name:'matcher',start:'async function historyOrder(',oldStart:'async function historyOrder(',end:'async function preferred(',selection:'C01'},\n      {id:'M02',name:'syntax',start:'    async count()',oldStart:'    count()',end:'    async atom(',selection:'C05'},\n      {id:'M03',name:'syntax',start:'    async set(begin)',oldStart:'    set(begin)',end:'\\n}\\nexport async function compileEre',selection:'C07'},\n    ];\n",
+      "after": "    const mutations = [\n      {id:'M01-empty',name:'syntax',start:'async function flatten(',oldStart:'async function flatten(',end:'\\nclass Parser',selection:'N01-empty-fragment-first-pass'},\n    ];\n",
+      "count": 1
+    },
+    {
+      "before": "runCases(spec.id,emitted,true,spec.selection,spec.name)",
+      "after": "runCases(spec.id,emitted,'empty',spec.selection,spec.name)",
+      "count": 1
+    },
+    {
+      "before": "runCases(`${spec.id}-restore`,emitted,true,spec.selection)",
+      "after": "runCases(`${spec.id}-restore`,emitted,'empty',spec.selection)",
+      "count": 1
+    }
+  ],
+  "N01bodyUnchanged": true,
+  "previousCheckpointBytesUnchanged": true
+}

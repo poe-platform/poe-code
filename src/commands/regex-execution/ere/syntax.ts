@@ -46,6 +46,7 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
   for (const fragment of input) {
     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") throw new TypeError("invalid ERE fragment");
     ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
     ledger.admitInput("patternBytes", fragment.text.length, signal);
     await admitAscii(fragment.text, ledger, signal);
     if (fragment.text.length > ledger.limits.patternBytes - size) ledger.admitInput("patternBytes", ledger.limits.patternBytes + 1, signal);

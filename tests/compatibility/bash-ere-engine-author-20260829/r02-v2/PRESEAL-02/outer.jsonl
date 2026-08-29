@@ -1,0 +1,3 @@
+{"at":"2026-08-29T09:25:18.153Z","elapsed":3,"event":"start","mode":"seal","label":"PRESEAL-02","started":1787995518152,"deadline":1787996118152,"pid":70056,"execPath":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","version":"v22.22.2"}
+{"at":"2026-08-29T09:25:18.394Z","elapsed":242,"event":"sealed","seal":{"path":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/SEAL.json","size":62242,"mode":420,"sha256":"4f6d24661fc75ab4f2bc26836a735f998a88591caf377fddff36f45709799b12"}}
+{"at":"2026-08-29T09:25:18.394Z","elapsed":242,"event":"settled","active":0,"count":0,"peak":0,"captureBytes":0}

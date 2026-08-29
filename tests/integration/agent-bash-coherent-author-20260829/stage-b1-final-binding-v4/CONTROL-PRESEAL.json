@@ -1,0 +1,33 @@
+{
+  "issuedUTC": "2026-08-29T13:44:56.586Z",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/identity.mjs",
+      "bytes": 1562,
+      "sha256": "d038b5ba0109b5b90a90f39a280a3e270cab2dd9cb675ac2b99bdd12619b3e3f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/controls.mjs",
+      "bytes": 1940,
+      "sha256": "11ce60343e1783bdd54aa0dadba46205381c3ac9553337f05088a873f1ae27fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/prepare.mjs",
+      "bytes": 8348,
+      "sha256": "18546fe3f39ba7bbaefead137feac5ea8dfefea8973d2e602a5f4dcb0b720fca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/preseal.mjs",
+      "bytes": 879,
+      "sha256": "07c88265fa4baf648c4b8e779b18fa02fdda403269be86b2a98f64aa2ab26a4a"
+    }
+  ],
+  "helperCount": 1,
+  "groups": [
+    "I01",
+    "I02",
+    "I03",
+    "I04"
+  ],
+  "actualAuthority": false
+}

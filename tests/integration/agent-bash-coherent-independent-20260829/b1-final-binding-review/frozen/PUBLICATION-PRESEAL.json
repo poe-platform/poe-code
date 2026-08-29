@@ -1,0 +1,31 @@
+{
+  "files": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/actual-publication.mjs",
+      "bytes": 10222,
+      "sha256": "743ce1e533a1eecf7d9f851c24b4be6fafba0e7290d50e03a9eb5e4ed150308f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/publication.sh",
+      "bytes": 331,
+      "sha256": "75ab267c2d48dd1f6ef518dd01ff8d7e02175f1bfa1d25ae245b3ea21d4b979c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/controls.mjs",
+      "bytes": 2828,
+      "sha256": "603ce16f9549f2572998e830175197bfb38f75ff4d6aadd50c2bde444cd6461f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/seal.mjs",
+      "bytes": 2766,
+      "sha256": "a6964f441b9fa3b1f30ca0aeec58f5160d6cfc064112553ae64d4fd3b48faa8a"
+    }
+  ],
+  "recipe": "One controls.mjs PURE execution after source commit; P01-P08",
+  "binding": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/BINDING.json",
+    "bytes": 4265,
+    "sha256": "adce87b6432ac4c80b84bdf13a225e1b9b0771a398740866734b70476610c97f"
+  },
+  "noActualAuthority": true
+}

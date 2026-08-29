@@ -1,0 +1,106 @@
+{
+  "schema": "coherent-b1-final-binding-v1",
+  "issuedUTC": "2026-08-29T12:58:33.833Z",
+  "latestStartUTC": "2026-08-29T13:18:33.833Z",
+  "expiresUTC": "2026-08-29T13:48:33.833Z",
+  "preflightFinishedUTC": "2026-08-29T12:58:36.769Z",
+  "reviewReceipt": {
+    "commit": "ebf511e84bdb7d6fb0b11bca05310710c56967b9",
+    "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/RECEIPT.json",
+    "blob": "23680ef5a35b130c50ffd3a2c73d484b63a5ac19",
+    "bytes": 5276,
+    "sha256": "12c8f7e03af23977ccf5015a902fe04956681a26c89f59165409d606fc0578c2"
+  },
+  "sourceCandidate": "bd0f227d081829512bafc2936f0b33632e02890b",
+  "preseal": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "productSourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "actualStageAEmissions": 1012,
+  "tools": 2286,
+  "package": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "workRoot": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2",
+  "captures": [
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr",
+    "/private/tmp/coherent-b1-public15-20260829-r2.publication.stdout",
+    "/private/tmp/coherent-b1-public15-20260829-r2.publication.stderr"
+  ],
+  "guards": "fresh source/tools/links/PUBLIC/preseal/package hashes; no decoding or execution",
+  "actualCalls": 0,
+  "actualAuthorization": false,
+  "publicationFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/actual-publication.mjs",
+      "bytes": 10222,
+      "sha256": "743ce1e533a1eecf7d9f851c24b4be6fafba0e7290d50e03a9eb5e4ed150308f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/publication.sh",
+      "bytes": 331,
+      "sha256": "75ab267c2d48dd1f6ef518dd01ff8d7e02175f1bfa1d25ae245b3ea21d4b979c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/controls.mjs",
+      "bytes": 2828,
+      "sha256": "603ce16f9549f2572998e830175197bfb38f75ff4d6aadd50c2bde444cd6461f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/seal.mjs",
+      "bytes": 2766,
+      "sha256": "a6964f441b9fa3b1f30ca0aeec58f5160d6cfc064112553ae64d4fd3b48faa8a"
+    }
+  ],
+  "command": "B1_ROOT_GO=ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json 007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc 17692",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "timestampEnforcement": "External ROOT/coordinator; sealed candidate unchanged. Publication additionally checks earliest absolute/inclusive deadline.",
+  "prospective": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "controlRecipe": "One PURE DATA Node helper; P01-P08; zero product/engine/child/Worker/native activation",
+  "actualAuthority": "PENDING independent final-binding acceptance and fresh ROOT ACTUAL message"
+}

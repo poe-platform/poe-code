@@ -24,6 +24,10 @@ export function getFunctionMember(
     return propertyValue;
   }
 
+  if (property === "length") {
+    return target.length;
+  }
+
   if (!isFunctionMethodName(property)) {
     return undefined;
   }
@@ -54,6 +58,8 @@ function callFunctionMethod(
     return createSandboxClosure({
       sandbox: true,
       name: `bound ${target.name ?? ""}`,
+      length:
+        target.length === undefined ? undefined : Math.max(0, target.length - boundArgs.length),
       boundTarget: target,
       retainedValues: () => [target, thisValue, ...boundArgs],
       call: (callArgs, context) =>

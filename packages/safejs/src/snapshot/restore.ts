@@ -23,6 +23,7 @@ import {
   type GeneratorCompletion
 } from "../interp/generator.js";
 import { hashSource } from "../parse/hash.js";
+import { getFunctionLength } from "../parse/bindings.js";
 import {
   parseModule,
   type ArrowFunctionExpression,
@@ -586,6 +587,7 @@ function restoreClosureValue(
 
   const baseClosure = createSandboxClosure({
     async: true,
+    length: getFunctionLength(node.params),
     ...(node.type !== "ArrowFunctionExpression" &&
     !(node.type === "FunctionExpression" && node.method === true) &&
     !node.async

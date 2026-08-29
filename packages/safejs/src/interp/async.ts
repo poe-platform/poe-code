@@ -25,6 +25,7 @@ import { hoistVarDeclarations } from "./var-hoist.js";
 import {
   boundIdentifiers,
   containsParameterExpression,
+  getFunctionLength,
   hoistedVarDeclarations
 } from "../parse/bindings.js";
 import {
@@ -161,6 +162,7 @@ export function createInterpretedClosure(
 
   return createSandboxClosure({
     sandbox: true,
+    length: getFunctionLength(node.params),
     ...(node.async ? { async: true } : {}),
     ...(node.type === "FunctionDeclaration" || node.type === "FunctionExpression"
       ? node.id === undefined
@@ -224,6 +226,7 @@ function createGeneratorClosure(
 ) {
   return createSandboxClosure({
     sandbox: true,
+    length: getFunctionLength(node.params),
     ...(node.id === undefined ? {} : { name: node.id.name }),
     retainedValues: () => context.scope.retainedValues(),
     call: async (args, callContext) => {

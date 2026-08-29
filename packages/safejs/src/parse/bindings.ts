@@ -1,4 +1,5 @@
 import type {
+  ArrowFunctionExpression,
   ArrayPattern,
   AssignmentPattern,
   Identifier,
@@ -16,6 +17,13 @@ type BindingPattern =
   | AssignmentPattern
   | RestElement
   | MemberExpression;
+
+export function getFunctionLength(params: ArrowFunctionExpression["params"]): number {
+  const firstOptional = params.findIndex(
+    (param) => param.type === "AssignmentPattern" || param.type === "RestElement"
+  );
+  return firstOptional === -1 ? params.length : firstOptional;
+}
 
 export function* boundIdentifiers(pattern: BindingPattern): Iterable<Identifier> {
   switch (pattern.type) {

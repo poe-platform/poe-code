@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { Budget } from "../interp/budget.js";
+import { getFunctionMember } from "../interp/methods/function.js";
 import {
   createSandboxClosure,
+  isSandboxClosure,
   createSandboxArguments,
   isSandboxArguments,
   createSandboxGenerator,
@@ -670,6 +672,51 @@ describe("snapshot restore", () => {
 
     await expect(result.promise).resolves.toBe(7);
   });
+
+  it.each([
+    ["function target(first, second) {}", "FunctionDeclaration", 2],
+    ["function target(first, second = 2, third) {}", "FunctionDeclaration", 1],
+    ["function target({ first = 1 }, ...rest) {}", "FunctionDeclaration", 1],
+    ["function* target(first, second = 2) {}", "FunctionDeclaration", 1],
+    ["const target = function named(first, ...rest) {};", "FunctionExpression", 1],
+    ["const target = async (first = 1, second) => first;", "ArrowFunctionExpression", 0]
+  ] as const)(
+    "reconstructs source arity from snapshot AST: %s",
+    (declaration, nodeType, length) => {
+      const source = `${declaration}\nawait task();`;
+      const module = parseModule(source);
+      const snapshot = serialize({
+        source,
+        currentAstNodeId: getNodeIdByType(module, "AwaitExpression"),
+        scopeChain: [
+          {
+            id: "module",
+            bindings: {
+              target: {
+                kind: "fn",
+                astNodeId: getNodeIdByType(module, nodeType),
+                capturedScopeId: "module"
+              }
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      });
+      const target = restore(snapshot, { source }).currentScope.lookup("target");
+      expect(target.found).toBe(true);
+      if (!target.found || !isSandboxClosure(target.value))
+        throw new Error("Expected restored closure");
+      expect(
+        getFunctionMember(target.value, "length", {
+          callClosure: () => {
+            throw new Error("Reading arity must not invoke the closure");
+          }
+        })
+      ).toBe(length);
+    }
+  );
 
   it("round-trips named function expression closures through serialization", async () => {
     const source = [

@@ -6,6 +6,28 @@ import { createSandboxClosure, isSandboxClosure, type SandboxCallContext } from 
 import { getFunctionMember } from "./function.js";
 
 describe("function methods", () => {
+  it("exposes declared arity without exposing host implementation arity", () => {
+    const options = { callClosure: () => undefined };
+    const target = createSandboxClosure({ length: 2, call: () => undefined });
+    expect(getFunctionMember(target, "length", options)).toBe(2);
+    expect(Object.keys(target)).not.toContain("length");
+    expect(
+      getFunctionMember(createSandboxClosure({ call: () => undefined }), "length", options)
+    ).toBeUndefined();
+  });
+
+  it.each([undefined, 7])(
+    "keeps explicit length properties ahead of arity metadata: %s",
+    (length) => {
+      const target = createSandboxClosure({
+        length: 2,
+        properties: { length },
+        call: () => undefined
+      });
+      expect(getFunctionMember(target, "length", { callClosure: () => undefined })).toBe(length);
+    }
+  );
+
   it("invokes call immediately with the supplied this value and arguments", async () => {
     const contexts: (SandboxCallContext | undefined)[] = [];
     const target = createSandboxClosure({

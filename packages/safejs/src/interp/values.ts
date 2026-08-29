@@ -93,6 +93,7 @@ export type SandboxClosure = {
   readonly boundTarget?: SandboxClosure;
   readonly cancellationSignal?: AbortSignal;
   readonly kind: "fn";
+  readonly length?: number;
   readonly name?: string;
   readonly properties?: SandboxObject;
   readonly call: (
@@ -148,6 +149,7 @@ export function createSandboxClosure(input: {
     context?: SandboxCallContext
   ) => SandboxValue | Promise<SandboxValue>;
   name?: string;
+  length?: number;
   properties?: SandboxObject | ((closure: SandboxClosure) => SandboxObject);
   retainedValues?: () => Iterable<SandboxValue>;
 }): SandboxClosure {
@@ -172,6 +174,10 @@ export function createSandboxClosure(input: {
 
   if (input.sandbox === true) {
     Object.defineProperty(closure, "sandbox", { value: true });
+  }
+
+  if (input.length !== undefined) {
+    Object.defineProperty(closure, "length", { value: input.length });
   }
 
   if (input.boundTarget !== undefined) {

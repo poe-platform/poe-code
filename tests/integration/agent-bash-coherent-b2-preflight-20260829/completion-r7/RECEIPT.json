@@ -1,0 +1,60 @@
+{
+  "schema": "B2_R7_AUTHOR_REPAIR_RECEIPT",
+  "created": "2026-08-29T15:35:30.249Z",
+  "sourceCommits": {
+    "a4a14f522": "a4a14f522f733e38e3feda4a920d43c68b56b350",
+    "5d6045778": "5d60457781b73783eecdd61e34d33ec7916d891b"
+  },
+  "packet": {
+    "bytes": 6519,
+    "sha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a"
+  },
+  "presealSha256": "cc2db6c9029f4d72df7a5b320de5e75789b0b6c0def5c121761b75c19a9481b2",
+  "rawManifestSha256": "1f6d4611b68e2e8b80b893d037b80367778d3a983f49868a027970374145b2b8",
+  "outcomes": {
+    "synthetic": 8,
+    "harmlessConsumers": 2,
+    "loaderAdmissions": 2,
+    "loaderPeak": 1,
+    "product": 0,
+    "retained": 0,
+    "compiler": 0,
+    "install": 0,
+    "regex": 0,
+    "guest": 0
+  },
+  "retirement": {
+    "controller": 19223,
+    "consumers": [
+      19226,
+      19230
+    ],
+    "allExitCloseZero": true,
+    "individualLoaderExit": "UNOBSERVED",
+    "nativeThreads": "UNOBSERVED"
+  },
+  "knownOs": {
+    "observedBeforeFinalPublication": {
+      "git": 5,
+      "controller": 1,
+      "consumers": 2
+    },
+    "toolShellAndApplyPatchConservative": 8,
+    "finalGitPlanned": 3,
+    "totalConservativeAfterFinal": 19,
+    "maximum": 40,
+    "maximumObservedChildOverlap": 2,
+    "maximumIncludingToolHostConservative": 3,
+    "fullTransitiveCensus": false
+  },
+  "storage": {
+    "snapshotLogicalBytes": 1556170,
+    "snapshotEntries": 125,
+    "finalPublicationReservationBytes": 4194304,
+    "maximum": 268435456,
+    "hardOsQuota": false,
+    "gitInternalStorage": "trusted development-tool boundary, not measured"
+  },
+  "futureRuntime": "PENDING_DIFFERENT_REVIEW_AND_FRESH_ROOT_GO_NO_WINDOW",
+  "originalR6": "43a1c3dcfb23f56d0d5f13f67f62d38e7f0066e3 preserved 0/672"
+}

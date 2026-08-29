@@ -1,0 +1,205 @@
+{
+  "schema": "B2_R7_RAW_EVIDENCE_V1",
+  "created": "2026-08-29T15:33:36.523Z",
+  "totalBytes": 16788,
+  "files": [
+    {
+      "path": "evidence/preparation/ADMISSION.json",
+      "bytes": 344,
+      "sha256": "17635c41cfba7059d0417c28eb063b4396db9e4f2498ded36e0c7fadfc55a11d",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/ADMISSION.json"
+    },
+    {
+      "path": "evidence/preparation/PRESEAL-PIN.json",
+      "bytes": 192,
+      "sha256": "4d8ec95a32fd02c3ba434da6325584366943d20efc6797d4017e5744abaca5f3",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/PRESEAL-PIN.json"
+    },
+    {
+      "path": "evidence/preparation/PRESEAL-V2-PIN.json",
+      "bytes": 192,
+      "sha256": "3c715f06a1294b92fd5da0fc89a07d0ad31d117c0f2bcced87ee4cebb913c75e",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/PRESEAL-V2-PIN.json"
+    },
+    {
+      "path": "evidence/preparation/helper-retirement.json",
+      "bytes": 258,
+      "sha256": "dd3a4ade3a62ab938a1b9994b9dda51d628a752c6a962a1fce7abaa3d1cd9720",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/helper-retirement.json"
+    },
+    {
+      "path": "evidence/preparation/helper-start.json",
+      "bytes": 83,
+      "sha256": "982d868062bf13ae48553baf35d2795860fec778a116ba5900dd0e4d1a2b7b30",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/helper-start.json"
+    },
+    {
+      "path": "evidence/preparation/helper.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/helper.stderr"
+    },
+    {
+      "path": "evidence/preparation/helper.stdout",
+      "bytes": 65,
+      "sha256": "f1ac83c71ead77f373abb63747123536a7cfa2e549e8f332ade621c97b2b81c6",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/helper.stdout"
+    },
+    {
+      "path": "evidence/preparation/preseal-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-add.stderr"
+    },
+    {
+      "path": "evidence/preparation/preseal-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-add.stdout"
+    },
+    {
+      "path": "evidence/preparation/preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-commit.stderr"
+    },
+    {
+      "path": "evidence/preparation/preseal-commit.stdout",
+      "bytes": 5043,
+      "sha256": "eacb0d132ea68b77aaa9dcda83d0a6a5a0d9395695c67e09ea5f78626f0533f1",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-commit.stdout"
+    },
+    {
+      "path": "evidence/preparation/preseal-git.json",
+      "bytes": 690,
+      "sha256": "9a847e6064112ab45478ab6a0b9ce96a0501bed582e85a326dec1eeb53eb8c40",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-git.json"
+    },
+    {
+      "path": "evidence/preparation/preseal-status.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-status.stderr"
+    },
+    {
+      "path": "evidence/preparation/preseal-status.stdout",
+      "bytes": 78,
+      "sha256": "a7b70c39bd74524043ea14989a7720161cd67bedf3a483d03577658eea195105",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/preseal-status.stdout"
+    },
+    {
+      "path": "evidence/preparation/seal-v2-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/seal-v2-add.stderr"
+    },
+    {
+      "path": "evidence/preparation/seal-v2-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/seal-v2-add.stdout"
+    },
+    {
+      "path": "evidence/preparation/seal-v2-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/seal-v2-commit.stderr"
+    },
+    {
+      "path": "evidence/preparation/seal-v2-commit.stdout",
+      "bytes": 848,
+      "sha256": "8dcdfe48c1e7029087851fcacc4570d6b1269aa702ce8e292466f4a4fc42a70e",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/seal-v2-commit.stdout"
+    },
+    {
+      "path": "evidence/preparation/seal-v2-git.json",
+      "bytes": 205,
+      "sha256": "7a28fb999d9939d57e0768ed498bcc3047840ffb70ca7d8662537d39f728fe71",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/seal-v2-git.json"
+    },
+    {
+      "path": "evidence/preparation/startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/startup.stderr"
+    },
+    {
+      "path": "evidence/preparation/startup.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r7-preparation/startup.stdout"
+    },
+    {
+      "path": "evidence/harmless/H01/binding.json",
+      "bytes": 308,
+      "sha256": "611b4c4c8beccdcdc470c13e14c7271eef216de79059eab113162d60ce5777af",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H01/binding.json"
+    },
+    {
+      "path": "evidence/harmless/H01/entry.mjs",
+      "bytes": 37,
+      "sha256": "2db7cc97a36f4fbada2f85568374d2c7cc6d3e0f545a2856fe5670978a8d4055",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H01/entry.mjs"
+    },
+    {
+      "path": "evidence/harmless/H01/stderr.raw",
+      "bytes": 807,
+      "sha256": "08113bee805ddff6d8ac5089d7eb5ae2d974eb1b37af1bd25c83c5abbbfe365c",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H01/stderr.raw"
+    },
+    {
+      "path": "evidence/harmless/H01/stdout.raw",
+      "bytes": 10,
+      "sha256": "c1a4280b371237a8d19e47cb65eefd0eef66e91f28dc78510bad27978308e340",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H01/stdout.raw"
+    },
+    {
+      "path": "evidence/harmless/H01/trace.jsonl",
+      "bytes": 205,
+      "sha256": "cc95932498187c41fe1514e28c25ec6372ddc630dfe721e91765eb658401a525",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H01/trace.jsonl"
+    },
+    {
+      "path": "evidence/harmless/H02/binding.json",
+      "bytes": 485,
+      "sha256": "92cb609d5c832aa79470089b2c163600e807ecba5d44aa63c050ad755a33f069",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/binding.json"
+    },
+    {
+      "path": "evidence/harmless/H02/entry.mjs",
+      "bytes": 79,
+      "sha256": "399075c3312377eae2a2e5ed43b75fd6645069617ce887e22bfa85123218d56a",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/entry.mjs"
+    },
+    {
+      "path": "evidence/harmless/H02/literal.mjs",
+      "bytes": 36,
+      "sha256": "4c37cf2542553fc25802d59efa94f8056f1342b22e7a510fc711d719065c9773",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/literal.mjs"
+    },
+    {
+      "path": "evidence/harmless/H02/stderr.raw",
+      "bytes": 807,
+      "sha256": "91a3e0d5f05b1779ca234b95345d81409a85e52d220adffb9110fdfd72e28b9f",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/stderr.raw"
+    },
+    {
+      "path": "evidence/harmless/H02/stdout.raw",
+      "bytes": 10,
+      "sha256": "8e5b2687ddcd46841353bae8b41ebafb3553d9e87db1006ece9ad3d8645a96e9",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/stdout.raw"
+    },
+    {
+      "path": "evidence/harmless/H02/trace.jsonl",
+      "bytes": 414,
+      "sha256": "fea837a382a21ea414e9de7e3a00cf75cfe6d8fc0edc2a0f9561c2b79978eb15",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/H02/trace.jsonl"
+    },
+    {
+      "path": "evidence/harmless/RESULT.json",
+      "bytes": 5592,
+      "sha256": "c4f7b97baeebf38f91ea20e963413af63b09aa06677cc5ecde2271859dc49981",
+      "source": "/private/tmp/safe-bash-b2-r7-harmless/RESULT.json"
+    }
+  ]
+}

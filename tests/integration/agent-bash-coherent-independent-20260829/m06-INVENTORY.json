@@ -1,0 +1,2462 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "10e3715bd691dcebd7de8e151f6dba3b8c344a8a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/BASELINE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f814eb840228d71a92a60a5cacbe61f75f35986e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/CASE-MAP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f4d51b0faa49d1a4e54953ed52693cbebfc5992e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/DESIGN-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e40cdffae67049a288cc37e2661c0bdc476d40a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/NOVEL-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "786248553986c2d72e3985a2acef61267b9e607e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/PRECODE-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b0b5f70044d89c3d1c7d1ab987e2d6c3ebf089a9",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/PROTOCOL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d478b7a2bd26968dfecc3ae9ee5a5849f69498d4",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/QUESTIONS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e9a1387aedd7702ae3109bacac628c650112fba",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/README.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2f3617e6a1c889af9ab21d995bdfe501e07b2aa5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4a38d4d2dcfab77c34c3f8ffeff65c58e359a214",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/BINDINGS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "96cbc308418b5759d345f1da81048f0cd5811b6a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/H02-ADJUDICATION.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e214b24056dd7081b8856d5441e1d1dcc4978187",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/H02-V2-PROPOSAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0f310c208d05b5992c74931cffd04b682cbf881e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/PREP-RECEIPT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0f3a9e53a7f455a4bb02ed4e8bd40de376aaee5a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/PROSPECTIVE-OVERLAY-v1.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d68bf8e676e4ebc6809a6f4fb3f31d68cbad01e2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/candidate-source/ROOT-DECISIONS-v1.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "164fe99395b906bb27e052523c2c495da11cdadf",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-01.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9f3b37e5db174720ed6c65262a1be13386513621",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-01.raw.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3b18193d6994a488b0c834f85674cb36c90be255",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-02.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "12d969d4841aebd612e1aac551cc1e0e83e1459d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-02.raw.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1c8179d569e13722dd1d00c50bdf4d93d92be720",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-03.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95bcd9df5b58dcbc5054ff5d2530e54355bb35d6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-03.raw.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5ef0f2476c7325eaece8537e768e9c7ba8ccb9ca",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-04.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f7ec4b258c85e153246c76335ee6ac0a2a9c11dd",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-04.raw.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4ec8d626f088f8d7b073cebbaa918018517b5bc6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-05.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9cb87734013f8b78ac43c05bbce4283cc9e30096",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/edit-05.raw.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "de622cd62d0f3a95928d2820d27bdf1d680544bd",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/ADMIN-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c387108feac3c6ea777c68907e0507dc39b2f52",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/ARCHIVE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e56a8a252ba16131d280a37c06c037cacc305033",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/COHORT-MAP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "25bcf8394e363db26a5b6f8d8e3cc1b31a9fe35f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/MUTANT-MAP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5345f358247a7b10b105c161bcfa3c73983d5ce6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/PHYSICAL-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "639bb81989d8075fc9b5f5db097ce53722d4bbde",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/PREPARATION-ERROR.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6ebfd03a9b950ef0874b11862418dd649d616c5b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/PREPARATION-SNAPSHOT.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7ec7fa08ee073f8b1e561d18338ca680702293ce",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/RAW-MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9703673fc9ca4bfa70d33077c7e702fcba602252",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c56f7012a48862541a77e45fd87508b837c9f0fb",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7efaa798871acedba1eac98c7f53c969fb43a2ea",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/RESOURCE-CUTOFF.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a74103e311b7ae30f20948016c48a19748d4a3e7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EVIDENCE/WORKING-CUTOFF.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5d91e0883cc3a5f0c465e12f5ee00d1b7855834d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EXECUTION-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e7bedcea2ec23b0b2111d1b1109e16251316ef30",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EXECUTOR.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e40cdffae67049a288cc37e2661c0bdc476d40a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/NOVEL-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bb3f32deb45209ffb71e4a9f1119176886953d34",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PLAN.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b13f0db170b5d09ecb095ae3479f9e22ebe31c58",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "623515a3357cc1d67539a53dc65d9e63fa55f511",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/README.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a425ac9b7678f322b2bce57e0f118e5b78e5c8b1",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/RECIPE.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "29a9ada8f0573b2667a63cb7e0e605011b218bec",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ddab2af3ca708cc26d79d9bc9a83fac723e8dac2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/STAGE-INPUTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2727840ce30d0b5ccf3131cb16d677e51f0d77e9",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/TOOL-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e4ff3005798f2105fff3a22c35c66ef926b32e24",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-01-status.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-01-status.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-01-status.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6e1614f368aed148dc25aee3f728015b0fc3c215",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-02-index.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-02-index.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-02-index.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0c2b5b8d4c2c8dd287029edd4f993ab907af1bed",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-03-bound-inputs.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-03-bound-inputs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "12ab77381025cee62aca8b388eafbe2a91454d76",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-03-bound-inputs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6f83e0fecc5a17142582dc932f6d4eb9b51fc061",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-04-patch-stage.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-04-patch-stage.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f6324b2239c6741d4f3fbb61fe87524261a05dc7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-04-patch-stage.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6d9ac3228413182058e7f636061188b72cf57399",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-05-stage.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-05-stage.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "62bc77f8ba45a3fdac735ca3cb15d2524a869041",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-05-stage.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7fa071940a23f720a5be387b715a066c9a09fccf",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-06-patch-controller.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-06-patch-controller.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ff55f8b5c04bbb96bcf1c2aeceda91015aaa4ded",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-06-patch-controller.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c37749b0d32b8bfcfc028c93b804d6d13fff1930",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-07-patch-seal.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-07-patch-seal.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4c1c4f87c368b4725a0570a5595bda163bb37915",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-07-patch-seal.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "676da89bafdcb817a8bf7b077e3fa0f3c562c8ca",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-08-syntax.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-08-syntax.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-08-syntax.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8be2a328194e81ac962a2f0bde4adaa105c7ef95",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-09-admission.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-09-admission.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6fa1e3f7812877604e9cb1c99b796daa4e099bfe",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-09-admission.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ae90ae97bab602c93d555b16fd554c20743f0730",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-10-patch-executor.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-10-patch-executor.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c68efb4e489c9b516381897ee9eb604b4bc5111",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-10-patch-executor.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "09d234bd597fe766a8690b8f71d0d48b0cf5459e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-11-patch-outerseal.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-11-patch-outerseal.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ce1b8eb4e0c5d4ce52a23523b5eca520adad7c4f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-11-patch-outerseal.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "54872e2dd572d14f9f41968ba43662ccda3e9e67",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-12-add.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-12-add.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-12-add.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a2f4c0d5480a4003b4f0afd8c3179b824880e465",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-13-preseal-commit.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-13-preseal-commit.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0baccca1926fdafdcb4bebf2dd3dfbe2f70cc371",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-13-preseal-commit.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "371d3a5368c4201de680e6af43868271389bb5b9",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-14-patch-archive.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-14-patch-archive.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "50162a8a2189ca1b76f9c399da664dc7be09afa2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-14-patch-archive.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "92fd431d10694be5eedd8906b5c10e6561036387",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-15-archive.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-15-archive.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3bee2c0ea25efe27a52f215529c9edaf6993bd0c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-15-archive.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f1ecbde07c0df8d7a783e7083510a78b53eac136",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-16-patch-evidence.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-16-patch-evidence.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "caf2687f3385f41ad4d006a3b7e0cf95f7ef21b2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-16-patch-evidence.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d8cb3a1317d746dd0978d9d8fbfcb62a695f3f96",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-17-patch-resource.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-17-patch-resource.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bb985e31abc3f79b8f885043aa31d2896070c59c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-17-patch-resource.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "534ac6b322e89735f57a8a2867f0beaacb62f29e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-18-status.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-18-status.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "099494e79afb440db6ec77b7e3e1eaad627087aa",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-18-status.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "79037f4499354f8f2ab8af1400fea2d50ec8025b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-19-index.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-19-index.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "87e27dd89b0f479928b47183682aea2730f3ec47",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-19-index.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8889ecf38651a2e14ce1b0838e947f42533e5fae",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-20-foreign-stage.receipt.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-20-foreign-stage.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b5d0d588d4c60fc4c61f099dfbc7a2e62bdb51f0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-20-foreign-stage.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dc71b7b7d4551f3e8203eb6ef6f490891e283565",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admit.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0d5fbfb468cd6b0de0374950a8e23c2c930e9852",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/archive.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e09b0686dafc2f37585df936d6c9aa55be96bff3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/derived-tree.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/conditional.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c13da81332398324878f32bbbdff87f79ddc6933",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/novel-v4.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2f5d1436cf40ed0548146e9cf9801427bcecd4d1",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/hash-regular-file.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/internal-loader-arguments.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "844841dbb04714299064a84d0cf864769c9a55f9",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/launch.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f92cd818d9965c7b48211cd6ad3e5b86680d6164",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/loader.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ba192587a4654379c6e1066fb7e20ea847ec513e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "efd880e3a394fa4e1b2e1a5c0063edf220572255",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/resources.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e771bd4ea2514735acef1327de844b862c80b89f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "503acb19e778b0495e616c52d811b10978637b16",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/stage-inputs.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b284e2fa16114ffef9c5f902246b4405450f038c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-closure.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dff3787819c78123f6b2871db1b7024d71daec29",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-observer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/worker-policy.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3133a1304790d59e854c8ea20fa4b58af314c8f0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-01.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-01.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6d13db73d886cb25a8bf848058609bf7c8067dde",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-01.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "802c379327a5d5118dd9e174aaa758f56f09754b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-02.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-02.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e5773b91a31a3261c787d155cb657f1abdeffe7f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-02.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c5c122ab52cdda2f4ab5d4a38bebcd3fdb9c4841",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-03.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-03.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e184894b18eeade0087bb6d6ace627b744385f72",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-03.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ac95b89d88a004d695446065c0808f993510b636",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-04.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-04.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fad2d2dda7da37629c7eeb30609a1aa7ddb84f0f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-04.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "566449d739a040d8af20719ef0d39ec059606437",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-05.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-05.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d9596eb7cef4d6423a7f4e32164884a31d8659f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-05.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5d5b67afff2fdc2209896b6650506bbf2c4c5127",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-06.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-06.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7562744b6b5ef4068fe86f5854ed40385bd64156",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-06.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "72cb6e24a172b65e36ddb807fbc8bf76989b5e84",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-07.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-07.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a0fbc7667340f4388e162da9c8c76928772a7e3e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-07.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "baa23436dba0a31ff2fa6a8b21b57b3304d6e931",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-08.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-08.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-08.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9cc8f51606494329a05754d58c43497d2d73473b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-09.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-09.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cba767676eea9225e32db584d85adf8609ee8bd5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-09.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9bef3485f8c9498a32de783f91cb5c4bfb73c62a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-10.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-10.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "75d0ac91543a4cbdb332bd7f916f6aed08e1bc5b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-10.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d0cdb32db6ce15778d37c908bcdb1be91c0c3ba0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-11.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-11.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5b145d0e422c137f05311a3c90ae95b6996d7099",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-11.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d594b7206be71af58188c519047a24dfb887520",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-12.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-12.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95abfc07d7812b6b303c91e179e475b6dfd1c340",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-12.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5be81dd3d68759fc81d4d470061d97ccd1b3fe47",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-13.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-13.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2268d3e07da416bb5548e02d4d4bbc4bfcc3aa36",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-13.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4908b7f1c0b658d18eb9b4219a453465413ef447",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-14.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-14.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "165431b7ed6030840a440a3aee001e7d702da401",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-14.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0938081b971b26a6a32a089b9e5a79293f688148",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-15.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-15.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-15.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9ad2b604754e41b76e49506ac7de43ca078326b1",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-16.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-16.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "119e59731e3873d26e467633df9a7058743d07a4",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-16.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9f976aa18498124732581968f19612536280445d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-17.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-17.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9fa8f87f48f9dec7580c3239dab9c3bbdf8ee2a7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-17.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8969f2ea76ca62f97da0a775906affe534e1fd5c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-18.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-18.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "72203816bc2914aeebaddea2cb3a8b25487fd915",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-18.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5e9fe1d0d90faaa90944b8a602497a3915697c83",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-19.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-19.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2061179402695f5c080820b3da58f59992c88bb7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-19.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1d39488d92056ddb5ad2071c03fd93debe1f365b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-20.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-20.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ce1d393477c2bf331c0cdcd7f5d3e163e6969b82",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-20.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fd2100e5607258ab0a92882ddd774590ba0eb30b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-21.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-21.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4e250adedc76d220bd8cd6d8a44a2bd4c11eaadb",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-21.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b2219ed38fb0c11a4ae4bcbc0366b110e80c0d6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-22.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-22.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c17422402477dc40a5f0a45a28fe5e4f63c0991b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-22.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e8b8d5f8311b9e237660d90e54462761647e3428",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-23.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-23.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d13886790ae5f4d461e749df6add3d59b6ea64d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-23.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f65ee72947c0a0aee457958c6a35efdf8dabbb4a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-24.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-24.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-24.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3d4314775cc516435f73c0f1327573a0edd3290c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-25.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-25.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/metadata-25.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "80e6f5ead16f9e3c0baa7bfc1c838a1d464ec2c4",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/public-negative.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fa61ebd25956bdc5d23b031a9a5acd48f4d6f951",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/public-positive.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-derived-tree.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-derived-tree.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-fixtures-novel.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-fixtures-novel.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-fixtures-retained.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-fixtures-retained.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-launch.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-launch.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-run.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-run.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-tool-observer.mjs.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/check-tool-observer.mjs.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e923196d727b5bafab8ba2fed80ef33ec2ada790",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-01.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-01.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b62dfcfe59e5973ba16cbf712e4ea4f2d637aaf0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-01.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2351717b2b5045c5e85a2a5fd2fc7529a0213bf0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-02.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-02.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3ceaf6190f588481125c5c340832d0d8251b3867",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-02.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fd59af5db6cfc139982a9a8c745fe46717751f19",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-03.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-03.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "51273957514d7f872e9d2d35927aae7b4951d80b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-03.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "23115f35607599ab8bf3a93bcbc43e0a7bce8e5d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-04.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-04.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a1304e3f4cf6ecf51d84ee459bdd3fe840eabca3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-04.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e82fb24299065387f024dd5bd157c40304c20dfe",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-05.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-05.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7fbcbc4ace09cc3c661a636410dced18238c5bf6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-05.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1b7a2301fc359fa99da7e9fab970457ad6a92206",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-06.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-06.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7151fa16d566af5720957d80fc0a2c6a7a81c0e0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-06.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cd4101bfd98375b8a522a116293787ba5ebd994b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-07.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-07.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "921148496cdbc46338206c10801fe81d5b5fbf84",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-07.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "201dd5449e5fdd8c52078d1de0d158846c3fdc49",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-08.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-08.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cd9be9f3476b02aeceda501e9ac3b93204955e57",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/git-08.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "be6ff0d735eda459e743e0dbb3d09f34f4d6bf3b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-1.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d51763c6f0d867608856785da56a81f176153b23",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-1.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6db1cf4e047f1765b939f902396a796bc581095c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6b73725dabba70a69f6daf0d6b14aa30fdb4421a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-2.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d63e2f8f6a30937c8f7af919468b2e9b45ca121e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-3.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "420f9da5808bdbc25c628d0ee3365ff7e41953a8",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-3.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "31635e1e06b4dd83a8b9279725ba744d60e66080",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-4.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f50e05211ff314975554b86a45f3fe658ea29df5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/patch-4.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1b1279433cd682dd2c541cc5a2d6708a18e968a3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/source-data.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a53e48f7622712f8a669638f97ba8199056c838b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5-prep/source-data.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "910bb9d4a6d22e434dd2878aabedb3f8b8ad383e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/NOVEL-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "92870ae9875a4c8dfbaf04df4571fc053973f3f7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/PREPARATION-HOLD.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "106e852dc19161c927a8e00708be3873c4c42681",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/PREPARATION-HOLD.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3bbf9bf8616c01b172f7994ef8b4e39bf781a771",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "65a63940161e339b4cb3aff7b6efa1ffad35a27c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "085375e03f41994a8d35a2fd466e912a9ab93a67",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/TOOL-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dc59e7a1e5c5a9f809cd5f4d59ad0af1a4bd5295",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/author-consumer.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8ccce82495f5cb3ffe7a9f4ac98930ab4ddb661f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/check-prep.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e09b0686dafc2f37585df936d6c9aa55be96bff3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/derived-tree.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "56fa869925a0b767ebfba0ebf249724b4c19f5f6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/ARRAY-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3537723fb7f447a0bb36bd5d52a5926a75b582d3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/apply-public.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f81fb891a6b7720a5b81b83f3820291146babf8d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/arrays.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "69c568b44e18cf39728327104422b7ee79f1c67f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/coherence/CASES-v2-overlay.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1c462084824984b306e8c3c06f19626dd67c2b56",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/coherence/CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "14aba0e5f6156c1d96decba48f007ab7c6f9707c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/coherence/names.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ba19870a8b064221c25795d2a792c8f2f08f405f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/coherence/probe.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1394ff08ced8095052e656a751cd88c2b6f4b56e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/conditional.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "66720e78b03624853987e75d6848bb9c82fd62c0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/consumer.ts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "20e3aa83c69330f3c371e31ec2a308789e4cf089",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/fallback.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d5681b58d6f91c776a161a6781a2d0e4870e5f8",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/names.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fe6b1bcae0e028c99843d996f6a782ff83513b17",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/novel.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2003e0d2df3c854229b8aaef8b6a747332e4c092",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/public.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e5595fdc8b0697f241c757c6d4ddc45f0492b626",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/redirection-cases.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "611bf940ae94573b196a6e74defa007c60e21b39",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/redirections.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f57807cd3745747262a093cb2872a420da43cdcf",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/retained.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "18d40e3c716fe0cfbb72a724370ff5a8d92bf812",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/strict-design.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c023b3768c91c1451938dde79e0807fdcd669821",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/strict.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "473b0bcc5fc443db88b9af0126082b51ca1d7d83",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/hash-regular-file.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48b967d9a952cac0ae457cbc08fd607575e1f6f0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-negative.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c25d616d0ee8ff036d517b5979504c12d5b7db2f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-positive.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4a8180f331e4eb277dc7b3619a724959439e61d3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/internal-loader-arguments.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7215b6476d439d2988a637671043cc9adcdfd838",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/launch.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7243def7a7afea5f9798b836294143c891b66a23",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/loader.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ba192587a4654379c6e1066fb7e20ea847ec513e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1ecdf942b53c3af5bfe9cb64c4ba9f67b1fe4707",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/resources.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "af15df6910faa9c21755bad67f185a31ac249908",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b02bc78f7d9b974ccabe8dbdc1d4f51f21ad0011",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/tool-closure.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dff3787819c78123f6b2871db1b7024d71daec29",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/tool-observer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8560dde5285ca1da53844e26addf7cbdf19dcbba",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v5/worker-policy.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f70f10e4db19068f79bc43844b49f3eece45c4e8",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B01.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8c7e5a667f1b771847fe88c01c3de34413a1b220",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B02.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4def3a322e5087872dd05ea2cdde3ec9f43b1bb5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B03.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dc1c2a6b92a37b1959d5436e65d9952671f463aa",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B04.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B05.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fabc1071055e565e3dff3c2793b8bc442294e59f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/B06.bytes"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c3303e064b4178bf6a092d110467f78866f7d242",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-CONTROLS/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f03bf62d0a76c045e17f1f81626244a33e12affa",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-SEEDS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "83bf68346ca7d347646d9f14ff70440d3d090907",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-STAGING/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-STAGING/git.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f3af9c7dc8d3ef9836cea6ed5c3b09eadb6ef8d6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/BYTE-STAGING/git.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "edda890f46d6408b85ebabe76d15125e74da2e59",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/DEPENDENCIES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "42c8e6c3b00b4312f4c7f80d5aa0cbff524149d2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/IDENTITY-HELPER-V2.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f8e30b440a6211844c995dd07a1b24267baa6b3d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/INPUTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1c25bc061414d88bd7bbd3455052c30c03db329b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/READY.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fcf5638752698bf269e136597140475d3d0f8103",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/REPAIR-PLAN.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4123fc352f48f95a3700a4bbb82317560f71679f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/REPAIR-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/admission.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "25d608c4ef5defa4629b473848598eacf8b29d7d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/admission.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/controls-outer.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/controls-outer.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4d8359c21a6184cd9e23c23b9d2e781787fc390e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/dependencies.requests"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/dependencies.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa8ad3bd858a705092a2bb3ddf12877e786b3683",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/dependencies.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48802b0a2a872e30f01c69f71f991b53bd465a23",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-0.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e1a08890cbeda7a8fb58c1247163f26550c74603",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-1.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa289e6b9609eda6fb519057e9bdc76898c9705a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-2.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "384f7081c3d65b14fda571c8649be9030ecf4d0a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-3.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ff8d42eb56f88403ee8597dd9d308bbbe8e8fc2d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-4.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "877e45de4ef3cc77dc5a6ce6c79d9ad1eb2ae870",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-5.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "eb9fab1517ada2027c5b3df14e1d1084d0fc67ae",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-6.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "25a41db801ae7c6f884716ce0f730741468b5b17",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-7.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bcebfa65c3909ddb69a320e0d1e89692929b94c6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/edit-8.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d3c07b970fbbd606f5d980cc5e0fe3b6a9d35984",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish-prep-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4d72ec80374321ce48af04dc9b2689aeab4dd719",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish-prep.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish-v2.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2bdedb0312052cdd0308374c552c26a541e260aa",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish-v2.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f668f124e10822f7723ed02f1b810a43258924cf",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/finish.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "96a76664ade2000a7b72ba0a4e911521dca62d83",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/repair.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/stage-outer.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/stage-outer.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/syntax.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6-prep/syntax.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9f4ea0cc724af04d1c6dc9f6911fd0ea3ed78814",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/OUTER.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2a5d0a15da2d7887c4d1737179f1b22a1c0a7c4b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9b696d17309a05e1c950f5d341a3bb545312a86d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/OUTER.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1a399a1913750bf217ed93ea7244a2fef97d6b71",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "760d521a47b8e46b659bbd8fbf0d735f23e12b7a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTION-SEAL-tail.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ca4b06c92cd6e4e1a6d63532fe1ceb16e766514c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTION-SEAL-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e80c4c7160e6e6076ff6dddf3d03308dea79bb0c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTION-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b16c1b5c7642eb28c2be1288c9fb29aa5811629b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTOR-tail.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "67a642b6f16019e10a106fbf4284efe4645d7ddc",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTOR-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d980d3eabac45c3cffc6797347c10a5ca63ad1dc",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/EXECUTOR.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "822dd03128e6adb4da83888ab4e32263666072a0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/IDENTITY-MAP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0879cd74fe32b1fb6ade300ef5edfc9e689beba6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/MUTANTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b570264c7bf01dc73b594d3971dd9888967c8c1a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/PATCH-CHILDREN.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aef40c3e80c43f7468f1a11aa0b8be1f8c54cafa",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/PHYSICAL-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "09ae360e038dfb7dc6f6294aed2f0748e3e429f7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/RAW-MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9fbd378526fa1387adbab83aa79358474abd9d20",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b8a4fd97453ae041ee30a5f266ef1688e2409f31",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5c8d34f77fc527d54ad2be78c9e2e48bd145b7c4",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/RESOURCE-ACCOUNTING.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bb32a73cb587e4a528768b005e4d0d86d33e5a31",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/SOURCE-POSTCHECK.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d6721d4bef2361c500b26aacbde8ce8851434af7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/SUMMARY.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/git-status-before-publication.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/git-status-before-publication.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/index-before-publication.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FINAL/index-before-publication.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "af1a9996dd1b840fb0c9238b3afacc3b535d385f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FIXTURE-V2.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "190d22fd01b3a6b99905283663ce52f65eb29f22",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/FIXTURE-V3.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e40cdffae67049a288cc37e2661c0bdc476d40a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/NOVEL-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f4d0dc52d852bc3cd5a0a5db2f8275093bf272ee",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/PRESEAL-tail.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ce616c196a7aabcb8a669bd533b2bd4e86c2b00f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/PRESEAL-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "09f47dd53616ec1084814965f859987fc4abeb81",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "99d76d14a8e3a72f709cb9aacc0735499fa7d438",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/RECIPE.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "29a9ada8f0573b2667a63cb7e0e605011b218bec",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "19d98c25812858883bdad8e8b6997f0019a1a23a",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/TAIL-PLAN.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2727840ce30d0b5ccf3131cb16d677e51f0d77e9",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/TOOL-CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "36b2a28214f1c88f94d9609ef18f7e11ce16cb3b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/V4-SOURCE-PROPOSAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f5b908b58b4d1cf9910074ceab17704aa68adaa5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/archive-evidence.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/archive.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bbd52375bfd2ab9c7dc02d5284cfa7b3c85cdfad",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/archive.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dc59e7a1e5c5a9f809cd5f4d59ad0af1a4bd5295",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/author-consumer.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8ccce82495f5cb3ffe7a9f4ac98930ab4ddb661f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/check-prep.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e09b0686dafc2f37585df936d6c9aa55be96bff3",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/derived-tree.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/ARRAY-CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8034086f5f50c4e99ea2c1706753dc333d7cb507",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/apply-public.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/arrays.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0877328dfc424a2afdc4c7ce596eb5b0cd36e0f1",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/coherence/CASES-v2-overlay.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6ec9a04c33e6a9e6ef482ba62d5fead9bb736d67",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/coherence/CASES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d02d20a36d10fe4e098c3728fc23d6e8d495735f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/coherence/names.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "51862b3d2e72c40d31ee66e0d0a02ddaf9de4a93",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/coherence/probe.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/conditional.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2118e2786fb54e55c1749b239275dfb246f90e01",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/consumer.ts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "50b9407f17bf20778093058991fa35e66b7f8c4c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/fallback.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/fixture.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/names.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1018cf898e39f4664ac593e896cecb87953c86db",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/novel-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "08820c6c473074bd36e9ce039834fa115cb42af4",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/novel-v3.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0b8dd9521493e6bdb9f92d67fddd15941a939fd2",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/novel-v4-UNRUN.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e5e604dd4dd75e96b7d9e8c3c3fdb1cae96cf196",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/novel.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/packs.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7636967827685c8fd8a10c083dc6419dfb574b30",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/public.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/redirection-cases.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/redirections.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "61efad109f1db7dee6349a5ae0b72691f698349f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/retained.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/strict-design.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/fixtures/strict.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2f5d1436cf40ed0548146e9cf9801427bcecd4d1",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/hash-regular-file.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48b967d9a952cac0ae457cbc08fd607575e1f6f0",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/independent-negative.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0d985919b1f02816714f522e03e11958ee103514",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/independent-positive-v2.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c25d616d0ee8ff036d517b5979504c12d5b7db2f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/independent-positive.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/internal-loader-arguments.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "73600bfec933ff176cbff9e7f27491ad14c302a6",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/launch-tail.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6d4ac73472282447d69d55a966725e09ad31429f",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/launch-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7215b6476d439d2988a637671043cc9adcdfd838",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/launch.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f92cd818d9965c7b48211cd6ad3e5b86680d6164",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/loader.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ba192587a4654379c6e1066fb7e20ea847ec513e",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "efd880e3a394fa4e1b2e1a5c0063edf220572255",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/resources.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ea38e559ac1f178cd7439e410e2b49bc9222cae5",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/run-tail.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7a4190fa1a9433b76ad97ab84ca8363d0a0fae8c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/run-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f9b1872a5f7aa53a8109f1b4a6bd1ea77e9e23c7",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b284e2fa16114ffef9c5f902246b4405450f038c",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/tool-closure.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dff3787819c78123f6b2871db1b7024d71daec29",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/tool-observer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+    "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/worker-policy.mjs"
+  }
+]

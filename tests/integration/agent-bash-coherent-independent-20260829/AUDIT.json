@@ -1,0 +1,64 @@
+{
+  "role": "independent-SOURCE-DATA-only",
+  "start": "2026-08-29T08:28:33.615Z",
+  "runtimeSlots": "ALL_UNRUN",
+  "productExecutions": 0,
+  "ok": true,
+  "selectedTree": "df748fb93484479a695928b6849d1df8fbfaee3c",
+  "selectedInputs": 309,
+  "selectedInputBytes": 2834948,
+  "selectedSrcFiles": 305,
+  "typescript": 253,
+  "authenticatedTreeBodies": 197,
+  "baseTree": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "baseInputCount": 308,
+  "differences": [
+    {
+      "path": "src/shell/conditional.ts",
+      "old": null,
+      "selected": "caab6172df5b8e5bad2d1db007b156f067e295ad"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "old": "1bd9c7110aa82c6b3c9817bfc4ffdf08db99bee2",
+      "selected": "a949d0b37e54b1874c297030a49895d5c2bbff08"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "old": "40857123df98fb3696cc457733863ad77bc55109",
+      "selected": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "old": "6c4ec49fc2eaf3f540c6a40d3a6de32a16b01021",
+      "selected": "180e6c8f8b86e17bee8723fda638b359531a6e79"
+    }
+  ],
+  "nodePathsUnchanged": true,
+  "nodePathCount": 16,
+  "package": {
+    "sha256": "58b4a3498274a8901f98d6a290671251fa8ca292d72bd5c4987bc8ec8e15411b",
+    "nodeExport": {
+      "types": "./dist/commands/node/index.d.ts",
+      "import": "./dist/commands/node/index.js"
+    },
+    "runtimeDependencies": {},
+    "files": [
+      "dist"
+    ],
+    "members": 1014,
+    "memberStatus": "PREDICTED_NOT_BUILT",
+    "packageSha256": null
+  },
+  "pendingN14": {
+    "source": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+    "runtime": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+    "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+    "bytes": 203623,
+    "accepted": false,
+    "selected": false
+  },
+  "unit3RootAcceptanceBlob": "36bd0a5fca70f39eae4126d92e862a638ec7d8187266ddf12cc902423b6d86fa",
+  "nonshipping": "opaque subtree identities, not full repository materialization",
+  "end": "2026-08-29T08:28:33.657Z"
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "184b174b55433d8ae862d95ff39e09e8635e560b",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "144493f120362b7764e6009b68db5374f483b053",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/EVIDENCE.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "199a01379c2b57a4818c2c4c90b0e642447d9faa",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/README.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fbf770225fcc1804a58fc2c5b92e61897007ee69",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/SHIPPING-INPUT-PATHS.nul"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0b995d3cb3b461d479aa88d52b6d47ea043f722f",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6cddfed33b0597c55da66cd3ac7d88fdead59ef4",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/STATUS.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b440f05d2d58a9310fb11fc45136696b6deed73a",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "857f257e1b6a06b9e781f023cd9f10fc2b07da70",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/VALIDATION-PROPOSAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b0cec148c4fa0ab9b5453ea2a471cc671f4be024",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/WORKFLOWS.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2df7fb014d401c7e45313dda3efeb5d885a2a5ad",
+    "path": "tests/integration/agent-bash-coherent-design-20260829/compose.mjs"
+  }
+]

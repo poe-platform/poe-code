@@ -1,0 +1,85 @@
+{
+  "role": "independent proposed combined probes; not executable admission",
+  "date": "2026-08-29",
+  "timing": "After component implementations and N14 author result; before any combined build or execution by this reviewer",
+  "allRuntimeSlots": "UNRUN",
+  "requires": "Independent N14 acceptance, exact successor composition, complete fixture/tool/engine closure and separate ROOT actual grant",
+  "layouts": ["fresh source-built", "offline installed", "physically moved with old root absent"],
+  "identities": [
+    {
+      "id": "E01",
+      "role": "engine-free exact-Promise primary failure",
+      "script": "f(){ printf '%s' \"${absent:?required}\"; }; guard; node -p '1'",
+      "host": "Non-async guard synchronously registers gated cleanup throwing false and returns the EXACT context.invoke('f',[]) Promise, without then/catch/async wrapping. Diagnostic sink counts one write and throws undefined. Independent finally releases cleanup gate.",
+      "expected": "Rejection is present with exact undefined reason; one diagnostic attempt; registered cleanup finishes before public settlement; caller live; Node prepare/Worker/guest counts zero.",
+      "basis": "Pending N14 exact-public-Promise mechanism and existing caller/cleanup contract; only eligible after independently accepted successor",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E02",
+      "role": "engine-free caller dominance",
+      "host": "E01 shape, diagnostic rejects 0. After the diagnostic barrier, abort the actual caller with false before independently releasing registered cleanup which also rejects false.",
+      "expected": "Exact caller false, one diagnostic, cleanup finished, no Node preparation. Companion E01 distinguishes provenance; equal primitive values alone do not prove origin.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E03",
+      "role": "engine-free consumed failure versus unrelated same primitive",
+      "host": "A guard catches its invoke diagnostic rejection 0 and returns exitCode0. Later independent command synchronously throws 0 and registers cleanup throwing false; its stderr sink now accepts output.",
+      "expected": "Handled invocation does not poison later work. Independent handler error follows existing diagnostic/status1 mapping, not the private N14 path; root cleanup false outranks numeric status. Do not infer private provenance from primitive equality.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E04",
+      "role": "engine-free qualification countercontrol, not compatibility positive",
+      "host": "Separate exact-return and async-wrapper/catch-rethrow shapes bound to N14 author N07/N08. Do not silently replace the C17 guard with an async function.",
+      "expected": "Exact-Promise guarantee applies only to the exact-return shape. Preserve independently accepted transformed-Promise outcome/profile as a separately labeled countercontrol; author status1/two-diagnostic observations are not yet accepted evidence.",
+      "status": "UNRUN; exact numeric countercontrol binding waits for independent N14 decision"
+    },
+    {
+      "id": "E05",
+      "role": "engine-free child/sibling state and shared admission",
+      "host": "Invoke two functions with distinct explicit stdout/stderr sinks and child env/cwd. First enables nounset and reaches a missing variable; second prints its own argument. Parent verifies its original option state, env/cwd, positional values and ability to continue. Use actual CommandContext.invoke, no new Shell inside the handler.",
+      "expected": "First child gets accepted nounset failure status, second succeeds with exact literal argv bytes, and parent/sibling bindings remain unchanged. Genuine shared ShellLimitError is not reset or converted to ordinary failure; finite cap boundary must be separately fixed in executable preseal.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E06",
+      "role": "engine-free lazy VFS predicate authority",
+      "host": "Bind accepted Unit3 observable/unobservable -x fixtures. Compare a short-circuited predicate with a reached unobservable file predicate guarding Node. Recording provider remains inert.",
+      "expected": "Skipped branch performs no operand expansion/metadata access. Reached unobservable predicate refuses2 under accepted profile, rather than treating unsupported access as permission or ordinary false; Node never prepares. Use genuine FsError versus separately classified unexpected errors, not errno-shaped duck typing.",
+      "status": "UNRUN; exact accepted Unit3 fixture bytes still to bind"
+    },
+    {
+      "id": "E07",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "CDPATH=/work; cd repo; node ./entry.cjs",
+      "host": "Memory VFS /work/repo/entry.cjs contains console.log('ok');. Grant sourceRead/stdoutWrite explicitly. Record the actual resolved VFS source path and provider request cwd. Use accepted static PUBLIC adapter only.",
+      "expected": "Exact stdout /work/repo\nok\n; source is /work/repo/entry.cjs with cwd /work/repo; no host fallback. On physical move all product/adapter/engine paths rebind to admitted relocated files.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E08",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "node -p \"'ab'\"; printf c",
+      "host": "Shared Shell maxOutputBytes3, explicit stdoutWrite grant. Actual Node emits ab+LF, then ordinary printf attempts one more byte. No new Shell or Budget inside the provider/invoker.",
+      "expected": "Three emitted bytes ab+LF followed by genuine ShellLimitError from the existing budget; no reset/refund or diagnostic conversion. Node Worker and registered parent work retire before settlement. Freeze exact accepted limit discriminator, not a string-only diagnostic assertion.",
+      "status": "UNRUN"
+    }
+  ],
+  "types": [
+    "All21 declared Node type names imported from root and exact subpath; selected actual positive constructions separately enumerated",
+    "Provider required for both factories; invalid replace and grant fields rejected",
+    "No AgentCommandsOptions.node and no limits override",
+    "Private NodeOwner/host/worker implementation exports remain inaccessible",
+    "Fresh parseShell conditional AST discriminant and lazy operand shape type coherently",
+    "Existing CommandInvokeOptions signal/replaceEnv/stdio types remain unchanged"
+  ],
+  "bindingControls": [
+    "Native package export resolution, then exact load hash verification; no root/subpath alias substitution as sole proof",
+    "Stale held9bb runtime in successor pack is rejected before provider preparation",
+    "Wrong package import target with unchanged declaration target fails native consumer; restore exact bytes",
+    "Absent or changed conditional.js fails before engine/guest; private export denial remains distinct"
+  ],
+  "countQualification": "Eight proposed identities x3 layouts=24 slots, not executed outcomes. E04 remains a qualification countercontrol, not a successful guest command. Adding to author759 gives783 proposed slots only. Retaining all50 accepted Unit2 rows per layout would add150, yielding933 proposed slots, subject to separate finite admission."
+}

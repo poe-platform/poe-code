@@ -1,0 +1,15 @@
+{
+  "schema": "SEMANTIC_LAUNCH_DISPATCH_V1",
+  "recordedAt": "2026-08-29T06:00:43.389Z",
+  "toolSession": 67191,
+  "grantCommit": "2ea9666fc2e955c919f90a783b6c1f674963ac0f",
+  "authCommit": "56da0c0345ab8c04ec03e99ab8a6abf92b32aa6b",
+  "startupToolCapture": {
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "sessionRunning": true
+  },
+  "attemptConsumed": true,
+  "runId": "semantic-20260829-v7r3-01",
+  "noRetry": true
+}

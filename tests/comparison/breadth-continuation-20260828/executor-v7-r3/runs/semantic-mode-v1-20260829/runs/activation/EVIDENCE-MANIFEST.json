@@ -1,0 +1,252 @@
+{
+  "schema": "SEMANTIC_STOP_EVIDENCE_MANIFEST_V1",
+  "createdAt": "2026-08-29T06:06:04.030Z",
+  "rawHistoryUnchanged": true,
+  "attemptConsumed": true,
+  "sourceGrant": "2ea9666fc2e955c919f90a783b6c1f674963ac0f",
+  "AUTHcommit": "56da0c0345ab8c04ec03e99ab8a6abf92b32aa6b",
+  "rows": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/AUTHORITY.lock",
+      "bytes": 402,
+      "mode": 292,
+      "sha256": "8e3946bdddc6af481779c9b6f55ab4b397dd6328236f674c3f0361ec756bcb30"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/AUTHORIZATION.json",
+      "bytes": 884,
+      "mode": 420,
+      "sha256": "18086f1a18039bf45b5bede963738b962678b0e0f944f4958529f46d9ee408ca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/RESULT.json",
+      "bytes": 21015,
+      "mode": 420,
+      "sha256": "f85b3917616561ad235ff3be5597728f7a890c02e70b75ace57958544a406ee8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-001.json",
+      "bytes": 149326,
+      "mode": 420,
+      "sha256": "abfaf9da2957412cdd7225fe9a5c5479c6cf678521c7e5392fbcfde785db895b"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-001.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "c89da7534a96e04c893456911383bd7335193f202ac7c97202d4aab5e4a7158d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-001.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "8c14f633bf0f732afe3f699ad92489ee726ab43ec9d673b8f503a62069e63017"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-001.receipt.json.part-0001.data",
+      "bytes": 71561,
+      "mode": 420,
+      "sha256": "a9191f787f0e1454382007536aefce371983617e85bb27f239b623ebc6dc3be8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.json",
+      "bytes": 563,
+      "mode": 420,
+      "sha256": "8a15fa06c31974cc895cff27d9b386176c0c1ed0326b6793684d1f70ce712ee9"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "bb830380c2b8005424f685146f891f25ed33ba3fa5958dcb7221cf1212271e09"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "4f86f56f5f69e07e541dd3eb54714b0796cbe36322eee935fba7cc6003434cb7"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.json.part-0002.data",
+      "bytes": 162007,
+      "mode": 420,
+      "sha256": "d52009f354de33d4dead710106ac350cf5ea331e736689e07816986fdde5e31f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.receipt.json",
+      "bytes": 170958,
+      "mode": 420,
+      "sha256": "41a6f6316c77dad4327c204f05310ce7c03e6e242d0e1accc82757709ae3f52f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/operation-case-1.claim",
+      "bytes": 289,
+      "mode": 292,
+      "sha256": "0f3da1bc3c61ab2ade5927c0e8b27a86181061effd0f728fd1ad21e8c49a4a08"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/operation-case-2.claim",
+      "bytes": 291,
+      "mode": 292,
+      "sha256": "7f1376825d2d9d8b71a2f6e6747ef90149e7343c21598be9b4ccaeae223a81bc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-supervision/COORDINATOR-RECEIPT.json",
+      "bytes": 4798,
+      "mode": 420,
+      "sha256": "b7e76b0cbf2d4ae93d9b44238401f61f580f619bcd4ac467acc86aaceaa17df8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-supervision/LAUNCH.json",
+      "bytes": 959,
+      "mode": 420,
+      "sha256": "e3833184a96cf44b5861739382f81abaa7d2d91b33721669c3c6ec1d45956012"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-supervision/OUTER.json",
+      "bytes": 1227,
+      "mode": 420,
+      "sha256": "9faae19918bc1555a2a048786ac7d5be10bd74a85b110d44f1ff37692357e270"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/RECEIPT.json",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "9bfd9610261cef7916ec0d62a8c6e04364e8b446611487d21f507b2b1d3f6e95"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "3f8497130feeaef2ba6501ebe2e680cf854a2bc3a0a7ca965bbf6054d1293c60"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/intent.ndjson",
+      "bytes": 326,
+      "mode": 384,
+      "sha256": "5d148c0b48b3d5731794dff9da2fadec979931a447b6bd822f9e51149a1a8353"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/stdout.raw",
+      "bytes": 653,
+      "mode": 384,
+      "sha256": "9bcfa230e47a7d3c8e803ee1bf33ea40dce4f7fda8434888fc8396f0feb57ec0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/AUTH.json",
+      "bytes": 558,
+      "mode": 420,
+      "sha256": "28988c2ea528201dd12a09726cc02d99cd608571025cb7f4fef59589f0bbbb2d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/HANDOFF.md",
+      "bytes": 4650,
+      "mode": 420,
+      "sha256": "103f6ec0253f1156a3bd5ba25f2daeae8ff8e709b1715e86788e8986d76def11"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/LAUNCH-DISPATCH.json",
+      "bytes": 423,
+      "mode": 384,
+      "sha256": "b7a436c030d41e0156a519b153f6fec94fdf642f0f29beb3139e8cb2e8c379f4"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/LAUNCH-INTENT.json",
+      "bytes": 25596,
+      "mode": 420,
+      "sha256": "733f42984b4bdf5a6850a94cbb080f0d93859e1c4a56823af1a25d5544e7bc07"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/LAUNCH-RECEIPT.json",
+      "bytes": 6589,
+      "mode": 384,
+      "sha256": "7c3f4bad481724f0bc7504169b09ecd33b48aea4ba95b9f342a72120912fb401"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/PER-IDENTITY-OUTCOMES.json",
+      "bytes": 48910,
+      "mode": 384,
+      "sha256": "b35644d87342e94762350f2e9607f25eca2aacfeaf9399ce18b8ce91d6572f44"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/PREFLIGHT.json",
+      "bytes": 155205,
+      "mode": 384,
+      "sha256": "0af2e1e9fe2eed8e34e61f4de753f7d0ad8c1333458d6837901c012ad8b293b5"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/PREPARATION-CHILDREN.ndjson",
+      "bytes": 34962,
+      "mode": 384,
+      "sha256": "f7ecdc9faee952ef5e7c996af22b360fc9af6febc878fba088d62de98c025095"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/RECONCILIATION.json",
+      "bytes": 13959,
+      "mode": 384,
+      "sha256": "91dc5dbb26565be83f5df2af2e32bf1d69994135d9899cfe6051ade7dcc0cd7c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/ROOT-AUTHORITY.json",
+      "bytes": 3672,
+      "mode": 420,
+      "sha256": "b6dd20eead46b14d2ada64af4b7a24eef44582f349e2638d1baf0e9c4827f7af"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/ROOT-GRANT.json",
+      "bytes": 1207,
+      "mode": 420,
+      "sha256": "ad9af586aacfc2cf90230591439fb1746c23d9105a013ad1fdc1aeee275c588a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/EXEC-PID.data",
+      "bytes": 6,
+      "mode": 420,
+      "sha256": "6d461bcc5372f82f14a11ccd362d57ac1170172c50edc58651107b63c0e9dc49"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/FD-GUARD.json",
+      "bytes": 240,
+      "mode": 384,
+      "sha256": "576706a474e6430971dbc413db9395cef1251bacdb7e66de538a1a13364e23c2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/PREPARE.json",
+      "bytes": 437,
+      "mode": 384,
+      "sha256": "6ba430edc64fadbc12611287f2cfae743de8782deb81a9cfd19eba0ab08fd067"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/stdout.raw",
+      "bytes": 1779,
+      "mode": 384,
+      "sha256": "de62767827dd797be1a4d86c278af98b42138761178ef37df92189f97c528a56"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/PUBLICATION-PLAN.json",
+      "bytes": 4765,
+      "mode": 384,
+      "sha256": "f41dd911eea305d14a343a16bdf7b4e54370a65b57aae903b8b14282b6221597"
+    }
+  ],
+  "selfExcluded": true,
+  "finalGitTailInToolTransport": true
+}

@@ -1,0 +1,273 @@
+{
+  "tool": {
+    "sessionId": 67191,
+    "exitCode": 1,
+    "signal": null,
+    "closed": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0
+  },
+  "ownerTerminal": {
+    "schema": "BREADTH_SEMANTIC_OWNER_V1",
+    "captureQualified": false,
+    "semanticQualified": null,
+    "primaryPresent": true,
+    "primary": {
+      "phase": "disposition",
+      "reason": {
+        "type": "object",
+        "code": "OUTER_NONZERO_OR_UNNATURAL",
+        "message": "OUTER_NONZERO_OR_UNNATURAL"
+      }
+    },
+    "publicationPresent": false,
+    "postflight": false,
+    "postflightFailure": null,
+    "child": {
+      "attempted": true,
+      "pid": 28203,
+      "group": 28203,
+      "enrolled": true,
+      "error": null,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "pidPresence": "absent",
+      "groupPresence": "absent",
+      "reaped": true,
+      "natural": true
+    },
+    "streams": {
+      "stdout": {
+        "observed": 653,
+        "retained": 653,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "9bcfa230e47a7d3c8e803ee1bf33ea40dce4f7fda8434888fc8396f0feb57ec0"
+      },
+      "stderr": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fd3": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 262144,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "profileSealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/outer-capture/RECEIPT.json",
+      "bytes": 1763,
+      "sha256": "9bfd9610261cef7916ec0d62a8c6e04364e8b446611487d21f507b2b1d3f6e95"
+    },
+    "limits": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536,
+      "outer": 524288,
+      "inner": 268435456,
+      "administration": 524288,
+      "overall": 269484032
+    },
+    "qualification": "Capture/protocol completion only; inspect exact semantic counts, mismatches and unqualified rows independently"
+  },
+  "outerReceipt": {
+    "schema": "BREADTH_OUTER_CAPTURE_V1",
+    "primaryPresent": true,
+    "primary": {
+      "phase": "disposition",
+      "reason": {
+        "type": "object",
+        "code": "OUTER_NONZERO_OR_UNNATURAL",
+        "message": "OUTER_NONZERO_OR_UNNATURAL"
+      }
+    },
+    "secondary": [],
+    "secondaryOmitted": 0,
+    "events": [
+      {
+        "ordinal": 1,
+        "phase": "captures-open"
+      },
+      {
+        "ordinal": 2,
+        "phase": "admission-complete"
+      },
+      {
+        "ordinal": 3,
+        "phase": "child-enrolled-listeners-installed",
+        "pid": 28203
+      },
+      {
+        "ordinal": 4,
+        "phase": "child-settled",
+        "reaped": true,
+        "natural": true
+      }
+    ],
+    "child": {
+      "attempted": true,
+      "pid": 28203,
+      "group": 28203,
+      "enrolled": true,
+      "error": null,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "pidPresence": "absent",
+      "groupPresence": "absent",
+      "reaped": true,
+      "natural": true
+    },
+    "streams": {
+      "stdout": {
+        "observed": 653,
+        "retained": 653,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "9bcfa230e47a7d3c8e803ee1bf33ea40dce4f7fda8434888fc8396f0feb57ec0"
+      },
+      "stderr": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fd3": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 262144,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "signals": [],
+    "files": {
+      "stdout": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "stderr": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "fd3": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "intent": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "events": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      }
+    },
+    "captureQualified": false,
+    "publication": "REQUIRES_TERMINAL_CONFIRMATION"
+  },
+  "wrapperPreparation": {
+    "schema": "PRIVATE_CAPTURE_PREPARATION_V2",
+    "pid": 28201,
+    "parentPid": 28200,
+    "umask": 18,
+    "primaryPresent": false,
+    "primaryType": null,
+    "primaryCode": null,
+    "captures": [
+      {
+        "name": "stdout.raw",
+        "descriptor": 11,
+        "synced": true,
+        "closed": true,
+        "mode": 384,
+        "device": 16777232,
+        "inode": 185114740,
+        "bytes": 0
+      },
+      {
+        "name": "stderr.raw",
+        "descriptor": 12,
+        "synced": true,
+        "closed": true,
+        "mode": 384,
+        "device": 16777232,
+        "inode": 185114741,
+        "bytes": 0
+      }
+    ],
+    "secondary": [],
+    "qualified": true
+  },
+  "wrapperFDGuard": {
+    "schema": "PREOPENED_CAPTURE_FDS_V2",
+    "pid": 28202,
+    "parentPid": 28200,
+    "umask": 18,
+    "captures": [
+      {
+        "descriptor": 1,
+        "mode": 384,
+        "inode": 185114740,
+        "device": 16777232,
+        "bytes": 0
+      },
+      {
+        "descriptor": 2,
+        "mode": 384,
+        "inode": 185114741,
+        "device": 16777232,
+        "bytes": 0
+      }
+    ]
+  }
+}

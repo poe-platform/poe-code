@@ -1,0 +1,155 @@
+{
+  "schema": "B1-r6-source-control-preseal",
+  "source": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/prepare.mjs",
+      "bytes": 13095,
+      "sha256": "296d4339ac7b1c7d2de46d7c29edb1079669d72bb6880646a682c3a5560e6b55"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/launch-preparation.sh",
+      "bytes": 300,
+      "sha256": "ac124b71670ce4b2d39785f78aa8171bb292873c8e05cdb6abc510b742ad8be1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs",
+      "bytes": 2495,
+      "sha256": "fb7411f820f3dbb55621cb3e3421ce308c94dd832ce091b8c2a44c8d7b7bbd40"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/controls.mjs",
+      "bytes": 2637,
+      "sha256": "ee8bc40a56c422aa15e43a518ddef323b1adbd1458f1d34d7f1afb226841626b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs",
+      "bytes": 14111,
+      "sha256": "d6071cd81c646360830529a590140de11095ead643beecc60145691c59355eb8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/launch.sh",
+      "bytes": 275,
+      "sha256": "2fbb1b684ddd82931330f72c5596f6ae3fd3dc1d5093f332f684a917d7503b92"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/HANDOFF.md",
+      "bytes": 2287,
+      "sha256": "85c1a3634c624310ff3d508b9b6f8b3ffbe2c780de14a2d1e11c70c02aca81a6"
+    }
+  ],
+  "data": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-BINDING.json",
+      "bytes": 4746,
+      "sha256": "39f13f45b6bf663c7e2157f0f861f5a337fa628e399272a015955a459fbd6e14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-PRESEAL.json",
+      "bytes": 1461,
+      "sha256": "2d6efeee6a235603a5fc9bff0a4dfa6279ba729cdcd32b66f200b9a9e6304445"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+      "bytes": 24620,
+      "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/COMMAND.json",
+      "bytes": 747,
+      "sha256": "9ecf5ccae3492024fd67f35f64ee925b4062a590d5f5d6fb943c8542539b02b0"
+    }
+  ],
+  "unchangedRuntimePreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+    "bytes": 20784,
+    "sha256": "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5"
+  },
+  "unchangedAdminFiles": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+      "bytes": 7874,
+      "sha256": "3ae47a93c2ce7481b0b2973e38f804ee104847ca880ec1613d76b374f1a48bf6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+      "bytes": 7970,
+      "sha256": "00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/admin-dispatch.mjs",
+      "bytes": 2245,
+      "sha256": "8d9604f846097351ece00394ef0777661a55b9ef9425e650827a2b0f5d2ff041"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs",
+      "bytes": 7144,
+      "sha256": "09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/identity.mjs",
+      "bytes": 3228,
+      "sha256": "8e2bd3172834f0cb90e6f3473cbb25ff01a5a389e5c863f614580718f9af2769"
+    }
+  ],
+  "unchangedPreimport": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs",
+      "bytes": 3624,
+      "sha256": "7825c69b107d89664b169b7be9945b34ec90a8444e53c8f8f70e411fb9d6ef85"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs",
+      "bytes": 7144,
+      "sha256": "09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/identity.mjs",
+      "bytes": 3228,
+      "sha256": "8e2bd3172834f0cb90e6f3473cbb25ff01a5a389e5c863f614580718f9af2769"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "exactChanges": [
+    [
+      "from './ledger.mjs';",
+      "from '../admin-owner-r2/ledger.mjs';\nimport { startupReservation, observeStartup } from './startup-policy.mjs';"
+    ],
+    [
+      "let publisherStart;",
+      "let publisherStart;\nlet startupPlan;"
+    ],
+    [
+      "  let startupBytes = 0;\n  for (const file of binding.outputs.startupCaptures) {\n    const stat = fs.lstatSync(file);\n    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) throw Error('Startup capture admission');\n    startupBytes += stat.size;\n  }",
+      "  startupPlan = startupReservation(binding);\n  const startupInitial = observeStartup(startupPlan, file => fs.lstatSync(file));\n  const startupBytes = startupInitial.total;"
+    ],
+    [
+      "  ledger.charge(8192 - startupBytes);",
+      "  ledger.charge(startupPlan.bytes - startupBytes);"
+    ],
+    [
+      "    const startup = binding.outputs.startupCaptures.map(file => {\n      const stat = fs.lstatSync(file);\n      if (!stat.isFile() || stat.size > 4096) throw Error('Startup reserved tail exceeded');\n      return { path: file, bytes: stat.size, prechargedCeiling: 4096, liveAfterCensus: true };\n    });",
+      "    const startupFinal = observeStartup(startupPlan, file => fs.lstatSync(file));\n    const startup = startupFinal.streams;\n    terminal.startupReconciliation = { ...startupFinal, aggregateCaptureCap: 67108864, accounting: 'All per-stream capacity was precharged to the same capture/work Ledger; observed late bytes must remain within it.' };"
+    ]
+  ],
+  "controls": [
+    "S01-zero-streams",
+    "S02-one-stream",
+    "S03-four-streams-unique-bound",
+    "S04-safeinteger-sum",
+    "S05-late-per-stream-overrun",
+    "S06-aggregate-headroom"
+  ],
+  "actualProduct": 0,
+  "publisherMain": 0
+}

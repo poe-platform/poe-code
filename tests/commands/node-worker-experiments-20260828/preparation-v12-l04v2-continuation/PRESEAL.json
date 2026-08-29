@@ -1,0 +1,200 @@
+{
+  "schema": "wrq-v12-eight-seven-execution-preseal",
+  "createdUTC": "2026-08-29T00:44:10.973Z",
+  "ratification": "c0ed1f0d6a12e21c3471a7c7ab21196edc2202db",
+  "rootConditionalAuthority": "ONE actual8Workers7guests after exact preseal+finiteDATA controls PASS; no old replay or slot retry",
+  "previousSource": "702c0a448fcaaabad51294f407e9920c8d577925",
+  "previousActual": "2871a7bb5fc51abecfd92442dbfec4588a886abd",
+  "composition": {
+    "files": 126,
+    "sha256": "b8bb72c91a883e10611239ec686e35717eddc1845afcd7cc123acff7bf74fa1d",
+    "bytes": 1351046,
+    "emissions": 95,
+    "emittedBytes": 1076164,
+    "compiler": false,
+    "additionalBuiltinEdges": 0
+  },
+  "fixtureDelta": {
+    "beforeSha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833",
+    "afterSha256": "2674a7fd2fb7b01632a0fb1e9e3252f0831c7bd2b696fde9e5c9dbd217ced742",
+    "from": "new Promise(() => {});",
+    "to": "Promise.race([]);",
+    "occurrences": 1,
+    "otherGuestBytesUnchanged": true
+  },
+  "selectedInstances": [
+    "WRQ04-L04v2-v12",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "sourceWindow": {
+    "maximumMs": 600000,
+    "maximumOSChildren": 12,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "actualWindow": {
+    "maximumOwnerMs": 600000,
+    "maximumOSChildren": 8,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 402653184,
+    "workers": 8,
+    "guestAttempts": 7,
+    "retries": 0,
+    "ownerEnforcedMs": 180000,
+    "termToKillMs": 2000,
+    "inheritAllStricterProfileLimits": true
+  },
+  "files": [
+    {
+      "path": "scaffold.guest.js.data",
+      "bytes": 6995,
+      "sha256": "2674a7fd2fb7b01632a0fb1e9e3252f0831c7bd2b696fde9e5c9dbd217ced742"
+    },
+    {
+      "path": "outcome-judge.mjs",
+      "bytes": 9443,
+      "sha256": "42645e05b60da3c0c1c64c382723ee04128a9f3b2e590941008b9327e2914260"
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 5205,
+      "sha256": "4d50615b5ad461abdbbe13646aa2dad24c13511d9e39e6780a8d2ec7d924d59d"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 6174,
+      "sha256": "288109c379b6e59c9aa554e1555d2d027f1fccb6fc51c696e6e026ab1ad0b529"
+    },
+    {
+      "path": "PROFILE.json",
+      "bytes": 5279,
+      "sha256": "1b433f3bbcbba5672df45ac494123b976d135fff4284ea48fa3b34f48283fcf3"
+    },
+    {
+      "path": "GRANT.template.json",
+      "bytes": 559,
+      "sha256": "ecf1d05a5a939c0d5891398718ead4eb245993a13f204fcd600ee13b9499a9bf"
+    },
+    {
+      "path": "future-owner.mjs",
+      "bytes": 7285,
+      "sha256": "590ad6b274f7b36b7326a2a2ca83da05f951665d85f65ef0b3a001d312d03f74"
+    },
+    {
+      "path": "MODULES.json",
+      "bytes": 123076,
+      "sha256": "5eae2ea2a5c00b52ae256aa8a1f5a93fe755a1dbd05fa43af5483f8cd6be763c"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 47212,
+      "sha256": "39c7f125c4e6698d2f0f0d82b7cc69ba29b20cb170788400c37e6ce57903915e"
+    },
+    {
+      "path": "COMPOSITION.json",
+      "bytes": 44958,
+      "sha256": "b8bb72c91a883e10611239ec686e35717eddc1845afcd7cc123acff7bf74fa1d"
+    },
+    {
+      "path": "JUDGE-CONTROL.data.json",
+      "bytes": 21432,
+      "sha256": "f88d7be1058ae291c645088822014d23ae2c97392673e97a666bea4f5cb62e23"
+    },
+    {
+      "path": "control-module/outcome-judge.mjs",
+      "bytes": 9443,
+      "sha256": "42645e05b60da3c0c1c64c382723ee04128a9f3b2e590941008b9327e2914260"
+    },
+    {
+      "path": "control-module/receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "control-module/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "control-module/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "control-entry.mjs",
+      "bytes": 5594,
+      "sha256": "1291f28aa2c2c36acae80954a47a89cbaa6e78b1b8d2beabe419d31d5bd0590d"
+    }
+  ],
+  "ownerClosure": [
+    {
+      "path": "../preparation-v6-ready/import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "control": {
+    "expected": 31,
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-entry.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/CASES.json",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/scaffold.guest.js.data",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/JUDGE-CONTROL.data.json",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-module/outcome-judge.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-module/receipt-schema.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-module/wire.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-module/json-size.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/CASES.json",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/scaffold.guest.js.data",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control-entry.mjs"
+    ],
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "externalInputs": [
+      {
+        "path": "../preparation-v10-diagnostic-publication/CASES.json",
+        "bytes": 7662,
+        "sha256": "93ce7b5eb2a8e0eefee4d9d1d80268f7ede54be2855589bef907eb8f20b73c62"
+      },
+      {
+        "path": "../preparation-v6-ready/scaffold.guest.js.data",
+        "bytes": 7000,
+        "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+      }
+    ],
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control.stdout.raw",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/control.stderr.raw",
+    "deadlineMs": 30000,
+    "termToKillMs": 2000
+  },
+  "diagQualification": "Absent text + faultfalse = DIAGNOSIS_UNKNOWN; publisher return fault remains discarded. No new Worker util or observer change; no mask of raw control/sink/cleanup identity.",
+  "runnerPolicy": "Ordinary assertions aggregate after confirmed exit+settled cleanup and no private/capture failure. Safety, unknown retirement, transport observation fault stop. Expected L06b cleanup rejection remains failed-cleanup not clean.",
+  "pendingQueue": "SOURCE-only pending-race interpretation, not all-jobs-settled; L04 admission deadline is NONPASS, not alternate positive"
+}

@@ -1,0 +1,166 @@
+const selectedGuest = function (__wrqBridge, __wrqCase, require, console, process) {
+  if (__wrqCase === 'L01') {
+    const fs = require('fs');
+    let reaction = false;
+    Promise.resolve().then(() => { reaction = true; });
+    const input = fs.readFileSync('/data/input.json', 'utf8');
+    const value = JSON.parse(input);
+    value.count = value.count + 1;
+    const result = fs.writeFileSync('/data/result.json', JSON.stringify(value), { encoding: 'utf8', flag: 'wx' });
+    console.log(typeof input + ':' + typeof result + ':' + JSON.stringify(value));
+    return reaction;
+  }
+  if (__wrqCase === 'L02') {
+    const fs = require('fs');
+    try { fs.readFileSync('/missing', 'utf8'); }
+    catch (error) { console.log(error.name + ':' + error.code + ':' + error.path); }
+    return;
+  }
+  if (__wrqCase === 'L03') {
+    const fs = require('fs');
+    const alias = require('node:fs');
+    const first = require('/data/object.json');
+    const second = require('/data/./object.json');
+    first.count = 7;
+    fs.writeFileSync('/data/object.json', '{"count":99}', 'utf8');
+    const third = require('/data/object.json');
+    console.log(String(fs === alias) + ':' + String(first === second) + ':' + String(second === third) + ':' + String(third.count));
+    return;
+  }
+  if (__wrqCase === 'L04') {
+    Promise.race([]);
+    console.log('entry-return');
+    return;
+  }
+  if (__wrqCase === 'L05') {
+    const fs = require('fs');
+    fs.readFileSync('/data/blocked', 'utf8');
+    fs.writeFileSync('/data/forbidden-later', 'NO', 'utf8');
+    return;
+  }
+  if (__wrqCase === 'L06a') {
+    const fs = require('fs');
+    fs.writeFileSync('/data/effect', 'X', 'utf8');
+    console.log('NO');
+    return;
+  }
+  if (__wrqCase === 'L06b') {
+    const fs = require('fs');
+    fs.writeFileSync('/data/effect', 'X', 'utf8');
+    console.log('sink-failure');
+    return;
+  }
+  if (__wrqCase === 'L07') {
+    const target = 'child_' + 'process';
+    try { require(target); } catch (error) { console.log(error.code); }
+    const fs = require('fs');
+    try { fs.writeFileSync('/data/denied', 'NO', 'utf8'); } catch (error) { console.log(error.code); }
+    console.log(typeof __wrqBridge + ':' + typeof process.exit);
+    return;
+  }
+  throw new Error('unselected fixture');
+};
+
+(function (raw, caseIdentity, guest) {
+  const jsonRoots = {};
+  let jsonEntries = 0;
+  let jsonUnits = 0;
+  function utf8Bytes(value) {
+    let bytes = 0;
+    for (let index = 0; index < value.length; index = index + 1) {
+      const code = value.charCodeAt(index);
+      if (code < 128) bytes = bytes + 1;
+      else if (code < 2048) bytes = bytes + 2;
+      else if (code >= 55296 && code <= 56319 && index + 1 < value.length && value.charCodeAt(index + 1) >= 56320 && value.charCodeAt(index + 1) <= 57343) { bytes = bytes + 4; index = index + 1; }
+      else bytes = bytes + 3;
+      if (bytes > 1048576) unsupported();
+    }
+    return bytes;
+  }
+  function unsupported() {
+    const error = new Error('unsupported frozen-fixture operation');
+    error.code = 'ERR_VNODE_UNSUPPORTED';
+    throw error;
+  }
+  function canonical(path) {
+    if (typeof path !== 'string' || path.length > 1024 || path.indexOf('\u0000') !== -1) unsupported();
+    const parts = path.split('/');
+    const result = [];
+    for (const part of parts) {
+      if (part !== '' && part !== '.') {
+        if (part === '..') unsupported();
+        result.push(part);
+      }
+    }
+    return '/' + result.join('/');
+  }
+  function option(value, writing) {
+    if (value === 'utf8' || value === 'utf-8') return 'w';
+    if (value === null || typeof value !== 'object') unsupported();
+    const keys = Object.keys(value);
+    if (writing ? keys.length !== 2 || keys[0] !== 'encoding' || keys[1] !== 'flag' : keys.length !== 1 || keys[0] !== 'encoding') unsupported();
+    if (value.encoding !== 'utf8' && value.encoding !== 'utf-8') unsupported();
+    if (writing && value.flag !== 'w' && value.flag !== 'wx') unsupported();
+    return writing ? value.flag : 'r';
+  }
+  function call(op, authority, path, flag, body, moduleKey) {
+    const envelope = JSON.parse(raw(op, authority, path, flag, body, moduleKey));
+    let failure;
+    if (envelope.error !== null) {
+      failure = new Error(envelope.error.message);
+      failure.name = envelope.error.name;
+      failure.code = envelope.error.code;
+      if (envelope.kind === 'fsError') {
+        failure.errno = envelope.error.errno;
+        if (envelope.error.path !== null) failure.path = envelope.error.path;
+        if (envelope.error.syscall !== null) failure.syscall = envelope.error.syscall;
+        if (envelope.error.dest !== null) failure.dest = envelope.error.dest;
+      }
+    }
+    raw('delivered', 'postcopy-v1', String(envelope.seq), envelope.kind, null, null);
+    if (failure !== undefined) throw failure;
+    return envelope;
+  }
+  const fs = Object.freeze({
+    readFileSync: function (path, encoding) {
+      option(encoding, false);
+      if (path === 0) return call('readText', 'stdin', null, 'r', null, null).text;
+      return call('readText', 'data', canonical(path), 'r', null, null).text;
+    },
+    writeFileSync: function (path, value, encoding) {
+      const flag = option(encoding, true);
+      if (typeof value !== 'string') unsupported();
+      call('writeText', 'data', canonical(path), flag, value, null);
+      return undefined;
+    }
+  });
+  const process = Object.freeze({ argv: ['node', '/fixture.cjs'], env: {}, cwd: function () { return '/'; } });
+  const pathModule = Object.freeze({ normalize: canonical });
+  const modules = { fs: fs, path: pathModule, process: process };
+  function require(target) {
+    if (typeof target !== 'string') unsupported();
+    const name = target.indexOf('node:') === 0 ? target.slice(5) : target;
+    if (name === 'fs' || name === 'path' || name === 'process') {
+      call('authorizeModule', 'module', null, null, null, name);
+      return modules[name];
+    }
+    if (target.slice(-5) !== '.json') unsupported();
+    const filename = canonical(target);
+    const authorized = call('authorizeJson', 'json', filename, 'r', null, null).cacheKey;
+    const key = JSON.stringify([authorized.namespace, authorized.path]);
+    if (Object.hasOwn(jsonRoots, key)) return jsonRoots[key];
+    const read = call('readText', 'json', filename, 'r', null, null);
+    if (read.cacheKey.namespace !== authorized.namespace || read.cacheKey.path !== authorized.path) unsupported();
+    if (jsonEntries >= 32 || jsonUnits + utf8Bytes(read.text) > 1048576) unsupported();
+    const parsed = JSON.parse(read.text);
+    jsonRoots[key] = parsed;
+    jsonEntries = jsonEntries + 1;
+    jsonUnits = jsonUnits + utf8Bytes(read.text);
+    return parsed;
+  }
+  const console = Object.freeze({ log: function (value) {
+    if (typeof value !== 'string') unsupported();
+    call('writeOutput', 'stdout', null, null, value + '\n', null);
+  } });
+  return guest(undefined, caseIdentity, require, console, process);
+})(__wrqBridge, __wrqCase, selectedGuest);

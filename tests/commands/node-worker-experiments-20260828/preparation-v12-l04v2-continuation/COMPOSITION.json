@@ -1,0 +1,996 @@
+{
+  "schema": "wrq-v12-exact126-l04v2-continuation",
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "target": "CASES.json",
+      "source": "./CASES.json",
+      "bytes": 6174,
+      "sha256": "288109c379b6e59c9aa554e1555d2d027f1fccb6fc51c696e6e026ab1ad0b529",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "ENGINE-PACKAGE.json.data",
+      "source": "../preparation-v6-ready/ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "GRANT.template.json",
+      "source": "./GRANT.template.json",
+      "bytes": 559,
+      "sha256": "ecf1d05a5a939c0d5891398718ead4eb245993a13f204fcd600ee13b9499a9bf",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "MODULES.json",
+      "source": "./MODULES.json",
+      "bytes": 123076,
+      "sha256": "5eae2ea2a5c00b52ae256aa8a1f5a93fe755a1dbd05fa43af5483f8cd6be763c",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "PROFILE.json",
+      "source": "./PROFILE.json",
+      "bytes": 5279,
+      "sha256": "1b433f3bbcbba5672df45ac494123b976d135fff4284ea48fa3b34f48283fcf3",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "SOURCES.json",
+      "source": "./SOURCES.json",
+      "bytes": 47212,
+      "sha256": "39c7f125c4e6698d2f0f0d82b7cc69ba29b20cb170788400c37e6ce57903915e",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "TOOLS.json",
+      "source": "../preparation-v6-ready/TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "compiled/engine/dist/core.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/core.js",
+      "bytes": 165,
+      "sha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/error-codes.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/error-codes.js",
+      "bytes": 380,
+      "sha256": "8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/error/shape.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/error/shape.js",
+      "bytes": 4684,
+      "sha256": "5276a36e63131f7fa270188ede06a491230204de323c9e39f4e8874dbab9eacb",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/graph-depth.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/graph-depth.js",
+      "bytes": 3189,
+      "sha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/arguments.js",
+      "bytes": 1926,
+      "sha256": "a946254930385dbd83a6d49a53ab703ff6f56ad834663d38f8ee0f2a021c7349",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/async.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/async.js",
+      "bytes": 9577,
+      "sha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/budget.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/budget.js",
+      "bytes": 8584,
+      "sha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/cancel.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/cancel.js",
+      "bytes": 6106,
+      "sha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/exceptions.js",
+      "bytes": 15549,
+      "sha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/generator.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/generator.js",
+      "bytes": 4629,
+      "sha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/collections.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/collections.js",
+      "bytes": 3774,
+      "sha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/console-json.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/console-json.js",
+      "bytes": 9671,
+      "sha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/error.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/error.js",
+      "bytes": 2079,
+      "sha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/math.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/math.js",
+      "bytes": 2105,
+      "sha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/misc.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/misc.js",
+      "bytes": 2137,
+      "sha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/object-array.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/object-array.js",
+      "bytes": 9929,
+      "sha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/globals/regex.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/regex.js",
+      "bytes": 317,
+      "sha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/host-bridge.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/host-bridge.js",
+      "bytes": 28892,
+      "sha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/host-call.js",
+      "bytes": 22060,
+      "sha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/interpreter.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/interpreter.js",
+      "bytes": 89873,
+      "sha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/iteration.js",
+      "bytes": 2248,
+      "sha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/jobs.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/jobs.js",
+      "bytes": 2680,
+      "sha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/array.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/array.js",
+      "bytes": 20062,
+      "sha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/function.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/function.js",
+      "bytes": 1344,
+      "sha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/generator.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/generator.js",
+      "bytes": 718,
+      "sha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/map.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/map.js",
+      "bytes": 2744,
+      "sha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/number.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/number.js",
+      "bytes": 2453,
+      "sha256": "d258acca285bcbda201c7fd94189e8b4a90a87c3ac9f2525ec60d146f903707d",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/regex.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/regex.js",
+      "bytes": 1666,
+      "sha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/set.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/set.js",
+      "bytes": 2530,
+      "sha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/methods/string.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/string.js",
+      "bytes": 11311,
+      "sha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/patterns.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/patterns.js",
+      "bytes": 7577,
+      "sha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise-replay.js",
+      "bytes": 15785,
+      "sha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise-tracker.js",
+      "bytes": 1839,
+      "sha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/promise.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise.js",
+      "bytes": 13405,
+      "sha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/regex/engine.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/regex/engine.js",
+      "bytes": 9177,
+      "sha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/regex/parse.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/regex/parse.js",
+      "bytes": 11159,
+      "sha256": "bc5cd67be005150637d5fe657f846f5dd62b0c8d0c36dadc88960f456f2015d8",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/running-state.js",
+      "bytes": 1219,
+      "sha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/scope.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/scope.js",
+      "bytes": 7345,
+      "sha256": "c1d4780c0ff46255077c0db3e63633932a6611c80e31741d466c213a352490ff",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/values.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/values.js",
+      "bytes": 20587,
+      "sha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/interp/var-hoist.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/var-hoist.js",
+      "bytes": 5190,
+      "sha256": "e4f19a664dd9ee5921e271a29b2518861e751c7ef20ef24d1643e9ba2b549a20",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint.js",
+      "bytes": 40,
+      "sha256": "64a00e32becd30dee81e4790dda0dd37b55df224cd021f172042561927f65095",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/index.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/index.js",
+      "bytes": 14807,
+      "sha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "bytes": 21598,
+      "sha256": "9e11747ac5828525aedabeb81d6192b3978d7a8a8d0dbf3c8c24a288693423a5",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "bytes": 9706,
+      "sha256": "bcdfd66dc56f5689eeebdb1c6b5cfe577bb4ca0f122132d51bc9ba24d3f574ae",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "bytes": 14741,
+      "sha256": "dea489073144d583b185563d88a17129930452c2ddf91a2fc95cb655faffe503",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "bytes": 14239,
+      "sha256": "68e712f1c46cd0449ebae256f77f2032e821bb6e086dc5252163340e588ad39f",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "bytes": 22233,
+      "sha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "bytes": 13829,
+      "sha256": "aa05b168c86d487fc375f5bf6880bb67f1e13ef4579806e0536276a41a6bc43d",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "bytes": 3275,
+      "sha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "bytes": 25599,
+      "sha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "bytes": 12029,
+      "sha256": "49359fe538509b50342d5011f42beadc066e7e7c3c5d2d8296919dc3b51d6dbe",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "bytes": 20385,
+      "sha256": "fea668a4d55ada887b6d329c86693720c9ca5cf39e7023e9531842cd0186c2ef",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "bytes": 17646,
+      "sha256": "f465ffd79899253083fe9436b3f5e1029c68b8310ab110c9235150c9a4400cd8",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "bytes": 14245,
+      "sha256": "f41b7cf99a9baf7a9052d46591aaafa9a494059823dce27ab557632616d26a75",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "bytes": 13315,
+      "sha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "bytes": 12551,
+      "sha256": "1604d5d91f11d72831fd424f9f128734c9c4e831cfb17a484f1ae86e43f04b3c",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "bytes": 10269,
+      "sha256": "9176c95e2f96aee9ad59ad6adcd1eaa8c2c7dfc426252f3317fff2a82c0f2181",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "bytes": 22135,
+      "sha256": "148ae0fa99edbeab55424f7e1fbb3852f4a1a8beea6434f767c8036a05d1737c",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS001.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS001.js",
+      "bytes": 21928,
+      "sha256": "a3f9061233c2c957254681f544dd267612c0372c9848dcca43870afa68b207f3",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS003.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS003.js",
+      "bytes": 20355,
+      "sha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS004.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS004.js",
+      "bytes": 943,
+      "sha256": "493c0f87fc6e823a9108fd3c7c521ce689bcf750f51a88f51d0fd9937dc81d3b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS005.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS005.js",
+      "bytes": 1456,
+      "sha256": "28c5722fa23253adfe2947ed044f67580027f3d9b33985d5fb451859cc430bd5",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS006-007.js",
+      "bytes": 21166,
+      "sha256": "e88b7277ee6d0defe9980d375af0798c155bd3d63d7efeb63667f288fe3778aa",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS008.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS008.js",
+      "bytes": 12053,
+      "sha256": "cc0adc7fbb0ea3d70dcb1ee2be78936b09afed976348b33b7aca8a96fabc37e6",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS009.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS009.js",
+      "bytes": 15987,
+      "sha256": "4ac73151cfe1a77812d5c3d6229d9a30db9bc16ebb81bee0a852c8b703644d97",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS010.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS010.js",
+      "bytes": 22441,
+      "sha256": "cdd6d668c5a19a83860e52ce81010c80e83c35bfcf4b93b607f959e10fe435e9",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS011.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS011.js",
+      "bytes": 11276,
+      "sha256": "eee4a4494f198637bb85e03a1b583893803db0de6f866a3e85e22a8d83a755f2",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS013.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS013.js",
+      "bytes": 2840,
+      "sha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/AS015.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS015.js",
+      "bytes": 10802,
+      "sha256": "4c3bd61ffb05ce89d9aa0c3bf36daf75c6001d9cd9e55e629f1149e510c6e6ac",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/known-globals.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/known-globals.js",
+      "bytes": 398,
+      "sha256": "34da3b4c2fe23900c52aa0afffa13b6c569820beb826fcc2b485cf7b79940e26",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/module-registry.js",
+      "bytes": 4135,
+      "sha256": "d4cb50437700fd7624551c5262106308bb3d896048ee26ba0e1cce89a85b3587",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/modules/registry.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/modules/registry.js",
+      "bytes": 4956,
+      "sha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/observability/otel.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/observability/otel.js",
+      "bytes": 2556,
+      "sha256": "207fcb25c59c7da36bc8e993c9306ca714e7ad46d5fdd60d2f5f7f21299d0b9c",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse.js",
+      "bytes": 66,
+      "sha256": "d3ec3eaf7b687ba81d0103d8daae97a1de4db433be83ddf1f830d0725ebf6549",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/assign-ids.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/assign-ids.js",
+      "bytes": 3010,
+      "sha256": "8079e0f14c170b1f1aeedf49568c841772ffd60014b04491a55ebd45c63784bf",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/format-error.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/format-error.js",
+      "bytes": 6922,
+      "sha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/hash.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/hash.js",
+      "bytes": 2846,
+      "sha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/parse-export.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parse-export.js",
+      "bytes": 2161,
+      "sha256": "77d80fe4763e3975bab687b773c8976d4fe7e7eaff73debdf10c275585f427b8",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/parse-import-meta.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parse-import-meta.js",
+      "bytes": 948,
+      "sha256": "07d443545ea0b2c6687b33aad3f5d6908f1d768742cc5671b07545aaed5898dc",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/parser.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parser.js",
+      "bytes": 131417,
+      "sha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/parse/tokenizer.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/tokenizer.js",
+      "bytes": 31558,
+      "sha256": "33d268af0338dde0abe423eea1078b93cf2f28611e008b0f207f7becacc0b8cf",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/random.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/random.js",
+      "bytes": 998,
+      "sha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/restore.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/restore.js",
+      "bytes": 1627,
+      "sha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/run.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/run.js",
+      "bytes": 23493,
+      "sha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/arguments.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/arguments.js",
+      "bytes": 1442,
+      "sha256": "c2f9617cdb99204dd05817379f68ad149e3c2cb6f552a2aa64d1fb1c036fe475",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/backend.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/backend.js",
+      "bytes": 5485,
+      "sha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump-format.js",
+      "bytes": 6985,
+      "sha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/dump.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump.js",
+      "bytes": 5871,
+      "sha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/policy.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/policy.js",
+      "bytes": 5109,
+      "sha256": "6220531e03288996671b95777d32005c19342167d0c766057b177204b619a75b",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-data.js",
+      "bytes": 13059,
+      "sha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-inputs.js",
+      "bytes": 4897,
+      "sha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/scheduler.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/scheduler.js",
+      "bytes": 2495,
+      "sha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/serialize.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/serialize.js",
+      "bytes": 11838,
+      "sha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/validation.js",
+      "bytes": 28147,
+      "sha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "compiled/engine/package.json",
+      "source": "../preparation-v6-ready/ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+      "inputRole": "exact original public engine package metadata"
+    },
+    {
+      "target": "compiled/support/errors.js",
+      "source": "../preparation-v4-compiler/run/compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+      "inputRole": "actual unchanged emission",
+      "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa"
+    },
+    {
+      "target": "errors.mjs",
+      "source": "../preparation-v10-diagnostic-publication/errors.mjs",
+      "bytes": 2278,
+      "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+      "inputRole": "v10 source/metadata overlay"
+    },
+    {
+      "target": "fixtures.mjs",
+      "source": "../preparation-v6-ready/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "heap-worker.mjs",
+      "source": "../preparation-v6-ready/heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "import-policy.mjs",
+      "source": "../preparation-v6-ready/import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "json-size.mjs",
+      "source": "../preparation-v10-diagnostic-publication/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5",
+      "inputRole": "v10 source/metadata overlay"
+    },
+    {
+      "target": "load-attestation.mjs",
+      "source": "../preparation-v6-ready/load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "load-guard.mjs",
+      "source": "../preparation-v6-ready/load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "outcome-judge.mjs",
+      "source": "./outcome-judge.mjs",
+      "bytes": 9443,
+      "sha256": "42645e05b60da3c0c1c64c382723ee04128a9f3b2e590941008b9327e2914260",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "owner.mjs",
+      "source": "../preparation-v6-ready/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "package.json",
+      "source": "../preparation-v6-ready/package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "parent-entry.mjs",
+      "source": "./parent-entry.mjs",
+      "bytes": 5205,
+      "sha256": "4d50615b5ad461abdbbe13646aa2dad24c13511d9e39e6780a8d2ec7d924d59d",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "parent-rpc.mjs",
+      "source": "../preparation-v6-ready/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "receipt-schema.mjs",
+      "source": "../preparation-v6-ready/receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "reservations.mjs",
+      "source": "../preparation-v10-diagnostic-publication/reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde",
+      "inputRole": "v10 source/metadata overlay"
+    },
+    {
+      "target": "scaffold.guest.js.data",
+      "source": "./scaffold.guest.js.data",
+      "bytes": 6995,
+      "sha256": "2674a7fd2fb7b01632a0fb1e9e3252f0831c7bd2b696fde9e5c9dbd217ced742",
+      "inputRole": "v12 exact fixture/selection/evidence overlay"
+    },
+    {
+      "target": "supervisor.mjs",
+      "source": "../preparation-v11-l04-diagnostic/supervisor.mjs",
+      "bytes": 7572,
+      "sha256": "fa7263a44274246381b8f012657c35e4d918782e0ebc3813b7c09c33cf73c300",
+      "inputRole": "v11 instrumented observation/one-case overlay"
+    },
+    {
+      "target": "sync-bridge.mjs",
+      "source": "../preparation-v6-ready/sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "wire.mjs",
+      "source": "../preparation-v6-ready/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "worker-body.mjs",
+      "source": "../preparation-v11-l04-diagnostic/worker-body.mjs",
+      "bytes": 2713,
+      "sha256": "849a32e41ccb2adf6536e9b1ff8238435e461d0c35801480be7ba5fbed899452",
+      "inputRole": "v11 instrumented observation/one-case overlay"
+    },
+    {
+      "target": "worker-entry.mjs",
+      "source": "../preparation-v6-ready/worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "worker-permissions.mjs",
+      "source": "../preparation-v6-ready/worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0",
+      "inputRole": "new frozen source"
+    },
+    {
+      "target": "diagnostic-publication.mjs",
+      "source": "../preparation-v10-diagnostic-publication/diagnostic-publication.mjs",
+      "bytes": 4164,
+      "sha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07",
+      "inputRole": "new trusted parent-only diagnostic"
+    },
+    {
+      "target": "worker-error-observation.mjs",
+      "source": "../preparation-v11-l04-diagnostic/worker-error-observation.mjs",
+      "bytes": 1766,
+      "sha256": "1dcb8319e5d216d2f2bbf1793f4ccacfa51c18149b3dee074b9c77900fed339a",
+      "inputRole": "new trusted Worker observer"
+    }
+  ],
+  "maximumFiles": 160,
+  "maximumBytes": 1323686,
+  "compiler": false,
+  "sourceMode": "Original124 composition OVERLAID (not unchanged) with guard/publication/source/metadata changes plus one diagnostic module;95 prior emissions unchanged"
+}

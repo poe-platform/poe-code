@@ -1,0 +1,34 @@
+{
+  "schema": "d03-selected-diagnostic-v1",
+  "status": "STOP",
+  "inventory": [
+    {
+      "root": "/Users/kjopek/Library/Logs/DiagnosticReports",
+      "name": "node-2026-08-29-000637.ips",
+      "bytes": 6779,
+      "mtimeMs": 1787979997076.6523,
+      "device": 16777232,
+      "inode": 184664820
+    }
+  ],
+  "headers": [
+    {
+      "name": "node-2026-08-29-000637.ips",
+      "bytesRead": 6779,
+      "matched": false
+    }
+  ],
+  "fullRecordsRead": 0,
+  "headerBytesRead": 6779,
+  "rawRecordCaptured": false,
+  "errors": [
+    {
+      "code": "NO_EXACT_MATCH"
+    }
+  ],
+  "inventoryCount": 1,
+  "filteredGlobNames": 1,
+  "closedHandles": 1,
+  "openHandles": 0,
+  "selectedCaptureBytes": 762
+}

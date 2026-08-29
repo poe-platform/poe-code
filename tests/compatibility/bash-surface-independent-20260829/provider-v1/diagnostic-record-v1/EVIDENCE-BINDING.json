@@ -1,0 +1,56 @@
+{
+  "schema": "d03-acquisition-selected-evidence-v1",
+  "sourceCommit": "33860b2b88f6e1b5492bfe3fb60d9ea41b70fa69",
+  "presealSha256": "08e4dfa8914c4f9ed73d29c2bdccfe261123e19094f43bbe4f406d6583366932",
+  "evidence": [
+    {
+      "path": "REPORT.md",
+      "bytes": 4942,
+      "sha256": "883615fbc1c9e7c524dc9e3cfb8f15aef0431e186159561a3a1da0aa832e20ec"
+    },
+    {
+      "path": "SELECTED-RESULT.json",
+      "bytes": 703,
+      "sha256": "084465ad8a428c9c9d51fca81d6b1b279756ae988d4d4a83db037e425f0797d4"
+    },
+    {
+      "path": "SELECTED-EVENTS.jsonl",
+      "bytes": 762,
+      "sha256": "b5e9b30226e4f11c2079940a85bc26225201506733f340146f98910d742c0f64"
+    },
+    {
+      "path": "CAPTURE-CLOSED.json",
+      "bytes": 124,
+      "sha256": "232d09337ea1c6dcbc985b22c9a17d78d957949cf99598167867653b76f1fe23"
+    }
+  ],
+  "observedAt": 1787981526739,
+  "status": "NO_EXACT_MATCH_STOP",
+  "rawRecordSha256": null,
+  "rawRecordCaptured": false,
+  "headerFiles": 1,
+  "headerBytes": 6779,
+  "fullRecordSelectionPhases": 0,
+  "physicallyEntireSmallFileReadAsHeader": true,
+  "closedReportHandles": 1,
+  "activeReportHandles": 0,
+  "knownAdminChildrenAtCutoff": 9,
+  "knownAdminRetiredAtCutoff": 9,
+  "adminCaptureBytesAtCutoff": 2826,
+  "selectedCaptureBytes": 762,
+  "targetChildren": 0,
+  "additionalPrivateReadsAuthorized": false,
+  "remainingPublication": [
+    "apply evidence binding",
+    "git add exact files",
+    "git commit --only exact files",
+    "git status exact scope"
+  ],
+  "captureLocator": "/tmp/bash-surface-d03-record-GP6mos",
+  "limits": {
+    "allProcesses": 32,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  }
+}

@@ -1,0 +1,6 @@
+{"at":1787981436563,"event":"OWNER_CAPTURE_OPEN","role":"EXISTING_OS_RECORD_ONLY","sourceCommit":"33860b2b88f6e1b5492bfe3fb60d9ea41b70fa69"}
+{"at":1787981436565,"event":"ADMISSION","planSha256":"8448adb340f5902121f261d879a2b554508361cd33c522584110c16d9d3bc673","noRawHeaderCapture":true}
+{"at":1787981436579,"event":"FILTERED_INVENTORY","entries":[{"root":"/Users/kjopek/Library/Logs/DiagnosticReports","name":"node-2026-08-29-000637.ips","bytes":6779,"mtimeMs":1787979997076.6523,"device":16777232,"inode":184664820}]}
+{"at":1787981436581,"event":"SELECTED_HEADER","name":"node-2026-08-29-000637.ips","bytesRead":6779,"matched":false}
+{"at":1787981436581,"event":"STOP","codes":["NO_EXACT_MATCH"]}
+{"at":1787981436581,"event":"READER_CLOSED","closedHandles":1}

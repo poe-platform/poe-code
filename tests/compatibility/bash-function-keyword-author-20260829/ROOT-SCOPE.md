@@ -1,0 +1,13 @@
+# B35 root scope and author protocol
+
+2026-08-29. Root authorizes parser-only function-keyword v1 starting exact e013f817fd7700c59a144c395c80dc25856e4157 parser c9065ec21a934b5ab4197e80c620b432f7b060cb. Only unquoted identifier names, optional empty parentheses, brace bodies, whitespace/newlines and existing deferred redirects. No other compound-body support advertised; no aliases, PIPESTATUS, public AST or ERE change.
+
+Composition for future tests: bf079ada derived293 inputs plus exact e013 four core files, engine72187e5abc1179883f85a63e1ef558f2e141c542 and transport46611a5b67ad7af276154421ac7f50dd536ec570. Expected305 inputs, not HEAD. This composed CORE is not yet accepted.
+
+CASES.json freezes18 IDs: B35 plus13 source-derived cases and4 selected retained regressions. Eight literal legacy counterparts add24 comparisons across three layouts. Future primary54 + legacy24 =78 Shell.exec calls; not54 independent native observations. Mutants and binding refusals separate. Source-built/installed/moved must bind same source compilation and physical package. Existing native26 proposal remains UNRUN.
+
+Conditional author grant only after complete executable/tool/source/fixture preseal:25min inclusive72 known OS starts/peak3/96MiB capture/512MiB logical work; case30s/build120s; at most2 build/packchildren. Proposed graph:1 supervisor+1 compiler build+3 strict typechecks+54 primary case children (legacy counterpart in same child)+3 mutant children+2 binding-refusal children=64 known starts, leaving8 admin starts. No product child OS-subprocess/Worker permission; synchronous hooks,0 async loader threads. Trusted parent metadata/compiler/package administration separate. No native, actual =~, network, guest engine or other workload. Per-case capture64KiB/stream, load-trace512KiB. No group absence/whole descendant census/RSS claim. Any unresolved owned child/capture/integrity/deadline/cap failure stops admission; ordinary settled assertion failures retained.
+
+Retained groups originate frozen e013 tests/shell/parser-regressions.test.ts: compound commands require separators; missing compound separators reject recursively; compound commands still accept separators; continuations preserve keyword recognition. Programs replace test-only say/args with genuine printf/test where needed and are explicitly derived, not unchanged full-group replays. No fake registered commands.
+
+No tests executed at this freeze. Actual author activation requires complete successor PRESEAL and file-based supervisor; this document alone is not executable readiness. Root profile limits are prospective, no prior reservation reused.

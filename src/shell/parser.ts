@@ -756,6 +756,17 @@ class Parser {
       const body = this.nonemptyScript(new Set(["done"]));
       this.expect("done");
       command = { kind: "for", name, ...(words ? { words } : {}), body, redirects: [] };
+    } else if (this.is("function")) {
+      this.advance();
+      if (this.current.kind !== "word" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error("Invalid function name");
+      const name = this.advance().value;
+      if (this.is("(")) {
+        this.advance();
+        this.expect(")");
+      }
+      this.newlines();
+      if (!this.is("{")) this.error("Expected brace function body");
+      command = { kind: "function", name, body: this.command(), redirects: [] };
     } else if (this.current.kind === "word" && !compoundHead(this.current.word!) && this.peek().value === "(") {
       const name = this.advance().value;
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");

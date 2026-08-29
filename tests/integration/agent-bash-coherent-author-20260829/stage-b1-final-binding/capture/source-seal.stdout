@@ -1,0 +1,28 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/actual-publication.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/publication.sh
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/controls.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/seal.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/HANDOFF.md
+{"path":"tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/BINDING.json","bytes":4265,"sha256":"adce87b6432ac4c80b84bdf13a225e1b9b0771a398740866734b70476610c97f"}
+[main 2cd4302dd] Seal B1 final binding and prospective actual publication recipe
+ 19 files changed, 553 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/BINDING.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/PREPARATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/PUBLICATION-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/actual-publication.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/index.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/index.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-body.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-body.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-paths.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-paths.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-type.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/review-type.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/status.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/capture/status.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/publication.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/seal.mjs

@@ -1,0 +1,640 @@
+{
+  "verdict": "QUALIFIED_SOURCE_ONLY_EIGHT_OBSERVATIONS_ACCEPT",
+  "author": "8fc9f4fc4a8833a679793a906b688f7debb7c21f",
+  "ids": [
+    "C01",
+    "C02",
+    "C07",
+    "C12",
+    "C13",
+    "C14",
+    "R17",
+    "R16"
+  ],
+  "controls": [
+    {
+      "id": "tampered-row",
+      "pass": true
+    },
+    {
+      "id": "missing-disposal",
+      "pass": true
+    },
+    {
+      "id": "missing-close",
+      "pass": true
+    }
+  ],
+  "evidenceFiles": 18,
+  "evidenceBytes": 328342,
+  "resultSha256": "2d9702b5d0b8858c0bb7b4a1a2355d20cfa1d6884d1e3a875c75365a90e78fa7",
+  "presealSha256": "b76e357418ba52be70ddc566bdaf7ac14716a8843c7a36a8949c580c95c66a67",
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/EVIDENCE-SHA256.txt",
+      "bytes": 3156,
+      "sha256": "4f3d6c4d091093008c2ee0ba37f51d5d22ab2c2db77634f3ec62c8a2ac3f34ba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/ACTIVATION.json",
+      "bytes": 285,
+      "sha256": "0942b9b700cbea816f4de5a0ebc448985eb345cc22531ecae71fb490b11e17fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/SOURCE-RESULT-IDENTITY.json",
+      "bytes": 176,
+      "sha256": "85d6e07e2897b15425f85ddba47d7bb28c91ea78f2cb21a1027c6ace1ffca681"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/SOURCE-RESULT.json",
+      "bytes": 1714,
+      "sha256": "2d9702b5d0b8858c0bb7b4a1a2355d20cfa1d6884d1e3a875c75365a90e78fa7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/TERMINAL.json",
+      "bytes": 94645,
+      "sha256": "9f5312ba9d6b969c3fe284700ae8ad31ac7d5b6445f1eb772a14cb6868e917c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/config.json",
+      "bytes": 632,
+      "sha256": "031986c7432dcdd6ca62de5cd662eed3bba28666fe16ac2024e6a72c17ec49d5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-actual.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-actual.stdout",
+      "bytes": 78290,
+      "sha256": "ad87104f43a7b01b015ff2aa6f4fb0d4b45873050e50cbe1fe90d2793e7dfbeb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-inspection.stdout",
+      "bytes": 3776,
+      "sha256": "69515a11194533b569f64f490a3870869ff30b88f7327f96d15e06c382df7c5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-prep.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-prep.stdout",
+      "bytes": 3871,
+      "sha256": "daf2d513a815fb5d97e93afed90c938d8d69a7ef5faa338f6264a6a0f950bd00"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-seal.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-seal.stdout",
+      "bytes": 4192,
+      "sha256": "eb56a3fd20c500cacf0ab141c5f05f50b7905afba87c701831a3241e9034fede"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/loader.jsonl",
+      "bytes": 70413,
+      "sha256": "586cefdc6fd6204babf11383d833f7db8c867ffca27cdc765cf7e6f59c7097cb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-binding.json",
+      "bytes": 69346,
+      "sha256": "c159c878b1415b3f0cad7e5f93462b62640d1ca57c36950cec2b10af78909499"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-only-eight.stderr",
+      "bytes": 823,
+      "sha256": "f09eed620a09946f80588c326d9949fbf1fa9e962e965990ebe1196d7f96b5ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-only-eight.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/workers.jsonl",
+      "bytes": 179,
+      "sha256": "07fb316667b9fbede7aa895033731d2653c782cf8fe62242c567ebd5098ff367"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/PRESEAL.json",
+      "bytes": 9497,
+      "sha256": "b76e357418ba52be70ddc566bdaf7ac14716a8843c7a36a8949c580c95c66a67"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/bootstrap.mjs",
+      "bytes": 1630,
+      "sha256": "edae83044ef235b985cb5beb6d1cdd0e1d74ebb3ca98e8b9e3e524544ff281eb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/policy.mjs",
+      "bytes": 1518,
+      "sha256": "ad6433c7f9ddcd37a5922035cf96fd681e29e4d7bc3f5412c0e306f215ef0b88"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/runtime.mjs",
+      "bytes": 12021,
+      "sha256": "63adf64a65da1729492d6baa4d6d1251bdd23bf4560ccd34624166a89a02cf9c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+      "bytes": 7970,
+      "sha256": "00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/admission.mjs",
+      "bytes": 1631,
+      "sha256": "4a83bec28a7052a1324b3f4acbde6222c16f1dbee949c46a047d91e481d5ee78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs",
+      "bytes": 3041,
+      "sha256": "d81c8c0a23e2ed3091e0e25fddd6ef6f5d965c0d1572a174ba97e7f14b8e5269"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/consumer-entry.mjs",
+      "bytes": 2227,
+      "sha256": "e67deb72a2af8425e66882be19c2a4d2e0a5c1b403b51545395140f5699a2557"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/consumer.mjs",
+      "bytes": 2007,
+      "sha256": "e9dbf488c7d501de3069f6e0f97750467f031f2b0871f6634d692ffca1e56055"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "bytes": 853,
+      "sha256": "f9eaf5d08311db33a65052c8d4667c46f9d48fb235fff684bc8ebc5ea0af9be4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/driver.mjs",
+      "bytes": 6967,
+      "sha256": "418de3cd31cb05ee6b9ac668ec2019b05f477a6a2beae0a95173697cb5933d77"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/npm-descriptor.mjs",
+      "bytes": 1755,
+      "sha256": "1e92f4cba8604a304a270235dbd3ea063ef47d74828b675ec90bce20ef7e5f5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/finish.mjs",
+      "bytes": 3799,
+      "sha256": "07677aad44c81f2b3f6920da6dfa12066f2047d27e426884972206f71c3d3dd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/consumer-entry.mjs",
+      "bytes": 2227,
+      "sha256": "e67deb72a2af8425e66882be19c2a4d2e0a5c1b403b51545395140f5699a2557"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/admission.mjs",
+      "bytes": 1631,
+      "sha256": "4a83bec28a7052a1324b3f4acbde6222c16f1dbee949c46a047d91e481d5ee78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/consumer.mjs",
+      "bytes": 2007,
+      "sha256": "e9dbf488c7d501de3069f6e0f97750467f031f2b0871f6634d692ffca1e56055"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs",
+      "bytes": 3041,
+      "sha256": "d81c8c0a23e2ed3091e0e25fddd6ef6f5d965c0d1572a174ba97e7f14b8e5269"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "bytes": 853,
+      "sha256": "f9eaf5d08311db33a65052c8d4667c46f9d48fb235fff684bc8ebc5ea0af9be4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/BINDING.json",
+      "bytes": 469415,
+      "sha256": "4bceebe24e134cd811d035498b6226b5aa84a70da45e6d56d650b792720844d4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/RESULT.json",
+      "bytes": 86301,
+      "sha256": "708f5ec08e39a86efa848699c3fb1c8fb840b6eb72df16e0885fae765877ea47"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+      "bytes": 974493,
+      "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/runtime-cases.json",
+      "bytes": 3682,
+      "sha256": "9ece84f2f5cc4a4916d7deab4a173e17dc4fb5d3b5240267e54adf252d310806"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/EVIDENCE-SHA256.txt",
+      "bytes": 3156,
+      "sha256": "4f3d6c4d091093008c2ee0ba37f51d5d22ab2c2db77634f3ec62c8a2ac3f34ba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/ACTIVATION.json",
+      "bytes": 285,
+      "sha256": "0942b9b700cbea816f4de5a0ebc448985eb345cc22531ecae71fb490b11e17fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/SOURCE-RESULT-IDENTITY.json",
+      "bytes": 176,
+      "sha256": "85d6e07e2897b15425f85ddba47d7bb28c91ea78f2cb21a1027c6ace1ffca681"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/SOURCE-RESULT.json",
+      "bytes": 1714,
+      "sha256": "2d9702b5d0b8858c0bb7b4a1a2355d20cfa1d6884d1e3a875c75365a90e78fa7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/TERMINAL.json",
+      "bytes": 94645,
+      "sha256": "9f5312ba9d6b969c3fe284700ae8ad31ac7d5b6445f1eb772a14cb6868e917c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/config.json",
+      "bytes": 632,
+      "sha256": "031986c7432dcdd6ca62de5cd662eed3bba28666fe16ac2024e6a72c17ec49d5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-actual.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-actual.stdout",
+      "bytes": 78290,
+      "sha256": "ad87104f43a7b01b015ff2aa6f4fb0d4b45873050e50cbe1fe90d2793e7dfbeb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-inspection.stdout",
+      "bytes": 3776,
+      "sha256": "69515a11194533b569f64f490a3870869ff30b88f7327f96d15e06c382df7c5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-prep.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-prep.stdout",
+      "bytes": 3871,
+      "sha256": "daf2d513a815fb5d97e93afed90c938d8d69a7ef5faa338f6264a6a0f950bd00"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-seal.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/final-smoke-source-closeout-v1-seal.stdout",
+      "bytes": 4192,
+      "sha256": "eb56a3fd20c500cacf0ab141c5f05f50b7905afba87c701831a3241e9034fede"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/loader.jsonl",
+      "bytes": 70413,
+      "sha256": "586cefdc6fd6204babf11383d833f7db8c867ffca27cdc765cf7e6f59c7097cb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-binding.json",
+      "bytes": 69346,
+      "sha256": "c159c878b1415b3f0cad7e5f93462b62640d1ca57c36950cec2b10af78909499"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-only-eight.stderr",
+      "bytes": 823,
+      "sha256": "f09eed620a09946f80588c326d9949fbf1fa9e962e965990ebe1196d7f96b5ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/source-only-eight.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/evidence/workers.jsonl",
+      "bytes": 179,
+      "sha256": "07fb316667b9fbede7aa895033731d2653c782cf8fe62242c567ebd5098ff367"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/PRESEAL.json",
+      "bytes": 9497,
+      "sha256": "b76e357418ba52be70ddc566bdaf7ac14716a8843c7a36a8949c580c95c66a67"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/bootstrap.mjs",
+      "bytes": 1630,
+      "sha256": "edae83044ef235b985cb5beb6d1cdd0e1d74ebb3ca98e8b9e3e524544ff281eb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/policy.mjs",
+      "bytes": 1518,
+      "sha256": "ad6433c7f9ddcd37a5922035cf96fd681e29e4d7bc3f5412c0e306f215ef0b88"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/runtime.mjs",
+      "bytes": 12021,
+      "sha256": "63adf64a65da1729492d6baa4d6d1251bdd23bf4560ccd34624166a89a02cf9c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+      "bytes": 7970,
+      "sha256": "00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/admission.mjs",
+      "bytes": 1631,
+      "sha256": "4a83bec28a7052a1324b3f4acbde6222c16f1dbee949c46a047d91e481d5ee78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs",
+      "bytes": 3041,
+      "sha256": "d81c8c0a23e2ed3091e0e25fddd6ef6f5d965c0d1572a174ba97e7f14b8e5269"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/consumer-entry.mjs",
+      "bytes": 2227,
+      "sha256": "e67deb72a2af8425e66882be19c2a4d2e0a5c1b403b51545395140f5699a2557"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/consumer.mjs",
+      "bytes": 2007,
+      "sha256": "e9dbf488c7d501de3069f6e0f97750467f031f2b0871f6634d692ffca1e56055"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "bytes": 853,
+      "sha256": "f9eaf5d08311db33a65052c8d4667c46f9d48fb235fff684bc8ebc5ea0af9be4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/driver.mjs",
+      "bytes": 6967,
+      "sha256": "418de3cd31cb05ee6b9ac668ec2019b05f477a6a2beae0a95173697cb5933d77"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/npm-descriptor.mjs",
+      "bytes": 1755,
+      "sha256": "1e92f4cba8604a304a270235dbd3ea063ef47d74828b675ec90bce20ef7e5f5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/finish.mjs",
+      "bytes": 3799,
+      "sha256": "07677aad44c81f2b3f6920da6dfa12066f2047d27e426884972206f71c3d3dd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/consumer-entry.mjs",
+      "bytes": 2227,
+      "sha256": "e67deb72a2af8425e66882be19c2a4d2e0a5c1b403b51545395140f5699a2557"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/admission.mjs",
+      "bytes": 1631,
+      "sha256": "4a83bec28a7052a1324b3f4acbde6222c16f1dbee949c46a047d91e481d5ee78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/consumer.mjs",
+      "bytes": 2007,
+      "sha256": "e9dbf488c7d501de3069f6e0f97750467f031f2b0871f6634d692ffca1e56055"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs",
+      "bytes": 3041,
+      "sha256": "d81c8c0a23e2ed3091e0e25fddd6ef6f5d965c0d1572a174ba97e7f14b8e5269"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "bytes": 853,
+      "sha256": "f9eaf5d08311db33a65052c8d4667c46f9d48fb235fff684bc8ebc5ea0af9be4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/BINDING.json",
+      "bytes": 469415,
+      "sha256": "4bceebe24e134cd811d035498b6226b5aa84a70da45e6d56d650b792720844d4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/RESULT.json",
+      "bytes": 86301,
+      "sha256": "708f5ec08e39a86efa848699c3fb1c8fb840b6eb72df16e0885fae765877ea47"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+      "bytes": 974493,
+      "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/runtime-cases.json",
+      "bytes": 3682,
+      "sha256": "9ece84f2f5cc4a4916d7deab4a173e17dc4fb5d3b5240267e54adf252d310806"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    }
+  ],
+  "child": {
+    "id": "source-only-eight-26984",
+    "role": "source-only-eight",
+    "pid": 26984,
+    "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--experimental-permission",
+      "--allow-fs-read=/private/tmp/final-smoke-source-closeout-v1",
+      "--allow-fs-read=/private/tmp/safe-bash-final-composition-20260829/source",
+      "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--allow-fs-write=/private/tmp/final-smoke-source-closeout-v1",
+      "--allow-worker",
+      "--loader",
+      "file:///private/tmp/final-smoke-source-closeout-v1/stage/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs",
+      "--import",
+      "file:///private/tmp/final-smoke-source-closeout-v1/stage/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
+      "/private/tmp/final-smoke-source-closeout-v1/stage/tests/integration/final-smoke-preparation-20260829/runnable-r5/consumer-entry.mjs",
+      "/private/tmp/final-smoke-source-closeout-v1/config.json",
+      "632",
+      "031986c7432dcdd6ca62de5cd662eed3bba28666fe16ac2024e6a72c17ec49d5"
+    ],
+    "startUTC": "2026-08-29T18:11:26.862Z",
+    "startObserved": true,
+    "exitObserved": true,
+    "closeObserved": true,
+    "stdoutEnd": true,
+    "stderrEnd": true,
+    "signals": [],
+    "exitCode": 0,
+    "exitSignal": null,
+    "exitUTC": "2026-08-29T18:11:27.161Z",
+    "closeCode": 0,
+    "closeSignal": null,
+    "closeUTC": "2026-08-29T18:11:27.161Z"
+  },
+  "postguards": true,
+  "activation": {
+    "epochMs": 1788027086558,
+    "utc": "2026-08-29T18:11:26.558Z",
+    "phaseDeadline": 1788027362359,
+    "sourceOnly": true,
+    "installerInvocations": 0,
+    "layoutCount": 1,
+    "expectedRows": [
+      "C01",
+      "C02",
+      "C07",
+      "C12",
+      "C13",
+      "C14",
+      "R17",
+      "R16"
+    ]
+  },
+  "loaderAdmissions": 1,
+  "guestRegexObservedAttempts": 0,
+  "guestRegexObservedCreates": 0,
+  "qualifications": [
+    "No runtime replay; source-built direct ESM only; no installed/moved/bare-specifier proof",
+    "Owner exit0 ROOT-reported/source-consistent, self-record remains pending; no independent OS attestation",
+    "Loader source-preparation traces are not independent evaluation/individual-thread-exit census",
+    "Scoped registered Shell disposal, not opaque provider/background closure",
+    "Strict npm adapter and successor callsite SOURCE/PURE only, live npm unexecuted",
+    "Original dd8db75a and24UNRUN remain; invalid historical UTC not repaired"
+  ],
+  "endedUTC": "2026-08-29T18:15:48.060Z"
+}

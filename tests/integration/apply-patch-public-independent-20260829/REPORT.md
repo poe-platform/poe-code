@@ -7,6 +7,12 @@ uncredited; no product failure is established, permission was not widened, and
 there was no retry. ROOT decides whether to accept this bounded qualification
 or require the narrow follow-up in `WORKER-PROFILE-GAP.md`.
 
+**Subsequent ROOT adjudication:** qualified acceptance of the finite new public
+feature/default79/API composition is recorded in `ROOT-ACCEPTANCE.md`. The
+original recommendation and all observations below remain unchanged. The four
+maintained regex rows remain an **UNQUALIFIED REGRESSION GAP**,79/83 and exit1;
+this adjudication does not authorize a rerun or permission widening.
+
 ## Exact source and package
 
 | Role | Binding |

@@ -1,0 +1,85 @@
+{
+  "verdict": "PREEXEC-DELTA-ACCEPT",
+  "sourceCommit": "0f8684d8eea2042cef6ab194ad2f9be165b31698",
+  "expectedProfile": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+  "rows": [
+    {
+      "id": "R01-N05-primary0-closefalse-bookkeeping",
+      "status": "PASS"
+    },
+    {
+      "id": "R02-raw-falsy-primary-presence",
+      "status": "PASS"
+    },
+    {
+      "id": "R03-all-closes-and-bookkeeping-independent",
+      "status": "PASS"
+    },
+    {
+      "id": "R04-UNKNOWN-retains-actual-root-reference",
+      "status": "PASS"
+    },
+    {
+      "id": "R05-acquisition-failure-protected",
+      "status": "PASS"
+    },
+    {
+      "id": "R06-emergency-and-report-cannot-replace-primary",
+      "status": "PASS"
+    },
+    {
+      "id": "R07-bounded-ordered-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "R08-schedule-publication-shares-primary-ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-r2-extracted-finally",
+      "status": "PASS"
+    },
+    {
+      "id": "N06-unknown-getter-retention",
+      "status": "PASS"
+    },
+    {
+      "id": "N07-secondary-overflow-report",
+      "status": "PASS"
+    }
+  ],
+  "elapsedMilliseconds": 66,
+  "actual": {
+    "pureHelpers": 1,
+    "metadataGit": 1,
+    "productCalls": 0,
+    "workers": 0,
+    "coordinatorExecutions": 0
+  },
+  "scope": "Actual extracted finalizer + exact eight author PURE bodies; whole coordinator/native acquisition/public cell remain SOURCE-only.",
+  "grantTemplate": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/GRANT-TEMPLATE.json",
+  "commandTemplate": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/INERT-COMMAND.txt",
+  "grant": {
+    "schema": 1,
+    "authorized": false,
+    "profileSha256": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+    "sourceReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+    "producerReview": "5c2ef0795ca402344b5b0d28869b64db46d73b86",
+    "pilotReview": null,
+    "issuedAt": null,
+    "latestStart": null,
+    "expiresAt": null,
+    "outerStarted": null,
+    "sampledNpmWork": true,
+    "knownOS": 40,
+    "peak": 4,
+    "workers": 24,
+    "milliseconds": 1200000,
+    "publicationMilliseconds": 180000,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "conditionalWorkBytes": 254938146,
+  "headroomBytes": 13497310,
+  "previousHoldsUnchanged": true
+}

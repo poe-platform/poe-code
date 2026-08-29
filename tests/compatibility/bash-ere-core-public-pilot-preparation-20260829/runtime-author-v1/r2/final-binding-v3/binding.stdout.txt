@@ -1,0 +1,37 @@
+{
+  "status": "READY_UNACTIVATED_PENDING_ROOT_GO",
+  "issuedAt": "2026-08-29T17:37:24.404Z",
+  "latestStart": "2026-08-29T17:47:24.404Z",
+  "expiresAt": "2026-08-29T17:57:24.404Z",
+  "outerStarted": 268456542,
+  "profile": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/PROFILE.json",
+    "size": 1286043,
+    "sha256": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+    "admission": "regular nonsymlink <=2MiB; exact lstat size equals sameBuffer length; existing sealed SHA256 checked before JSON.parse; SHA pins entire bytes and therefore exact length"
+  },
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v3/PENDING-GRANT.json",
+    "bytes": 667,
+    "sha256": "883163ea821761819c476ff197d8c9577a1ad30d6d2188f8da10feaa04c49289",
+    "fields": 18
+  },
+  "command": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v3/RESOLVED-COMMAND.txt",
+    "bytes": 995,
+    "sha256": "d4cdceff508fc3a63da339397bb3b499c36e475fe9429134f92d887d56dd13a2"
+  },
+  "clock": {
+    "source": "Number(process.hrtime.bigint() / 1000000n)",
+    "pairedAdjacentWallAndMonotonicReadsNotAtomic": true,
+    "sampledUtc": "2026-08-29T17:37:24.471Z",
+    "sampledMonotonic": 268456609,
+    "latestMarginMs": 599933,
+    "remainingMs": 1199933,
+    "publicationReservedMs": 180000,
+    "noResetOnGo": true,
+    "absoluteExpiryLimit": "2026-08-29T18:00:00.000Z"
+  },
+  "unusedSlots": 76,
+  "sourcePostguard": true
+}

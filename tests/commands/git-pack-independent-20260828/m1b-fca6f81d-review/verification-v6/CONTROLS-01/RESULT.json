@@ -1,0 +1,132 @@
+{
+  "role": "SYNTHETIC_NOT_PRODUCT_OR_REAL_WATCHDOG_PROOF",
+  "phaseSourceSha256": "8ef2086f1ee22b92777d48e4aec464dc5b702fac0b21a66aeddaaadb9a49ea1d",
+  "pass": 24,
+  "fail": 0,
+  "rows": [
+    {
+      "id": "body-fixed30",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verify-fixed120",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-outer-clamp",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verify-phase-clamp",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "outer-expired",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "invalid-kind",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "full-window-exact-fit",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "full-window-no-fit",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "finalization-reserve",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-inclusive-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-expired-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-failure-distinct",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-independent-window",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-failure-distinct",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-expired-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "overlapping-phase-denied",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-start-valid",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-body-overbudget",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-extra-field",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-wrong-batch",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-verify-before-body",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-end-late",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-full-sequence",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-overall-expiry",
+      "passed": true,
+      "failure": null
+    }
+  ],
+  "elapsedMs": 10.375791,
+  "captureBytesBeforeResult": 1847,
+  "children": 0,
+  "activeOwnedChildren": 0
+}

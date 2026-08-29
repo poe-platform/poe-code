@@ -1,0 +1,2 @@
+{"phase":"DATA-start","pid":72035,"utc":"2026-08-29T14:25:28.799Z"}
+{"decision":"ACCEPT","controls":4,"activationFiles":15,"inputPins":26,"caseMaps":135,"externalBuiltinEdges":12,"externalRelativeEdges":5,"a03Cells":3,"remainingStartMs":806119,"actual":0}

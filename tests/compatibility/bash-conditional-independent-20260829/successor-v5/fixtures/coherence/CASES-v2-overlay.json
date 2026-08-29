@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "authority": "Root approval of precise versioned corrections at bf9f585b; no product changes",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "originalCasesSha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+  "originalC15InputSha256": "3ccdc18d9ad25252c6c3f96cc768d5597f363143eedd7ed081d7ac4fbf46b1ed",
+  "originalResult": "Source-build original16/18 retained; C14 executor over-specification and C15 invalid positive remain historical failures",
+  "C14": "All original lifecycle/header/caller/cleanup assertions retained; completed request signal recorded, not required aborted; C13 timeout abort remains required",
+  "C15": {
+    "unicodeValues": [
+      "",
+      "😀",
+      "é",
+      "👩‍💻",
+      "�"
+    ]
+  },
+  "refusal": {
+    "id": "R15",
+    "name": "Original C15 lone-high-surrogate input exact parser refusal",
+    "stdout": "",
+    "status": 5,
+    "stderr": "jq: parse error: Invalid \\uXXXX\\uXXXX surrogate pair escape at line 1, column 39\n"
+  },
+  "counting": {
+    "source": "Only affected C14/C15 positives and added R15 refusal on a fresh reproducible build",
+    "installed": "18 revised positives plus1 separate refusal",
+    "moved": "18 revised positives plus1 separate refusal",
+    "original": "Original source16/18 is not rescored"
+  }
+}
+

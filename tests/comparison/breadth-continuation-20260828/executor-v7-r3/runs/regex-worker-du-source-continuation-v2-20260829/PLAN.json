@@ -1,0 +1,21 @@
+{
+  "schema": "REGEX_DU_SOURCE_CONTINUATION_V2",
+  "start": "2026-08-29T07:42:31.990Z",
+  "deadline": "2026-08-29T08:07:31.990Z",
+  "maxOwnedProcesses": 48,
+  "peak": 3,
+  "aggregateCaptureBytes": 67108864,
+  "workingBytes": 268435456,
+  "sourceBytes": 2093056,
+  "sourceStreamBytes": 2097152,
+  "finiteHeaderReserve": 4096,
+  "jsonDataBytes": 16777216,
+  "metadataStreamBytes": 65536,
+  "childMilliseconds": 10000,
+  "initialProcessesIncludingPatch": 4,
+  "scope": "source/data only; no product imports or execution",
+  "oldLoss": "131072 bytes remain irrecoverably unretained; fresh blobs are new evidence, not recovery",
+  "gitAdmission": "cat-file batch-check type/size/object ID before each individual blob command; one source per stdout",
+  "regularAdmission": "lstat regular non-symlink, recognized extension, size cap before open; O_NOFOLLOW and fstat; 64KiB reads/hash; DATA output selected fields only",
+  "controls": "proposal only; zero control execution"
+}

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "public80-0",
+    "kind": "git",
+    "ref": "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f:tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs"
+  },
+  {
+    "id": "public80-1",
+    "kind": "git",
+    "ref": "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f:tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs"
+  },
+  {
+    "id": "run02-0",
+    "kind": "git",
+    "ref": "8918f35bed8d9ec11f523a53e52488f885f627f3:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/worker-observer.mjs"
+  },
+  {
+    "id": "run02-1",
+    "kind": "git",
+    "ref": "8918f35bed8d9ec11f523a53e52488f885f627f3:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/worker-preload.mjs"
+  },
+  {
+    "id": "bre-source",
+    "kind": "git",
+    "ref": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/bre-worker.ts"
+  },
+  {
+    "id": "public80-seal",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/successor-bindings-v2/EXECUTION-SEAL.json",
+    "data": true,
+    "sha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808"
+  },
+  {
+    "id": "projection",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json",
+    "data": true
+  }
+]

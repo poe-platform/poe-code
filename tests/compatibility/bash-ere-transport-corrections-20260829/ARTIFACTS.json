@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "sourceCommit": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "sourceRows": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/accounting.ts",
+      "size": 6780,
+      "mode": 420,
+      "sha256": "ac027226bbfc3851b4db3781ade874f7acceefc006d1b403f05df4812298a144",
+      "relative": "transport/accounting.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/owner.ts",
+      "size": 6765,
+      "mode": 420,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf",
+      "relative": "transport/owner.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/protocol.ts",
+      "size": 2815,
+      "mode": 420,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "relative": "transport/protocol.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/root.ts",
+      "size": 12107,
+      "mode": 420,
+      "sha256": "9e0496ee8113ffb0d6a1e1044cdc04e72c2932b9cc9bcc154d641b5fbf49efd7",
+      "relative": "transport/root.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/validation.ts",
+      "size": 12676,
+      "mode": 420,
+      "sha256": "4a16dbca55444310fd7c1cf55a70c71ec8d653bd387cd379d3eee593bc3516fc",
+      "relative": "transport/validation.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/wire-engine.ts",
+      "size": 1803,
+      "mode": 420,
+      "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234",
+      "relative": "transport/wire-engine.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "size": 1291,
+      "mode": 420,
+      "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208",
+      "relative": "transport/worker-entry.ts"
+    }
+  ],
+  "presealSha256": "4defc229b3d4f446e5916d26b804419e940b342e913e3fbb4b39b26cb41ff3d8",
+  "archiveSha256": "81de06b72e96be4c05e487dabd774fa97afb65d4029200d0e1260938c32c1c08",
+  "files": [
+    {
+      "path": "ACTUAL.json.gz.base64.data",
+      "bytes": 137261,
+      "sha256": "fcc447ced7f6f9e72b348e0b8c8a58e9ea36a98b09b2ee6eb1426408a8681ab6"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "bytes": 47151,
+      "sha256": "940ec0fb973cdfce2cffed7ea82033f636d09d7acc925030c2d2b1b1b22c6f87"
+    },
+    {
+      "path": "WORK-CENSUS.json",
+      "bytes": 220162,
+      "sha256": "8e9096160d09921def3513c90650fdf937590b496c00db6de02285707ebb478e"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 4442,
+      "sha256": "48ff015ac2a00b6eb069ffad9f4078206c8426487411a694ebd9245fe037d935"
+    },
+    {
+      "path": "CLEANUP.json",
+      "bytes": 1090,
+      "sha256": "6f86339a74d0794c973664fd54fc98befbc2f3c8e3587c4cef5cb975808bd056"
+    }
+  ]
+}

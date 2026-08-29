@@ -111,6 +111,11 @@
 - stdinIsDefault describes provenance, not bytes/EOF/readability. Preserve it
   through transparent forwarding; replacement streams choose origin explicitly.
   xargs child input is the implicit empty default, not consumed argument input.
+- PIPESTATUS is lazy and typed: preserve visible scalars and readonly absence;
+  internal completion may atomically replace a visible indexed binding even when
+  readonly. Stage on the shared array ledger; publish qualifying numeric raw
+  stage vectors before aggregate/errexit handling, not compound-wrapper or rejected
+  completions. Local scalar shadows and outer indexed restoration remain distinct.
 - Use readBytes/writeBytes with the supplied signal. POSIX path helpers are
   virtual; lexical containment is not symlink containment or namespace authority.
 - Safe empty-directory removal uses optional FileSystem.rmdir, otherwise ENOTSUP.

@@ -1,0 +1,607 @@
+{
+  "OUTCOME-MATRIX.json": {
+    "schema": "virtual37B-qualified-observation-matrix-v1",
+    "status": "111_QUALIFIED_OBSERVATIONS_NOT_111_PARITY_PASSES",
+    "sourceCommit": "83f750e57470546a95782cb9ce54a81d4900127a",
+    "sourceEvidenceCommit": "8ca64de8e1bf68c949a2c52a58d00cda99165320",
+    "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+    "bindingCommit": "44e5530ef2dc5dd6a125f71a155a2e99885214ab",
+    "bindingEvidenceCommit": "e1940416fcc1dde73f403bf161d93157e2d78f10",
+    "preexecutionReview": "5bc05a7de1e844313860e1cb4e7756972274055a",
+    "resolvedSlotReview": "f82179bdff83461bbee8be069edbae7bde6e3cf2",
+    "grantSha256": "ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e",
+    "resolvedCommandSha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "archive": {
+      "keys": [
+        "path",
+        "bytes",
+        "sha256"
+      ]
+    },
+    "nativeOracleRootPublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+    "nativeProfile": "local GNU Bash3.2.57; not GNU5.3; original37 observations remain unchanged",
+    "oracleApplicability": "Matrix historical pending-audit/source-acceptance labels retained in original; ROOT acceptance ffe2d232 and subsequent candidate acceptance apply without editing matrix bytes.",
+    "scope": {
+      "keys": [
+        "identities",
+        "layouts",
+        "calls",
+        "fixtures",
+        "withheld",
+        "excluded"
+      ]
+    },
+    "summary": {
+      "keys": [
+        "completed",
+        "unrun",
+        "rawEqualCalls",
+        "rawDifferentCalls",
+        "rawEqualIdentities",
+        "rawDifferentIdentities",
+        "allThreeLayoutsIdentical"
+      ]
+    },
+    "rows": {
+      "length": 111,
+      "first": {
+        "id": "source-built-B01",
+        "caseId": "B01",
+        "layout": "source-built",
+        "programSha256": "bb16c2af4aefa3997a298513b57b7bd4107d3432065f3abac7d2bcd47ad56311",
+        "program": "x='a b'; printf '<%s>\\n' pre\"$x\"post '' 'literal *'",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 28,
+            "sha256": "fab3d28d553b9cd0a511e866e9d5caedf8816d7d3a0f1e644330346faae80554",
+            "base64": "PHByZWEgYnBvc3Q+Cjw+CjxsaXRlcmFsICo+Cg=="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 0,
+          "stdout": {
+            "bytes": 28,
+            "sha256": "fab3d28d553b9cd0a511e866e9d5caedf8816d7d3a0f1e644330346faae80554",
+            "base64": "PHByZWEgYnBvc3Q+Cjw+CjxsaXRlcmFsICo+Cg=="
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": true,
+          "stderr": true,
+          "status": true,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": true,
+        "declaredInterpretation": [
+          "NO_PREDICTED_CONTEXT_EXEMPTION"
+        ],
+        "receiptSha256": "f82133dd0b9682e49aeaea3d7cb0013fa6b5189dbb6d7876decff7648c85da2c"
+      }
+    },
+    "caseSummary": {
+      "length": 37,
+      "first": {
+        "id": "B01",
+        "rawEqualLayouts": 3,
+        "sameAcrossLayouts": true,
+        "differences": [],
+        "nativeStatus": 0,
+        "virtualKind": "resolved",
+        "virtualStatus": 0,
+        "stdoutNative": "<prea bpost>\n<>\n<literal *>\n",
+        "stdoutVirtual": "<prea bpost>\n<>\n<literal *>\n",
+        "stderrNative": "",
+        "stderrVirtual": "",
+        "tags": [
+          "NO_PREDICTED_CONTEXT_EXEMPTION"
+        ]
+      }
+    },
+    "normalization": "NONE; statuses/stdout/stderr/relative FS path,type,mode,content compared exactly. Semantic classification is additive, never a replacement for these raw differences."
+  },
+  "MEMBERSHIP.json": {
+    "schema": "virtual37B-loaded-membership-and-settlement-v1",
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "terminal": {
+      "keys": [
+        "path",
+        "bytes",
+        "sha256"
+      ]
+    },
+    "layouts": {
+      "length": 3,
+      "first": {
+        "layout": "source-built",
+        "app": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app",
+        "packageRoot": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app",
+        "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+        "sourceBuilt": true,
+        "shippingMembers": 954
+      }
+    },
+    "commands": {
+      "length": 4,
+      "first": {
+        "role": "build",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/tools/typescript/bin/tsc",
+          "-p",
+          "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/tsconfig.build.json"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app",
+        "authority": "trusted administration; no case permission claim"
+      }
+    },
+    "setupAggregateMs": 10444,
+    "typecheckAggregateMs": 4314,
+    "archiveAdmission": {
+      "keys": [
+        "receipt",
+        "ledger",
+        "events"
+      ]
+    },
+    "knownExecutionRoles": {
+      "keys": [
+        "owner",
+        "build",
+        "typechecks",
+        "cases",
+        "total",
+        "managedChildren",
+        "allManagedChildrenQualified",
+        "managedActive",
+        "ownerRetirement"
+      ]
+    },
+    "ownerToolReceipt": {
+      "keys": [
+        "commandSha256",
+        "login",
+        "workdir",
+        "permissionMode",
+        "initialToolShell",
+        "sessionId",
+        "terminalToolChunk",
+        "exitCode",
+        "outputBytes"
+      ]
+    },
+    "ownerStarted": "2026-08-29T11:25:36.325Z",
+    "ownerDeadline": "2026-08-29T11:55:36.325Z",
+    "publicationConservativeDeadline": "2026-08-29T11:55:00.140Z",
+    "childRows": {
+      "length": 115,
+      "first": {
+        "id": "build",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788002739247
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788002739248
+          },
+          {
+            "name": "spawn",
+            "at": 1788002739248
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788002743300
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788002743300
+          },
+          {
+            "name": "exit",
+            "at": 1788002743301
+          },
+          {
+            "name": "close",
+            "at": 1788002743301
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 14184,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788002743307
+      }
+    },
+    "caseTraces": {
+      "length": 111,
+      "first": {
+        "id": "source-built-B01",
+        "roleSha256": "a94313817d6aa42b09f43ed117f4663c098055238e20e3fb10d96fe8af762cd7",
+        "traceSha256": "55378906923d39a5ccc255f1d7ae12cab15ee083490b8b3de32770d0971b553a",
+        "traceBytes": 75701,
+        "permissionEvents": 1,
+        "synchronousHookEvents": 1,
+        "loadedFiles": 237,
+        "productEntry": "file:///private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/dist/index.js",
+        "unexpectedEvents": []
+      }
+    },
+    "observationFiles": {
+      "length": 111,
+      "first": {
+        "path": "source-built-B01.json",
+        "bytes": 110276,
+        "sha256": "f82133dd0b9682e49aeaea3d7cb0013fa6b5189dbb6d7876decff7648c85da2c"
+      }
+    },
+    "postflight": {
+      "keys": [
+        "sourceShippingChecks",
+        "movedShippingChecks",
+        "sourceInputChecks",
+        "archiveAnd34SealedFilesUnchanged",
+        "installedParentAbsent",
+        "scope"
+      ]
+    },
+    "permissions": {
+      "keys": [
+        "admittedCaseRoles",
+        "childProcessPermission",
+        "workerPermission",
+        "asynchronousLoaderThreads",
+        "unexpectedTraceEvents",
+        "qualification"
+      ]
+    },
+    "primaryPresent": false,
+    "secondary": {
+      "length": 0
+    },
+    "finalizationSecondaryPresent": false,
+    "finalizationSecondary": {
+      "length": 0
+    },
+    "terminalPublicationSucceeded": true,
+    "capture": {
+      "keys": [
+        "ledgerBytes",
+        "allRawCaptureDirectoryBytes",
+        "files",
+        "qualification"
+      ]
+    },
+    "sampledWork": {
+      "keys": [
+        "bytes",
+        "entries",
+        "qualification"
+      ]
+    }
+  },
+  "GAP-CLASSIFICATION.json": {
+    "capabilityGaps": {
+      "keys": [
+        "ids",
+        "description"
+      ]
+    },
+    "diagnosticContext": {
+      "keys": [
+        "ids",
+        "description"
+      ]
+    },
+    "oldNativeApplicability": {
+      "keys": [
+        "ids",
+        "description"
+      ]
+    },
+    "fileModeContext": {
+      "keys": [
+        "ids",
+        "description"
+      ]
+    }
+  },
+  "TOOL-RECEIPT.json": {
+    "schema": "actual-exec-command-observation-v1",
+    "source": "assistant tool responses, retained as explicit tool-level receipt rather than invented ChildProcess events",
+    "command": "exec /usr/bin/env -i HOME=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/home TMPDIR=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/tmp PATH=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/outer.mjs --seal-sha256 6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252 --grant-sha256 ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e\n",
+    "commandBytes": 615,
+    "commandSha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+    "workdir": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2",
+    "login": false,
+    "configuredPermissionPath": "use_default under danger-full-access; no escalation demanded and no fallback",
+    "launchResponse": {
+      "keys": [
+        "chunk",
+        "sessionId",
+        "processRunning",
+        "outputBytes"
+      ]
+    },
+    "terminalResponse": {
+      "keys": [
+        "chunk",
+        "sessionId",
+        "exitCode",
+        "outputBytes"
+      ]
+    },
+    "ownerRawStdout": {
+      "keys": [
+        "bytes",
+        "sha256",
+        "base64"
+      ]
+    },
+    "ownerRawStderr": {
+      "keys": [
+        "bytes",
+        "sha256",
+        "base64"
+      ]
+    },
+    "limitations": "Initial trusted tool-shell startup not child fresh-env/capture qualified; no OS PID or descendant census inferred from session identity."
+  }
+}

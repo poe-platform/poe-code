@@ -380,7 +380,11 @@ function callSplit(value: string, args: readonly SandboxValue[], budget: Budget)
     let endedWithZeroWidthMatch = false;
     for (const match of collectRegexMatches(splitter, value, true)) {
       endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
-      if (match.text.length === 0 && match.index === 0) continue;
+      if (
+        match.text.length === 0 &&
+        (match.index === copiedThrough || match.index === value.length)
+      )
+        continue;
       if (result.length >= limit) break;
       result.push(budget.allocateString(value.slice(copiedThrough, match.index)));
       for (const capture of match.captures) {
@@ -389,7 +393,7 @@ function callSplit(value: string, args: readonly SandboxValue[], budget: Budget)
       }
       copiedThrough = match.index + match.text.length;
     }
-    if (result.length < limit && !endedWithZeroWidthMatch)
+    if (result.length < limit && (value.length > 0 || !endedWithZeroWidthMatch))
       result.push(budget.allocateString(value.slice(copiedThrough)));
     budget.allocateArrayLength(result.length);
     return result;

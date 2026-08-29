@@ -1,0 +1,613 @@
+{
+  "createdAt": "2026-08-27T19:43:50.094Z",
+  "writtenBeforeNative": true,
+  "source": "out/safejs-audit-2026-08-27/input-promise-recovery/01-input-batch-scan.ajs",
+  "sourceSha256": "8344978a75b367325409f07193a28977225c5c833a65e5a14537f2fd9b5cb005",
+  "originalSource": "out/safejs-audit-2026-08-27/input-promise-recovery/original-scan.ajs",
+  "originalSourceSha256": "2adc89698714a83b16ad8737c8d5c2c3947cb772b7688360a41253b12c9453d0",
+  "inputPaths": {
+    "right": [
+      "bindings",
+      "incoming",
+      "remote"
+    ],
+    "left": [
+      "entryPointArgs",
+      "0",
+      "primary"
+    ]
+  },
+  "profiles": [
+    {
+      "id": "fulfill-left-first",
+      "order": [
+        "left",
+        "right"
+      ],
+      "receipts": {
+        "left": {
+          "status": "fulfilled",
+          "value": {
+            "name": "left",
+            "events": [
+              {
+                "name": "open",
+                "delta": 3
+              },
+              {
+                "name": "credit",
+                "delta": 5
+              }
+            ]
+          }
+        },
+        "right": {
+          "status": "fulfilled",
+          "value": {
+            "name": "right",
+            "events": [
+              {
+                "name": "replace",
+                "delta": -2,
+                "replace": true
+              },
+              {
+                "name": "settle",
+                "delta": 7
+              }
+            ]
+          }
+        }
+      },
+      "expected": {
+        "balance": 13,
+        "names": [
+          "open:0",
+          "credit:1",
+          "replace:0",
+          "settle:1"
+        ],
+        "promiseAliases": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "inputOutcomes": [
+          {
+            "key": "left",
+            "status": "fulfilled",
+            "same": true,
+            "batch": "left"
+          },
+          {
+            "key": "right",
+            "status": "fulfilled",
+            "same": true,
+            "batch": "right"
+          }
+        ],
+        "closure": {
+          "initialBalance": 8,
+          "currentBalance": 13,
+          "processed": [
+            "left",
+            "right"
+          ]
+        },
+        "emissionAliases": [
+          true,
+          false,
+          true
+        ],
+        "emissionBalances": [
+          8,
+          8,
+          13,
+          13
+        ],
+        "initialIsFirst": true,
+        "lastIsCurrent": true,
+        "numeric": [
+          16
+        ],
+        "numericIndexes": [
+          1,
+          2
+        ],
+        "empty": [
+          [
+            19
+          ],
+          [],
+          false
+        ],
+        "trace": [
+          [
+            "boundary",
+            "both-pending"
+          ],
+          [
+            "await",
+            "left"
+          ],
+          [
+            "fulfilled",
+            "left",
+            "left",
+            true
+          ],
+          [
+            "event",
+            "left",
+            "open",
+            3
+          ],
+          [
+            "event",
+            "left",
+            "credit",
+            8
+          ],
+          [
+            "closed",
+            "left",
+            2,
+            true
+          ],
+          [
+            "closure",
+            "left",
+            8,
+            8,
+            1
+          ],
+          [
+            "boundary",
+            "after:left"
+          ],
+          [
+            "await",
+            "right"
+          ],
+          [
+            "fulfilled",
+            "right",
+            "right",
+            true
+          ],
+          [
+            "event",
+            "right",
+            "replace",
+            6
+          ],
+          [
+            "event",
+            "right",
+            "settle",
+            13
+          ],
+          [
+            "closed",
+            "right",
+            2,
+            true
+          ],
+          [
+            "closure",
+            "right",
+            8,
+            13,
+            2
+          ],
+          [
+            "boundary",
+            "after:right"
+          ],
+          [
+            "closed",
+            "numeric",
+            3,
+            false
+          ],
+          [
+            "closed",
+            "empty-seeded",
+            0,
+            false
+          ],
+          [
+            "closed",
+            "empty-unseeded",
+            0,
+            false
+          ]
+        ]
+      },
+      "fixtureData": {
+        "order": [
+          "left",
+          "right"
+        ],
+        "fallback": {
+          "right": {
+            "name": "right-fallback",
+            "events": [
+              {
+                "name": "fallback",
+                "delta": 2,
+                "replace": true
+              }
+            ]
+          }
+        }
+      },
+      "expectedCalls": [
+        "both-pending",
+        "after:left",
+        "after:right"
+      ],
+      "expectedAcks": [
+        "boundary:both-pending",
+        "input:left",
+        "boundary:after:left",
+        "input:right",
+        "boundary:after:right"
+      ],
+      "expectedHostTrace": [
+        [
+          "call",
+          "boundary",
+          "both-pending"
+        ],
+        [
+          "ack",
+          "boundary",
+          "both-pending"
+        ],
+        [
+          "ack",
+          "input",
+          "left",
+          "fulfilled"
+        ],
+        [
+          "call",
+          "boundary",
+          "after:left"
+        ],
+        [
+          "ack",
+          "boundary",
+          "after:left"
+        ],
+        [
+          "ack",
+          "input",
+          "right",
+          "fulfilled"
+        ],
+        [
+          "call",
+          "boundary",
+          "after:right"
+        ],
+        [
+          "ack",
+          "boundary",
+          "after:right"
+        ]
+      ],
+      "capturePoints": [
+        {
+          "name": "both-pending",
+          "boundary": "both-pending",
+          "pendingInputs": [
+            "right",
+            "left"
+          ],
+          "consumedInputs": []
+        },
+        {
+          "name": "one-pending",
+          "boundary": "after:left",
+          "pendingInputs": [
+            "right"
+          ],
+          "consumedInputs": [
+            "left"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reject-right-first",
+      "order": [
+        "right",
+        "left"
+      ],
+      "receipts": {
+        "left": {
+          "status": "fulfilled",
+          "value": {
+            "name": "left",
+            "events": [
+              {
+                "name": "open",
+                "delta": 3
+              },
+              {
+                "name": "credit",
+                "delta": 5
+              }
+            ]
+          }
+        },
+        "right": {
+          "status": "rejected",
+          "reason": {
+            "name": "Error",
+            "message": "right input unavailable"
+          }
+        }
+      },
+      "expected": {
+        "balance": 10,
+        "names": [
+          "fallback:0",
+          "open:0",
+          "credit:1"
+        ],
+        "promiseAliases": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "inputOutcomes": [
+          {
+            "key": "right",
+            "status": "rejected",
+            "same": true,
+            "name": "Error",
+            "message": "right input unavailable"
+          },
+          {
+            "key": "left",
+            "status": "fulfilled",
+            "same": true,
+            "batch": "left"
+          }
+        ],
+        "closure": {
+          "initialBalance": 0,
+          "currentBalance": 10,
+          "processed": [
+            "right",
+            "left"
+          ]
+        },
+        "emissionAliases": [
+          true,
+          true
+        ],
+        "emissionBalances": [
+          10,
+          10,
+          10
+        ],
+        "initialIsFirst": false,
+        "lastIsCurrent": true,
+        "numeric": [
+          16
+        ],
+        "numericIndexes": [
+          1,
+          2
+        ],
+        "empty": [
+          [
+            19
+          ],
+          [],
+          false
+        ],
+        "trace": [
+          [
+            "boundary",
+            "both-pending"
+          ],
+          [
+            "await",
+            "right"
+          ],
+          [
+            "rejected",
+            "right",
+            "Error",
+            "right input unavailable",
+            true
+          ],
+          [
+            "event",
+            "right",
+            "fallback",
+            2
+          ],
+          [
+            "closed",
+            "right",
+            1,
+            true
+          ],
+          [
+            "closure",
+            "right",
+            0,
+            2,
+            1
+          ],
+          [
+            "boundary",
+            "after:right"
+          ],
+          [
+            "await",
+            "left"
+          ],
+          [
+            "fulfilled",
+            "left",
+            "left",
+            true
+          ],
+          [
+            "event",
+            "left",
+            "open",
+            5
+          ],
+          [
+            "event",
+            "left",
+            "credit",
+            10
+          ],
+          [
+            "closed",
+            "left",
+            2,
+            true
+          ],
+          [
+            "closure",
+            "left",
+            0,
+            10,
+            2
+          ],
+          [
+            "boundary",
+            "after:left"
+          ],
+          [
+            "closed",
+            "numeric",
+            3,
+            false
+          ],
+          [
+            "closed",
+            "empty-seeded",
+            0,
+            false
+          ],
+          [
+            "closed",
+            "empty-unseeded",
+            0,
+            false
+          ]
+        ]
+      },
+      "fixtureData": {
+        "order": [
+          "right",
+          "left"
+        ],
+        "fallback": {
+          "right": {
+            "name": "right-fallback",
+            "events": [
+              {
+                "name": "fallback",
+                "delta": 2,
+                "replace": true
+              }
+            ]
+          }
+        }
+      },
+      "expectedCalls": [
+        "both-pending",
+        "after:right",
+        "after:left"
+      ],
+      "expectedAcks": [
+        "boundary:both-pending",
+        "input:right",
+        "boundary:after:right",
+        "input:left",
+        "boundary:after:left"
+      ],
+      "expectedHostTrace": [
+        [
+          "call",
+          "boundary",
+          "both-pending"
+        ],
+        [
+          "ack",
+          "boundary",
+          "both-pending"
+        ],
+        [
+          "ack",
+          "input",
+          "right",
+          "rejected"
+        ],
+        [
+          "call",
+          "boundary",
+          "after:right"
+        ],
+        [
+          "ack",
+          "boundary",
+          "after:right"
+        ],
+        [
+          "ack",
+          "input",
+          "left",
+          "fulfilled"
+        ],
+        [
+          "call",
+          "boundary",
+          "after:left"
+        ],
+        [
+          "ack",
+          "boundary",
+          "after:left"
+        ]
+      ],
+      "capturePoints": [
+        {
+          "name": "both-pending",
+          "boundary": "both-pending",
+          "pendingInputs": [
+            "right",
+            "left"
+          ],
+          "consumedInputs": []
+        },
+        {
+          "name": "one-pending",
+          "boundary": "after:right",
+          "pendingInputs": [
+            "left"
+          ],
+          "consumedInputs": [
+            "right"
+          ]
+        }
+      ]
+    }
+  ]
+}

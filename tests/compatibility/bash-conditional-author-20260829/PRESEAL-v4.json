@@ -1,0 +1,69 @@
+{
+  "role": "AUTHOR_CONDITIONAL_PROFILE_REPAIR_V4",
+  "date": "2026-08-29",
+  "base": "501ad98748e639c909f717007dac4f1da19c67dc",
+  "baseSourceSha256": "74c94ab8fb9531f5a704e51d12b6ab713280541758f36cd03de51fe0d630d4da",
+  "baseEvidence": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "moduleCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "moduleAcceptance": "db8b818db983f32c9522ebe4c9589ca8766a5454:208stock/32mechanical/10types/24loaded=274; S02/H09/private-writer SOURCE gaps; native6 UNRUN",
+  "integrationCommit": "68a5a55bbf227c7d4895a4588510a319d4f2c4d8",
+  "fixtureCommit": "75527b5949326d4c82cc027881e772345c4d6a51",
+  "rootOverrides": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json",
+    "README.md"
+  ],
+  "metadataOverrides": [
+    "docs/COMMAND_PRIORITIES.md"
+  ],
+  "defaultCount": 80,
+  "expectedInputs": 293,
+  "expectedPackageMembers": 954,
+  "aggregate": "git?: Omit<GitCommandsOptions,\"replace\">; module setup replace:false, top-level host registration replacement authoritative; all unknown module options still rejected; discoveryBoundary only",
+  "subpath": "virtual-bash/commands/git",
+  "bounds": {
+    "totalSeconds": 1800,
+    "children": 64,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 125829120,
+    "scratchBytes": 734003200,
+    "childCaptureBytes": 8388608,
+    "loaderAdmissions": 20,
+    "regexWorkers": 4
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "stop": "No retry on safety/capture/integrity/unknown retirement; ordinary assertions aggregate after closure; no native/private/network/product fallback/rawHEAD build/YQ/XAN/node/declare/mapfile",
+  "limitations": "Public composition only, not full Git/native/resource parity. All24 Git caps unchanged; baseline79 bounded acceptance; four regex-denied regressions unqualified. Historical module fixtures preserved; two standalone-after-aggregate registration sites versioned to explicit replace:true only.",
+  "executionsAtPreseal": 0,
+  "plannedChildren": {
+    "direct": 30,
+    "loaders": 20,
+    "regexWorkersMax": 4,
+    "outerAndDevelopmentReserve": 26
+  },
+  "cohorts": {
+    "conditional": 67,
+    "strict": 50,
+    "redirections": 48,
+    "arrays": 12
+  },
+  "baseAcceptance": "bd772916c26dc87c54bafdaa784d18f058efa275 bounded public79; reviewer four RegexWorker-denied rows unqualified, no product failure/pass inference",
+  "resources": "Serial admitted consumers; one fixed loader per consumer, at most two exact RegexWorkers at once; no generic Worker or kernel census claim",
+  "sourceCommit": "7a5c6200",
+  "exclusions": "No native/oracle/private/network/engine/Node-command/XAN/fullgate; default80 unchanged. Eleven OPEN/OUTSIDE design identities unexecuted; arithmetic/member-length/invalid-tail/diagnostic GNU qualification absent.",
+  "masterGrantStarted": "2026-08-29T06:06:58.185Z"
+}

@@ -1,0 +1,108 @@
+{
+  "at": "2026-08-29T12:55:08.153Z",
+  "scope": "Explicit immutable evidence set, not full process census",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 11937,
+      "sha256": "ac197ac2be1e9157b0a1e2489a479d081e98dda113feda486c6d7b981903186a"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 5276,
+      "sha256": "12c8f7e03af23977ccf5015a902fe04956681a26c89f59165409d606fc0578c2"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 1029,
+      "sha256": "ed4f961ace9833576d6fe0ea86685549b7a6f6fc079707cc0aa90a3400b2b3e8"
+    },
+    {
+      "path": "PRESEAL-v2.json",
+      "bytes": 1011,
+      "sha256": "3744d43eca2b47b42d847db344017a6ebd7be6f00cd9e696242047ec424a3e8f"
+    },
+    {
+      "path": "FINAL-DATA-PRESEAL.json",
+      "bytes": 913,
+      "sha256": "ccb288bfaf59011f8e89819729ce05f0e1ea1ece4b7101de5f40dcdb85667778"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 2127211,
+      "sha256": "14299d0468effaee61b8fe8ee7bc7164f334a088b85d822a441e4d253cdfef60"
+    },
+    {
+      "path": "DEPENDENCIES.json",
+      "bytes": 5670835,
+      "sha256": "3a7dbb3df9d7792038e9c112bbba138c1cb49c610d4077051d34d94b00ccfcbc"
+    },
+    {
+      "path": "RESULT-v2.json",
+      "bytes": 3182,
+      "sha256": "977a576c29eea04656cb9615d31f69e0a66b01847ccb4f2fb56eaefbcf3a4ca2"
+    },
+    {
+      "path": "FINAL-DATA-RESULT.json",
+      "bytes": 13074,
+      "sha256": "d847287e16543b12e750628e31d072a8708372e5aaee84ff6f9f67d56760082e"
+    },
+    {
+      "path": "SOURCE-POINT-CHECK.json",
+      "bytes": 587,
+      "sha256": "ae57deefe06b1170f8426ffa184dc76db33b5481c2327aedb08554b7a05efa26"
+    },
+    {
+      "path": "PURE-PROCESS-v1.json",
+      "bytes": 375,
+      "sha256": "6c92ccbb12fb234e770c9c912414f2b39fd7d7b4b10bc3391e24a212a7d0a970"
+    },
+    {
+      "path": "PURE-PROCESS-v2.json",
+      "bytes": 349,
+      "sha256": "8300a60e7dbf341c9e2d3bf0dab4cffc12715ae0bf936e12bea63c4fa38c1301"
+    },
+    {
+      "path": "FINAL-DATA-PROCESS.json",
+      "bytes": 353,
+      "sha256": "ab79019d3c23b922e7a8dc0611c1eb3827bdd48874e7ae3d706ead70bd58ca71"
+    },
+    {
+      "path": "NODE-BOUNDARY-SOURCE.json",
+      "bytes": 37645,
+      "sha256": "9d097be8279b48f8a9209f2fbe8ca2093016921afae788cfa033f84edee44e1b"
+    },
+    {
+      "path": "pure-v1.stdout",
+      "bytes": 81,
+      "sha256": "cd8dd4303f834e5f041e253c2e166a90338dc444c7b3b44a909eb8c12ae68d0f"
+    },
+    {
+      "path": "pure-v1.stderr",
+      "bytes": 882,
+      "sha256": "68e5a6cd1192b0b739e72fa467a76884b67574b7c901a26a3d4a61af01f51338"
+    },
+    {
+      "path": "pure-v2.stdout",
+      "bytes": 339,
+      "sha256": "02dfa93790820e121bae6f1afd0f66ffb5f3672a22c7abe24f6d010a3b8c911e"
+    },
+    {
+      "path": "pure-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-data.stdout",
+      "bytes": 114,
+      "sha256": "4713e116f0b5e4064b32341d086df2e5761a9980eb496f67c249c90f31c272a0"
+    },
+    {
+      "path": "final-data.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "publicationTranscript": "/private/tmp/safe-bash-b1-review-20260829T1242",
+  "remaining": "All B1 actual15 and Halley-owned B2 retained672/types/mutants preflight remain separate; no runtime authority"
+}

@@ -1,0 +1,566 @@
+{
+  "computedTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "inputs": 309,
+  "ts": 253,
+  "src": 305,
+  "predictedPackageMembers": 1014,
+  "runtime": {
+    "path": "src/shell/runtime.ts",
+    "mode": "100644",
+    "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+    "bytes": 203623,
+    "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+    "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace"
+  },
+  "fixture": {
+    "schema": "git-design-neutral-loose-index-v1",
+    "qualification": "GENERATED_IN_MEMORY_WITH_NODE_BUILTINS; ZERO_GIT_EXECUTION; native/product acceptance PENDING",
+    "virtualRoot": "/repo",
+    "oids": {
+      "baseCommit": "dde68226091aa6adddca45e02370c5127430e55a",
+      "headCommit": "1cec77171d8321d533b3aa50b7a1a9df02b10816",
+      "headTree": "b17f2aba562322af347fa8aa023d9d0e571a4369",
+      "stagedReadme": "5671f837b11e71420ad6d8da84ba07569e3961b1"
+    },
+    "files": [
+      {
+        "path": ".git/objects/ce/013625030ba8dba906f756967f9e9ca394464a",
+        "mode": 420,
+        "base64": "eJxLyslPUjBjyEjNycnnAgAdxQQU"
+      },
+      {
+        "path": ".git/objects/56/71f837b11e71420ad6d8da84ba07569e3961b1",
+        "mode": 420,
+        "base64": "eJxLyslPUjA0ZshIzcnJVyguSUxPTeECAEsDBto="
+      },
+      {
+        "path": ".git/objects/df/967b96a579e45a18b8251732d16804b2e56a55",
+        "mode": 420,
+        "base64": "eJxLyslPUjBlSEosTuUCABkeA5o="
+      },
+      {
+        "path": ".git/objects/f7/19efd430d52bcfc8566a43b2eb655688d38871",
+        "mode": 420,
+        "base64": "eJxLyslPUjBhKCnP5wIAFaUDWA=="
+      },
+      {
+        "path": ".git/objects/28/6c5f5776916d7d7d5849988ca9d83e722cf9c2",
+        "mode": 420,
+        "base64": "eJxLyslPUjBlSM/PS+UCABlgA6g="
+      },
+      {
+        "path": ".git/objects/82/14f2a3867e2bcbe05172f870629f24ebd0048e",
+        "mode": 420,
+        "base64": "eJwrKUpNVTA2ZTA0MDAzMVFILCjQK6koYbg/rXra0sonURI7VMWNLmawbHqaFQoAN7oQCg=="
+      },
+      {
+        "path": ".git/objects/72/02976aee2fe6822ad399e62d81746506a10c8e",
+        "mode": 420,
+        "base64": "eJwrKUpNVTA2ZTA0MDAzMVFILCjQK6koYfgu+f6KwVXt8yfCspw3vU4N67jcUQgARIARoA=="
+      },
+      {
+        "path": ".git/objects/d6/933c40519b4db4904e71cf3b7ec5c50e09000f",
+        "mode": 420,
+        "base64": "eJwrKUpNVTA0MGcwNDAwMzFRCHJ1dPF11ctNYTjHaKbKzL3i9kq272HT6ufNWTzFzQuqKD+pOD8ntSRVr6SihEEjJz68bGJubW2E54yelTfsinR+HjIxMDAwUCguSmZoEvm0uK1O+/SDwKIfBUnzVV5fYOkDAO5hK/8="
+      },
+      {
+        "path": ".git/objects/b1/7f2aba562322af347fa8aa023d9d0e571a4369",
+        "mode": 420,
+        "base64": "eJwrKUpNVTA0MGcwNDAwMzFRCHJ1dPF11ctNYTjHaKbKzL3i9kq272HT6ufNWTzFzQuqKD+pOD8ntSRVr6SihEEjJz68bGJubW2E54yelTfsinR+HjIxMDAwUCguSmYoYpqe9U7/WZPW5ZnPdBtLUtkW8vQBAOLlKps="
+      },
+      {
+        "path": ".git/objects/dd/e68226091aa6adddca45e02370c5127430e55a",
+        "mode": 420,
+        "base64": "eJydjUsKAjEQBV3nFL0XpGMSY0BEN4LHyKdHGzIZCT0yx5cRT+BbFNSmXp7GkQX0cb+RTgTlEIzJFp0OyZZkA1ryOg8mecouOyQMiDioOMtz6nB9UBO48SJzJzjFVS+0xPFVacftHSuXM2iPv8F2pcrfW6G/A+reWDhW9QGTMjtV"
+      },
+      {
+        "path": ".git/objects/1c/ec77171d8321d533b3aa50b7a1a9df02b10816",
+        "mode": 420,
+        "base64": "eJydjksKwkAQRF3PKWYvyEzPLwER3XgBT1CZ7mggP8JEcnyJ3sDaFG9Rj8rTMHRFE9WHsojoxqaW0CBEckRonU8tKsCQ45qNhGThXazVjEXGopklVkTR1BaIYOYMH8SQSyYHS8k7IyFAYS2vadG35766d1tZF9Fn7HiVDcPcy6kb3+g7vmibzC9WH/dS+XuzyN8C9ZA8jaw+C5dIog=="
+      },
+      {
+        "path": ".git/index",
+        "mode": 420,
+        "base64": "RElSQwAAAAIAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBpAAAAAAAAAAAAAAADVZx+DexHnFCCtbY2oS6B1aeOWGxAAlSRUFETUUubWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBpAAAAAAAAAAAAAAABPcZ79Qw1SvPyFZqQ7LrZVaI04hxAAtzcmMvYXBwLnR4dAAAAAAAAABOB1bL4ZtKHIa0R7dsx4+QcJBBpw=="
+      },
+      {
+        "path": ".git/HEAD",
+        "mode": 420,
+        "text": "ref: refs/heads/main\n"
+      },
+      {
+        "path": ".git/refs/heads/main",
+        "mode": 420,
+        "text": "1cec77171d8321d533b3aa50b7a1a9df02b10816\n"
+      },
+      {
+        "path": ".git/config",
+        "mode": 420,
+        "text": "[core]\n\trepositoryformatversion = 0\n\tbare = false\n\tfilemode = false\n"
+      },
+      {
+        "path": "README.md",
+        "mode": 420,
+        "text": "hello staged\n"
+      },
+      {
+        "path": "src/app.txt",
+        "mode": 420,
+        "text": "working\n"
+      },
+      {
+        "path": "notes.txt",
+        "mode": 420,
+        "text": "new\n"
+      }
+    ],
+    "proposedOutputs": [
+      {
+        "args": [
+          "status",
+          "--porcelain=v1",
+          "--no-renames",
+          "-uall"
+        ],
+        "exitCode": 0,
+        "stdout": "M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n"
+      },
+      {
+        "args": [
+          "diff",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "src/app.txt\n"
+      },
+      {
+        "args": [
+          "diff",
+          "--cached",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\nobsolete.txt\n"
+      },
+      {
+        "args": [
+          "show",
+          "HEAD:src/app.txt"
+        ],
+        "exitCode": 0,
+        "stdout": "two\n"
+      },
+      {
+        "args": [
+          "log",
+          "--first-parent",
+          "--format=%H %s",
+          "-n",
+          "2"
+        ],
+        "exitCode": 0,
+        "stdout": "1cec77171d8321d533b3aa50b7a1a9df02b10816 Second\ndde68226091aa6adddca45e02370c5127430e55a Initial\n"
+      },
+      {
+        "args": [
+          "ls-files",
+          "-z"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\u0000src/app.txt\u0000"
+      }
+    ]
+  }
+}
+SOURCE_VIEW src/commands/node/types.ts 62e4f598dded3652421613b3ade030d161315f76 import type { CommandDefinition } from "../../contracts/command.js";
+
+export const NODE_PROFILE = "NP1-CJS-WRQ-L-SYNC-1" as const;
+export const nodeLimits = Object.freeze({ sourceBytes: 262144, contextBytes: 65536, pathBytes: 1024, metadataBytes: 8192, errorBytes: 1024, operations: 128, frames: 4096, wakes: 8192, operationBytes: 1048576, readBytes: 4194304, writeBytes: 4194304, outputBytes: 1048576, jsonBytes: 1048576, jsonEntries: 32, memoryBytes: 16777216, diagnosticReserve: 1048576, sabBytes: 197056, admissionMs: 5000, steps: 100000, callDepth: 128, oldGenerationMiB: 32, youngGenerationMiB: 8, codeMiB: 8, stackMiB: 4 });
+
+export interface NodeGrants {
+  readonly sourceRead?: boolean;
+  readonly dataRead?: boolean;
+  readonly dataWrite?: boolean;
+  readonly jsonModules?: boolean;
+  readonly stdinRead?: boolean;
+  readonly stdoutWrite?: boolean;
+  readonly stderrWrite?: boolean;
+}
+export type NodeSelector = "eval" | "print" | "file" | "stdin";
+export interface NodeSourceRequest {
+  readonly profile: typeof NODE_PROFILE;
+  readonly selector: NodeSelector;
+  readonly source: string;
+  readonly program: string;
+  readonly filename: string;
+  readonly cwd: string;
+  readonly argv: readonly string[];
+  readonly env: Readonly<Record<string, string>>;
+  readonly grants: Readonly<Required<NodeGrants>>;
+  readonly limits: typeof nodeLimits;
+}
+export type NodeOperation = "authorizeModule" | "authorizeJson" | "readText" | "writeText" | "writeOutput" | "path";
+export interface NodeHostRequest {
+  readonly sequence: number;
+  readonly op: NodeOperation;
+  readonly authority: "module" | "json" | "data" | "stdin" | "stdout" | "stderr" | "path";
+  readonly path: string | null;
+  readonly flag: "r" | "w" | "wx" | null;
+  readonly text: string | null;
+  readonly moduleKey: string | null;
+}
+export interface NodeGuestError {
+  readonly name: string;
+  readonly message: string;
+  readonly code: string;
+  readonly errno: number | null;
+  readonly path: string | null;
+  readonly syscall: string | null;
+  readonly dest: string | null;
+}
+export interface NodeHostResponse {
+  readonly sequence: number;
+  readonly kind: "void" | "text" | "fsError" | "unsupported" | "denied";
+  readonly text: string | null;
+  readonly error: NodeGuestError | null;
+  readonly cacheKey: { readonly namespace: number; readonly path: string } | null;
+}
+export interface NodeReason { readonly present: true; readonly value: unknown; }
+export interface NodeObservation {
+  readonly state: "captured" | "unknown";
+  readonly fault: boolean;
+  readonly name: string | null;
+  readonly message: string | null;
+  readonly code: string | null;
+}
+export interface NodeCompletion {
+  readonly kind: "entryReturned" | "guestFailure" | "profileFailure";
+  readonly observation: NodeObservation;
+}
+export interface NodeRetirement {
+  readonly acquisition: "none" | "exited";
+  readonly exitCode: number | null;
+}
+export interface NodeHostServices {
+  readonly signal: AbortSignal;
+  readonly request: (request: NodeHostRequest) => Promise<NodeHostResponse>;
+  readonly delivered: (sequence: number) => void;
+  readonly reserve: (label: string, bytes: number) => () => void;
+  readonly cutoff: () => void;
+  readonly fail: (reason: NodeReason) => void;
+  readonly stopProfile: (reason: NodeReason) => void;
+  readonly job: <Value>(start: () => Value | PromiseLike<Value>) => Promise<Value>;
+}
+export interface NodeSession {
+  readonly start: () => Promise<NodeCompletion>;
+  readonly cancel: (reason: NodeReason) => void;
+  readonly retire: () => Promise<NodeRetirement>;
+}
+export interface NodeRuntimeProvider {
+  readonly profile: typeof NODE_PROFILE;
+  readonly identity: string;
+  readonly prepare: (request: NodeSourceRequest, services: NodeHostServices) => NodeSession;
+}
+export interface NodeCommandOptions { readonly provider: NodeRuntimeProvider; readonly grants?: NodeGrants; }
+export type NodeCommandFactory = (options: NodeCommandOptions) => CommandDefinition;
+
+export class NodeProfileError extends Error {
+  readonly code = "ERR_VNODE_PROFILE";
+  constructor(readonly resource: string) { super("Restricted node profile: " + resource); this.name = "NodeProfileError"; }
+}
+export class NodeUsageError extends Error {
+  readonly code = "ERR_VNODE_UNSUPPORTED";
+  constructor(message: string) { super(message); this.name = "NodeUsageError"; }
+}
+
+SOURCE_VIEW src/commands/network/types.ts 41d192aaadeb0a727990392cc4df3e05d94aab31 import type { ByteSource, InvocationCleanup } from "../../contracts/index.js";
+
+export type HttpHeaders = readonly (readonly [string, string])[];
+
+export interface HttpRequest {
+  readonly url: string;
+  readonly method: string;
+  readonly headers: HttpHeaders;
+  readonly body?: ByteSource;
+  readonly signal: AbortSignal;
+  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
+}
+
+export interface HttpResponse {
+  readonly status: number;
+  readonly statusText: string;
+  readonly headers: HttpHeaders;
+  readonly httpVersion?: string;
+  readonly body: ByteSource;
+  dispose(): Promise<void>;
+}
+
+export type HttpTransport = (request: HttpRequest) => Promise<HttpResponse>;
+
+export interface NetworkAuthorization {
+  readonly url: string;
+  readonly method: string;
+  readonly redirectFrom?: string;
+  readonly attempt: number;
+  readonly signal: AbortSignal;
+}
+
+export type NetworkAuthorizer = (request: NetworkAuthorization) => boolean | Promise<boolean>;
+
+export interface NetworkLimits {
+  readonly maxUploadBytes: number;
+  readonly maxDownloadBytes: number;
+  readonly maxBufferBytes: number;
+  readonly maxHeaderBytes: number;
+  readonly maxRedirects: number;
+  readonly maxRetries: number;
+  readonly maxUrls: number;
+  readonly maxTimeMs: number;
+}
+
+export interface NetworkCommandsOptions {
+  readonly authorize: NetworkAuthorizer;
+  readonly transport?: HttpTransport;
+  readonly limits?: Partial<NetworkLimits>;
+  readonly replace?: boolean;
+}
+
+export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
+  maxUploadBytes: 64 * 1024 * 1024,
+  maxDownloadBytes: 64 * 1024 * 1024,
+  maxBufferBytes: 8 * 1024 * 1024,
+  maxHeaderBytes: 64 * 1024,
+  maxRedirects: 10,
+  maxRetries: 5,
+  maxUrls: 32,
+  maxTimeMs: 120_000,
+});
+
+export class CurlError extends Error {
+  constructor(readonly exitCode: number, message: string) {
+    super(message);
+    this.name = "CurlError";
+  }
+}
+
+SOURCE_VIEW src/index.ts 3dd8a8c8e67e5c192e4fb1e94e20da25244f65ed export * from "./contracts/index.js";
+export * from "./plugins/index.js";
+export * from "./shell/index.js";
+export * from "./commands/index.js";
+export type { RegexExecutionOptions } from "./commands/regex-execution/protocol.js";
+export * from "./commands/text-programs/index.js";
+export * from "./commands/structured/index.js";
+export * from "./commands/search/index.js";
+export * from "./commands/bytes/index.js";
+export * from "./commands/diff-patch/index.js";
+export * from "./commands/safejs/index.js";
+export * from "./commands/network/index.js";
+export * from "./commands/node/index.js";
+export * from "./commands/metadata/index.js";
+export * from "./commands/archive/index.js";
+export * from "./commands/table-text/index.js";
+export * from "./commands/stream-inspection/index.js";
+export * from "./commands/stream-format/index.js";
+export * from "./commands/split/index.js";
+export * from "./commands/time-env/index.js";
+export * from "./commands/tree/index.js";
+export * from "./commands/file/index.js";
+export * from "./commands/grep-aliases/index.js";
+export * from "./commands/column/index.js";
+export * from "./commands/html-to-markdown/index.js";
+export * from "./commands/du/index.js";
+export * from "./commands/expr/index.js";
+export * from "./commands/which/index.js";
+export * from "./commands/timeout/index.js";
+export * from "./commands/apply-patch/index.js";
+export * from "./commands/git/index.js";
+export * from "./fs/memory/index.js";
+export * from "./fs/real/index.js";
+export * from "./fs/s3/index.js";
+export * from "./fs/s3/http/index.js";
+export * from "./fs/webdav/index.js";
+export * from "./fs/readonly/index.js";
+export * from "./fs/mount/index.js";
+export * from "./fs/overlay/index.js";
+export * from "./integrations/safejs/index.js";
+
+SOURCE_VIEW src/shell/parser.ts 27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe import { ShellSyntaxError } from "./types.js";
+import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
+import type { ArithmeticProgram } from "./arithmetic.js";
+import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
+import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
+import { conditionalBinary, conditionalUnary } from "./conditional.js";
+import type { ConditionalExpression } from "./conditional.js";
+
+export type WordPart =
+  | { kind: "text"; value: string; quoted: boolean }
+  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
+  | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+
+export interface Word {
+  readonly parts: WordPart[];
+  readonly offset: number;
+  readonly plain?: string;
+  readonly spelling?: string;
+  readonly printedNewlines?: number;
+}
+
+interface Token {
+  kind: "word" | "operator" | "end";
+  value: string;
+  offset: number;
+  end: number;
+  word?: Word;
+  document?: HereDocument;
+}
+
+export interface HereDocument {
+  readonly delimiter: string;
+  readonly quoted: boolean;
+  readonly stripTabs: boolean;
+  readonly offset: number;
+  readonly depth: number;
+  body: string;
+  endLine: number;
+}
+
+export class HereDocumentSyntaxError extends Error {
+  constructor(readonly diagnostic: string) { super(diagnostic); }
+}
+
+export interface Redirect {
+  readonly descriptor: number;
+  readonly operator: string;
+  readonly target: Word;
+  readonly move?: boolean;
+  readonly document?: HereDocument;
+  readonly line?: number;
+  readonly implicitPipeline?: boolean;
+}
+
+export interface CaseClause {
+  readonly patterns: Word[];
+  readonly body: Script;
+  readonly terminator: ";;" | ";&" | ";;&" | "esac";
+}
+
+export type Command = (
+  | { kind: "simple"; words: Word[] }
+  | { kind: "subshell"; body: Script }
+  | { kind: "group"; body: Script }
+  | { kind: "if"; branches: { condition: Script; body: Script }[]; otherwise?: Script }
+  | { kind: "case"; subject: Word; clauses: CaseClause[] }
+  | { kind: "while"; condition: Script; body: Script }
+  | { kind: "until"; condition: Script; body: Script }
+  | { kind: "for"; name: string; words?: Word[]; body: Script }
+  | { kind: "function"; name: string; body: Command }
+  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
+  | { kind: "conditional"; expression: ConditionalExpression; source: string }
+) & { redirects: Redirect[]; line?: number; sourceName?: string };
+
+export interface Pipeline {
+  readonly commands: Command[];
+  readonly negate: boolean;
+}
+
+export interface AndOr {
+  readonly pipelines: Pipeline[];
+  readonly operators: ("&&" | "||")[];
+}
+
+export interface Script {
+  readonly lists: AndOr[];
+  readonly warnings?: readonly string[];
+  readonly line?: number;
+  readonly printedLines?: ReadonlyMap<Command, number>;
+  readonly printedNewlines?: number;
+}
+
+function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, "printedLines" | "printedNewlines"> {
+  const printedLines = new Map<Command, number>();
+  let line = 1;
+  for (let index = 0; index < lists.length; index++) {
+    for (const pipeline of lists[index]!.pipelines) for (const command of pipeline.commands) {
+      if (command.kind !== "simple" || !command.words.length || command.redirects.some(redirect => redirect.document)) return {};
+      const words = [...command.words, ...command.redirects.map(redirect => redirect.target)];
+      if (words.some(word => word.printedNewlines === undefined)) return {};
+      printedLines.set(command, line + command.words[0]!.printedNewlines!);
+      for (const word of words) line += word.printedNewlines!;
+    }
+    if (index < lists.length - 1 && separators[index]) line++;
+  }
+  return { printedLines, printedNewlines: line - 1 };
+}
+
+class IncompleteShellInput extends Error {}
+
+class Lexer {
+  position = 0;
+  printedNewlineReduction = 0;
+  unprintedWords = 0;
+  delimiterOperator: string | undefined;
+  conditional = false;
+  conditionalPattern: "pattern" | "regex" | undefined;
+  readonly documents: HereDocument[] = [];
+
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
+    if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+  }
+
+  lineAt(position: number): number { return this.lineOffset + this.source.slice(0, position).split("\n").length; }
+
+  error(message: string, unclosedQuote?: { quote: s
+INHERITED_PREP_SOURCE
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+export const own = path.dirname(fileURLToPath(import.meta.url));
+export const repo = path.resolve(own, "../../../..");
+export const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+export const objectHash = (type, bytes) => createHash("sha1").update(`${type} ${bytes.length}\0`).update(bytes).digest("hex");
+export async function hashExecutable(filename) {
+  const before = fs.lstatSync(filename); assert.ok(before.isFile() && !before.isSymbolicLink() && before.size <= 128 * 1024 * 1024);
+  const hash = createHash("sha256"); let length = 0;
+  for await (const bytes of fs.createReadStream(filename, { highWaterMark: 65536 })) { length += bytes.length; assert.ok(length <= before.size); hash.update(bytes); }
+  const after = fs.lstatSync(filename); assert.equal(after.size, before.size); assert.equal(after.ino, before.ino); assert.equal(after.mtimeMs, before.mtimeMs); assert.equal(length, before.size);
+  return hash.digest("hex");
+}
+function admitted(name, maximum = 4 * 1024 * 1024) {
+  assert.ok(!name.split("/").includes("AGENTS.md"));
+  const stat = fs.lstatSync(path.join(repo, name)); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum);
+  return fs.readFileSync(path.join(repo, name));
+}
+
+
+INHERITED_RUN_MAP
+import { own, repo, sha, objectHash, hashExecutable } from './prepare.mjs';
+  if (guarded) args = ['--import', path.join(harness, 'resources.mjs'), ...args];
+  for (const name of ['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'fixture.json', 'packs.json', 'names.mjs', 'arrays.mjs', 'ARRAY-CASES.json', 'stream-consumer.mjs', 'redirections.mjs', 'redirection-cases.json', 'close-observer.mjs', 'strict.mjs', 'strict-design.json', 'conditional.mjs', 'extension.mjs', 'extension-design.json', 'n14.mjs']) await write(path.join(directory, name), await fs.readFile(path.join(harness, name)));
+  for (const name of ['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json']) await write(path.join(directory, 'coherence', name), await fs.readFile(path.join(harness, 'coherence', name)));
+  for (const file of [path.join(directory, script), path.join(directory, 'names.mjs'), path.join(directory, 'coherence/names.mjs'), path.join(harness, 'resources.mjs')]) { const bytes = await fs.readFile(file); harnessRows.push({ path: await fs.realpath(file), sha256: sha(bytes) }); }
+  return child(label, process.execPath, ['--test-reporter=tap', '--loader', path.join(harness, 'loader.mjs'), path.join(directory, script)], product, { PUBLIC_BINDING: bindingFile, GIT_AUTHOR_ROOT: real, GIT_AUTHOR_RESULT: path.join(output, label + '-git-cases.json'), PRODUCT_ROOT: real, PUBLIC_RESULT: path.join(output, label + '-cases.json'), LAYOUT: label, ...extras });
+async function cohort(label, product, script, expected, extras = {}) {
+  const harnessMap = [
+    ...['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'resources.mjs', 'names.mjs', 'loader.mjs', 'consumer.ts.fixture'].map(name => [name, 'tests/integration/git-public-20260829/' + name]),
+    ['arrays.mjs', 'tests/integration/coherent78-arrays-author-20260828/arrays.mjs'], ['ARRAY-CASES.json', 'tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json'],
+    ...['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json'].map(name => ['coherence/' + name, 'tests/integration/coherent78-shell-author-20260828/' + name]),
+    ['stream-consumer.mjs', 'tests/plugins/stream-five-public/consumer.mjs'],
+  harnessMap.push(['redirections.mjs', 'tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs'], ['redirection-cases.json', 'tests/compatibility/bash-redirection-author-20260829/CASES.json'], ['close-observer.mjs', 'tests/compatibility/bash-redirection-author-20260829/close-observer.mjs'], ['strict.mjs', 'tests/compatibility/bash-strict-mode-author-20260829/strict.mjs'], ['strict-design.json', 'tests/compatibility/bash-strict-mode-design-20260829/CASES.json']);
+  harnessMap.push(['conditional.mjs', 'tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs']);
+  harnessMap.push(['extension.mjs', 'tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs'], ['extension-design.json', 'tests/compatibility/bash-strict-extension-design-20260829/CASES.json']);
+  harnessMap.push(['n14.mjs', 'tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs']);
+  for (const [destination, from] of harnessMap) { const row = executor.files.find(row => row.path === from), bytes = await fs.readFile(path.join(repo, from)); assert.equal(sha(bytes), row.sha256); await write(path.join(harness, destination), bytes); }
+    await setupConsumer(product, label); await cohort(label + '-redirections-v3', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 67); await cohort(label + '-extension', product, 'extension.mjs', 35); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await types(label, product);
+  await layout('source', source); await cohort('source-n14', source, 'n14.mjs', 12);
+  await layout('installed', installedRoot); await cohort('installed-n14', installedRoot, 'n14.mjs', 12);
+  await cohort('moved-redirections-v3', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 67); await cohort('moved-extension', movedRoot, 'extension.mjs', 35); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await types('moved', movedRoot); await cohort('moved-n14', movedRoot, 'n14.mjs', 12);
+{"id":"n14-drop-provenance","file":"shell/runtime.js","before":"const diagnostic = this.cancellationState.consumeDiagnostic(raw);","after":"const diagnostic = undefined;","case":"N10","script":"n14.mjs"},
+    const changed = await run(mutation.id, mutantRoot, mutation.script ?? 'extension.mjs', mutation.script ? { N14_CASE: mutation.case } : { EXT_CASE: mutation.case });
+    await cohort(mutation.id + '-restored', mutantRoot, mutation.script ?? 'extension.mjs', 1, mutation.script ? { N14_CASE: mutation.case } : { EXT_CASE: mutation.case });
+    const result = await run('binding-' + kind, movedRoot, 'strict.mjs', {}, binding => {

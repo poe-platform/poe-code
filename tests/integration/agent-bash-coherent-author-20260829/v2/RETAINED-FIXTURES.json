@@ -1,0 +1,114 @@
+[
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+    "bytes": 9613,
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+    "bytes": 2790,
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "path": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+    "bytes": 957,
+    "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+    "path": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+    "bytes": 11148,
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+    "bytes": 9222,
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "path": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+    "bytes": 14101,
+    "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+    "bytes": 14968,
+    "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+    "path": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+    "bytes": 2507,
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+    "bytes": 3019,
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+    "bytes": 5599,
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/resources.mjs",
+    "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+    "bytes": 1978,
+    "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+    "path": "tests/integration/git-public-20260829/resources.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/loader.mjs",
+    "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+    "bytes": 1180,
+    "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+    "path": "tests/integration/git-public-20260829/loader.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/names.mjs",
+    "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+    "bytes": 879,
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "path": "tests/integration/git-public-20260829/names.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json",
+    "blob": "e90341d1eb8ee4e7e54e826c205b7978b21ac98d",
+    "bytes": 131348,
+    "sha256": "9def80500ee79d157054dcdd8a8dd06b7f77c2f8a720bd34e34c550aec5831f9"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json",
+    "blob": "b440f05d2d58a9310fb11fc45136696b6deed73a",
+    "bytes": 161248,
+    "sha256": "64ed23c6e2f74890ecb2d72284d9458da00af3e59a9ea8975405fd75deb2610a"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json",
+    "blob": "0b995d3cb3b461d479aa88d52b6d47ea043f722f",
+    "bytes": 40195,
+    "sha256": "4f00a838cf440a8f09e9591495357037b33432d3cc141594295860d12fa4d8a4"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json",
+    "blob": "cbce5f039417a2ca96dd967b678f5fdaf0ad8b47",
+    "bytes": 230044,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/prepare.mjs",
+    "blob": "6ecaa71b5a8ec86c89572ca51c74f0dbff42a3cf",
+    "bytes": 1469,
+    "sha256": "0a9f6427d091aab1c369095b9a7d62bff74068c41066d9bb0080cb0b92f49a43"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+    "blob": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+    "bytes": 4160,
+    "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs",
+    "blob": "0a5ffcc9eab5a26f2c32d009d48ffb2ef8100bfc",
+    "bytes": 30737,
+    "sha256": "238d3bb3b3f3611b259b0804309489cc57f79cdb7ed1561568671195bcfc26b3"
+  }
+]

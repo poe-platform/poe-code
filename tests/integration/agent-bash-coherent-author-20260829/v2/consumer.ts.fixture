@@ -1,0 +1,9 @@
+import { Shell, MemoryFileSystem, agentCommands, nodeCommands, createNodeCommand, createNodeCommands, parseShell, type NodeRuntimeProvider, type NodeCommandsOptions, type CommandInvokeOptions } from 'virtual-bash';
+import { createNodeWorkerProvider, type NodeRuntimeProvider as SubpathProvider } from 'virtual-bash/commands/node';
+declare const provider: NodeRuntimeProvider;
+const sameProvider: SubpathProvider = provider;
+const options: NodeCommandsOptions = { provider: sameProvider, replace: true, grants: { sourceRead: true, stdoutWrite: true } };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(nodeCommands(options));
+createNodeCommand({ provider }); createNodeCommands(options);
+const invoke: CommandInvokeOptions = { replaceEnv: true, env: {}, signal: undefined };
+void invoke; void createNodeWorkerProvider; void parseShell('[[ a == a ]]');

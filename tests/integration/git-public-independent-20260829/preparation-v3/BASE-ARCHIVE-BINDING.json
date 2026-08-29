@@ -1,0 +1,26 @@
+{
+  "status": "BOUND_SOURCE_DATA_ONLY",
+  "container": {
+    "source": {
+      "revision": "bd772916c26dc87c54bafdaa784d18f058efa275",
+      "path": "tests/integration/apply-patch-public-independent-20260829/RAW.json.gz.base64",
+      "mode": "100644",
+      "blob": "2e1f5c19e7c3f2a01cd9fb90be93f453269dcb47"
+    },
+    "encodedSha256": "95398e911fa279431a90a4dad1c093a49531b5e1ac6f8c366d04b543420c8e84",
+    "container": "gzip(JSON)",
+    "entries": []
+  },
+  "arrayKey": "entries",
+  "archive": {
+    "descriptor": {
+      "path": "RUN-APPLY-PUBLIC-INDEPENDENT-01/artifacts/virtual-bash-0.0.0.tgz",
+      "mode": 420,
+      "bytes": 814632,
+      "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+    },
+    "decodedBytes": 814632,
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+  },
+  "noExtractionOrExecution": true
+}

@@ -1,0 +1,2 @@
+{"pid": 58111, "startNs": 1787968172252673000, "slots": 24, "mode": "SOURCE_DATA_ONLY"}
+{"failure": true, "reasonPresent": true, "type": "AssertionError", "reason": "node:buffer"}

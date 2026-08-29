@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import { admitWorker, terminalVerdict } from './worker-policy.mjs';
+const rows = [], entry = '/owned/package/dist/commands/regex-execution/worker.js';
+const options = () => ({ execArgv: [], resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 } });
+function test(id, body) { try { body(); rows.push({ id, pass: true }); } catch (error) { rows.push({ id, pass: false, error: String(error?.stack ?? error) }); } }
+function denied(value, pathname = entry, created = 0, live = 0, allowance = 32) { assert.throws(() => admitWorker(pathname, entry, value, created, live, allowance)); }
+test('W01-exact', () => assert.equal(admitWorker(entry, entry, options(), 0, 0, 32), true));
+test('W02-cross-realm', () => assert.equal(admitWorker(entry, entry, vm.runInNewContext('({execArgv:[],resourceLimits:{maxOldGenerationSizeMb:128,stackSizeMb:4}})'), 0, 0, 32), true));
+test('W03-wrong-path', () => denied(options(), '/foreign/worker.js'));
+test('W04-extra-option', () => denied({ ...options(), eval: true }));
+test('W05-missing-option', () => denied({ execArgv: [] }));
+test('W06-extra-argument', () => denied({ ...options(), execArgv: ['--import=foreign'] }));
+test('W07-holey-array', () => denied({ ...options(), execArgv: Array(1) }));
+test('W08-nonarray', () => denied({ ...options(), execArgv: { length: 0 } }));
+test('W09-accessor', () => denied(Object.defineProperty(options(), 'execArgv', { get() { throw Error('must not invoke'); } })));
+test('W10-extra-limit', () => denied({ ...options(), resourceLimits: { ...options().resourceLimits, extra: 1 } }));
+test('W11-limit-type', () => denied({ ...options(), resourceLimits: { maxOldGenerationSizeMb: '128', stackSizeMb: 4 } }));
+test('W12-missing-limit', () => denied({ ...options(), resourceLimits: { stackSizeMb: 4 } }));
+test('W13-wrong-stack', () => denied({ ...options(), resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 8 } }));
+test('W14-cumulative', () => denied(options(), entry, 32));
+test('W15-concurrent', () => denied(options(), entry, 0, 2));
+test('W16-disabled', () => denied(options(), entry, 0, 0, 0));
+test('W17-symbol', () => denied({ ...options(), [Symbol('extra')]: 1 }));
+test('C01-clean', () => assert.equal(terminalVerdict(0, null, 0, true, true), true));
+test('C02-nonzero', () => assert.equal(terminalVerdict(1, null, 0, true, true), false));
+test('C03-unretired', () => assert.equal(terminalVerdict(0, null, 1, true, true), false));
+test('C04-signal', () => assert.equal(terminalVerdict(null, 'SIGKILL', 0, true, true), false));
+test('C05-capture-loss', () => assert.equal(terminalVerdict(0, null, 0, false, true), false));
+for (const row of rows) console.log(JSON.stringify(row)); const fail = rows.filter(row => !row.pass).length; console.log(JSON.stringify({ cases: rows.length, pass: rows.length - fail, fail, actualWorkers: 0, productImports: 0 })); process.exitCode = fail ? 1 : 0;

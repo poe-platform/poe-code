@@ -1,0 +1,15 @@
+{
+  "code": 0,
+  "summary": {
+    "cases": 12,
+    "pass": 12,
+    "fail": 0,
+    "actualWorkers": 0,
+    "productImports": 0,
+    "sourceCompiledNotLinked": true
+  },
+  "stdoutSha256": "4e1e3cb2cb055384e8aacb31025e549f72d9b1fa9ca274536126c2f3cd5ffb34",
+  "stderrSha256": "478f5665216a818ad8dd54acfaee7b100d2c44a601b7e585a32a6aefe2cfcf33",
+  "rawCapture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-prep-v3-seal-b2_jsds4",
+  "retainedPolicy22NotRerun": true
+}

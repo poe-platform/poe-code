@@ -1,0 +1,8 @@
+{
+  "domain": "Git tree bytes: mode ASCII, space, UTF8 name, NUL, raw20byteOID; sort UTF8 names with trailing slash for directories; apply leaf changes in UTF8 full-path order",
+  "base": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "exactChanges": 24,
+  "recomputed": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "storedObjectRequired": false,
+  "productExecutions": 0
+}

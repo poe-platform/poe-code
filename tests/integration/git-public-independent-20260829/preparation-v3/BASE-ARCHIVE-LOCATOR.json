@@ -1,0 +1,11 @@
+{
+  "source": {
+    "revision": "bd772916c26dc87c54bafdaa784d18f058efa275",
+    "path": "tests/integration/apply-patch-public-independent-20260829/RAW.json.gz.base64",
+    "mode": "100644",
+    "blob": "2e1f5c19e7c3f2a01cd9fb90be93f453269dcb47"
+  },
+  "encodedSha256": "95398e911fa279431a90a4dad1c093a49531b5e1ac6f8c366d04b543420c8e84",
+  "container": "gzip(JSON)",
+  "entries": []
+}

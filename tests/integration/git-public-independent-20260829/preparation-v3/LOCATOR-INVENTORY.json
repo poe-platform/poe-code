@@ -1,0 +1,306 @@
+{
+  "kind": "NUL_COMMITTED_INVENTORY_LOCATOR_ONLY",
+  "inventories": {
+    "base": {
+      "revision": "bd772916c26dc87c54bafdaa784d18f058efa275",
+      "prefix": "tests/integration/apply-patch-public-independent-20260829",
+      "rawSha256": "320552a1975749d6d53fb215b50442b53b8f2c4b12a66d7c768b86655e4f7a77",
+      "rows": [
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/ARCHIVE-MANIFEST.json",
+          "mode": "100644",
+          "blob": "a2c502612a543f20ba6b77735f31add0bdcbffa6"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/AUDIT.stderr",
+          "mode": "100644",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/AUDIT.stdout",
+          "mode": "100644",
+          "blob": "946e500215b61b703a244fc60af39864fd429b20"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/AUTHENTICATION.json",
+          "mode": "100644",
+          "blob": "686255b74e00c0a76c35777f817132c9da80c14d"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/OUTER.stderr",
+          "mode": "100644",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/OUTER.stdout",
+          "mode": "100644",
+          "blob": "3c4b533b72112b0526b78e3a2c1f8bf639d3b236"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/PREPARE.stderr",
+          "mode": "100644",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/PREPARE.stdout",
+          "mode": "100644",
+          "blob": "f11eb74e159908e31d0adf79f1794d352535b285"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/PRESEAL.md",
+          "mode": "100644",
+          "blob": "c9ee502dbdf2f6b2bdabfb7f2edcce667dd3c916"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/RAW.json.gz.base64",
+          "mode": "100644",
+          "blob": "2e1f5c19e7c3f2a01cd9fb90be93f453269dcb47"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/REPORT.md",
+          "mode": "100644",
+          "blob": "a8e3c25acac849993100f06209800683a92de03d"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/RESULTS.json",
+          "mode": "100644",
+          "blob": "7147d9fa442863997f02c0d4586bcb745c9f5df8"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/ROOT-ACCEPTANCE.md",
+          "mode": "100644",
+          "blob": "4309bcbe7717bb3ade85e4c524f3453f8290bf63"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/ROOT-CLOSURE.json",
+          "mode": "100644",
+          "blob": "09574d62cdb50e67ae29d47a3b21093886950f99"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/SEAL.json",
+          "mode": "100644",
+          "blob": "53917ac65093081e1e802c1fa4cf08516df1ad00"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/SEAL.stderr",
+          "mode": "100644",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/SEAL.stdout",
+          "mode": "100644",
+          "blob": "bef7903e96caac0550c6c51393292d6f02e98b86"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/SOURCE-COMMON-REGEX.md",
+          "mode": "100644",
+          "blob": "9ca5d539bf463cbd6abfabb0938f8cc32b196786"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/WORKER-PROFILE-GAP.md",
+          "mode": "100644",
+          "blob": "a83e388bd4c83975d7423fba0e12e601c4582006"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/audit.mjs",
+          "mode": "100644",
+          "blob": "a6a0656663d718b390d2f31135f9bc731eee7d99"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/bootstrap.mjs",
+          "mode": "100644",
+          "blob": "364d1dd501b6998c01d27e850b2ca2ec78625fc5"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/consumer.mts.fixture",
+          "mode": "100644",
+          "blob": "566a0edd84cdfab9fc1d604b0092ac59418592f6"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/novel.mjs",
+          "mode": "100644",
+          "blob": "2f2d1603e13994a3e177e6ced5e12eaf2b807556"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/prepare.mjs",
+          "mode": "100644",
+          "blob": "267a7874066576f69829396c4303d43ad7260861"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/run.mjs",
+          "mode": "100644",
+          "blob": "0b9f4760b3373bafcef415f4493f0b529c64111c"
+        },
+        {
+          "path": "tests/integration/apply-patch-public-independent-20260829/seal.mjs",
+          "mode": "100644",
+          "blob": "13cfc219d9bd0b8a05562bf2cc87714e30141b6d"
+        }
+      ]
+    },
+    "candidate": {
+      "revision": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+      "prefix": "tests/integration/git-public-20260829",
+      "rawSha256": "bac0c0988e142b74602525bbe83236a8e3904e39e3765f6a2deb1fb137b8f755",
+      "rows": [
+        {
+          "path": "tests/integration/git-public-20260829/AUDIT.json",
+          "mode": "100644",
+          "blob": "fe8c68bda9e0c313143b28b34e8c989ff822b9e5"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/EXECUTOR.json",
+          "mode": "100644",
+          "blob": "65e9dff90c5c4f9e337c71a2d3d93072ec7c3798"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/FIXTURE-PLAN.json",
+          "mode": "100644",
+          "blob": "70ddab572bd6a250c1dec3e5b8e9a9c8aec501dd"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/FIXTURE-VERSIONS.json",
+          "mode": "100644",
+          "blob": "7f346b84e931c22d6646e842184a420b5d5662a0"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/FIXTURE-v2.md",
+          "mode": "100644",
+          "blob": "434e00427b7f67529f8e6ff24c1b9b8b6500f96b"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/HANDOFF.md",
+          "mode": "100644",
+          "blob": "f794cfda38eff9a680b0a03d5e818ed18134af3f"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/PRESEAL.json",
+          "mode": "100644",
+          "blob": "f9a00d9ed4785e33b1ef7fd8f47d5a42bd46ae3a"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/RECIPE.md",
+          "mode": "100644",
+          "blob": "9520a93ec0798ebb649a946e5a37982400960fd7"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/SOURCE.json",
+          "mode": "100644",
+          "blob": "a832d8a827e9fe1c0a2b18661c49680aab9aba88"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/apply-public.mjs",
+          "mode": "100644",
+          "blob": "8034086f5f50c4e99ea2c1706753dc333d7cb507"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/audit.mjs",
+          "mode": "100644",
+          "blob": "64fa8743f183caacf81d9bd391b1886371af615a"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/capture.mjs",
+          "mode": "100644",
+          "blob": "606e52e32b7e8ff9b8806983738f1de9e0d59114"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/consumer.ts.fixture",
+          "mode": "100644",
+          "blob": "2118e2786fb54e55c1749b239275dfb246f90e01"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/loader.mjs",
+          "mode": "100644",
+          "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/m1a-public-v2.mjs",
+          "mode": "100644",
+          "blob": "09304fa3810d69aaa4f7f2d7283bbe474bfe7145"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/m1a.mjs",
+          "mode": "100644",
+          "blob": "c9751137d4df79f305dd15ddc76581a2e628d0e6"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/names.mjs",
+          "mode": "100644",
+          "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/packs.mjs",
+          "mode": "100644",
+          "blob": "ac4ea25ec79f6cc7a2dce16d30120e26ce429d08"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/prepare.mjs",
+          "mode": "100644",
+          "blob": "19780881b44c8e4b8fe6d20c9f05a84a84a3e2df"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/public.mjs",
+          "mode": "100644",
+          "blob": "7636967827685c8fd8a10c083dc6419dfb574b30"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/resources.mjs",
+          "mode": "100644",
+          "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/results-v1/PACKAGE.tgz.base64",
+          "mode": "100644",
+          "blob": "3282d4f741a9bb94847771a861756c39a19f8465"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/results-v1/RAW.json.gz.base64",
+          "mode": "100644",
+          "blob": "b91f07116c723d3a0ae4a9aa4370a1c9885cdeaf"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/results-v1/SUMMARY.json",
+          "mode": "100644",
+          "blob": "bd0da987ab399c6fd8f767d555d213b229ec4f07"
+        },
+        {
+          "path": "tests/integration/git-public-20260829/run.mjs",
+          "mode": "100644",
+          "blob": "be52b68d68396021d6e9cc089c3345371eda04ef"
+        }
+      ]
+    }
+  },
+  "selectedForInspection": [
+    {
+      "revision": "bd772916c26dc87c54bafdaa784d18f058efa275",
+      "path": "tests/integration/apply-patch-public-independent-20260829/RAW.json.gz.base64",
+      "mode": "100644",
+      "blob": "2e1f5c19e7c3f2a01cd9fb90be93f453269dcb47"
+    },
+    {
+      "revision": "bd772916c26dc87c54bafdaa784d18f058efa275",
+      "path": "tests/integration/apply-patch-public-independent-20260829/REPORT.md",
+      "mode": "100644",
+      "blob": "a8e3c25acac849993100f06209800683a92de03d"
+    },
+    {
+      "revision": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+      "path": "tests/integration/git-public-20260829/HANDOFF.md",
+      "mode": "100644",
+      "blob": "f794cfda38eff9a680b0a03d5e818ed18134af3f"
+    },
+    {
+      "revision": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+      "path": "tests/integration/git-public-20260829/results-v1/PACKAGE.tgz.base64",
+      "mode": "100644",
+      "blob": "3282d4f741a9bb94847771a861756c39a19f8465"
+    },
+    {
+      "revision": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+      "path": "tests/integration/git-public-20260829/results-v1/RAW.json.gz.base64",
+      "mode": "100644",
+      "blob": "b91f07116c723d3a0ae4a9aa4370a1c9885cdeaf"
+    }
+  ]
+}

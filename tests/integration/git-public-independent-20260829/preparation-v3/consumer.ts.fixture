@@ -1,0 +1,23 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createGitCommand, createGitCommands, gitCommands, type AgentCommandsOptions, type GitCommandsOptions } from "virtual-bash";
+import { createGitCommand as subpath, type GitCommandsOptions as LeafOptions } from "virtual-bash/commands/git";
+const direct: GitCommandsOptions = { replace: true, discoveryBoundary: "/repo" };
+const leaf: LeafOptions = direct;
+const aggregate: AgentCommandsOptions = { git: { discoveryBoundary: "/repo" }, replace: true };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+createAgentCommands(aggregate); createGitCommand(direct); createGitCommands(leaf); gitCommands(direct); subpath(leaf);
+// @ts-expect-error aggregate replacement belongs to the top-level policy
+agentCommands({ git: { replace: true } });
+// @ts-expect-error there are no numeric Git limit overrides
+gitCommands({ limits: { maxReadBytes: 1 } });
+// @ts-expect-error discovery is a VFS pathname
+createGitCommand({ discoveryBoundary: 3 });
+// @ts-expect-error native process fallback is absent
+createGitCommands({ spawn: true });
+// @ts-expect-error aggregate limits cannot be added
+createAgentCommands({ git: { maxPackBytes: 100 } });
+// @ts-expect-error full host Git is not an injected command option
+gitCommands({ executable: "/usr/bin/git" });
+// @ts-expect-error replace is readonly
+ direct.replace = false;
+// @ts-expect-error discovery boundary is readonly
+ direct.discoveryBoundary = "/changed";

@@ -1,0 +1,104 @@
+{
+  "typescript": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+    "version": "5.9.3",
+    "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+    "regularFiles": 132,
+    "regularBytes": 23625066,
+    "admittedLinks": [],
+    "noExecution": true
+  },
+  "@types/node": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+    "version": "22.20.1",
+    "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+    "regularFiles": 74,
+    "regularBytes": 2438452,
+    "admittedLinks": [],
+    "noExecution": true
+  },
+  "undici-types": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+    "version": "6.21.0",
+    "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+    "regularFiles": 41,
+    "regularBytes": 83680,
+    "admittedLinks": [],
+    "noExecution": true
+  },
+  "npm": {
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "version": "10.9.7",
+    "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+    "regularFiles": 2027,
+    "regularBytes": 12446245,
+    "admittedLinks": [
+      [
+        "node_modules/.bin/arborist",
+        "SYMLINK",
+        "../@npmcli/arborist/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/cssesc",
+        "SYMLINK",
+        "../cssesc/bin/cssesc"
+      ],
+      [
+        "node_modules/.bin/glob",
+        "SYMLINK",
+        "../glob/dist/esm/bin.mjs"
+      ],
+      [
+        "node_modules/.bin/installed-package-contents",
+        "SYMLINK",
+        "../@npmcli/installed-package-contents/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/node-gyp",
+        "SYMLINK",
+        "../node-gyp/bin/node-gyp.js"
+      ],
+      [
+        "node_modules/.bin/node-which",
+        "SYMLINK",
+        "../which/bin/which.js"
+      ],
+      [
+        "node_modules/.bin/nopt",
+        "SYMLINK",
+        "../nopt/bin/nopt.js"
+      ],
+      [
+        "node_modules/.bin/pacote",
+        "SYMLINK",
+        "../pacote/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/qrcode-terminal",
+        "SYMLINK",
+        "../qrcode-terminal/bin/qrcode-terminal.js"
+      ],
+      [
+        "node_modules/.bin/semver",
+        "SYMLINK",
+        "../semver/bin/semver.js"
+      ],
+      [
+        "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+        "SYMLINK",
+        "../pacote/bin/index.js"
+      ],
+      [
+        "node_modules/cross-spawn/node_modules/.bin/node-which",
+        "SYMLINK",
+        "../which/bin/node-which"
+      ]
+    ],
+    "noExecution": true
+  },
+  "node": {
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  }
+}

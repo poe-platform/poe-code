@@ -883,7 +883,7 @@ function createPlainObject(useNullPrototype: boolean): SandboxObject {
   return (useNullPrototype ? Object.create(null) : {}) as SandboxObject;
 }
 
-function defineOwnDataProperty(target: object, key: string, value: unknown): void {
+export function defineOwnDataProperty(target: object, key: string, value: unknown): void {
   Object.defineProperty(target, key, {
     enumerable: true,
     configurable: true,
@@ -944,7 +944,7 @@ function getEnumerableArrayEntries<TValue>(
   return entries;
 }
 
-function isArrayIndexKey(value: string): boolean {
+export function isArrayIndexKey(value: string): boolean {
   if (value === "") {
     return false;
   }

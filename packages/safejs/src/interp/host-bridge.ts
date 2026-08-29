@@ -19,6 +19,8 @@ import {
   createSandboxSet,
   deepCopyFromSandbox,
   deepCopyToSandbox,
+  defineOwnDataProperty,
+  isArrayIndexKey,
   isSandboxClosure,
   isSandboxPromise,
   measureSandboxData,
@@ -922,18 +924,23 @@ function copyHostValueToSandbox(
     state.seen.set(value, copy);
     budget.allocateArrayLength(value.length);
 
-    for (let index = 0; index < value.length; index++) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
-      if (descriptor === undefined) continue;
+    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+      const indexed = isArrayIndexKey(key);
+      if (key === "length" || (!descriptor.enumerable && !indexed)) continue;
+      const entryPath = indexed ? `${path}[${key}]` : joinPath(path, key);
       if (!("value" in descriptor)) {
-        throw new TypeError(`Unsupported sandbox value at ${path}[${index}]: accessor property`);
+        throw new TypeError(`Unsupported sandbox value at ${entryPath}: accessor property`);
       }
-      copy[index] = copyHostValueToSandbox(
-        descriptor.value,
-        stackFrames,
-        { ...options, capabilityPath: [...(options.capabilityPath ?? []), String(index)] },
-        state,
-        `${path}[${index}]`
+      defineOwnDataProperty(
+        copy,
+        indexed ? key : budget.allocateString(key),
+        copyHostValueToSandbox(
+          descriptor.value,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+          state,
+          entryPath
+        )
       );
     }
 

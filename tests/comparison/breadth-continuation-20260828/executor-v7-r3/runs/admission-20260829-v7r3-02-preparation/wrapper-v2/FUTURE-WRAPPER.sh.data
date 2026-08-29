@@ -1,0 +1,11 @@
+# INACTIVE: source-only prospective wrapper; never invoke an old owner against attempt02.
+# A root-approved owner instance for attempt02 is required before replacing placeholders.
+set -eu
+set -C
+umask 022
+cd '/Users/kjopek/Workspace/safe-bash'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/prepare-captures.mjs' 'EXACT_UNUSED_ADMIN_CAPTURE_ROOT' 'none' )
+exec 1>>'EXACT_UNUSED_ADMIN_CAPTURE_ROOT/stdout.raw'
+exec 2>>'EXACT_UNUSED_ADMIN_CAPTURE_ROOT/stderr.raw'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/verify-fds.mjs' 'EXACT_UNUSED_ADMIN_CAPTURE_ROOT' )
+exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 'ROOT_APPROVED_ATTEMPT02_OWNER_REQUIRED' 'EXACT_FRESH_AUTH_PATH' 'EXACT_FRESH_AUTH_SHA256' 'EXACT_APPROVED_OWNER_SEAL_SHA256'

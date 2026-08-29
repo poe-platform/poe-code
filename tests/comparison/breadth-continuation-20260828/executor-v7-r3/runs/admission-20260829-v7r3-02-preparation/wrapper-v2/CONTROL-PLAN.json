@@ -1,0 +1,91 @@
+{
+  "schema": "MODE_WRAPPER_PRESEALED_EIGHT_CONTROLS_V2",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "cases": [
+    {
+      "id": "M01",
+      "mask": "022",
+      "parentMask": "077",
+      "fault": "none",
+      "existing": null,
+      "exit": 0
+    },
+    {
+      "id": "M02",
+      "mask": "022",
+      "parentMask": "000",
+      "fault": "none",
+      "existing": null,
+      "exit": 0
+    },
+    {
+      "id": "M03",
+      "mask": "077",
+      "parentMask": "022",
+      "fault": "none",
+      "existing": null,
+      "exit": 72
+    },
+    {
+      "id": "M04",
+      "mask": "022",
+      "parentMask": "022",
+      "fault": "none",
+      "existing": "stdout.raw",
+      "exit": 71
+    },
+    {
+      "id": "M05",
+      "mask": "022",
+      "parentMask": "022",
+      "fault": "none",
+      "existing": "stderr.raw",
+      "exit": 71
+    },
+    {
+      "id": "M06",
+      "mask": "022",
+      "parentMask": "022",
+      "fault": "undefined",
+      "existing": null,
+      "exit": 71
+    },
+    {
+      "id": "M07",
+      "mask": "022",
+      "parentMask": "022",
+      "fault": "null",
+      "existing": null,
+      "exit": 71
+    },
+    {
+      "id": "M08",
+      "mask": "022",
+      "parentMask": "022",
+      "fault": "false",
+      "existing": null,
+      "exit": 71
+    }
+  ],
+  "attempts": 1,
+  "plannedControls": 8,
+  "plannedProcesses": 20,
+  "peak": 3,
+  "perWrapperMilliseconds": 5000,
+  "termMilliseconds": 2000,
+  "killMilliseconds": 1000,
+  "totalControlMilliseconds": 120000,
+  "stdoutBytesPerChild": 65536,
+  "stderrBytesPerChild": 65536,
+  "recordBytes": 262144,
+  "workBytes": 16777216,
+  "actualOwnerLauncherCoordinatorProductWorkers": 0,
+  "oracles": [
+    "M01/M02: explicit022 overrides077/000 parent; requested644 remains644, private600, emptyenv, exactcwd, execPID retained, preopenedFDidentity",
+    "M03: legacy077 negative requested644 becomes600; exit72, no old rescore",
+    "M04/M05: exclusive capture collision refuses; existing sentinel unchanged; all acquired handles synced/closed; no stub",
+    "M06/M07/M08: undefined/null/false caught with explicit primary presence; both handles synced/closed; no stub"
+  ],
+  "stop": "Any capture/integrity/unknown-retirement/resource failure unsafe-stops; only ordinary assertion outcomes aggregate after safe closure",
+  "guards": "Authenticated exact own control source/tools/unchanged writer and owner bytes; no actual owner import/evaluation"
+}

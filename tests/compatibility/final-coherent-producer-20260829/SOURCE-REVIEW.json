@@ -1,0 +1,83 @@
+{
+  "verdict": "SOURCE/PURE ACCEPT",
+  "sourceCommit": "993e6bf626dc240f11dfc0a7ad348dd641001c0b",
+  "evidenceCommit": "022f63aee6aa0371679695f6babbe0f4819e6b2e",
+  "runtimeSha256": "e55037e0020d3ecefd4f8bdaf80cde1006fee0bbf85bbad26e39a8eac69514c8",
+  "outsideFunctionUnchanged": true,
+  "authorReplay": [
+    {
+      "id": "P01-successful-transfer",
+      "pass": true
+    },
+    {
+      "id": "P02-hold-falsy-failures",
+      "pass": true
+    },
+    {
+      "id": "P03-hold-and-close-failures",
+      "pass": true
+    },
+    {
+      "id": "P04-body-close-hold-independent",
+      "pass": true
+    },
+    {
+      "id": "P05-binding-close-hold-independent",
+      "pass": true
+    },
+    {
+      "id": "P06-registered-hold-release-failure",
+      "pass": true
+    },
+    {
+      "id": "P07-create-refusal",
+      "pass": true
+    },
+    {
+      "id": "P08-primary-secondary-identity",
+      "pass": true
+    }
+  ],
+  "novel": [
+    {
+      "id": "N01-finite-hold-admission-owner-retired",
+      "pass": true
+    },
+    {
+      "id": "N02-owner-close-raw-null-secondary",
+      "pass": true
+    },
+    {
+      "id": "N03-distinct-ordered-cleanup-reasons",
+      "pass": true
+    }
+  ],
+  "objects": [
+    {
+      "request": "993e6bf626dc240f11dfc0a7ad348dd641001c0b:src/shell/runtime.ts",
+      "oid": "437aa8cd253c4639f3267bf9d0a08d134c90052a",
+      "sha256": "e55037e0020d3ecefd4f8bdaf80cde1006fee0bbf85bbad26e39a8eac69514c8",
+      "bytes": 220356
+    },
+    {
+      "request": "faff3d1b56b841594768e476700209e1d2bca734:src/shell/runtime.ts",
+      "oid": "bafff8aa901ba29ce49570af775268f030469edf",
+      "sha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b",
+      "bytes": 219776
+    },
+    {
+      "request": "022f63aee6aa0371679695f6babbe0f4819e6b2e:tests/shell/local-a-cleanup-v2/prepare-variable-v3/review.mjs",
+      "oid": "998de4e5b4be64fa7d2d1ac13194906d6c8358af",
+      "sha256": "31a5a46403f87c12a53ce6f99984879f660523ac12e21194330095326f5816b2",
+      "bytes": 8230
+    },
+    {
+      "request": "022f63aee6aa0371679695f6babbe0f4819e6b2e:tests/shell/local-a-cleanup-v2/prepare-variable-v3/SOURCE-SEAL.json",
+      "oid": "c3e19582e043a208269f48f0094b5cc35b1b6707",
+      "sha256": "b07b156abf35f7953917cb34055dd011ffb6077abcb3cb3ec41b6e27cd240d3f",
+      "bytes": 2439
+    }
+  ],
+  "qualification": "Isolated exact method plus finite doubles only, no Shell/Worker/runtime faults. V2 acceptance and C05 fixture qualification retained; original HOLD evidence immutable.",
+  "finished": "2026-08-29T17:28:40.303Z"
+}

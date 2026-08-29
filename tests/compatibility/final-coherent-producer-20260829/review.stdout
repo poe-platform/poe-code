@@ -1,0 +1,141 @@
+{
+  "result": {
+    "verdict": "SOURCE/PURE ACCEPT",
+    "sourceCommit": "993e6bf626dc240f11dfc0a7ad348dd641001c0b",
+    "evidenceCommit": "022f63aee6aa0371679695f6babbe0f4819e6b2e",
+    "runtimeSha256": "e55037e0020d3ecefd4f8bdaf80cde1006fee0bbf85bbad26e39a8eac69514c8",
+    "outsideFunctionUnchanged": true,
+    "authorReplay": [
+      {
+        "id": "P01-successful-transfer",
+        "pass": true
+      },
+      {
+        "id": "P02-hold-falsy-failures",
+        "pass": true
+      },
+      {
+        "id": "P03-hold-and-close-failures",
+        "pass": true
+      },
+      {
+        "id": "P04-body-close-hold-independent",
+        "pass": true
+      },
+      {
+        "id": "P05-binding-close-hold-independent",
+        "pass": true
+      },
+      {
+        "id": "P06-registered-hold-release-failure",
+        "pass": true
+      },
+      {
+        "id": "P07-create-refusal",
+        "pass": true
+      },
+      {
+        "id": "P08-primary-secondary-identity",
+        "pass": true
+      }
+    ],
+    "novel": [
+      {
+        "id": "N01-finite-hold-admission-owner-retired",
+        "pass": true
+      },
+      {
+        "id": "N02-owner-close-raw-null-secondary",
+        "pass": true
+      },
+      {
+        "id": "N03-distinct-ordered-cleanup-reasons",
+        "pass": true
+      }
+    ],
+    "objects": [
+      {
+        "request": "993e6bf626dc240f11dfc0a7ad348dd641001c0b:src/shell/runtime.ts",
+        "oid": "437aa8cd253c4639f3267bf9d0a08d134c90052a",
+        "sha256": "e55037e0020d3ecefd4f8bdaf80cde1006fee0bbf85bbad26e39a8eac69514c8",
+        "bytes": 220356
+      },
+      {
+        "request": "faff3d1b56b841594768e476700209e1d2bca734:src/shell/runtime.ts",
+        "oid": "bafff8aa901ba29ce49570af775268f030469edf",
+        "sha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b",
+        "bytes": 219776
+      },
+      {
+        "request": "022f63aee6aa0371679695f6babbe0f4819e6b2e:tests/shell/local-a-cleanup-v2/prepare-variable-v3/review.mjs",
+        "oid": "998de4e5b4be64fa7d2d1ac13194906d6c8358af",
+        "sha256": "31a5a46403f87c12a53ce6f99984879f660523ac12e21194330095326f5816b2",
+        "bytes": 8230
+      },
+      {
+        "request": "022f63aee6aa0371679695f6babbe0f4819e6b2e:tests/shell/local-a-cleanup-v2/prepare-variable-v3/SOURCE-SEAL.json",
+        "oid": "c3e19582e043a208269f48f0094b5cc35b1b6707",
+        "sha256": "b07b156abf35f7953917cb34055dd011ffb6077abcb3cb3ec41b6e27cd240d3f",
+        "bytes": 2439
+      }
+    ],
+    "qualification": "Isolated exact method plus finite doubles only, no Shell/Worker/runtime faults. V2 acceptance and C05 fixture qualification retained; original HOLD evidence immutable.",
+    "finished": "2026-08-29T17:28:40.303Z"
+  },
+  "receiptSha256": "aaee5bc24adb0460e0858eae44e10804ea6168a4470f13bfb84139b00d871a52",
+  "method": "  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {\n    const store = requireArrays(state);\n    const failures = stateMonitor(state)!.session.scope.failures;\n    const owner = ArrayOwner.create(store.owner.ledger, store.owner);\n    let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n    let binding: IndexedBinding | undefined;\n    let primaryPresent = false;\n    let primary: unknown;\n    const cleanup = async (action: () => void | Promise<void>): Promise<void> => {\n      try { await action(); }\n      catch (error) {\n        if (primaryPresent) failures.push(error);\n        else { primaryPresent = true; primary = error; }\n      }\n    };\n    try {\n      holding = store.owner.hold();\n      const watch = await store.watch(name, owner, this.signal);\n      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });\n      const token = await textToken(owner, name, this.signal);\n      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });\n      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      binding = scalarLegacy ? undefined : store.get(name)?.retain();\n      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });\n      tickets.cleanup = () => { typedSavedVariables.delete(saved); };\n    } catch (error) {\n      primaryPresent = true;\n      primary = error;\n      await cleanup(() => binding?.release());\n      await cleanup(() => owner.close());\n    } finally { await cleanup(() => holding?.release()); }\n    if (primaryPresent) throw primary;\n  }\n\n"
+}
+CANDIDATE-INPUTS.json [
+  'status',
+  'sourceCount',
+  'selectedReadme',
+  'buildInputProjectionTree',
+  'canonicalRowsSha256',
+  'inputs',
+  'excludedTrackedPaths',
+  'excludedCount',
+  'workingDifferences',
+  'noWorkingFilesChanged',
+  'fullRepositoryTreeClaim'
+]
+inputs 323 [{"path":"README.md","mode":"100644","blob":"d4618a2170f53ed8f6f20fe1a320ab32e84dab23","bytes":56527,"sha256":"f035946288322e23951aba9f92e278fb13dac3c3a2bb21271a516cd6f2329621","origins":[{"feature":"ROOT_SELECTED_ACCEPTED_PUBLIC309_README","baseline":"3adc676a0ab638c9788ef007e465931d65d2c6fe","blob":"d4618a2170f53ed8f6f20fe1a320ab32e84dab23"}],"actualWorkingPresent":true},{"path":"package.json","mode":"100644","blob":"623d2493b94afa7752d87232c8eb62fb61a2370f","bytes":5387,"sha256":"58b4a3498274a8901f98d6a290671251fa8ca292d72bd5c4987bc8ec8e15411b","origins":[{"feature":"PUBLIC309_BASELINE","revision":"authorized public integration overlay","blob":"623d2493b94afa7752d87232c8eb62fb61a2370f"}],"actualWorkingPresent":true}]
+excludedTrackedPaths 40 [{"path":"scripts/typecheck-consumers.mjs","mode":"100644","indexBlob":"5fb30bcf8d6b3994b30486fc0c23eeee2409f65a","workingBlob":"5fb30bcf8d6b3994b30486fc0c23eeee2409f65a","size":9794,"sha256":"7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37","differsFromIndex":false},{"path":"scripts/typecheck-inputs.mjs","mode":"100644","indexBlob":"c835687a4b8c9180d24fff10f2bf4035a8588886","workingBlob":"c835687a4b8c9180d24fff10f2bf4035a8588886","size":4467,"sha256":"94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736","differsFromIndex":false}]
+workingDifferences 1 [{"path":"README.md","selectedSha256":"f035946288322e23951aba9f92e278fb13dac3c3a2bb21271a516cd6f2329621","currentSha256":"2386c97145bad9eac46725e64ff77f3456e15a503857a36089a489e88ff2ead5","reason":"ROOT selected accepted README; current unreviewed README retained untouched"}]
+TYPE-AND-TOOL-BINDINGS.json [
+  'typedFiles',
+  'typedBytes',
+  'packages',
+  'typedRows',
+  'sourceTypeManifest',
+  'exactExistingProducerPreseal',
+  'tools',
+  'fullToolManifest',
+  'userConfig',
+  'globalConfig',
+  'toolQualification',
+  'dependenciesAdded'
+]
+packages 2 [{"name":"@types/node","version":"22.20.1","dependencies":{"undici-types":"~6.21.0"},"types":"index.d.ts","typesVersions":{"<=5.6":{"*":["ts5.6/*"]}},"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node","isolatedCopy":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types/node"},{"name":"undici-types","version":"6.21.0","dependencies":{},"types":"index.d.ts","typesVersions":null,"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/undici-types","isolatedCopy":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/undici-types"}]
+typedRows 115 [{"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/LICENSE","path":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types/node/LICENSE","size":1141,"mode":420,"sha256":"c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383","originalPinned":true},{"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/README.md","path":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types/node/README.md","size":1541,"mode":420,"sha256":"622a25732b0815eb5128adae210e7f9b2b65b5752010ed15b615cab67731dc93","originalPinned":true}]
+COMPOSITION KEYS [
+  'schema',
+  'baseDerivedTree',
+  'baseSourceManifest',
+  'sourceCount',
+  'overlayCommit',
+  'overlayPaths',
+  'derivedTree',
+  'derivedTreeIsStoredGitObjectRequired',
+  'sources',
+  'sourceReview',
+  'frozenPackageSha256',
+  'compiledManifest',
+  'packageManifest',
+  'producerReceipt',
+  'rootReceipt',
+  'writer',
+  'tools',
+  'producerSeal',
+  'noCurrentRuntimeAuthority'
+]
+TOOLS KEYS [ 'node', 'typescript', 'npmRoot', 'npm', 'git', 'flags' ]

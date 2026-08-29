@@ -10,7 +10,7 @@ plan. It does not change production, public registration, tests, or package scri
 | --- | --- | --- |
 | Public Node base | source `bb4dd0571a0335b20e29448bf88126ca02c1a32d`, derived tree `a6d20781d3c099fb7b3d36c10696beb06615af1b` | ROOT accepted `6f449bf49d33e7e35b3882bb3396143efa346747`; finite profile only |
 | Unit3 | source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived `74dfe69135a3fc5ba89396b20dd32d9c9daae131` | ROOT qualified acceptance relayed during this design: `d7ec5e26` + `cccd876f6615020a083adf7ee8c51befa553c2ba`; 840 version-qualified expected outcomes plus types/mutants, not rerun here |
-| Unit4 | source `9bb91c370a0672687399c0a9da4ce1b161f79615`, derived `37e793ce6dce48a958030e7cc86fa8315d0b112e` | Dirac independent review pending |
+| Unit4 | source `9bb91c370a0672687399c0a9da4ce1b161f79615`, derived `37e793ce6dce48a958030e7cc86fa8315d0b112e` | **HOLD**: ROOT-relayed Dirac `cd06468eb1a067d8324e1d0e873cccbc2ede14c2`, N14 integration finding; see STATUS.md |
 | Proposed combination | computed tree `df748fb93484479a695928b6849d1df8fbfaee3c` | Derived identity, not a claim that this tree is stored or accepted |
 
 `COMPOSITION.json` authenticates **309 selected inputs**, including **253 TypeScript
@@ -91,7 +91,7 @@ checkout, native oracle, runtime engine, compiler or product was executed.
 
 ## Proposed next scope and decisions
 
-1. Wait for Unit4 verdict; any changed source requires a new manifest/tree, not a
+1. Resolve Unit4's N14 HOLD under a separate repair grant; any changed source requires a new manifest/tree, not a
    silent replacement. Unit3 and Node acceptance do not accept this composition.
 2. Authorize a finite combined validation only after its executable fixture/tool/
    engine/process preseal. See `WORKFLOWS.md` and `VALIDATION-PROPOSAL.md`.

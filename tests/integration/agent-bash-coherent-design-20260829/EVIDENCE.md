@@ -21,7 +21,12 @@ No combined runtime success or public acceptance is recorded.
   The earlier source-display TypeError is preserved in the tool transcript but
   lacks complete independently owned stderr capture. See README qualifications.
 
-## Final data-check bindings before this receipt
+## First-publication data-check bindings (commit 4cc28cdb)
+
+These historical hashes precede the later metadata-only N14 HOLD amendment.
+COMPOSITION.json and compose.mjs dependency labels change in that amendment;
+selected product bytes, input identities and computed tree do not. No helper or
+product was rerun for the amendment. STATUS.md records its ROOT-relayed basis.
 
 | File | SHA256 |
 | --- | --- |

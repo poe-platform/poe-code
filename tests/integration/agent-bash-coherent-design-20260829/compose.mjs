@@ -97,7 +97,7 @@ try {
   const recipe = {
     role: 'PROPOSED_COMPOSITION_NOT_BUILT_NOT_ACCEPTED', date: '2026-08-29',
     base: { source: 'bb4dd0571a0335b20e29448bf88126ca02c1a32d', tree: node.computedTree, manifestSha256: sha(nodeBytes), acceptance: '6f449bf49d33e7e35b3882bb3396143efa346747', priorPackageSha256: '274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9' },
-    dependencies: { unit3: 'ROOT_QUALIFIED_ACCEPTED_d7ec5e26_cccd876f', unit4: 'PENDING_DIRAC', combined: 'UNACCEPTED_UNEXECUTED' }, replacements, computedTree, derivedOnly: true, inputCount: selected.length, sourceTsCount: declaredTs.length,
+    dependencies: { unit3: 'ROOT_QUALIFIED_ACCEPTED_d7ec5e26_cccd876f', unit4: 'HOLD_N14_cd06468eb1a067d8324e1d0e873cccbc2ede14c2', combined: 'UNACCEPTED_UNEXECUTED' }, replacements, computedTree, derivedOnly: true, inputCount: selected.length, sourceTsCount: declaredTs.length,
     shippingInputPaths: selected, shippingInputBytes: selected.reduce((total, row) => total + row.bytes, 0),
     completeSrcTreeFiles: sourceInventory.length, srcNonInputFiles: sourceInventory.filter(row => !inputs.has(row.path)),
     build: { rootDir: 'src', outDir: 'dist', include: ['src/**/*.ts'], declaration: true, declarationMap: true, sourceMap: true, productExecutions: 0 },

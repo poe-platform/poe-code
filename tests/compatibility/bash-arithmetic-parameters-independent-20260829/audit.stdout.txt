@@ -1,0 +1,927 @@
+{
+  "clock": "2026-08-29T14:54:54.755Z",
+  "mode": "SOURCE_PREEXEC_ONLY",
+  "productionEvaluations": 0,
+  "archiveInflations": 0,
+  "localPins": 13,
+  "inheritedPins": 9,
+  "sourceInputs": 306,
+  "shippingMembers": 1006,
+  "reversedSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+  "package": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "sourceRuntime": {
+    "path": "src/shell/runtime.ts",
+    "bytes": 211843,
+    "sha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6"
+  },
+  "sourceHelper": {
+    "path": "src/shell/arithmetic-parameters.ts",
+    "bytes": 5221,
+    "sha256": "cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a"
+  },
+  "counts": {
+    "primaryIdentities": 23,
+    "primaryCalls": 69,
+    "helperIdentities": 8,
+    "helperRowsPerBatch": 16,
+    "mutantShellCalls": 2,
+    "runtimeStarts": 79
+  },
+  "buildEvidence": {
+    "schema": "k08-author-build-evidence-v1",
+    "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+    "capturedAt": "2026-08-29T14:46:53.153Z",
+    "build": {
+      "bytes": 250698,
+      "sha256": "13cef2056add37b0653526e40930eb94b14fbb4edbeb4edef9a835b9bfbbdf59",
+      "status": "STRICT_BUILD_COMPLETED",
+      "compilerStatus": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    "sourceBinding": {
+      "bytes": 47625,
+      "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+    },
+    "archive": {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+      "bytes": 981948,
+      "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+      "base64Artifact": "package.tgz.base64",
+      "members": 1006,
+      "decodedBytes": 5803008
+    },
+    "futureSeal": {
+      "bytes": 196558,
+      "sha256": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91"
+    },
+    "authenticatedFiles": [
+      {
+        "name": "case-adapter.mjs",
+        "bytes": 4474,
+        "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+      },
+      {
+        "name": "helper-driver.mjs",
+        "bytes": 3013,
+        "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+      },
+      {
+        "name": "case-driver.mjs",
+        "bytes": 2625,
+        "sha256": "b79e1d478be4b5744591ec39d1711ccac28e714878314cc110f9dd95c018204e"
+      },
+      {
+        "name": "CASES.json",
+        "bytes": 10895,
+        "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5"
+      },
+      {
+        "name": "PRODUCT-EDGES.json",
+        "bytes": 29973,
+        "sha256": "7ed98d6a1937ed667983adc2846daea35f699bc82632b331db199e5a9ccaaa88"
+      },
+      {
+        "name": "target-owner.mjs",
+        "bytes": 12710,
+        "sha256": "b81d857a2514f9d5d1a7f2c4ec3df666f34d8b40bc4f151c5ebdd104e80ff1e0"
+      },
+      {
+        "name": "activation.mjs",
+        "bytes": 2129,
+        "sha256": "88bf2420227a5695fdf76c58fbb0f90a2a402111e055c7835ce4f4f553120525"
+      },
+      {
+        "name": "collector.mjs",
+        "bytes": 2335,
+        "sha256": "2d36af1cb5bfcd5faa44523b091b5a5975ab6f7a07f0689dd75d1f198e79403f"
+      },
+      {
+        "name": "launch.sh",
+        "bytes": 702,
+        "sha256": "456743d299177a91f994e5182cfe7bdf80ede39aef1320776b0c9afbbbf0e796"
+      },
+      {
+        "name": "auth.mjs",
+        "bytes": 3951,
+        "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+      },
+      {
+        "name": "direct-child.mjs",
+        "bytes": 5589,
+        "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+      },
+      {
+        "name": "collector-core.mjs",
+        "bytes": 121,
+        "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+      },
+      {
+        "name": "preauth.mjs",
+        "bytes": 339,
+        "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+      }
+    ],
+    "inheritedHelpers": 9,
+    "declarationChanges": [
+      "dist/shell/arithmetic-parameters.d.ts"
+    ],
+    "actual": {
+      "strictBuilds": 1,
+      "productShellCalls": 0,
+      "helperControls": 0,
+      "mutants": 0,
+      "native": 0,
+      "workers": 0,
+      "consumerChecks": 0
+    },
+    "snapshot": {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+      "at": 1788014756250,
+      "bytes": 44091251,
+      "entries": 2920,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "administrationSnapshot": {
+      "knownStarts": 19,
+      "compilerDistinctKnownStarts": 1,
+      "captureBytes": 4371,
+      "qualification": "Prepublication snapshot; later publication commands are recorded separately, not falsely included."
+    },
+    "history": "47a2311e unchanged; old 2MiB administrative archive STOP not retried or repaired"
+  },
+  "buildResult": {
+    "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+    "started": 1788013784542,
+    "finished": 1788013791871,
+    "status": "STRICT_BUILD_COMPLETED",
+    "productCalls": 0,
+    "workerJobs": 0,
+    "consumerChecks": 0,
+    "primaryPresent": false
+  },
+  "buildSealInputs": 306
+}
+[
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 1181,
+    "text": "1179:   }\n1180: \n1181:   private rethrowArithmeticControl(error: unknown): void {\n1182:     this.signal.throwIfAborted();\n1183:     if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;\n1184:   }\n1185: \n1186:   arithmeticVariables(state: State, line?: number): Record<string, string> {\n1187:     return new Proxy(state.variables, {\n1188:       get: (target, key) => {\n1189:         this.signal.throwIfAborted();\n1190:         if (arrayStore(state)?.get(String(key))) throw new ArrayFailure(\"indexed arithmetic is unsupported\");\n1191:         const value = Reflect.get(target, key);\n1192:         if (state.nounset && typeof key === \"string\" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);\n1193:         return value;\n1194:       },\n1195:       set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, \"arithmetic\"); return true; },\n1196:     });\n1197:   }\n1198: \n1199:   variable(state: State, name: string): string | undefined {\n1200:     const binding = arrayStore(state)?.get(name);\n1201:     return binding ? binding.get(0) : state.variables[name];\n1202:   }"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 1204,
+    "text": "1202:   }\n1203: \n1204:   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {\n1205:     if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);\n1206:   }\n1207: \n1208:   async assignVariable(state: State, name: string, value: string, origin: \"assignment\" | \"getopts\" = \"assignment\"): Promise<void> {\n1209:     if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }\n1210:     await this.arrayZero(state, name, async () => value);\n1211:   }\n1212: \n1213:   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {\n1214:     const store = requireArrays(state);\n1215:     const owner = ArrayOwner.create(store.owner.ledger, store.owner);\n1216:     const holding = store.owner.hold();\n1217:     let binding: IndexedBinding | undefined;\n1218:     try {\n1219:       const watch = await store.watch(name, owner, this.signal);\n1220:       const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });\n1221:       const token = await textToken(owner, name, this.signal);\n1222:       const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });\n1223:       if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);\n1224:       if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n1225:       binding = scalarLegacy ? undefined : store.get(name)?.retain();"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 1706,
+    "text": "1704:             maximumBytes: this.budget.limits.maxExpansionBytes,\n1705:             checkpoint: () => this.signal.throwIfAborted(),\n1706:             requireParameter: (name, value) => this.requireParameter(value, name, state, io),\n1707:             limit: () => this.budget.fail(\"maxExpansionBytes\"),\n1708:           }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);\n1709:         }\n1710:         catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }\n1711:       }\n1712:       if (command.kind === \"subshell\") {\n1713:         const child = await cloneState(state, this.signal);\n1714:         child.isolated = true;\n1715:         child.loopDepth = 0;\n1716:         return await this.run(command.body, child, io);\n1717:       }\n1718:       if (command.kind === \"group\") return await this.script(command.body, state, io);\n1719:       if (command.kind === \"if\") {\n1720:         for (const branch of command.branches) {\n1721:           if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) return await this.script(branch.body, state, io);\n1722:         }\n1723:         return command.otherwise ? await this.script(command.otherwise, state, io) : 0;\n1724:       }\n1725:       if (command.kind === \"case\") {\n1726:         const subject = (await this.word(command.subject, state, io, false)).join(\"\");\n1727:         const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail(\"maxExpansionBytes\") };"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 3724,
+    "text": "3722:           maximumBytes: this.budget.limits.maxExpansionBytes,\n3723:           checkpoint: () => this.signal.throwIfAborted(),\n3724:           requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),\n3725:           limit: () => this.budget.fail(\"maxExpansionBytes\"),\n3726:         }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));\n3727:       }\n3728:       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n3729:     }\n3730:     if (part.kind === \"substitution\") {\n3731:       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail(\"maxSubstitutionDepth\");\n3732:       const capture = new Capture();\n3733:       const child = await cloneState(state, this.signal);\n3734:       child.isolated = true;\n3735:       if (state.profile !== \"sh\") child.errexit = false;\n3736:       for (const [name, value] of state.redirectAssignments ?? []) {\n3737:         this.writeVariable(child, name, value);\n3738:         child.exported.add(name);\n3739:       }\n3740:       delete child.redirectAssignments;\n3741:       child.depth++;\n3742:       child.loopDepth = 0;\n3743:       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;\n3744:       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;\n3745:       const fileShortcut = command?.kind === \"simple\" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === \"<\";"
+  }
+]
+[
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 3765,
+    "text": "3763:         if (index === undefined) throw new ArrayFailure(\"index outside 0..2147483647\");\n3764:         const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;\n3765:         this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);\n3766:         return part.length ? String(Array.from(value ?? \"\").length) : value ?? \"\";\n3767:       }\n3768:       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));\n3769:       const values = await this.arrayMembers(part.name, state);\n3770:       return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? \" \")[0] ?? \"\");\n3771:     }\n3772:     let value = part.name === \"?\" ? String(state.status)\n3773:       : part.name === \"-\" ? `${state.errexit ? \"e\" : \"\"}${state.nounset ? \"u\" : \"\"}`\n3774:       : part.name === \"#\" ? String(state.positional.length)\n3775:       : part.name === \"@\" || part.name === \"*\" ? state.positional.join(hereString && (part.name === \"@\" || !part.quoted) ? \" \" : Array.from(state.variables.IFS ?? \" \")[0] ?? \"\")\n3776:       : /^0+$/u.test(part.name) ? state.arg0 ?? \"virtual-bash\"\n3777:       : /^\\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]\n3778:       : this.variable(state, part.name);\n3779:     if (part.substring) {\n3780:       this.requireParameter(value, part.name, state, io, part.line);\n3781:       return this.substring(part, value, state, io);\n3782:     }\n3783:     if (part.operator) {\n3784:       if ([\"#\", \"##\", \"%\", \"%%\"].includes(part.operator) || part.operator.startsWith(\"/\")) {\n3785:         this.requireParameter(value, part.name, state, io, part.line);\n3786:         return this.parameterPattern(part, value ?? \"\", state, io, hereString);"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 3780,
+    "text": "3778:       : this.variable(state, part.name);\n3779:     if (part.substring) {\n3780:       this.requireParameter(value, part.name, state, io, part.line);\n3781:       return this.substring(part, value, state, io);\n3782:     }\n3783:     if (part.operator) {\n3784:       if ([\"#\", \"##\", \"%\", \"%%\"].includes(part.operator) || part.operator.startsWith(\"/\")) {\n3785:         this.requireParameter(value, part.name, state, io, part.line);\n3786:         return this.parameterPattern(part, value ?? \"\", state, io, hereString);\n3787:       }\n3788:       const missing = value === undefined || (part.operator.startsWith(\":\") && value === \"\");\n3789:       const operator = part.operator.at(-1)!;\n3790:       if ((operator === \"+\" && !missing) || (operator !== \"+\" && missing)) {\n3791:         let alternate: string;\n3792:         if (operator === \"=\" && arrayStore(state)?.get(part.name)) {\n3793:           alternate = \"\";\n3794:           await this.arrayZero(state, part.name, async () => {\n3795:             alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), \"\");\n3796:             return alternate;\n3797:           });\n3798:           value = alternate;\n3799:           return part.length ? String(Array.from(value).length) : value;\n3800:         }\n3801:         alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join(\"\");"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 3785,
+    "text": "3783:     if (part.operator) {\n3784:       if ([\"#\", \"##\", \"%\", \"%%\"].includes(part.operator) || part.operator.startsWith(\"/\")) {\n3785:         this.requireParameter(value, part.name, state, io, part.line);\n3786:         return this.parameterPattern(part, value ?? \"\", state, io, hereString);\n3787:       }\n3788:       const missing = value === undefined || (part.operator.startsWith(\":\") && value === \"\");\n3789:       const operator = part.operator.at(-1)!;\n3790:       if ((operator === \"+\" && !missing) || (operator !== \"+\" && missing)) {\n3791:         let alternate: string;\n3792:         if (operator === \"=\" && arrayStore(state)?.get(part.name)) {\n3793:           alternate = \"\";\n3794:           await this.arrayZero(state, part.name, async () => {\n3795:             alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), \"\");\n3796:             return alternate;\n3797:           });\n3798:           value = alternate;\n3799:           return part.length ? String(Array.from(value).length) : value;\n3800:         }\n3801:         alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join(\"\");\n3802:         if (operator === \"?\") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(\":\") ? \"parameter null or not set\" : \"parameter not set\")}`, io.diagnosticLine ?? part.line);\n3803:         if (operator === \"=\") {\n3804:           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error(\"Cannot assign special parameter\");\n3805:           this.writeVariable(state, part.name, alternate);\n3806:         }"
+  },
+  {
+    "filename": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.ts",
+    "start": 3809,
+    "text": "3807:         value = alternate;\n3808:       } else if (operator === \"+\") value = \"\";\n3809:     } else this.requireParameter(value, part.name, state, io, part.line);\n3810:     return part.length ? String(Array.from(value ?? \"\").length) : value ?? \"\";\n3811:   }\n3812: \n3813:   async substring(part: Extract<WordPart, { kind: \"variable\" }>, value: string | undefined, state: State, io: IO): Promise<string> {\n3814:     const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;\n3815:     const expression = part.substring!;\n3816:     const line = io.diagnosticLine ?? part.line;\n3817:     if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);\n3818:     if (value === undefined) return \"\";\n3819:     const limit = this.budget.limits.maxExpansionBytes;\n3820:     if (Buffer.byteLength(value) > limit) this.budget.fail(\"maxExpansionBytes\");\n3821:     const variables = new Proxy(this.arithmeticVariables(state, line), { get: (target, key) => {\n3822:       this.signal.throwIfAborted();\n3823:       const value: unknown = Reflect.get(target, key);\n3824:       if (typeof value === \"string\" && Buffer.byteLength(value) > limit) this.budget.fail(\"maxExpansionBytes\");\n3825:       return value;\n3826:     } });\n3827:     const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {\n3828:       let source = \"\";\n3829:       let bytes = 0;\n3830:       for (const entry of word.parts) {"
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 21,
+    "text": "19: }\n20: \n21: export function prepareArithmetic(source: string): ArithmeticProgram {\n22:   try { return { source, tree: parseArithmetic(source) }; }\n23:   catch (error) {\n24:     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;\n25:     return { source, error };\n26:   }\n27: }\n28: \n29: const precedence: Record<string, number> = {\n30:   \",\": 1, \"=\": 2, \"+=\": 2, \"-=\": 2, \"*=\": 2, \"/=\": 2, \"%=\": 2,\n31:   \"<<=\": 2, \">>=\": 2, \"&=\": 2, \"^=\": 2, \"|=\": 2,\n32:   \"?\": 3, \"||\": 4, \"&&\": 5, \"|\": 6, \"^\": 7, \"&\": 8,\n33:   \"==\": 9, \"!=\": 9, \"<\": 10, \"<=\": 10, \">\": 10, \">=\": 10,\n34:   \"<<\": 11, \">>\": 11, \"+\": 12, \"-\": 12, \"*\": 13, \"/\": 13, \"%\": 13, \"**\": 14,\n35: };\n36: \n37: function integer(text: string): bigint {\n38:   if (/^0[xX][\\da-fA-F]+$/u.test(text)) return BigInt(text);\n39:   if (/^0[0-7]+$/u.test(text)) return BigInt(`0o${text.slice(1)}`);\n40:   if (/^0\\d+$/u.test(text)) throw new Error(\"Invalid octal constant\");\n41:   if (/^\\d+$/u.test(text)) return BigInt(text);\n42:   const match = /^(\\d+)#([\\da-zA-Z@_]+)$/u.exec(text);"
+  }
+]
+[
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 134,
+    "text": "132: }\n133: \n134: export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>): bigint {\n135:   const visiting = new Set<string>();\n136:   let steps = 0;\n137:   const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {\n138:     switch (operator) {\n139:       case \"+\": return left + right;\n140:       case \"-\": return left - right;\n141:       case \"*\": return left * right;\n142:       case \"/\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left / right;\n143:       case \"%\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left % right;\n144:       case \"**\": {\n145:         if (right < 0n) throw new ArithmeticFailure(\"exponent less than 0\", offset);\n146:         let result = 1n;\n147:         let base = left;\n148:         let exponent = right;\n149:         while (exponent) {\n150:           if (exponent & 1n) result = BigInt.asIntN(64, result * base);\n151:           exponent >>= 1n;\n152:           base = BigInt.asIntN(64, base * base);\n153:         }\n154:         return result;\n155:       }"
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 142,
+    "text": "140:       case \"-\": return left - right;\n141:       case \"*\": return left * right;\n142:       case \"/\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left / right;\n143:       case \"%\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left % right;\n144:       case \"**\": {\n145:         if (right < 0n) throw new ArithmeticFailure(\"exponent less than 0\", offset);\n146:         let result = 1n;\n147:         let base = left;\n148:         let exponent = right;\n149:         while (exponent) {\n150:           if (exponent & 1n) result = BigInt.asIntN(64, result * base);\n151:           exponent >>= 1n;\n152:           base = BigInt.asIntN(64, base * base);\n153:         }\n154:         return result;\n155:       }\n156:       case \"<<\": return left << (right & 63n);\n157:       case \">>\": return left >> (right & 63n);\n158:       case \"&\": return left & right;\n159:       case \"|\": return left | right;\n160:       case \"^\": return left ^ right;\n161:       case \"==\": return BigInt(left === right);\n162:       case \"!=\": return BigInt(left !== right);\n163:       case \"<\": return BigInt(left < right);"
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 143,
+    "text": "141:       case \"*\": return left * right;\n142:       case \"/\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left / right;\n143:       case \"%\": if (right === 0n) throw new ArithmeticFailure(\"division by 0\", offset); return left % right;\n144:       case \"**\": {\n145:         if (right < 0n) throw new ArithmeticFailure(\"exponent less than 0\", offset);\n146:         let result = 1n;\n147:         let base = left;\n148:         let exponent = right;\n149:         while (exponent) {\n150:           if (exponent & 1n) result = BigInt.asIntN(64, result * base);\n151:           exponent >>= 1n;\n152:           base = BigInt.asIntN(64, base * base);\n153:         }\n154:         return result;\n155:       }\n156:       case \"<<\": return left << (right & 63n);\n157:       case \">>\": return left >> (right & 63n);\n158:       case \"&\": return left & right;\n159:       case \"|\": return left | right;\n160:       case \"^\": return left ^ right;\n161:       case \"==\": return BigInt(left === right);\n162:       case \"!=\": return BigInt(left !== right);\n163:       case \"<\": return BigInt(left < right);\n164:       case \"<=\": return BigInt(left <= right);"
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 209,
+    "text": "207:     return evaluate(program.tree!);\n208:   } catch (error) {\n209:     if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is \"${program.source.slice(error.offset)}\")`);\n210:     if (error instanceof ShellSyntaxError) {\n211:       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;\n212:       const reason = error.reason === \"Invalid arithmetic operand\" ? \"arithmetic syntax error: operand expected\" : \"arithmetic syntax error in expression\";\n213:       throw new Error(`${program.source.trimStart()}: ${reason} (error token is \"${program.source.slice(offset)}\")`);\n214:     }\n215:     throw error;\n216:   }\n217: }\n218: "
+  },
+  {
+    "filename": "src/shell/arithmetic.ts",
+    "start": 213,
+    "text": "211:       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;\n212:       const reason = error.reason === \"Invalid arithmetic operand\" ? \"arithmetic syntax error: operand expected\" : \"arithmetic syntax error in expression\";\n213:       throw new Error(`${program.source.trimStart()}: ${reason} (error token is \"${program.source.slice(offset)}\")`);\n214:     }\n215:     throw error;\n216:   }\n217: }\n218: "
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 45,
+    "text": "43:   ) {}\n44: \n45:   release(): void {\n46:     if (this.released) return;\n47:     this.released = true;\n48:     this.cleanup?.();\n49:     this.owner?.detach(this);\n50:     this.ledger.release(this);\n51:   }\n52: }\n53: \n54: export class ArrayLedger {\n55:   #caps: Counters | undefined;\n56:   #used: Counters = [0, 0, 0, 0, 0, 0, 0];\n57:   #lastIssued = 0;\n58:   #checkpoint = 0;\n59: \n60:   constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {\n61:     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError(\"Invalid private initial ticket\");\n62:     this.#lastIssued = initialTicket;\n63:   }\n64: \n65:   get active(): boolean { return this.#caps !== undefined; }\n66: "
+  }
+]
+[
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 50,
+    "text": "48:     this.cleanup?.();\n49:     this.owner?.detach(this);\n50:     this.ledger.release(this);\n51:   }\n52: }\n53: \n54: export class ArrayLedger {\n55:   #caps: Counters | undefined;\n56:   #used: Counters = [0, 0, 0, 0, 0, 0, 0];\n57:   #lastIssued = 0;\n58:   #checkpoint = 0;\n59: \n60:   constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {\n61:     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError(\"Invalid private initial ticket\");\n62:     this.#lastIssued = initialTicket;\n63:   }\n64: \n65:   get active(): boolean { return this.#caps !== undefined; }\n66: \n67:   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {\n68:     return { caps: this.#caps?.slice(), used: this.#used.slice(), lastIssued: this.#lastIssued };\n69:   }\n70: \n71:   reserve(charge: Charge = {}): Admission {"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 67,
+    "text": "65:   get active(): boolean { return this.#caps !== undefined; }\n66: \n67:   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {\n68:     return { caps: this.#caps?.slice(), used: this.#used.slice(), lastIssued: this.#lastIssued };\n69:   }\n70: \n71:   reserve(charge: Charge = {}): Admission {\n72:     const caps = this.#caps ?? this.derive();\n73:     let cursor = this.#lastIssued;\n74:     const ticket = (requested: boolean | number | undefined, label: string): number => {\n75:       if (!requested) return 0;\n76:       const count = requested === true ? 1 : requested;\n77:       if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure(`private ${label} capacity exhausted`);\n78:       cursor += count;\n79:       return cursor;\n80:     };\n81:     const generation = ticket(charge.generation, \"generation\");\n82:     const version = ticket(charge.version, \"version\");\n83:     const epoch = ticket(charge.epoch, \"epoch\");\n84:     const wrappers = charge.wrappers ?? 0;\n85:     const slots = charge.slots ?? 0;\n86:     const payload = charge.payload ?? 0;\n87:     const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;\n88:     const allocatedSlots = charge.allocatedSlots ?? slots;"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 71,
+    "text": "69:   }\n70: \n71:   reserve(charge: Charge = {}): Admission {\n72:     const caps = this.#caps ?? this.derive();\n73:     let cursor = this.#lastIssued;\n74:     const ticket = (requested: boolean | number | undefined, label: string): number => {\n75:       if (!requested) return 0;\n76:       const count = requested === true ? 1 : requested;\n77:       if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure(`private ${label} capacity exhausted`);\n78:       cursor += count;\n79:       return cursor;\n80:     };\n81:     const generation = ticket(charge.generation, \"generation\");\n82:     const version = ticket(charge.version, \"version\");\n83:     const epoch = ticket(charge.epoch, \"epoch\");\n84:     const wrappers = charge.wrappers ?? 0;\n85:     const slots = charge.slots ?? 0;\n86:     const payload = charge.payload ?? 0;\n87:     const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;\n88:     const allocatedSlots = charge.allocatedSlots ?? slots;\n89:     const work = BigInt(charge.work ?? 0) + 15n;\n90:     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];\n91:     for (let index = 0; index < requested.length; index++) {\n92:       const amount = requested[index]!;"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 116,
+    "text": "114:   }\n115: \n116:   release(admission: Admission): void {\n117:     this.#used[0] -= admission.wrappers;\n118:     this.#used[1] -= admission.slots;\n119:     this.#used[2] -= admission.payload;\n120:     this.#used[3] -= admission.metadata;\n121:   }\n122: \n123:   checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {\n124:     signal?.throwIfAborted();\n125:     this.#checkpoint += units;\n126:     if (this.#checkpoint >= 128) {\n127:       this.#checkpoint %= 128;\n128:       return new Promise<void>((resolve, reject) => setImmediate(() => {\n129:         try { signal?.throwIfAborted(); resolve(); }\n130:         catch (error) { reject(error); }\n131:       }));\n132:     }\n133:   }\n134: }\n135: \n136: export function exactSum(left: number, right: number): number {\n137:   if (!Number.isSafeInteger(left) || !Number.isSafeInteger(right) || left < 0 || right < 0 || left > Number.MAX_SAFE_INTEGER - right) {"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 166,
+    "text": "164:   static create(ledger: ArrayLedger, parent?: ArrayOwner): ArrayOwner {\n165:     parent?.assertOpen();\n166:     const header = ledger.reserve({ metadata: 64, work: 9 });\n167:     const owner = new ArrayOwner(ledger, parent, header);\n168:     if (parent) {\n169:       owner.#nextSibling = parent.#firstChild;\n170:       if (parent.#firstChild) parent.#firstChild.#previousSibling = owner;\n171:       parent.#firstChild = owner;\n172:     }\n173:     return owner;\n174:   }\n175: \n176:   assertOpen(): void {\n177:     if (this.#closed) throw new ArrayFailure(\"ownership admission is closed\");\n178:     this.parent?.assertOpen();\n179:   }\n180: \n181:   reserve(charge: Charge): Admission {\n182:     this.assertOpen();\n183:     return this.adopt(this.ledger.reserve(charge));\n184:   }\n185: \n186:   adopt(admission: Admission, prepaid = false): Admission {\n187:     const root = this.root();"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 181,
+    "text": "179:   }\n180: \n181:   reserve(charge: Charge): Admission {\n182:     this.assertOpen();\n183:     return this.adopt(this.ledger.reserve(charge));\n184:   }\n185: \n186:   adopt(admission: Admission, prepaid = false): Admission {\n187:     const root = this.root();\n188:     if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();\n189:     if (admission.released || admission.ledger !== this.ledger) throw new Error(\"Invalid indexed-array ownership transfer\");\n190:     admission.owner?.detach(admission);\n191:     admission.owner = this;\n192:     admission.previous = undefined;\n193:     admission.next = this.#head;\n194:     if (this.#head) this.#head.previous = admission;\n195:     this.#head = admission;\n196:     return admission;\n197:   }\n198: \n199:   private root(): ArrayOwner {\n200:     let root: ArrayOwner = this;\n201:     while (root.parent) root = root.parent;\n202:     return root;"
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 183,
+    "text": "181:   reserve(charge: Charge): Admission {\n182:     this.assertOpen();\n183:     return this.adopt(this.ledger.reserve(charge));\n184:   }\n185: \n186:   adopt(admission: Admission, prepaid = false): Admission {\n187:     const root = this.root();\n188:     if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();\n189:     if (admission.released || admission.ledger !== this.ledger) throw new Error(\"Invalid indexed-array ownership transfer\");\n190:     admission.owner?.detach(admission);\n191:     admission.owner = this;\n192:     admission.previous = undefined;\n193:     admission.next = this.#head;\n194:     if (this.#head) this.#head.previous = admission;\n195:     this.#head = admission;\n196:     return admission;\n197:   }\n198: \n199:   private root(): ArrayOwner {\n200:     let root: ArrayOwner = this;\n201:     while (root.parent) root = root.parent;\n202:     return root;\n203:   }\n204: "
+  },
+  {
+    "filename": "src/shell/arrays/ledger.ts",
+    "start": 209,
+    "text": "207:     const root = this.root();\n208:     if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure(\"resource capacity exhausted\");\n209:     const admission = this.reserve({ metadata: 64, work: 5 });\n210:     root.#holds++;\n211:     admission.cleanup = () => {\n212:       root.#holds--;\n213:       if (!root.#holds && root.#closed) root.#resolveIdle();\n214:     };\n215:     return admission;\n216:   }\n217: \n218:   detach(admission: Admission): void {\n219:     if (admission.previous) admission.previous.next = admission.next;\n220:     else this.#head = admission.next;\n221:     if (admission.next) admission.next.previous = admission.previous;\n222:     admission.owner = undefined;\n223:     admission.previous = undefined;\n224:     admission.next = undefined;\n225:   }\n226: \n227:   close(): Promise<void> {\n228:     if (!this.#started) {\n229:       this.#started = true;\n230:       this.#closed = true;"
+  }
+]
+89:     const work = BigInt(charge.work ?? 0) + 15n;
+90:     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
+91:     for (let index = 0; index < requested.length; index++) {
+92:       const amount = requested[index]!;
+93:       if (amount < 0n || amount > BigInt(caps[index]! - this.#used[index]!)) {
+94:         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
+95:       }
+96:     }
+97:     this.#caps = caps;
+98:     this.#lastIssued = cursor;
+99:     for (let index = 0; index < requested.length; index++) this.#used[index]! += Number(requested[index]!);
+100:     return new Admission(this, wrappers, slots, payload, Number(metadataRequest), generation, version, epoch);
+101:   }
+102: 
+103:   private derive(): Counters {
+104:     const bytes = BigInt(this.bytes);
+105:     const fields = BigInt(this.fields);
+106:     const values = [fields, fields, bytes, 128n * fields, 8n * bytes + 512n * fields, 8n * fields, 32n * bytes + 256n * fields];
+107:     const result: Counters = [0, 0, 0, 0, 0, 0, 0];
+108:     for (let index = 0; index < values.length; index++) {
+109:       const value = values[index]!;
+110:       if (value < 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) throw new ArrayFailure(`private ${labels[index]} capacity is not representable`);
+111:       result[index] = Number(value);
+112:     }
+113:     return result;
+114:   }
+115: 
+116:   release(admission: Admission): void {
+117:     this.#used[0] -= admission.wrappers;
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import {createHash} from 'node:crypto';
+4: import {pathToFileURL} from 'node:url';
+5: const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+6: function admit(filename,pin,maximum=16777216){const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==pin.bytes||stat.size>maximum)throw Error('BUILD_PIN_TYPE_SIZE');const bytes=fs.readFileSync(filename);if(bytes.length!==pin.bytes||digest(bytes)!==pin.sha256)throw Error('BUILD_PIN_HASH');return bytes;}
+7: const sealPath=process.argv[2],sealBytes=Number(process.argv[3]),sealHash=process.argv[4];
+8: if(typeof sealPath!=='string'||!Number.isSafeInteger(sealBytes)||sealBytes<=0||!/^[a-f0-9]{64}$/.test(sealHash??''))throw Error('BUILD_ARGUMENTS');
+9: const seal=JSON.parse(admit(sealPath,{bytes:sealBytes,sha256:sealHash},262144));
+10: const started=Date.now();if(started>=seal.deadline-60000)throw Error('BUILD_WINDOW');
+11: for(const [name,pin]of Object.entries(seal.helpers))admit(path.join(seal.helpersRoot,name),pin);
+12: const {readPinned,pinExecutable,publish,errorRecord}=await import(pathToFileURL(path.join(seal.helpersRoot,'auth.mjs')));
+13: const {write,inventory,sample}=await import(pathToFileURL(path.join(seal.helpersRoot,'package.mjs')));
+14: const {runDirect}=await import(pathToFileURL(path.join(seal.helpersRoot,'direct-child.mjs')));
+15: const {finalize}=await import(pathToFileURL(path.join(seal.helpersRoot,'finalization.mjs')));
+16: const ledger={starts:1,maximum:2,active:0,stopped:false,captureBytes:0,captureMaximum:131072,rows:[]};
+17: const result={schema:'k08-strict-build-result-v1',sourceCommit:seal.sourceCommit,started,inputs:[],ledger,productCalls:0,workerJobs:0,consumerChecks:0};let primaryPresent=false,primary;
+18: try{
+19:  if(fs.realpathSync(seal.root)!==seal.root||!seal.root.startsWith('/private/tmp/'))throw Error('BUILD_CANONICAL_ROOT');
+20:  pinExecutable(seal.node);
+21:  const paths=new Set();for(const row of seal.inputs){if(paths.has(row.path)||row.path.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('BUILD_SOURCE_PATH');paths.add(row.path);const bytes=readPinned(row.origin,row);write(path.join(seal.app,row.path),bytes,420);result.inputs.push({path:row.path,bytes:bytes.length,sha256:digest(bytes)});}
+22:  if(result.inputs.length!==306)throw Error('BUILD_SOURCE_CARDINALITY');
+23:  const tools=JSON.parse(readPinned(seal.tools.path,seal.tools));for(const tool of tools.packages){for(const row of tool.rows){const source=path.join(tool.resolved,row.path),bytes=readPinned(source,row);if((fs.lstatSync(source).mode&4095)!==row.mode)throw Error('BUILD_TOOL_MODE');write(path.join(seal.root,'tools',tool.name,row.path),bytes,row.mode);if(tool.name!=='typescript')write(path.join(seal.app,'node_modules',tool.name,row.path),bytes,row.mode);}}
+24:  for(const directory of ['home','tmp','empty-path'])fs.mkdirSync(path.join(seal.root,directory),{mode:448});
+25:  result.inputManifestSha256=digest(Buffer.from(JSON.stringify(result.inputs)+'\n'));
+26:  publish(path.join(seal.root,'SOURCE-BINDING.json'),Buffer.from(JSON.stringify(result.inputs,null,2)+'\n'),seal.deadline);
+27:  result.before=sample(seal.root,536870912);
+28:  const child=await runDirect({id:'strict-build',node:seal.node,args:seal.compilerArgs,cwd:seal.app,env:seal.env,capture:path.join(seal.root,'capture/strict-build'),timeoutMs:120000,bodyDeadline:seal.deadline-60000,finalDeadline:seal.deadline},ledger);
+29:  result.compiler=child.row;
+30:  if(!child.row.qualified){if(child.primary.present)throw child.primary.reason;throw Error('BUILD_LIFECYCLE');}
+31:  if(child.row.status!==0)throw Error('BUILD_DIAGNOSTICS');
+32:  result.dist=inventory(path.join(seal.app,'dist'));
+33: }catch(reason){primaryPresent=true;primary=reason;}
+34: const final=finalize({primaryPresent,primary,census:()=>sample(seal.root,536870912),publish(state){result.primaryPresent=state.primaryPresent;if(state.primaryPresent)result.primary=errorRecord(state.primary);result.secondary=state.secondary.map(row=>({phase:row.phase,present:row.present,reason:errorRecord(row.reason)}));result.sampledWorkPresent=state.sampledWorkPresent;result.sampledWork=state.sampledWork;result.finished=Date.now();result.status=state.primaryPresent?'STOP':'STRICT_BUILD_COMPLETED';publish(path.join(seal.root,'BUILD-RESULT.json'),Buffer.from(JSON.stringify(result,null,2)+'\n'),seal.deadline);}});
+35: process.stdout.write(JSON.stringify({status:final.primaryPresent?'STOP':'STRICT_BUILD_COMPLETED',primaryPresent:final.primaryPresent,primary:final.primaryPresent?errorRecord(final.primary):undefined,publicationSucceeded:final.publicationSucceeded})+'\n');if(final.primaryPresent)process.exitCode=1;
+36: 
+1: import {
+2:   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+3: } from "../contracts/index.js";
+4: import type {
+5:   ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
+6: } from "../contracts/index.js";
+7: import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+8: import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+9: import { ShellLimitError, ShellSyntaxError } from "./types.js";
+10: import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+11: import { ShellInput } from "./input.js";
+12: import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
+13: import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
+14: import { compilePattern, matchesPattern } from "./pattern.js";
+15: import { byteLocale } from "./locale.js";
+16: import { functionDisplay } from "./display.js";
+17: import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
+18: import { invocationScope, type InvocationScope } from "./cleanup.js";
+19: import { executionCommands } from "../commands/execution.js";
+20: import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
+21: import type { GetoptsState } from "./getopts.js";
+22: import {
+23:   activateChildCancellation, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
+24: } from "./cancellation.js";
+25: import type {
+26:   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
+27:   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
+28: } from "./cancellation.js";
+29: import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker } from "./arrays/syntax.js";
+30: import type { ArrayAssignment } from "./arrays/syntax.js";
+31: import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
+32: import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
+33: import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+34: import type { Restoration } from "./arrays/state.js";
+35: import type { Admission } from "./arrays/ledger.js";
+36: import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
+37: import { EreTransportRoot } from "../commands/regex-execution/ere/transport/root.js";
+38: import { EreTransportProfileLimitError, EreTransportSemanticError } from "../commands/regex-execution/ere/transport/protocol.js";
+39: import type { EreTransportResult } from "../commands/regex-execution/ere/transport/protocol.js";
+40: import { EreProfileLimitError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
+41: import type { EreFragment } from "../commands/regex-execution/ere/types.js";
+42: 
+43: export const defaultLimits: Required<ShellLimits> = {
+44:   maxOutputBytes: 16 * 1024 * 1024,
+45:   maxCommands: 10_000,
+46:   maxLoopIterations: 10_000,
+47:   maxSubstitutionDepth: 64,
+48:   maxSourceBytes: 1024 * 1024,
+49:   maxExpansionFields: 10_000,
+50:   maxExpansionBytes: 16 * 1024 * 1024,
+51:   pipeHighWaterMark: 64 * 1024,
+52: };
+53: 
+54: const shellBuiltinNames = new Set([
+55:   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
+56:   "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
+57: ]);
+58: 
+59: const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
+60: const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+61: type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+62: 
+63: export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
+64:   const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
+65:   for (const [key, value] of Object.entries(result)) {
+66:     if (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0)) {
+67:       throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);
+68:     }
+69:   }
+70:   return result;
+71: }
+72: 
+73: const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
+74: 
+75: export class Budget {
+76:   commands = 0;
+77:   iterations = 0;
+78:   bytes = 0;
+79:   sourceBytes = 0;
+80:   readonly controller = new AbortController();
+81:   readonly signal: AbortSignal;
+82: 
+83:   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
+84:     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
+85:   }
+86: 
+87:   fail(limit: keyof ShellLimits): never {
+88:     const error = new ShellLimitError(limit);
+89:     this.controller.abort(error);
+90:     throw error;
+91:   }
+92: 
+93:   tick(): void {
+94:     this.signal.throwIfAborted();
+95:     if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
+96:   }
+97: 
+98:   loop(): void {
+99:     this.signal.throwIfAborted();
+100:     if (++this.iterations > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
+101:   }
+102: 
+103:   source(bytes: number): void {
+104:     this.signal.throwIfAborted();
+105:     if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
+106:     this.sourceBytes += bytes;
+107:   }
+108: 
+109:   sink(sink: ByteSink, signal = this.signal): ByteSink {
+110:     const ownership = budgetedSinks.get(sink);
+111:     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
+112:     const output: ByteSink = {
+113:       ...(sink.ownedOutput ? { ownedOutput: {
+114:         consumerClosed: sink.ownedOutput.consumerClosed,
+115:         write: async (chunk: Uint8Array) => {
+116:           signal.throwIfAborted();
+117:           if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+118:           if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+119:           this.bytes += chunk.byteLength;
+120:           await interruptible(sink.ownedOutput!.write(chunk), signal);
+1: import type { State } from "../runtime.js";
+2: import type { InvocationScope } from "../cleanup.js";
+3: import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
+4: import type { Admission, Tickets } from "./ledger.js";
+5: import { BindingStore, textToken } from "./bindings.js";
+6: 
+7: interface Session {
+8:   readonly ledger: ArrayLedger;
+9:   readonly scope: InvocationScope;
+10:   owner: ArrayOwner | undefined;
+11: }
+12: 
+13: const sessions = new WeakMap<object, Session>();
+14: const monitors = new WeakMap<State, StateMonitor>();
+15: const overlayNext = Symbol("array overlay parent");
+16: type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
+17: 
+18: export function trackState(state: State, budget: { readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number } }, scope: InvocationScope): State {
+19:   const existing = monitors.get(state);
+20:   if (existing) return existing.proxy;
+21:   let session = sessions.get(budget);
+22:   if (!session) {
+23:     while (scope.parent) scope = scope.parent;
+24:     session = { ledger: new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields), scope, owner: undefined };
+25:     const registered = session;
+26:     scope.register(() => registered.owner?.close());
+27:     sessions.set(budget, session);
+28:   }
+29:   return new StateMonitor(state, session).proxy;
+30: }
+31: 
+32: export function stateMonitor(state: State): StateMonitor | undefined { return monitors.get(state); }
+33: 
+34: export function arrayStore(state: State): BindingStore | undefined { return monitors.get(state)?.store; }
+35: 
+36: export function requireArrays(state: State): BindingStore {
+37:   const monitor = monitors.get(state);
+38:   if (!monitor) throw new Error("Indexed-array state was not enrolled");
+39:   return monitor.activate();
+40: }
+41: 
+42: export class StateMonitor {
+43:   readonly proxy: State;
+44:   store: BindingStore | undefined;
+45:   epoch = 0;
+46:   #publication = false;
+47:   readonly #wrapped = new WeakMap<object, object>();
+48:   #wrapperCount = 0;
+49:   #enrollment: Admission | undefined;
+50:   #restorations: Restoration | undefined;
+51:   #overlays: OverlayMap | undefined;
+52: 
+53:   constructor(readonly raw: State, readonly session: Session) {
+54:     this.proxy = this.wrap(raw, "state") as State;
+55:     monitors.set(raw, this);
+56:     monitors.set(this.proxy, this);
+57:   }
+58: 
+59:   activate(): BindingStore {
+60:     if (this.store) return this.store;
+61:     this.session.scope.assertOpen();
+62:     this.session.owner ??= ArrayOwner.create(this.session.ledger);
+63:     this.#enrollment ??= this.session.owner.reserve({ slots: this.#wrapperCount * 2 + 2, metadata: 128 + this.#wrapperCount * 128, work: this.#wrapperCount * 8 + 8 });
+64:     let pending = 0;
+65:     for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
+66:     if (pending) {
+67:       const admission = this.session.owner.reserve({ epoch: pending, metadata: pending * 64, work: pending * 8 });
+68:       admission.restorationReferences = pending;
+69:       let ticket = admission.epoch - pending;
+70:       for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) { entry.epoch = ++ticket; entry.admission = admission; }
+71:     }
+72:     for (let entry = this.#restorations; entry; entry = entry.next) if (entry.resource && !entry.holding) entry.holding = this.session.owner.hold();
+73:     this.store = BindingStore.create(this.session.owner);
+74:     this.store.epoch = this.epoch;
+75:     return this.store;
+76:   }
+77: 
+78:   restoration(resource = false): Restoration {
+79:     const admission = this.session.ledger.active ? this.session.owner!.reserve({ epoch: true, metadata: 64, work: 8 }) : undefined;
+80:     if (admission) admission.restorationReferences = 1;
+81:     const permit = new Restoration(this, admission, resource);
+82:     try {
+83:       if (resource && this.session.ledger.active) permit.holding = this.session.owner!.hold();
+84:     } catch (error) { admission?.release(); throw error; }
+85:     permit.next = this.#restorations;
+86:     if (this.#restorations) this.#restorations.previous = permit;
+87:     this.#restorations = permit;
+88:     return permit;
+89:   }
+90: 
+91:   openOverlay(frame: OverlayMap): void {
+92:     if (this.#overlays) frame[overlayNext] = this.#overlays;
+93:     this.#overlays = frame;
+94:   }
+95: 
+96:   closeOverlay(frame: OverlayMap): void {
+97:     if (this.#overlays !== frame) throw new Error("Indexed-array overlay dependency order violated");
+98:     this.#overlays = frame[overlayNext];
+99:     delete frame[overlayNext];
+100:   }
+101: 
+102:   *overlayFrames(): Iterable<OverlayMap> {
+103:     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) yield frame;
+104:   }
+105: 
+106:   prepareCollection<Value extends object>(value: Value, field: string): Value {
+107:     return this.wrap(value, field) as Value;
+108:   }
+109: 
+110:   async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
+111:     owner.reserve({ metadata: 128, work: 7 });
+112:     const saved: { superseded?: boolean }[] = [];
+113:     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+114:       owner.reserve({ work: 2 }).release();
+115:       const entry = frame.get(name);
+116:       if (entry) {
+117:         owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+118:         saved.push(entry);
+119:       }
+120:       await owner.ledger.checkpoint(signal, 2);
+121:     }
+122:     return () => { for (const entry of saved) entry.superseded = true; };
+123:   }
+124: 
+125:   retire(permit: Restoration): void {
+126:     if (permit.previous) permit.previous.next = permit.next;
+127:     else this.#restorations = permit.next;
+128:     if (permit.next) permit.next.previous = permit.previous;
+129:   }
+130: 
+{
+  "compilerArgs": [
+    "/private/tmp/safe-bash-k08-author-RAvH2m/tools/typescript/bin/tsc",
+    "--strict",
+    "--pretty",
+    "false",
+    "-p",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/tsconfig.build.json"
+  ],
+  "roleGraph": {
+    "trustedOuterAdminOwner": 1,
+    "buildOwner": 1,
+    "compilerChild": 1,
+    "maximumPeak": 3
+  }
+}
+165:       case ">": return BigInt(left > right);
+166:       case ">=": return BigInt(left >= right);
+167:       default: throw new Error(`Unsupported arithmetic operator ${operator}`);
+168:     }
+169:   };
+170:   const evaluate = (node: Arithmetic): bigint => {
+171:     if (++steps > 10_000) throw new Error("Arithmetic operation limit exceeded");
+172:     let value: bigint;
+173:     if (node.kind === "literal") return node.value;
+174:     if (node.kind === "name") {
+175:       if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
+176:       visiting.add(node.name);
+177:       try { return evaluate(parseArithmetic(variables[node.name] ?? "0")); }
+178:       finally { visiting.delete(node.name); }
+179:     }
+180:     if (node.kind === "conditional") return evaluate(evaluate(node.condition) ? node.yes : node.no);
+181:     if (node.kind === "unary") {
+182:       const operand = evaluate(node.operand);
+183:       if (node.operator === "+") value = operand;
+184:       else if (node.operator === "-") value = -operand;
+185:       else if (node.operator === "!") value = BigInt(!operand);
+186:       else if (node.operator === "~") value = ~operand;
+187:       else {
+188:         value = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+189:         variables[(node.operand as Extract<Arithmetic, { kind: "name" }>).name] = String(value);
+190:         if (node.postfix) value = operand;
+191:       }
+192:     } else {
+193:       if (node.operator === "=") value = evaluate(node.right);
+194:       else {
+195:         const left = evaluate(node.left);
+196:         if (node.operator === "&&") return left ? BigInt(evaluate(node.right) !== 0n) : 0n;
+197:         if (node.operator === "||") return left ? 1n : BigInt(evaluate(node.right) !== 0n);
+198:         if (node.operator === ",") return evaluate(node.right);
+199:         value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, left, evaluate(node.right), node.right.start ?? 0);
+200:       }
+201:       if (precedence[node.operator] === 2) variables[(node.left as Extract<Arithmetic, { kind: "name" }>).name] = String(BigInt.asIntN(64, value));
+202:     }
+203:     return BigInt.asIntN(64, value);
+204:   };
+205:   try {
+206:     if (program.error) throw program.error;
+207:     return evaluate(program.tree!);
+208:   } catch (error) {
+209:     if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+210:     if (error instanceof ShellSyntaxError) {
+211:       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
+212:       const reason = error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
+213:       throw new Error(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
+214:     }
+215:     throw error;
+216:   }
+217: }
+47:   for (const character of match[2]!) {
+48:     const digit = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_".indexOf(base <= 36 ? character.toLowerCase() : character);
+49:     if (digit >= base || digit < 0) throw new Error("Digit exceeds arithmetic base");
+50:     value = value * BigInt(base) + BigInt(digit);
+51:   }
+52:   return value;
+53: }
+54: 
+55: export function parseArithmetic(source: string, offset = 0): Arithmetic {
+56:   const tokens: { value: string; offset: number }[] = [];
+57:   let position = 0;
+58:   while (position < source.length) {
+59:     if (/\s/u.test(source[position]!)) { position++; continue; }
+60:     const value = /^(?:\d+#[\da-zA-Z@_]+|0[xX][\da-fA-F]+|\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position))?.[0];
+61:     if (!value) throw new ShellSyntaxError("Unsupported arithmetic token", offset + position);
+62:     tokens.push({ value, offset: offset + position });
+63:     position += value.length;
+64:   }
+65:   let cursor = 0;
+66:   let depth = 0;
+67:   const current = () => tokens[cursor]?.value ?? "";
+68:   const error = (message: string): never => { throw new ShellSyntaxError(message, tokens[cursor]?.offset ?? offset + source.length); };
+69:   const expression = (minimum = 1): Arithmetic => {
+70:     if (++depth > 64) error("Arithmetic nesting exceeds 64");
+71:     let left: Arithmetic;
+72:     const start = tokens[cursor]?.offset ?? offset + source.length;
+73:     const token = current();
+74:     cursor++;
+75:     if (["+", "-", "!", "~", "++", "--"].includes(token)) {
+76:       const operand = expression(15);
+77:       if (["++", "--"].includes(token) && operand.kind !== "name") error("Arithmetic assignment requires a variable");
+78:       left = { kind: "unary", operator: token, operand, postfix: false };
+79:     } else if (token === "(") {
+80:       left = expression();
+81:       if (current() !== ")") error("Unclosed arithmetic parenthesis");
+82:       cursor++;
+83:     } else if (/^[a-zA-Z_]/u.test(token)) left = { kind: "name", name: token };
+84:     else {
+85:       try { left = { kind: "literal", value: BigInt.asIntN(64, integer(token)) }; }
+86:       catch { error("Invalid arithmetic operand"); }
+87:     }
+88:     left!.start = start;
+89:     while (true) {
+90:       const operator = current();
+91:       if (operator === "++" || operator === "--") {
+92:         if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
+93:         cursor++;
+94:         left = { kind: "unary", operator, operand: left!, postfix: true, start };
+95:         continue;
+96:       }
+97:       const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : 0;
+98:       if (priority < minimum || priority === 0) break;
+99:       cursor++;
+100:       if (operator === "?") {
+101:         const yes = expression();
+102:         if (current() !== ":") error("Expected arithmetic colon");
+103:         cursor++;
+104:         left = { kind: "conditional", condition: left!, yes, no: expression(3), start };
+105:       } else {
+106:         const assignment = priority === 2;
+107:         if (assignment && left!.kind !== "name") error("Arithmetic assignment requires a variable");
+108:         const right = expression(priority + (assignment || operator === "**" ? 0 : 1));
+109:         left = { kind: "binary", operator, left: left!, right, start };
+110:       }
+111:     }
+112:     depth--;
+113:     return left!;
+114:   };
+115:   if (!tokens.length) return { kind: "literal", value: 0n };
+116:   const tree = expression();
+117:   if (cursor < tokens.length) error("Unexpected arithmetic token");
+118:   return tree;
+119: }
+120: 
+121: export function arithmeticEnd(source: string, start: number): number {
+122:   let depth = 0;
+123:   for (let position = start; position < source.length; position++) {
+124:     const character = source[position];
+125:     if (character === "(") depth++;
+126:     if (character === ")") {
+127:       if (depth === 0 && source[position + 1] === ")") return position;
+128:       if (--depth < 0) break;
+129:     }
+130:   }
+131:   throw new ShellSyntaxError("Unterminated arithmetic expression", start);
+132: }
+{"error":"Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/SEAL.json'"}
+1: # K08 positional arithmetic: author candidate, not runtime acceptance
+2: 
+3: ## Binding and result
+4: 
+5: Production commit: ffac894aa98b8cd98476b8ea109ef2e2425c2a07. Only runtime.ts's import and the two approved arithmetic callsites change; arithmetic-parameters.ts is new. Reversing those hunks reproduces the original runtime bytes (SHA256 0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1). Parser, evaluator, ERE, LET, public exports/options and all other runtime bytes are unchanged.
+6: 
+7: The ONE authorized isolated strict TypeScript build completed with exit 0, empty stdout/stderr, qualified direct-child capture/exit/close and no primary/secondary failure. BUILD-RESULT.json retains its raw receipt. No Shell.exec, helper control, mutant, native, Worker, install or npm execution occurred. Existing public declaration files are byte-identical; only a new internal helper declaration exists, so no public consumer execution was needed.
+8: 
+9: - runtime.ts SHA256: 52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6.
+10: - arithmetic-parameters.ts SHA256: cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a.
+11: - BUILD-SEAL.json: 85429 bytes, SHA256 30100c3b0694685825207cb6d9beb2802ba7eee450a45f0a9d63ea711c107470.
+12: - New shipping archive: 981948 bytes, SHA256 0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c, 1006 shipping members; base64 preservation is package.tgz.base64. Decode only after regular-file/type/size/hash admission under a future grant. This is not the historical capture archive.
+13: - Composition: authenticated original 305 inputs, only runtime replaced and helper added = 306. SOURCE-BINDING.json and BUILD-SEAL.json bind individual source bytes; no raw HEAD composition or repeated full-source archive.
+14: - Future SEAL.json: 196558 bytes, SHA256 ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91. All 13 local source/fixture bindings and 9 inherited helper bindings were reauthenticated as files after writing.
+15: 
+16: ## Implemented narrow profile
+1: {
+2:   "schema": "k08-author-publication-checkpoint-v1",
+3:   "at": "2026-08-29T14:48:34.798Z",
+4:   "commits": [
+5:     "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+6:     "c564cb205b1823c3fd4fe86fd8f938ffb31cde8a",
+7:     "71a5556b19ebf51e4ddd88bbd634399ca5243184"
+8:   ],
+9:   "phaseDeadline": "2026-08-29T14:54:43.488Z",
+10:   "disposition": "SOURCE_IMPLEMENTED_STRICT_BUILD_PASS_RUNTIME_UNRUN",
+11:   "administrationSnapshot": {
+12:     "starts": 26,
+13:     "allExitCloseCaptured": true,
+14:     "captureBytes": 8937,
+15:     "ledgerRawBytes": 22501,
+16:     "ledgerSha256": "629478de5ceaf5f0d927fc6ea40fa0df3d6152eef24fc1d38309cb85707898b7"
+17:   },
+18:   "compiler": {
+19:     "distinctAdditionalKnownStart": 1,
+20:     "status": 0,
+21:     "qualified": true,
+22:     "stdoutBytes": 0,
+23:     "stderrBytes": 0
+24:   },
+25:   "knownStartsAtSnapshot": 27,
+26:   "knownPeak": 3,
+27:   "peakBasis": "Admin runner owner + build owner + its one compiler. Other administrative commands serial.",
+28:   "roots": [
+29:     {
+30:       "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+31:       "at": 1788014889022,
+32:       "bytes": 44101848,
+33:       "entries": 2934,
+34:       "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+35:     },
+36:     {
+37:       "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1",
+38:       "at": 1788014889023,
+39:       "bytes": 2239595,
+40:       "entries": 34,
+41:       "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+42:     }
+43:   ],
+44:   "logicalBytesAtSnapshots": 46341443,
+45:   "qualifications": [
+46:     "Two independently timestamped fresh file-based root samples, not a historical peak or RSS guarantee.",
+47:     "This checkpoint precedes its own apply_patch/add/commit/final metadata publication; those roles remain in the retained on-disk capture LEDGER, not falsely included above.",
+48:     "No stale PID/group probe or universal descendant census.",
+49:     "No product/helper/mutant/native/Worker calls. No old capture archive retry."
+50:   ],
+51:   "publicationAllowance": {
+52:     "maximumFurtherAdministrativeStarts": 6,
+53:     "remainingAdminSubcap": 6
+54:   },
+55:   "future": {
+56:     "status": "PENDING_DIFFERENT_REVIEW_AND_ROOT_GO",
+57:     "sealBytes": 196558,
+58:     "sealSha256": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91",
+59:     "shellCalls": 71,
+60:     "knownStartsProposed": 86,
+61:     "peak": 3
+62:   },
+63:   "historical": "47a2311e source51/54 + equal legacy24/24 and administrative2MiBSTOP preserved."
+64: }
+65: 
+1: {
+2:   "schema": "k08-one-strict-build-seal-v1",
+3:   "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+4:   "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+5:   "app": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app",
+6:   "deadline": 1788015283488,
+7:   "node": {
+8:     "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+9:     "bytes": 112989184,
+10:     "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+11:     "mode": 493,
+12:     "version": "v22.22.2",
+13:     "qualification": "Version inherited; executable freshly hash-authenticated without running"
+14:   },
+15:   "helpersRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+16:   "helpers": {
+17:     "auth.mjs": {
+18:       "bytes": 3951,
+19:       "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+20:     },
+21:     "package.mjs": {
+22:       "bytes": 3509,
+23:       "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+24:     },
+25:     "direct-child.mjs": {
+26:       "bytes": 5589,
+27:       "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+28:     },
+29:     "finalization.mjs": {
+30:       "bytes": 850,
+31:       "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+32:     }
+33:   },
+34:   "inputs": [
+35:     {
+36:       "path": "README.md",
+37:       "bytes": 51008,
+38:       "sha256": "e1465dace0d50eaf5038edc08623faeba807ffb0cb4aa8138b9cf5f3fbaea351",
+39:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/README.md"
+40:     },
+41:     {
+42:       "path": "package.json",
+43:       "bytes": 5257,
+44:       "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+45:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/package.json"
+46:     },
+47:     {
+48:       "path": "src/commands/README.md",
+49:       "bytes": 12186,
+50:       "sha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+51:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/src/commands/README.md"
+52:     },
+53:     {
+54:       "path": "src/commands/apply-patch/apply.ts",
+55:       "bytes": 11929,
+56:       "sha256": "4444754643de62e7d1385a2205f8ffde2f0b7787c5cbd466388ca351ff70a36e",
+57:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/src/commands/apply-patch/apply.ts"
+58:     },
+59:     {
+60:       "path": "src/commands/apply-patch/index.ts",
+61:       "bytes": 1298,
+62:       "sha256": "98dbcac5b211bd3d789ae4da451df3794ceaaca269b70cb10ed99fc3ce73050b",
+63:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/src/commands/apply-patch/index.ts"
+64:     },
+65:     {
+66:       "path": "src/commands/apply-patch/matcher.ts",
+67:       "bytes": 5308,
+68:       "sha256": "c747472b92ed32bfa36cca27d99a57260554f147e4c2cbb4f8fe57af014c27ce",
+69:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/src/commands/apply-patch/matcher.ts"
+70:     },
+71:     {
+72:       "path": "src/commands/apply-patch/options.ts",
+73:       "bytes": 1864,
+74:       "sha256": "3d0aad73e4b6482813fd2aebc117236b5f091bebe6531d7b1c35f019b8c50de3",
+75:       "origin": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/source-app/src/commands/apply-patch/options.ts"
+76:     },
+77:     {
+78:       "path": "src/commands/apply-patch/parser.ts",
+79:       "bytes": 6525,
+80:       "sha256": "3160bb0cdae28e3393d40b584a7bfadd83cd4035af6fb2cb718eaa98a33f0955",
+1: exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/launch.sh' '196558' 'ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91' 'ROOT_APPROVED_GRANT_SHA256' 'INDEPENDENT_REVIEW_SHA256'
+2: 

@@ -1,0 +1,1796 @@
+1: import { prepareArithmetic } from "./arithmetic.js";
+2: import type { ArithmeticProgram } from "./arithmetic.js";
+3: import type { Admission, ArrayOwner } from "./arrays/ledger.js";
+4: 
+5: interface PositionalArithmeticOptions {
+6:   readonly positional: readonly string[];
+7:   readonly arg0: string;
+8:   readonly maximumBytes: number;
+9:   readonly owner: ArrayOwner | undefined;
+10:   readonly checkpoint: () => void;
+11:   readonly requireParameter: (name: string, value: string | undefined) => void;
+12:   readonly limit: () => never;
+13: }
+14: 
+15: function digit(source: string, position: number): boolean {
+16:   const code = source.charCodeAt(position);
+17:   return code >= 48 && code <= 57;
+18: }
+19: 
+20: function positionalTemplate(source: string, checkpoint: () => void): boolean {
+21:   let found = false;
+22:   let nextCheckpoint = 0;
+23:   for (let position = 0; position < source.length;) {
+24:     if (position >= nextCheckpoint) { checkpoint(); nextCheckpoint = position + 128; }
+25:     const character = source[position];
+26:     if (character === "\\" || character === "'" || character === '"' || character === "`") return false;
+27:     if (character !== "$") { position++; continue; }
+28:     position++;
+29:     if (digit(source, position)) { found = true; position++; continue; }
+30:     if (source[position] !== "{") return false;
+31:     const start = ++position;
+32:     while (digit(source, position)) {
+33:       if (position >= nextCheckpoint) { checkpoint(); nextCheckpoint = position + 128; }
+34:       position++;
+35:     }
+36:     if (position === start || source[position] !== "}") return false;
+37:     found = true;
+38:     position++;
+39:   }
+40:   return found;
+41: }
+42: 
+43: function positionalValue(name: string, options: PositionalArithmeticOptions): string | undefined {
+44:   let index = 0;
+45:   let outside = false;
+46:   for (let position = 0; position < name.length; position++) {
+47:     if (position % 128 === 0) options.checkpoint();
+48:     const next = name.charCodeAt(position) - 48;
+49:     if (index > Math.floor((options.positional.length - next) / 10)) outside = true;
+50:     if (!outside) index = index * 10 + next;
+51:   }
+52:   return outside ? undefined : index === 0 ? options.arg0 : options.positional[index - 1];
+53: }
+54: 
+55: export function evaluatePositionalArithmetic(
+56:   program: ArithmeticProgram,
+57:   options: PositionalArithmeticOptions,
+58:   evaluate: (prepared: ArithmeticProgram) => bigint,
+59: ): bigint {
+60:   const source = program.source;
+61:   if (!source.includes("$")) return evaluate(program);
+62:   options.checkpoint();
+63:   if (!positionalTemplate(source, options.checkpoint)) return evaluate(program);
+64:   const header = options.owner?.reserve({ metadata: 128, allocatedSlots: 2, work: source.length * 2 + 8 });
+65:   const admissions: Admission[] = [];
+66:   const chunks: string[] = [];
+67:   let bytes = 0;
+68:   const reserve = (payload: number): void => {
+69:     const admission = options.owner?.reserve({ payload, metadata: 64, allocatedSlots: 2, work: 4 });
+70:     if (admission) admissions.push(admission);
+71:   };
+72:   const length = (text: string, start: number, end: number, maximum: number): number => {
+73:     let size = 0;
+74:     let nextCheckpoint = start;
+75:     for (let position = start; position < end;) {
+76:       if (position >= nextCheckpoint) { options.checkpoint(); nextCheckpoint = position + 128; }
+77:       const code = text.charCodeAt(position++);
+78:       if (code <= 0x7f) size++;
+79:       else if (code <= 0x7ff) size += 2;
+80:       else if (code >= 0xd800 && code <= 0xdbff && position < end && text.charCodeAt(position) >= 0xdc00 && text.charCodeAt(position) <= 0xdfff) { size += 4; position++; }
+81:       else size += 3;
+82:       if (size > maximum) options.limit();
+83:     }
+84:     options.owner?.reserve({ work: end - start }).release();
+85:     return size;
+86:   };
+87:   const literal = (start: number, end: number): void => {
+88:     if (start === end) return;
+89:     const size = length(source, start, end, options.maximumBytes - bytes);
+90:     reserve(size);
+91:     chunks.push(source.slice(start, end));
+92:     bytes += size;
+93:   };
+94:   try {
+95:     let start = 0;
+96:     let nextCheckpoint = 0;
+97:     for (let position = 0; position < source.length;) {
+98:       if (position >= nextCheckpoint) { options.checkpoint(); nextCheckpoint = position + 128; }
+99:       if (source[position] !== "$") { position++; continue; }
+100:       literal(start, position);
+101:       const braced = source[position + 1] === "{";
+102:       const nameStart = position + (braced ? 2 : 1);
+103:       let nameEnd = nameStart + 1;
+104:       if (braced) while (digit(source, nameEnd)) { if (nameEnd >= nextCheckpoint) { options.checkpoint(); nextCheckpoint = nameEnd + 128; } nameEnd++; }
+105:       reserve(nameEnd - nameStart);
+106:       const name = source.slice(nameStart, nameEnd);
+107:       const value = positionalValue(name, options);
+108:       options.requireParameter(name, value);
+109:       const text = value ?? "";
+110:       const size = length(text, 0, text.length, options.maximumBytes - bytes);
+111:       reserve(size);
+112:       chunks.push(text);
+113:       bytes += size;
+114:       position = nameEnd + (braced ? 1 : 0);
+115:       start = position;
+116:     }
+117:     literal(start, source.length);
+118:     options.checkpoint();
+119:     reserve(bytes);
+120:     const expanded = chunks.join("");
+121:     options.checkpoint();
+122:     return evaluate(prepareArithmetic(expanded));
+123:   } finally {
+124:     for (let position = admissions.length - 1; position >= 0; position--) admissions[position]!.release();
+125:     header?.release();
+126:   }
+127: }
+128: 
+{"requests":1,"totalRead":5221,"admitted":1}
+1: diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+2: index 4e5c0747a..39d776bf9 100644
+3: --- a/src/shell/runtime.ts
+4: +++ b/src/shell/runtime.ts
+5: @@ -10,6 +10,7 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
+6:  import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+7:  import { ShellInput } from "./input.js";
+8:  import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
+9: +import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
+10:  import { compilePattern, matchesPattern } from "./pattern.js";
+11:  import { byteLocale } from "./locale.js";
+12:  import { functionDisplay } from "./display.js";
+13: @@ -1697,7 +1698,15 @@ export class Runtime {
+14:          }
+15:        }
+16:        if (command.kind === "arithmetic") {
+17: -        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }
+18: +        try {
+19: +          return Number(evaluatePositionalArithmetic(command.expression, {
+20: +            positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
+21: +            maximumBytes: this.budget.limits.maxExpansionBytes,
+22: +            checkpoint: () => this.signal.throwIfAborted(),
+23: +            requireParameter: (name, value) => this.requireParameter(value, name, state, io),
+24: +            limit: () => this.budget.fail("maxExpansionBytes"),
+25: +          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);
+26: +        }
+27:          catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }
+28:        }
+29:        if (command.kind === "subshell") {
+30: @@ -3707,7 +3716,15 @@ export class Runtime {
+31:        return "";
+32:      }
+33:      if (part.kind === "arithmetic") {
+34: -      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }
+35: +      try {
+36: +        return String(evaluatePositionalArithmetic(part.expression, {
+37: +          positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
+38: +          maximumBytes: this.budget.limits.maxExpansionBytes,
+39: +          checkpoint: () => this.signal.throwIfAborted(),
+40: +          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),
+41: +          limit: () => this.budget.fail("maxExpansionBytes"),
+42: +        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));
+43: +      }
+44:        catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
+45:      }
+46:      if (part.kind === "substitution") {
+47: 
+{"requests":2,"totalRead":7947,"admitted":2}
+[
+  [
+    "*",
+    [
+      "schema",
+      "status",
+      "sourceCommit",
+      "work",
+      "sourceApp",
+      "node",
+      "helperRoot",
+      "helperPins",
+      "files",
+      "builtins",
+      "archive",
+      "shipping",
+      "compiledHelperSha256",
+      "sourceBinding",
+      "mutations",
+      "roles",
+      "limits",
+      "counts",
+      "qualifications"
+    ]
+  ]
+]
+{"requests":3,"totalRead":204505,"admitted":3}
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import {pathToFileURL} from 'node:url';
+4: import {gunzipSync} from 'node:zlib';
+5: import {createHash} from 'node:crypto';
+6: const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+7: const packet="/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future";
+8: function pinned(filename,pin,maximum=16777216){const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==pin.bytes||stat.size>maximum)throw Error('TARGET_PREAUTH_SIZE');const bytes=fs.readFileSync(filename);if(bytes.length!==pin.bytes||hash(bytes)!==pin.sha256)throw Error('TARGET_PREAUTH_HASH');return bytes;}
+9: const seal=JSON.parse(pinned(packet+'/SEAL.json',{bytes:Number(process.env.K08_SEAL_BYTES),sha256:process.env.K08_SEAL_SHA256},1048576));
+10: const started=Date.now();for(const [name,pin]of Object.entries(seal.helperPins))pinned(path.join(seal.helperRoot,name),pin);for(const [name,pin]of Object.entries(seal.files))pinned(path.join(packet,name),pin);
+11: const {readPinned,pinExecutable,publish,errorRecord}=await import(pathToFileURL(path.join(seal.helperRoot,'auth.mjs')));
+12: const {runDirect}=await import(pathToFileURL(path.join(seal.helperRoot,'direct-child.mjs')));
+13: const {write,inventory,sample,extract}=await import(pathToFileURL(path.join(seal.helperRoot,'package.mjs')));
+14: const {admitPackage}=await import(pathToFileURL(path.join(seal.helperRoot,'package-admission.mjs')));
+15: const {validateTar}=await import(pathToFileURL(path.join(seal.helperRoot,'parse-manifest.mjs')));
+16: const {finalize}=await import(pathToFileURL(path.join(seal.helperRoot,'finalization.mjs')));
+17: const {caseArguments,completion,PROFILE}=await import(pathToFileURL(path.join(seal.helperRoot,'profile.mjs')));
+18: const {validateCanonicalRole}=await import(pathToFileURL(path.join(seal.helperRoot,'canonical.mjs')));
+19: const {validateActivation}=await import('./activation.mjs');
+20: const grant=JSON.parse(pinned(packet+'/GO.json',{bytes:fs.lstatSync(packet+'/GO.json').size,sha256:process.env.K08_GRANT_SHA256},65536));
+21: const review=JSON.parse(pinned(packet+'/REVIEW.json',{bytes:fs.lstatSync(packet+'/REVIEW.json').size,sha256:process.env.K08_REVIEW_SHA256},65536));
+22: const window=validateActivation(grant,review,{preseal:process.env.K08_SEAL_SHA256,work:seal.work,limits:seal.limits,roles:seal.roles,started,now:Date.now()});
+23: const finalDeadline=window.finalDeadline,bodyDeadline=finalDeadline-seal.limits.finalizationTailMs,capture=path.join(seal.work,'future-capture');
+24: const ledger={starts:1,maximum:78,active:0,stopped:false,captureBytes:196608,captureMaximum:seal.limits.captureBytes,rows:[]};
+25: const result={schema:'k08-target-result-v1',sourceCommit:seal.sourceCommit,started,observations:[],helpers:[],mutants:[],refusals:[],ledger};let primaryPresent=false,primary;
+26: const record=(name,value)=>{const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n');if(ledger.captureBytes+bytes.length>ledger.captureMaximum)throw Error('TARGET_CAPTURE_CAP');ledger.captureBytes+=bytes.length;return publish(path.join(capture,name+'.json'),bytes,finalDeadline);};
+27: const check=()=>{if(Date.now()>=bodyDeadline||ledger.stopped)throw Error('TARGET_ADMISSION_STOP');sample(seal.work,seal.limits.workBytes);};
+28: try{
+29:  pinExecutable(seal.node);if(fs.realpathSync(seal.work)!==seal.work)throw Error('TARGET_WORK_IDENTITY');
+30:  const data=JSON.parse(readPinned(path.join(packet,'CASES.json'),seal.files['CASES.json']));
+31:  const edgeData=JSON.parse(readPinned(path.join(packet,'PRODUCT-EDGES.json'),seal.files['PRODUCT-EDGES.json']));
+32:  for(const pin of seal.shipping)readPinned(path.join(seal.sourceApp,pin.path),pin);
+33:  let tarBuffer;const archiveEvents=[],archiveLedger={current:0,peak:0,maximum:67108864};
+34:  result.archive=await admitPackage(seal.archive.path,{bytes:seal.archive.bytes,sha256:seal.archive.sha256,decodedLimit:33554432},archiveLedger,{events:archiveEvents,decode:gunzipSync,parse(bytes){tarBuffer=bytes;return validateTar(bytes,seal.shipping);}});result.archiveEvents=archiveEvents;
+35:  const installed=path.join(seal.work,'target-installed'),moved=path.join(seal.work,'target-moved');extract(tarBuffer,path.join(installed,'node_modules/virtual-bash'));write(path.join(installed,'package.json'),Buffer.from('{"type":"module","private":true}\n'));
+36:  const prepare=(app,packageRoot)=>{
+37:   for(const name of ['auth.mjs','profile.mjs','guard.mjs'])if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(seal.helperRoot,name),seal.helperPins[name]));
+38:   for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json']){if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(packet,name),seal.files[name]));else readPinned(path.join(app,name),seal.files[name]);}
+39:   const files={},edges={};for(const pin of inventory(packageRoot).rows.filter(row=>row.path.startsWith('dist/')&&row.path.endsWith('.js'))){files[path.join(packageRoot,pin.path)]=pin;edges[path.join(packageRoot,pin.path)]=edgeData.edges[pin.path];if(!edges[path.join(packageRoot,pin.path)])throw Error('STATIC_EDGE_BINDING');}
+40:   for(const name of ['auth.mjs','profile.mjs','guard.mjs'])files[path.join(app,name)]=seal.helperPins[name];
+41:   for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json'])files[path.join(app,name)]=seal.files[name];
+42:   const entry=path.join(app,'case-driver.mjs'),productEntry=path.join(packageRoot,'dist/index.js'),helperEntry=path.join(packageRoot,'dist/shell/arithmetic-parameters.js'),arithmeticEntry=path.join(packageRoot,'dist/shell/arithmetic.js'),ledgerEntry=path.join(packageRoot,'dist/shell/arrays/ledger.js');
+43:   edges[path.join(app,'auth.mjs')]=['node:fs','node:crypto'];edges[path.join(app,'profile.mjs')]=['node:path'];edges[path.join(app,'guard.mjs')]=['node:fs','node:module','node:url','./auth.mjs','./profile.mjs'];edges[path.join(app,'case-adapter.mjs')]=['node:crypto','node:path'];
+44:   edges[path.join(app,'helper-driver.mjs')]=['node:url',... [helperEntry,arithmeticEntry,ledgerEntry].map(filename=>pathToFileURL(filename).href)];
+45:   edges[entry]=['node:fs','node:url','./profile.mjs','./case-adapter.mjs','./helper-driver.mjs','virtual-bash',pathToFileURL(productEntry).href];
+46:   return {files,edges,entry,productEntry,helperEntry,arithmeticEntry,ledgerEntry};
+47:  };
+48:  const launch=async(layout,app,packageRoot,id,caseId,refusal)=>{
+49:   check();const prepared=prepare(app,packageRoot),trace=path.join(capture,id+'.trace'),rolePath=path.join(capture,id+'.role.json');write(trace,Buffer.alloc(0));
+50:   if(refusal==='AUTH_HASH')prepared.files[prepared.productEntry]={...prepared.files[prepared.productEntry],sha256:'0'.repeat(64)};
+51:   if(refusal==='EDGE_REFUSED')prepared.edges[prepared.entry]=prepared.edges[prepared.entry].filter(edge=>edge!=='virtual-bash'&&edge!==pathToFileURL(prepared.productEntry).href);
+52:   const role={profile:PROFILE,kind:'product-case',id,caseId,layout,app,...prepared,guard:path.join(app,'guard.mjs'),trace,rolePath,readFiles:[rolePath,trace],builtins:seal.builtins,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',nodePath:seal.node.path,cases:path.join(app,'CASES.json')};
+53:   const env={HOME:path.join(seal.work,'home'),TMPDIR:path.join(seal.work,'tmp'),PATH:path.join(seal.work,'empty-path'),LC_ALL:'C',LANG:'C',TZ:'UTC'};validateCanonicalRole(seal.work,role,env);
+54:   const roleBytes=Buffer.from(JSON.stringify(role)+'\n');if(ledger.captureBytes+roleBytes.length>ledger.captureMaximum)throw Error('ROLE_CAPTURE_CAP');ledger.captureBytes+=roleBytes.length;write(rolePath,roleBytes);
+55:   const child=await runDirect({id,node:seal.node,args:caseArguments(role),cwd:app,env:{...env,SURFACE_ROLE:rolePath,SURFACE_ROLE_BYTES:String(roleBytes.length),SURFACE_ROLE_SHA256:hash(roleBytes)},capture:path.join(capture,id),timeoutMs:30000,bodyDeadline,finalDeadline},ledger);record(id+'-lifecycle',child.row);if(!child.row.qualified)throw Error('TARGET_LIFECYCLE');
+56:   const stat=fs.lstatSync(trace);if(!stat.isFile()||stat.size>524288)throw Error('TRACE_CAP');const traceBytes=fs.readFileSync(trace);ledger.captureBytes+=traceBytes.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('TARGET_CAPTURE_CAP');const traceRows=traceBytes.toString().trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));if(traceRows.filter(row=>row.event==='permission-admitted').length!==1||traceRows.filter(row=>row.event==='synchronous-hooks-installed').length!==1)throw Error('DENIAL_WITNESS');
+57:   const stdout=child.row.captures.find(row=>row.kind==='stdout'),stderr=child.row.captures.find(row=>row.kind==='stderr');
+58:   if(refusal){const receipt={id,refusal,observed:child.row.status!==0&&stdout.bytes===0&&Buffer.from(stderr.base64,'base64').toString().includes(refusal)};record(id,receipt);return receipt;}
+59:   if(child.row.status!==0)throw Error('TARGET_DRIVER_FAILURE');const receipt=JSON.parse(Buffer.from(stdout.base64,'base64'));
+60:   if(receipt.caseId!==caseId||receipt.layout!==layout)throw Error('TARGET_MEMBERSHIP');
+61:   if(caseId==='HELPERS'){if(!receipt.helperSettlement?.completed||!receipt.helperSettlement.ownedClosed)throw Error('HELPER_SETTLEMENT');}else if(!completion(receipt,child.row))throw Error('PUBLIC_SETTLEMENT');
+62:   const observed={id,rolePin:{bytes:roleBytes.length,sha256:hash(roleBytes)},trace:{bytes:traceBytes.length,sha256:hash(traceBytes)},receipt};record(id,observed);return observed;
+63:  };
+64:  for(const layout of ['source-built','installed','physically-moved']){if(layout==='physically-moved'){fs.renameSync(installed,moved);if(fs.existsSync(installed))throw Error('MOVE_REMAINS');}const app=layout==='source-built'?seal.sourceApp:layout==='installed'?installed:moved,root=layout==='source-built'?app:path.join(app,'node_modules/virtual-bash');for(const row of data.rows)result.observations.push(await launch(layout,app,root,'case-'+layout+'-'+row.id,row.id));result.helpers.push(await launch(layout,app,root,'helpers-'+layout,'HELPERS'));}
+65:  for(const mutation of seal.mutations){const app=path.join(seal.work,'target-mutant-'+mutation.id),root=path.join(app,'node_modules/virtual-bash');extract(tarBuffer,root);write(path.join(app,'package.json'),Buffer.from('{"type":"module","private":true}\n'));const filename=path.join(root,'dist/shell/arithmetic-parameters.js'),original=fs.readFileSync(filename,'utf8');if(hash(Buffer.from(original))!==seal.compiledHelperSha256||original.split(mutation.from).length!==2)throw Error('MUTATION_BINDING');const changed=original.replace(mutation.from,mutation.to);fs.writeFileSync(filename,changed);const observed=await launch('installed',app,root,mutation.id,mutation.caseId);const baseline=mutation.caseId==='HELPERS'?result.helpers.find(row=>row.receipt.layout==='installed'):result.observations.find(row=>row.receipt.layout==='installed'&&row.receipt.caseId===mutation.caseId);let detected=baseline?.receipt.pass===true&&!observed.receipt.pass;if(mutation.id==='M02')detected=detected&&observed.receipt.observation.stdout.base64==='OTo5';if(mutation.id==='M03')detected=detected&&observed.receipt.results.some(row=>row.id==='H04'&&row.pass===false&&!row.hasPrimary);result.mutants.push({mutation,baselinePassed:baseline?.receipt.pass===true,detected,observed});}
+66:  result.refusals.push(await launch('physically-moved',moved,path.join(moved,'node_modules/virtual-bash'),'N01',data.rows[0].id,'AUTH_HASH'));result.refusals.push(await launch('physically-moved',moved,path.join(moved,'node_modules/virtual-bash'),'N02',data.rows[0].id,'EDGE_REFUSED'));
+67: }catch(reason){primaryPresent=true;primary=reason;}
+68: const final=finalize({primaryPresent,primary,census:()=>sample(seal.work,seal.limits.workBytes),publish(state){result.primaryPresent=state.primaryPresent;if(state.primaryPresent)result.primary=errorRecord(state.primary);result.secondary=state.secondary.map(row=>({phase:row.phase,present:row.present,reason:errorRecord(row.reason)}));result.sampledWorkPresent=state.sampledWorkPresent;result.sampledWork=state.sampledWork;result.finished=Date.now();result.semanticFailures=result.observations.filter(row=>!row.receipt.pass).length;result.controlFailures=result.helpers.filter(row=>!row.receipt.pass).length+result.mutants.filter(row=>!row.detected).length+result.refusals.filter(row=>!row.observed).length;result.status=state.primaryPresent?'STOP':result.semanticFailures+result.controlFailures?'COMPLETED_WITH_ASSERTION_FAILURES':'COMPLETED';record('TARGET-RESULT',result);}});
+69: process.stdout.write(JSON.stringify({status:final.primaryPresent?'STOP':'OWNER_COMPLETED',primaryPresent:final.primaryPresent,publicationSucceeded:final.publicationSucceeded})+'\n');if(final.primaryPresent)process.exitCode=1;
+70: 
+{"requests":4,"totalRead":217215,"admitted":4}
+28: try{
+29:  pinExecutable(seal.node);if(fs.realpathSync(seal.work)!==seal.work)throw Error('TARGET_WORK_IDENTITY');
+30:  const data=JSON.parse(readPinned(path.join(packet,'CASES.json'),seal.files['CASES.json']));
+31:  const edgeData=JSON.parse(readPinned(path.join(packet,'PRODUCT-EDGES.json'),seal.files['PRODUCT-EDGES.json']));
+32:  for(const pin of seal.shipping)readPinned(path.join(seal.sourceApp,pin.path),pin);
+33:  let tarBuffer;const archiveEvents=[],archiveLedger={current:0,peak:0,maximum:67108864};
+34:  result.archive=await admitPackage(seal.archive.path,{bytes:seal.archive.bytes,sha256:seal.archive.sha256,decodedLimit:33554432},archiveLedger,{events:archiveEvents,decode:gunzipSync,parse(bytes){tarBuffer=bytes;return validateTar(bytes,seal.shipping);}});result.archiveEvents=archiveEvents;
+35:  const installed=path.join(seal.work,'target-installed'),moved=path.join(seal.work,'target-moved');extract(tarBuffer,path.join(installed,'node_modules/virtual-bash'));write(path.join(installed,'package.json'),Buffer.from('{"type":"module","private":true}\n'));
+36:  const prepare=(app,packageRoot)=>{
+37:   for(const name of ['auth.mjs','profile.mjs','guard.mjs'])if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(seal.helperRoot,name),seal.helperPins[name]));
+38:   for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json']){if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(packet,name),seal.files[name]));else readPinned(path.join(app,name),seal.files[name]);}
+39:   const files={},edges={};for(const pin of inventory(packageRoot).rows.filter(row=>row.path.startsWith('dist/')&&row.path.endsWith('.js'))){files[path.join(packageRoot,pin.path)]=pin;edges[path.join(packageRoot,pin.path)]=edgeData.edges[pin.path];if(!edges[path.join(packageRoot,pin.path)])throw Error('STATIC_EDGE_BINDING');}
+40:   for(const name of ['auth.mjs','profile.mjs','guard.mjs'])files[path.join(app,name)]=seal.helperPins[name];
+41:   for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json'])files[path.join(app,name)]=seal.files[name];
+42:   const entry=path.join(app,'case-driver.mjs'),productEntry=path.join(packageRoot,'dist/index.js'),helperEntry=path.join(packageRoot,'dist/shell/arithmetic-parameters.js'),arithmeticEntry=path.join(packageRoot,'dist/shell/arithmetic.js'),ledgerEntry=path.join(packageRoot,'dist/shell/arrays/ledger.js');
+43:   edges[path.join(app,'auth.mjs')]=['node:fs','node:crypto'];edges[path.join(app,'profile.mjs')]=['node:path'];edges[path.join(app,'guard.mjs')]=['node:fs','node:module','node:url','./auth.mjs','./profile.mjs'];edges[path.join(app,'case-adapter.mjs')]=['node:crypto','node:path'];
+44:   edges[path.join(app,'helper-driver.mjs')]=['node:url',... [helperEntry,arithmeticEntry,ledgerEntry].map(filename=>pathToFileURL(filename).href)];
+45:   edges[entry]=['node:fs','node:url','./profile.mjs','./case-adapter.mjs','./helper-driver.mjs','virtual-bash',pathToFileURL(productEntry).href];
+46:   return {files,edges,entry,productEntry,helperEntry,arithmeticEntry,ledgerEntry};
+47:  };
+48:  const launch=async(layout,app,packageRoot,id,caseId,refusal)=>{
+49:   check();const prepared=prepare(app,packageRoot),trace=path.join(capture,id+'.trace'),rolePath=path.join(capture,id+'.role.json');write(trace,Buffer.alloc(0));
+50:   if(refusal==='AUTH_HASH')prepared.files[prepared.productEntry]={...prepared.files[prepared.productEntry],sha256:'0'.repeat(64)};
+51:   if(refusal==='EDGE_REFUSED')prepared.edges[prepared.entry]=prepared.edges[prepared.entry].filter(edge=>edge!=='virtual-bash'&&edge!==pathToFileURL(prepared.productEntry).href);
+52:   const role={profile:PROFILE,kind:'product-case',id,caseId,layout,app,...prepared,guard:path.join(app,'guard.mjs'),trace,rolePath,readFiles:[rolePath,trace],builtins:seal.builtins,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',nodePath:seal.node.path,cases:path.join(app,'CASES.json')};
+53:   const env={HOME:path.join(seal.work,'home'),TMPDIR:path.join(seal.work,'tmp'),PATH:path.join(seal.work,'empty-path'),LC_ALL:'C',LANG:'C',TZ:'UTC'};validateCanonicalRole(seal.work,role,env);
+54:   const roleBytes=Buffer.from(JSON.stringify(role)+'\n');if(ledger.captureBytes+roleBytes.length>ledger.captureMaximum)throw Error('ROLE_CAPTURE_CAP');ledger.captureBytes+=roleBytes.length;write(rolePath,roleBytes);
+{"requests":5,"totalRead":229925,"admitted":4}
+[
+  [
+    "helperRoot",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4"
+  ],
+  [
+    "counts",
+    {
+      "newPrimaryIdentities": 23,
+      "layouts": 3,
+      "primaryShellCalls": 69,
+      "mutantShellCalls": 2,
+      "totalShellCalls": 71,
+      "helperLogicalControls": 8,
+      "helperParameterRowsPerBaselineBatch": 16,
+      "baselineHelperBatches": 3,
+      "mutantHelperBatches": 1,
+      "legacyHistoricalRescore": 0,
+      "buildsInFutureMatrix": 0
+    }
+  ],
+  [
+    "limits",
+    {
+      "durationMs": 1500000,
+      "finalizationTailMs": 60000,
+      "captureBytes": 100663296,
+      "workBytes": 536870912,
+      "streamBytes": 65536,
+      "ownerCaptureReservation": 196608,
+      "caseMs": 30000,
+      "buildMs": 0
+    }
+  ],
+  [
+    "mutations",
+    [
+      {
+        "id": "M01",
+        "caseId": "P01-keyword",
+        "from": "return evaluate(prepareArithmetic(expanded));",
+        "to": "return evaluate(program);",
+        "basis": "same-source baseline must first pass, then exact old missing-expansion defect must be exposed"
+      },
+      {
+        "id": "M02",
+        "caseId": "P05-precedence",
+        "from": "chunks.push(text);",
+        "to": "chunks.push(\"(\" + text + \")\");",
+        "basis": "baseline7:7 vs grouped mutant9:9; no any-error credit"
+      },
+      {
+        "id": "M03",
+        "caseId": "HELPERS",
+        "from": "if (size > maximum)",
+        "to": "if (false)",
+        "basis": "normalH04 limit must pass before missing-limit mutant returns without primary"
+      }
+    ]
+  ],
+  [
+    "roles",
+    {
+      "collector": 1,
+      "owner": 1,
+      "primaryCases": 69,
+      "helperBatches": 3,
+      "mutants": 3,
+      "bindingRefusals": 2,
+      "totalRuntimeKnownStarts": 79,
+      "extraSyntaxMetadataPublication": 7,
+      "maximumAllKnownStarts": 86,
+      "peakMaximum": 3,
+      "sourceDerivedInternalChildForks": 0,
+      "caseChildProcessPermission": 0,
+      "caseWorkerPermission": 0,
+      "asyncLoaders": 0
+    }
+  ],
+  [
+    "qualifications",
+    [
+      "Current grant permits SOURCE/preparation and one strict build only; this future86-known-role envelope is proposed, not activated under current72-role grant.",
+      "23x3 targeted cases and all helper/mutant/binding controls remain UNRUN. Historical51/54 and24/24 equivalence are not changed.",
+      "Only preexec-v4 lifecycle/permission helpers reused byte-for-byte; new owner/driver/admission composition needs different review and future authorization.",
+      "Public exec/dispose settlement is not a private-job census; synchronous hooks and Node permissions are not universal OS containment/group-absence/RSS proof.",
+      "P13 raw reasons are injected private-helper controls. Independent public caller-abort holdouts remain required before broad cancellation acceptance.",
+      "No fullsource capsule decoded/repacked; source layout was actually strict-built once in current authorized phase. Future installed/moved layouts are not yet prepared/executed."
+    ]
+  ]
+]
+{"requests":6,"totalRead":426483,"admitted":4}
+1: import fs from 'node:fs';
+2: import {readPinned,pinExecutable,publish} from './auth.mjs';
+3: import {collect} from './collector-core.mjs';
+4: import {preauthRecord} from './preauth.mjs';
+5: import {validateActivation} from './activation.mjs';
+6: const packet="/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future",work="/private/tmp/safe-bash-k08-author-RAvH2m",started=Date.now();let primaryPresent=false,primary;
+7: try{
+8:  const seal=JSON.parse(readPinned(packet+'/SEAL.json',{bytes:Number(process.env.K08_SEAL_BYTES),sha256:process.env.K08_SEAL_SHA256}));for(const [name,pin]of Object.entries(seal.files))readPinned(packet+'/'+name,pin);pinExecutable(seal.node);
+9:  const readAuth=(name,digest)=>{const stat=fs.lstatSync(packet+'/'+name);return JSON.parse(readPinned(packet+'/'+name,{bytes:stat.size,sha256:digest},65536));};
+10:  const grant=readAuth('GO.json',process.env.K08_GRANT_SHA256),review=readAuth('REVIEW.json',process.env.K08_REVIEW_SHA256);const time=validateActivation(grant,review,{preseal:process.env.K08_SEAL_SHA256,work,limits:seal.limits,roles:seal.roles,started,now:Date.now()});
+11:  const ledger={starts:1,maximum:2,active:0,stopped:false,captureBytes:0,captureMaximum:131072,rows:[]};
+12:  const env={HOME:work+'/home',TMPDIR:work+'/tmp',PATH:work+'/empty-path',LC_ALL:'C',LANG:'C',TZ:'UTC',K08_SEAL_BYTES:process.env.K08_SEAL_BYTES,K08_SEAL_SHA256:process.env.K08_SEAL_SHA256,K08_GRANT_SHA256:process.env.K08_GRANT_SHA256,K08_REVIEW_SHA256:process.env.K08_REVIEW_SHA256};
+13:  const child=await collect({id:'author-owner',node:seal.node,args:[packet+'/target-owner.mjs'],cwd:work,env,capture:work+'/future-capture/owner',timeoutMs:time.duration-5000,bodyDeadline:time.finalDeadline-5000,finalDeadline:time.finalDeadline},ledger);
+14:  publish(work+'/future-capture/COLLECTOR.json',Buffer.from(JSON.stringify({ledger,ownerLifecycle:child.row})+'\n'),time.finalDeadline);
+15:  if(!child.row.qualified||child.row.status!==0){primaryPresent=child.primary.present;primary=child.primary.reason;if(!primaryPresent){primaryPresent=true;primary=Error('OWNER_STOP');}}
+16: }catch(reason){primaryPresent=true;primary=reason;}
+17: process[primaryPresent?'stderr':'stdout'].write(JSON.stringify(primaryPresent?preauthRecord(true,primary):{status:'COLLECTOR_COMPLETED'})+'\n');if(primaryPresent)process.exitCode=1;
+18: 
+{"requests":7,"totalRead":428818,"admitted":5}
+1: import {runDirect} from './direct-child.mjs';
+2: export async function collect(spec,ledger){return runDirect(spec,ledger);}
+3: 
+{"requests":8,"totalRead":428939,"admitted":6}
+1: import fs from 'node:fs';
+2: import {spawn} from 'node:child_process';
+3: import {hash,errorRecord,Primary,pinExecutable} from './auth.mjs';
+4: const pause = ms => new Promise(resolve => setTimeout(resolve,ms));
+5: export const qualifyDirect = row => !row.primaryPresent && !row.forced && row.exit && row.close && row.stdoutEOF && row.stderrEOF && row.capturesQualified && row.knownOutstanding === 0;
+6: export function openCapturePair(spec,ledger,row,primary,operations=fs) {
+7:   let stdoutFd,stderrFd;
+8:   try {
+9:     stdoutFd=operations.openSync(spec.capture+'.stdout','wx+',384);
+10:     stderrFd=operations.openSync(spec.capture+'.stderr','wx+',384);
+11:     return {stdoutFd,stderrFd};
+12:   } catch(reason) {
+13:     primary.fail(reason);
+14:     const cleanup={acquired:stdoutFd!==undefined,closeAttempted:false,closed:false,failurePresent:false};
+15:     let cleanupReason;
+16:     if(cleanup.acquired){cleanup.closeAttempted=true;try{operations.closeSync(stdoutFd);cleanup.closed=true;}catch(closeReason){cleanup.failurePresent=true;cleanupReason=closeReason;}}
+17:     row.childStarted=false;row.captureOpenFailure=true;row.captureCleanup=cleanup;
+18:     row.knownOutstanding=cleanup.acquired&&!cleanup.closed?1:0;row.qualified=false;row.primaryPresent=true;
+19:     ledger.stopped=true;
+20:     try {
+21:       if(cleanup.failurePresent){primary.fail(cleanupReason);cleanup.failure=errorRecord(cleanupReason);}
+22:       row.primary=errorRecord(reason);row.secondaryPresent=primary.secondary.length>0;row.secondary=primary.secondary;row.finished=Date.now();ledger.rows.push(row);
+23:     } finally {throw reason;}
+24:   }
+25: }
+26: export async function runDirect(spec,ledger) {
+27:   if (ledger.stopped || ledger.active || ledger.starts >= ledger.maximum || Date.now() >= spec.bodyDeadline) throw Error('CHILD_ADMISSION');
+28:   pinExecutable(spec.node);
+29:   const primary = new Primary();
+30:   const row = {id:spec.id,events:[],exit:false,close:false,stdoutEOF:false,stderrEOF:false,captures:[],signals:[],forced:false,capturesQualified:false,knownOutstanding:1};
+31:   const event = name => row.events.push({name,at:Date.now()});
+32:   const {stdoutFd,stderrFd}=openCapturePair(spec,ledger,row,primary);
+33:   event('capture-open');
+34:   ledger.starts++;ledger.active++;
+35:   let child,settle;
+36:   const wake = new Promise(resolve => {settle = resolve;});
+37:   const fail = reason => {primary.fail(reason);settle();};
+38:   let stdoutBytes=0,stderrBytes=0;
+39:   try {
+40:     child=spawn(spec.node.path,spec.args,{cwd:spec.cwd,env:spec.env,shell:false,detached:false,stdio:['ignore','pipe','pipe']});
+41:     row.pid=child.pid;
+42:     child.on('spawn',()=>event('spawn'));
+43:     child.on('error',reason=>{event('error');fail(reason);});
+44:     child.on('exit',(status,signal)=>{row.exit=true;row.status=status;row.signal=signal;event('exit');});
+45:     child.on('close',()=>{row.close=true;event('close');settle();});
+46:     const consume = (descriptor,kind) => bytes => {
+47:       if (primary.present) return;
+48:       if ((kind==='stdout'?stdoutBytes:stderrBytes)+bytes.length>65536 || ledger.captureBytes+bytes.length>ledger.captureMaximum) {fail(Error('CAPTURE_LIMIT'));return;}
+49:       try {fs.writeFileSync(descriptor,bytes);ledger.captureBytes+=bytes.length;if(kind==='stdout')stdoutBytes+=bytes.length;else stderrBytes+=bytes.length;} catch(reason){fail(reason);}
+50:     };
+51:     child.stdout.on('data',consume(stdoutFd,'stdout'));child.stderr.on('data',consume(stderrFd,'stderr'));
+52:     child.stdout.on('end',()=>{row.stdoutEOF=true;event('stdout-end');});child.stderr.on('end',()=>{row.stderrEOF=true;event('stderr-end');});
+53:     child.stdout.on('error',fail);child.stderr.on('error',fail);event('listeners-enrolled');
+54:     const timer=setTimeout(()=>fail(Error('CHILD_DEADLINE')),Math.max(1,Math.min(spec.timeoutMs ?? 3000,spec.bodyDeadline-Date.now())));
+55:     await wake;clearTimeout(timer);
+56:     if(!row.close){
+57:       row.forced=true;
+58:       for(const [signal,grace] of [['SIGTERM',2000],['SIGKILL',1000]]){
+59:         if(row.close)break;
+60:         try{row.signals.push({signal,at:Date.now(),returned:child.kill(signal)});}catch(reason){primary.fail(reason);}
+61:         const until=Date.now()+grace;while(!row.close&&Date.now()<until)await pause(10);
+62:       }
+63:     }
+64:     if(!row.close||!row.exit||!row.stdoutEOF||!row.stderrEOF)primary.fail(Error('DIRECT_RETIREMENT_UNKNOWN'));
+65:   }catch(reason){primary.fail(reason);}
+66:   finally {
+67:     for(const [kind,descriptor,expected]of [['stdout',stdoutFd,stdoutBytes],['stderr',stderrFd,stderrBytes]]){
+68:       let capture,closed=false;
+69:       try {fs.fsyncSync(descriptor);const stat=fs.fstatSync(descriptor);if(stat.size!==expected)throw Error('CAPTURE_SIZE');const bytes=Buffer.alloc(expected);let offset=0;while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,bytes.length-offset,offset);if(!count)throw Error('CAPTURE_SHORT');offset+=count;}capture={kind,bytes:expected,sha256:hash(bytes),base64:bytes.toString('base64'),flushed:true};}catch(reason){primary.fail(reason);}
+70:       finally{try{fs.closeSync(descriptor);closed=true;}catch(reason){primary.fail(reason);}}
+71:       if(capture)row.captures.push({...capture,closed});
+72:     }
+73:     row.capturesQualified=row.captures.length===2&&row.captures.every(capture=>capture.closed&&capture.flushed);
+74:     if(Date.now()>=spec.finalDeadline)primary.fail(Error('FINAL_DEADLINE'));
+75:     row.primaryPresent=primary.present;row.primary=primary.present?errorRecord(primary.reason):undefined;row.secondary=primary.secondary;
+76:     row.knownOutstanding=row.close&&row.exit?0:1;
+77:     row.qualified=qualifyDirect(row);
+78:     row.finished=Date.now();ledger.rows.push(row);ledger.active--;if(!row.qualified)ledger.stopped=true;
+79:   }
+80:   return {row,primary};
+81: }
+82: 
+{"requests":9,"totalRead":434528,"admitted":7}
+1: #!/bin/zsh -f
+2: umask 077
+3: set -e
+4: set -o noclobber
+5: exec > '/private/tmp/safe-bash-k08-author-RAvH2m/future-capture/collector-startup.stdout' 2> '/private/tmp/safe-bash-k08-author-RAvH2m/future-capture/collector-startup.stderr'
+6: exec /usr/bin/env -i HOME='/private/tmp/safe-bash-k08-author-RAvH2m/home' TMPDIR='/private/tmp/safe-bash-k08-author-RAvH2m/tmp' PATH='/private/tmp/safe-bash-k08-author-RAvH2m/empty-path' LC_ALL=C LANG=C TZ=UTC K08_SEAL_BYTES="$1" K08_SEAL_SHA256="$2" K08_GRANT_SHA256="$3" K08_REVIEW_SHA256="$4" '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/collector.mjs'
+7: 
+{"requests":10,"totalRead":435230,"admitted":8}
+1: const duration=1500000,maximumWindow=3000000;
+2: function fields(value,keys){if(value===null||typeof value!=='object'||Array.isArray(value))throw Error('AUTH_SCHEMA');const own=Reflect.ownKeys(value);if(own.length!==keys.length||keys.some(key=>!Object.hasOwn(value,key)))throw Error('AUTH_SCHEMA');for(const key of own){const descriptor=Object.getOwnPropertyDescriptor(value,key);if(typeof key!=='string'||!keys.includes(key)||!descriptor||!Object.hasOwn(descriptor,'value'))throw Error('AUTH_SCHEMA');}}
+3: function time(value){if(typeof value!=='number'||!Number.isSafeInteger(value)||value<0)throw Error('AUTH_TIME_TYPE');return value;}
+4: function exactNumbers(value,expected){fields(value,Object.keys(expected));for(const key of Object.keys(expected)){if(typeof value[key]!=='number'||!Number.isSafeInteger(value[key])||value[key]!==expected[key])throw Error('AUTH_LIMITS');}}
+5: export function validateActivation(grant,review,{preseal,work,limits,roles,started,now}){
+6:  fields(grant,['schema','decision','preseal','work','calls','issuedAtEpochMs','latestStartEpochMs','expiresEpochMs','limits','roles']);fields(review,['decision','preseal','scope','independentCommit']);
+7:  time(grant.issuedAtEpochMs);time(grant.latestStartEpochMs);time(grant.expiresEpochMs);time(started);time(now);
+8:  if(grant.schema!=='k08-target-runtime-grant-v1'||grant.decision!=='GO'||review.decision!=='ACCEPT'||grant.preseal!==preseal||review.preseal!==preseal||grant.work!==work||grant.calls!==71||review.scope!=='k08-target-preexec-v1'||typeof review.independentCommit!=='string'||!/^[a-f0-9]{40}$/.test(review.independentCommit))throw Error('AUTH_BINDING');
+9:  exactNumbers(grant.limits,limits);exactNumbers(grant.roles,roles);
+10:  if(limits.durationMs!==duration||grant.expiresEpochMs<duration||grant.latestStartEpochMs!==grant.expiresEpochMs-duration||grant.issuedAtEpochMs>grant.latestStartEpochMs||grant.expiresEpochMs-grant.issuedAtEpochMs>maximumWindow||started<grant.issuedAtEpochMs||now<started||now>grant.latestStartEpochMs)throw Error('AUTH_TIME_ORDER');
+11:  return Object.freeze({finalDeadline:Math.min(started+duration,grant.expiresEpochMs),duration});
+12: }
+13: 
+{"requests":11,"totalRead":437359,"admitted":9}
+1: {
+2:   "schema": "k08-target-runtime-grant-v1",
+3:   "decision": "PENDING",
+4:   "preseal": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91",
+5:   "work": "/private/tmp/safe-bash-k08-author-RAvH2m",
+6:   "calls": 71,
+7:   "issuedAtEpochMs": null,
+8:   "latestStartEpochMs": null,
+9:   "expiresEpochMs": null,
+10:   "limits": {
+11:     "durationMs": 1500000,
+12:     "finalizationTailMs": 60000,
+13:     "captureBytes": 100663296,
+14:     "workBytes": 536870912,
+15:     "streamBytes": 65536,
+16:     "ownerCaptureReservation": 196608,
+17:     "caseMs": 30000,
+18:     "buildMs": 0
+19:   },
+20:   "roles": {
+21:     "collector": 1,
+22:     "owner": 1,
+23:     "primaryCases": 69,
+24:     "helperBatches": 3,
+25:     "mutants": 3,
+26:     "bindingRefusals": 2,
+27:     "totalRuntimeKnownStarts": 79,
+28:     "extraSyntaxMetadataPublication": 7,
+29:     "maximumAllKnownStarts": 86,
+30:     "peakMaximum": 3,
+31:     "sourceDerivedInternalChildForks": 0,
+32:     "caseChildProcessPermission": 0,
+33:     "caseWorkerPermission": 0,
+34:     "asyncLoaders": 0
+35:   }
+36: }
+37: 
+{"requests":12,"totalRead":438313,"admitted":10}
+1: {
+2:   "decision": "PENDING",
+3:   "preseal": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91",
+4:   "scope": "k08-target-preexec-v1",
+5:   "independentCommit": null
+6: }
+7: 
+{"requests":13,"totalRead":438487,"admitted":11}
+[
+  [
+    "*",
+    [
+      "schema",
+      "disposition",
+      "layouts",
+      "defaultExpected",
+      "rows",
+      "helperControls",
+      "retainedGroups",
+      "historical",
+      "fixtures"
+    ]
+  ]
+]
+{"requests":14,"totalRead":449382,"admitted":12}
+1: import fs from 'node:fs';
+2: import {pathToFileURL} from 'node:url';
+3: import {PROFILE} from './profile.mjs';
+4: import {runCase} from './case-adapter.mjs';
+5: import {runHelperControls} from './helper-driver.mjs';
+6: const role=JSON.parse(fs.readFileSync(process.env.SURFACE_ROLE));
+7: const data=JSON.parse(fs.readFileSync(role.cases));
+8: if(role.caseId==='HELPERS'){
+9:  const result=await runHelperControls(role,data);if(!result.helperSettlement.ownedClosed)throw Error('HELPER_OWNED_CLEANUP');
+10:  process.stdout.write(JSON.stringify({profile:PROFILE,caseId:role.caseId,layout:role.layout,...result})+'\n');
+11: }else{
+12:  const test=data.rows.find(row=>row.id===role.caseId);if(!test)throw Error('CASE_ID');
+13:  const api=role.layout==='source-built'?await import(pathToFileURL(role.productEntry)):await import('virtual-bash');
+14:  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(Error('K08_CASE_DEADLINE')),25000);
+15:  let result;try{result=await runCase(api,{program:test.program,stdinBase64:'',limits:test.limits,virtualInvocation:{cwd:'/case/work',environment:{LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:'/case/home',TMPDIR:'/case/tmp',PATH:'/case/empty-path'}}},data.fixtures,controller.signal);}finally{clearTimeout(timer);}
+16:  if(controller.signal.aborted)throw controller.signal.reason;
+17:  if(result.hasCleanupError||!result.publicSettlement.disposeSettled)throw Error('KNOWN_CLEANUP_FAILURE');
+18:  if(result.hasPrimary&&result.primary instanceof Error&&/ADAPTER_CAPTURE|CAPTURE_RESULT|SNAPSHOT/.test(result.primary.message))throw result.primary;
+19:  const failures=[];const stdout=Buffer.from(result.stdout.base64,'base64').toString(),stderr=Buffer.from(result.stderr.base64,'base64').toString();
+20:  if(test.expectedRejection){if(!result.hasPrimary||result.primary?.name!==test.expectedRejection.name||result.primary?.limit!==test.expectedRejection.limit)failures.push('rejection-identity-fields');}
+21:  else if(result.kind!=='resolved'||result.status!==(test.status??0))failures.push('status');
+22:  if(stdout!==test.stdout)failures.push('stdout');
+23:  if(test.stderrContains!==undefined?!stderr.includes(test.stderrContains):stderr!==(test.stderr??''))failures.push('stderr');
+24:  if(JSON.stringify(result.filesBefore)!==JSON.stringify(result.filesAfter))failures.push('file-effects');
+25:  const clean={...result};delete clean.primary;delete clean.cleanupError;
+26:  process.stdout.write(JSON.stringify({profile:PROFILE,caseId:test.id,layout:role.layout,pass:failures.length===0,failures,publicSettlement:result.publicSettlement,observation:clean,reasonFields:result.hasPrimary?{name:result.primary?.name,limit:result.primary?.limit}:undefined})+'\n');
+27: }
+28: 
+{"requests":15,"totalRead":452007,"admitted":13}
+1: import {createHash} from 'node:crypto';
+2: import {posix} from 'node:path';
+3: export const limits=Object.freeze({maxOutputBytes:131072,maxCommands:512,maxLoopIterations:4096,maxSubstitutionDepth:32,maxSourceBytes:65536,maxExpansionFields:16384,maxExpansionBytes:1048576,pipeHighWaterMark:65536});
+4: function capture() {
+5:  const chunks=[];let size=0;
+6:  return {sink:{async write(chunk){if(!(chunk instanceof Uint8Array)||size+chunk.byteLength>65536)throw Error('ADAPTER_CAPTURE_LIMIT');const owned=Buffer.from(chunk);size+=owned.length;chunks.push(owned);}},result(){const bytes=Buffer.concat(chunks,size);return {bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),base64:bytes.toString('base64')};}};
+7: }
+8: async function snapshot(fs,root) {
+9:  const rows=[];let total=0;
+10:  async function visit(path,relative,depth) {
+11:   if(depth>16||rows.length>=128)throw Error('SNAPSHOT_LIMIT');
+12:   const stat=await fs.lstat(path);const row={path:relative,type:stat.type,mode:stat.mode&4095};rows.push(row);
+13:   if(stat.type==='file') {if(stat.size>65536||total+stat.size>262144)throw Error('SNAPSHOT_BYTES');const bytes=await fs.readFile(path);if(bytes.length!==stat.size)throw Error('SNAPSHOT_CHANGED');total+=bytes.length;row.base64=Buffer.from(bytes).toString('base64');}
+14:   else if(stat.type==='directory') {const entries=await fs.readdir(path);if(entries.length+rows.length>128)throw Error('SNAPSHOT_ENTRIES');entries.sort((left,right)=>Buffer.compare(Buffer.from(left.name),Buffer.from(right.name)));for(const entry of entries){if(!entry.name||entry.name==='.'||entry.name==='..'||entry.name.includes('/'))throw Error('SNAPSHOT_NAME');await visit(path+'/'+entry.name,relative+'/'+entry.name,depth+1);}}
+15:   else if(stat.type==='symlink')row.target=await fs.readlink(path);
+16:  }
+17:  const entries=await fs.readdir(root);if(entries.length>128)throw Error('SNAPSHOT_ENTRIES');for(const entry of entries)await visit(root+'/'+entry.name,entry.name,0);
+18:  return rows.sort((left,right)=>Buffer.compare(Buffer.from(left.path),Buffer.from(right.path)));
+19: }
+20: export async function runCase(api,row,fixtures,signal) {
+21:  const fs=new api.MemoryFileSystem();const cwd=row.virtualInvocation.cwd,caseRoot=posix.dirname(cwd);
+22:  await fs.mkdir(caseRoot,{recursive:true,mode:448});
+23:  for(const name of ['work','home','tmp','empty-path'])await fs.mkdir(caseRoot+'/'+name,{mode:448});
+24:  for(const fixture of fixtures)await fs.writeFile(cwd+'/'+fixture.path,new Uint8Array(Buffer.from(fixture.base64,'base64')),{mode:fixture.mode,flag:'wx'});
+25:  const filesBefore=await snapshot(fs,caseRoot),stdout=capture(),stderr=capture();
+26:  const shell=new api.Shell({fs,cwd,env:row.virtualInvocation.environment,limits:{...limits,...row.limits}}).use(api.agentCommands());
+27:  const publicEvents=[]; let settlement,primary,hasPrimary=false,cleanupError,hasCleanupError=false;
+28:  try {publicEvents.push("exec-started");const result=await shell.exec(row.program,{stdin:new Uint8Array(Buffer.from(row.stdinBase64,'base64')),signal,stdout:stdout.sink,stderr:stderr.sink});publicEvents.push('exec-resolved');settlement={kind:'resolved',status:result.exitCode};const out=stdout.result(),err=stderr.result();if(!Buffer.from(result.stdoutBytes).equals(Buffer.from(out.base64,'base64'))||!Buffer.from(result.stderrBytes).equals(Buffer.from(err.base64,'base64')))throw Error('CAPTURE_RESULT_DISAGREEMENT');}
+29:  catch(reason){publicEvents.push("exec-rejected");hasPrimary=true;primary=reason;settlement={kind:'rejected',reasonKind:reason===null?'null':typeof reason,reasonName:reason instanceof Error?reason.name:undefined,reasonMessage:reason instanceof Error?reason.message:typeof reason==='string'?reason:undefined};}
+30:  finally{publicEvents.push("dispose-started");try{await shell.dispose();publicEvents.push("dispose-resolved");}catch(reason){publicEvents.push("dispose-rejected");hasCleanupError=true;cleanupError=reason;}}
+31:  const filesAfter=await snapshot(fs,caseRoot);
+32:  return {...settlement,stdout:stdout.result(),stderr:stderr.result(),filesBefore,filesAfter,cleanup:{attempted:true,settled:true,rejected:hasCleanupError},publicSettlement:{execObserved:true,disposeSettled:true,disposeRejected:hasCleanupError,events:publicEvents,registeredCleanupQualification:'accepted public exec/dispose contract; no private job census or additional middleware',privateOutstandingJobs:'NOT_OBSERVED'},hasPrimary,primary,hasCleanupError,cleanupError,filesystemScope:'caseRoot descendants only; not host containment or complete VFS mutation census'};
+33: }
+34: 
+{"requests":16,"totalRead":456481,"admitted":14}
+1: {
+2:   "schema": "k08-targeted-proof-matrix-v1",
+3:   "disposition": "FROZEN_AUTHOR_INPUTS_UNRUN_NOT_NATIVE_GOLDENS",
+4:   "layouts": [
+5:     "source-built",
+6:     "installed",
+7:     "physically-moved"
+8:   ],
+9:   "defaultExpected": {
+10:     "status": 0,
+11:     "stderr": "",
+12:     "noExtraFiles": true
+13:   },
+14:   "rows": [
+15:     {
+16:       "id": "P01-keyword",
+17:       "family": "P01",
+18:       "program": "function f { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+19:       "stdout": "done",
+20:       "basis": "unchanged K08 expectation; historical failure retained"
+21:     },
+22:     {
+23:       "id": "P01-legacy",
+24:       "family": "P01",
+25:       "program": "f() { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+26:       "stdout": "done",
+27:       "basis": "unchanged K08 legacy counterpart"
+28:     },
+29:     {
+30:       "id": "P02-top",
+31:       "family": "P02",
+32:       "program": "set -- 3; printf \"%s\" \"$(($1 - 1))\"",
+33:       "stdout": "2",
+34:       "basis": "direct decimal text expansion and subtraction"
+35:     },
+36:     {
+37:       "id": "P03-frames",
+38:       "family": "P03",
+39:       "program": "set -- 9; function inner { printf \"%s:\" \"$(($1 - 1))\"; }; function outer { inner 3; printf \"%s:\" \"$1\"; }; outer 8; printf \"%s\" \"$1\"",
+40:       "stdout": "2:8:9",
+41:       "basis": "frame-local read and existing positional restoration"
+42:     },
+43:     {
+44:       "id": "P04-decimals",
+45:       "family": "P04",
+46:       "program": "set -- 2 0 0 0 0 0 0 0 4 7; printf \"%s:%s:%s\" \"$(($10 + 1))\" \"$((${10} + 1))\" \"$(($9 + 1))\"",
+47:       "stdout": "21:8:5",
+48:       "basis": "unbraced one digit vs braced decimal lookup"
+49:     },
+50:     {
+51:       "id": "P05-precedence",
+52:       "family": "P05",
+53:       "program": "set -- \"1+2\"; printf \"%s:%s\" \"$(($1 * 3))\" \"$((${1} * 3))\"",
+54:       "stdout": "7:7",
+55:       "basis": "text must not be grouped into an arithmetic atom"
+56:     },
+57:     {
+58:       "id": "P05-signed",
+59:       "family": "P05",
+60:       "program": "set -- \" -2 \"; printf \"%s\" \"$(($1 * 3))\"",
+61:       "stdout": "-6",
+62:       "basis": "parameter text whitespace and sign are arithmetic input"
+63:     },
+64:     {
+65:       "id": "P06-repeated",
+66:       "family": "P06",
+67:       "program": "set -- 3; printf \"%s:%s\" \"$(($1+$1))\" \"$(($1+1))\"",
+68:       "stdout": "6:4",
+69:       "basis": "repeat spans, independent active expansions"
+70:     },
+71:     {
+72:       "id": "P07-quote",
+73:       "family": "P07",
+74:       "program": "set -- 3; printf \"%s:%s\" \"$1\" '$(($1 - 1))'",
+75:       "stdout": "3:$(($1 - 1))",
+76:       "basis": "outer single quotes remain literal; no helper activation"
+77:     },
+78:     {
+79:       "id": "P08-skipped",
+80:       "family": "P08",
+81:       "program": "set -u; false && printf \"%s\" \"$(($1+1))\"; printf ok",
+82:       "stdout": "ok",
+83:       "basis": "inactive shell branch does not prepare arithmetic parameters"
+84:     },
+85:     {
+86:       "id": "P08-active",
+87:       "family": "P08",
+88:       "program": "set -u; printf \"%s\" \"$((0 && $1))\"; printf BAD",
+89:       "status": 1,
+90:       "stdout": "",
+91:       "stderr": "shell: line 1: 1: unbound variable\n",
+92:       "basis": "active parameter expansion precedes arithmetic short circuit; source-derived expected diagnostic"
+93:     },
+94:     {
+95:       "id": "P09-missing",
+96:       "family": "P09",
+97:       "program": "set --; printf \"%s\" \"$(($1 - 1))\"",
+98:       "stdout": "-1",
+99:       "basis": "missing without nounset expands to empty text before arithmetic"
+100:     },
+101:     {
+102:       "id": "P09-empty",
+103:       "family": "P09",
+104:       "program": "set -u; set -- \"\"; printf \"%s\" \"$(($1 - 1))\"",
+105:       "stdout": "-1",
+106:       "basis": "present empty parameter is not nounset"
+107:     },
+108:     {
+109:       "id": "P10-injection",
+110:       "family": "P10",
+111:       "program": "set -- '$(printf BAD)'; printf \"%s\" \"$(($1))\"",
+112:       "status": 1,
+113:       "stdout": "",
+114:       "stderr": "shell: line 1: $(printf BAD): arithmetic syntax error in expression (error token is \"$(printf BAD)\")\n",
+115:       "basis": "expanded text is parsed as arithmetic, never shell-evaluated"
+116:     },
+117:     {
+118:       "id": "P11-write",
+119:       "family": "P11",
+120:       "program": "COUNT=1; set -- COUNT; printf \"%s:%s:%s\" \"$(($1 = 4))\" \"$COUNT\" \"$1\"",
+121:       "stdout": "4:4:COUNT",
+122:       "basis": "textual named lvalue goes through existing checked-write proxy, positional unchanged"
+123:     },
+124:     {
+125:       "id": "P11-readonly",
+126:       "family": "P11",
+127:       "program": "readonly COUNT=1; set -- COUNT; printf \"%s\" \"$(($1 = 4))\"; printf BAD",
+128:       "status": 1,
+129:       "stdout": "",
+130:       "stderrContains": "COUNT: readonly variable",
+131:       "basis": "existing readonly diagnostic identity retained; full raw stderr retained, no normalization"
+132:     },
+133:     {
+134:       "id": "P12-below",
+135:       "family": "P12",
+136:       "program": "set -- 1234567; printf \"%s\" \"$(($1$1))\"",
+137:       "stdout": "12345671234567",
+138:       "limits": {
+139:         "maxExpansionBytes": 16
+140:       },
+{"requests":17,"totalRead":467376,"admitted":14}
+140:       },
+141:       "basis": "14 generated arithmetic bytes, individually admitted earlier operands"
+142:     },
+143:     {
+144:       "id": "P12-at",
+145:       "family": "P12",
+146:       "program": "set -- 12345678; printf \"%s\" \"$(($1$1))\"",
+147:       "stdout": "1234567812345678",
+148:       "limits": {
+149:         "maxExpansionBytes": 16
+150:       },
+151:       "basis": "16 generated bytes, not normal-field source17 workaround"
+152:     },
+153:     {
+154:       "id": "P12-above",
+155:       "family": "P12",
+156:       "program": "set -- 123456789; printf \"%s\" \"$(($1$1))\"",
+157:       "expectedRejection": {
+158:         "name": "ShellLimitError",
+159:         "limit": "maxExpansionBytes"
+160:       },
+161:       "limits": {
+162:         "maxExpansionBytes": 16
+163:       },
+164:       "stdout": "",
+165:       "basis": "18 generated bytes with all individual lexical operands<=16; mutant must demonstrate target admission, not assume reachability"
+166:     },
+167:     {
+168:       "id": "P14-command",
+169:       "family": "P14",
+170:       "program": "set -- 3; (( $1 - 3 )); printf \"%s\" \"$?\"",
+171:       "stdout": "1",
+172:       "basis": "arithmetic command zero status mapping unchanged"
+173:     },
+174:     {
+175:       "id": "P14-division",
+176:       "family": "P14",
+177:       "program": "set -- 0; printf \"%s\" \"$((1 / $1))\"; printf BAD",
+178:       "status": 1,
+179:       "stdout": "",
+180:       "stderr": "shell: line 1: 1 / 0: division by 0 (error token is \"0\")\n",
+181:       "basis": "same evaluator diagnostic rendered against expanded text"
+182:     },
+183:     {
+184:       "id": "P14-let",
+185:       "family": "P14",
+186:       "program": "set -- 3; let \"$1 - 1\"; printf \"%s\" \"$?\"",
+187:       "stdout": "0",
+188:       "basis": "LET receives an already-expanded ordinary word; no LET code change"
+189:     },
+190:     {
+191:       "id": "P15-static",
+192:       "family": "P15",
+193:       "program": "COUNT=0; printf \"%s:%s:%s\" \"$((0 && (COUNT=7)))\" \"$((9223372036854775807 + 1))\" \"$COUNT\"",
+194:       "stdout": "0:-9223372036854775808:0",
+195:       "basis": "unchanged static arithmetic, int64 and lazy writes"
+196:     }
+197:   ],
+198:   "helperControls": [
+199:     {
+200:       "id": "H01",
+201:       "family": "P04",
+202:       "source": "$0+${000}+${10}+$10",
+203:       "positional": [
+204:         "2",
+205:         "0",
+206:         "0",
+207:         "0",
+208:         "0",
+209:         "0",
+210:         "0",
+211:         "0",
+212:         "4",
+213:         "7"
+214:       ],
+215:       "arg0": "5",
+216:       "expectedPrepared": "5+5+7+20",
+217:       "basis": "explicit private read context, not invented Shell argv0"
+218:     },
+219:     {
+220:       "id": "H02",
+221:       "family": "P06",
+222:       "source": "$1+$1",
+223:       "positional": [
+224:         "3"
+225:       ],
+226:       "expectedPrepared": "3+3",
+227:       "parameterReadNames": [
+228:         "1",
+229:         "1"
+230:       ]
+231:     },
+232:     {
+233:       "id": "H03",
+234:       "family": "P12",
+235:       "source": "$1$1",
+236:       "positional": [
+237:         "é"
+238:       ],
+239:       "maximumBytes": 4,
+240:       "expectedPrepared": "éé",
+241:       "basis": "byte accounting, preparation only; arithmetic parser correctly rejects unicode identifier"
+242:     },
+243:     {
+244:       "id": "H04",
+245:       "family": "P12",
+246:       "source": "$1$1",
+247:       "positional": [
+248:         "é"
+249:       ],
+250:       "maximumBytes": 3,
+251:       "expectedLimit": true
+252:     },
+253:     {
+254:       "id": "H05",
+255:       "family": "P13",
+256:       "source": "$1+1",
+257:       "injectedCheckpointReasons": [
+258:         "undefined",
+259:         "null",
+260:         "false",
+261:         0,
+262:         "Error"
+263:       ],
+264:       "expected": "identical thrown reason and no evaluator call"
+265:     },
+266:     {
+267:       "id": "H06",
+268:       "family": "P13",
+269:       "source": "$1+1",
+270:       "injectedReadReasons": [
+271:         "undefined",
+272:         "null",
+273:         "false",
+274:         0,
+275:         "Error"
+276:       ],
+277:       "expected": "identical thrown reason, no evaluate, temporary accounting released"
+278:     },
+279:     {
+280:       "id": "H07",
+281:       "family": "P15",
+282:       "source": "$NAME+1",
+283:       "expected": "original ArithmeticProgram identity; no positional read/no new expansion support"
+284:     },
+285:     {
+286:       "id": "H08",
+287:       "family": "P15",
+288:       "source": "\\$1+1",
+289:       "expected": "original ArithmeticProgram identity; unsupported escaping not rewritten"
+290:     },
+291:     {
+292:       "id": "H09",
+293:       "family": "P16",
+294:       "mutations": [
+295:         "bypass preparer",
+296:         "replace substituted text with grouped numeric atom",
+297:         "omit expanded-byte admission"
+298:       ],
+299:       "expected": "frozen targeted controls must fail; unrun"
+300:     }
+{"requests":18,"totalRead":478271,"admitted":14}
+1: import {pathToFileURL} from 'node:url';
+2: export async function runHelperControls(role,data){
+3:  const {prepareArithmetic}=await import(pathToFileURL(role.arithmeticEntry));
+4:  const {evaluatePositionalArithmetic}=await import(pathToFileURL(role.helperEntry));
+5:  const {ArrayLedger,ArrayOwner}=await import(pathToFileURL(role.ledgerEntry));
+6:  const results=[];let ownedClosed=true;
+7:  for(const row of data.helperControls.filter(item=>item.id!=='H09')){
+8:   const variants=row.injectedCheckpointReasons??row.injectedReadReasons??[null];
+9:   for(const variant of variants){
+10:    const supplied=variant==='undefined'?undefined:variant==='null'?null:variant==='false'?false:variant==='Error'?Error('literal-helper-reason'):variant;
+11:    const injecting=row.injectedCheckpointReasons!==undefined||row.injectedReadReasons!==undefined;
+12:    const ledger=row.injectedReadReasons?new ArrayLedger(1048576,16384):undefined;
+13:    const owner=ledger?ArrayOwner.create(ledger):undefined;const baseline=ledger?.snapshot();
+14:    const reads=[];let prepared,bodyCalls=0,hasPrimary=false,primary,closed=false;
+15:    const limitReason=Error('literal-maxExpansionBytes');
+16:    const program=prepareArithmetic(row.source);
+17:    try{
+18:     evaluatePositionalArithmetic(program,{positional:row.positional??['3'],arg0:row.arg0??'0',maximumBytes:row.maximumBytes??1048576,owner,
+19:      checkpoint(){if(row.injectedCheckpointReasons)throw supplied;},
+20:      requireParameter(name){reads.push(name);if(row.injectedReadReasons)throw supplied;},limit(){throw limitReason;}
+21:     },value=>{prepared=value;bodyCalls++;return 0n;});
+22:    }catch(reason){hasPrimary=true;primary=reason;}
+23:    const snapshot=ledger?.snapshot();
+24:    const liveReleased=!baseline||baseline.used.slice(0,4).every((value,index)=>snapshot.used[index]===value);
+25:    try{await owner?.close();closed=true;}catch{ownedClosed=false;}
+26:    const failures=[];
+27:    if(injecting){if(!hasPrimary||primary!==supplied||bodyCalls!==0)failures.push('raw-reason-or-body');}
+28:    else if(row.expectedLimit){if(!hasPrimary||primary!==limitReason||bodyCalls!==0)failures.push('limit');}
+29:    else if(row.expectedPrepared!==undefined){if(hasPrimary||prepared?.source!==row.expectedPrepared||bodyCalls!==1)failures.push('prepared-text');}
+30:    else if(hasPrimary||prepared!==program||reads.length!==0||bodyCalls!==1)failures.push('unchanged-program');
+31:    if(row.parameterReadNames&&JSON.stringify(reads)!==JSON.stringify(row.parameterReadNames))failures.push('read-count');
+32:    if(!liveReleased||!closed)failures.push('owned-cleanup');
+33:    results.push({id:row.id,variant,pass:failures.length===0,failures,hasPrimary,primaryKind:primary===null?'null':typeof primary,reasonIdentity:injecting?hasPrimary&&primary===supplied:undefined,bodyCalls,reads,preparedSource:prepared?.source,originalProgram:prepared===program,liveReleased,closed});
+34:   }
+35:  }
+36:  return {pass:results.every(row=>row.pass),results,helperSettlement:{completed:true,ownedClosed,qualification:'private helper/data controls; not a public Shell invocation or private-job census'}};
+37: }
+38: 
+{"requests":19,"totalRead":481284,"admitted":15}
+{"error":"Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/AGENTS.md'","requests":20,"totalRead":481284}
+1: import fs from 'node:fs/promises';
+2: import { constants } from 'node:fs';
+3: import { createHash } from 'node:crypto';
+4: 
+5: export const COMPRESSED_MAX = 2097152;
+6: export const DECODED_MAX = 64 * 1024 * 1024;
+7: 
+8: function refuse(code) {
+9:   throw Object.assign(new Error(code), { code });
+10: }
+11: 
+12: function sameFile(first, second) {
+13:   return first.dev === second.dev && first.ino === second.ino &&
+14:     first.size === second.size && first.mtimeMs === second.mtimeMs &&
+15:     first.ctimeMs === second.ctimeMs && second.isFile();
+16: }
+17: 
+18: export async function admitPackage(filename, authority, ledger, operations) {
+19:   if (!Number.isSafeInteger(authority.bytes) || authority.bytes < 1 ||
+20:       authority.bytes > COMPRESSED_MAX || !/^[a-f0-9]{64}$/.test(authority.sha256)) refuse('AUTHORITY');
+21:   const decodedLimit = authority.decodedLimit ?? DECODED_MAX;
+22:   if (!Number.isSafeInteger(decodedLimit) || decodedLimit < 1 || decodedLimit > DECODED_MAX) refuse('AUTHORITY');
+23:   const reserve = bytes => {
+24:     if (ledger.current + bytes > ledger.maximum) refuse('AGGREGATE');
+25:     ledger.current += bytes;
+26:     ledger.peak = Math.max(ledger.peak, ledger.current);
+27:   };
+28:   const before = await fs.lstat(filename);
+29:   if (!before.isFile()) refuse('TYPE');
+30:   if (before.size !== authority.bytes) refuse('SIZE');
+31:   operations.events.push('lstat-type-size');
+32:   let descriptor;
+33:   let compressed;
+34:   let reserved = 0;
+35:   let primaryPresent = false;
+36:   let primary;
+37:   let closePresent = false;
+38:   let closeReason;
+39:   try {
+40:     descriptor = await fs.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW);
+41:     const opened = await descriptor.stat();
+42:     if (!sameFile(before, opened)) refuse('IDENTITY');
+43:     reserve(authority.bytes + 1);
+44:     reserved += authority.bytes + 1;
+45:     compressed = Buffer.alloc(authority.bytes);
+46:     const probe = Buffer.alloc(1);
+47:     await operations.afterOpen?.();
+48:     let offset = 0;
+49:     while (offset < compressed.length) {
+50:       const result = await descriptor.read(compressed, offset, Math.min(65536, compressed.length - offset), offset);
+51:       if (result.bytesRead === 0) refuse('SHORT_READ');
+52:       offset += result.bytesRead;
+53:     }
+54:     if ((await descriptor.read(probe, 0, 1, offset)).bytesRead !== 0) refuse('LONG_READ');
+55:     operations.events.push('bounded-read');
+56:     await operations.afterRead?.();
+57:     if (!sameFile(opened, await descriptor.stat()) || !sameFile(opened, await fs.lstat(filename))) refuse('MUTATION');
+58:     operations.events.push('postread-identity');
+59:     const digest = createHash('sha256').update(compressed).digest('hex');
+60:     if (digest !== authority.sha256) refuse('HASH');
+61:     operations.events.push('exact-hash');
+62:   } catch (reason) {
+63:     primaryPresent = true;
+64:     primary = reason;
+65:   } finally {
+66:     if (descriptor) {
+67:       try { await descriptor.close(); operations.events.push('descriptor-closed'); }
+68:       catch (reason) { closePresent = true; closeReason = reason; }
+69:     }
+70:   }
+71:   try {
+72:     if (primaryPresent && closePresent) throw new AggregateError([primary, closeReason], 'admission and close failed');
+73:     if (primaryPresent) throw primary;
+74:     if (closePresent) throw closeReason;
+75:     const parseReserve = operations.parseReserve ?? 2 * 1024 * 1024;
+76:     if (!Number.isSafeInteger(parseReserve) || parseReserve < 0) refuse('AUTHORITY');
+77:     reserve(decodedLimit + parseReserve);
+78:     reserved += decodedLimit + parseReserve;
+79:     operations.events.push('concurrent-buffers-reserved');
+80:     const decoded = operations.decode(compressed, { maxOutputLength: decodedLimit });
+81:     if (!Buffer.isBuffer(decoded) || decoded.length > decodedLimit) refuse('DECODED_SIZE');
+82:     operations.events.push('decoded');
+83:     const result = operations.parse(decoded);
+84:     operations.events.push('parsed');
+85:     return { result, compressedBytes: compressed.length, decodedBytes: decoded.length, sha256: authority.sha256 };
+86:   } finally {
+87:     compressed = undefined;
+88:     ledger.current -= reserved;
+89:   }
+90: }
+91: 
+{"requests":21,"totalRead":485180,"admitted":16}
+1: export function finalize({primaryPresent, primary, census, publish}) {
+2:   const state = {primaryPresent, primary, secondaryPresent: false, secondary: [], sampledWorkPresent: false, sampledWork: undefined, publicationAttempted: false, publicationSucceeded: false};
+3:   const retain = (phase, reason) => {
+4:     if (state.primaryPresent) {
+5:       state.secondaryPresent = true;
+6:       state.secondary.push({phase, present: true, reason});
+7:     } else {
+8:       state.primaryPresent = true;
+9:       state.primary = reason;
+10:     }
+11:   };
+12:   try {
+13:     state.sampledWork = census();
+14:     state.sampledWorkPresent = true;
+15:   } catch (reason) {
+16:     retain('final-census', reason);
+17:   }
+18:   state.publicationAttempted = true;
+19:   try {
+20:     publish(state);
+21:     state.publicationSucceeded = true;
+22:   } catch (reason) {
+23:     retain('terminal-publication', reason);
+24:   }
+25:   return state;
+26: }
+27: 
+{"requests":22,"totalRead":486030,"admitted":17}
+[
+  [
+    "archive",
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+      "bytes": 981948,
+      "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+      "decodedBytes": 5803008,
+      "shippingMembers": 1006
+    }
+  ],
+  [
+    "work",
+    "/private/tmp/safe-bash-k08-author-RAvH2m"
+  ],
+  [
+    "sourceApp",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app"
+  ],
+  [
+    "sourceBinding",
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/SOURCE-BINDING.json",
+      "bytes": 47625,
+      "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+    }
+  ]
+]
+{"requests":23,"totalRead":682588,"admitted":17}
+1: import path from 'node:path';
+2: export const PROFILE = 'bash-surface-direct-owned-child-functional-v1';
+3: export function validateRole(role) {
+4:   if (role.profile !== PROFILE || role.childProcessPermission !== 0 || role.workerPermission !== 0 || role.loaderThreads !== 0 || role.loaderMode !== 'synchronous-registerHooks') throw Error('ROLE_AUTHORITY');
+5:   if (!['harmless-control','product-case'].includes(role.kind)) throw Error('ROLE_KIND');
+6:   for (const key of ['app','entry','guard','trace','rolePath']) if (typeof role[key] !== 'string' || !path.isAbsolute(role[key]) || role[key].includes('*')) throw Error('ROLE_PATH');
+7:   for (const key of ['entry','guard']) if (!role[key].startsWith(role.app + path.sep)) throw Error('ROLE_APP');
+8:   if (!Array.isArray(role.readFiles) || !role.readFiles.includes(role.rolePath) || !role.readFiles.includes(role.trace)) throw Error('ROLE_READS');
+9:   for (const filename of role.readFiles) if (!path.isAbsolute(filename) || filename.includes('*')) throw Error('ROLE_READ_PATH');
+10:   if (!role.files || !role.files[role.entry] || !role.edges || !Array.isArray(role.builtins)) throw Error('ROLE_BINDINGS');
+11:   return role;
+12: }
+13: export function caseArguments(role) {
+14:   validateRole(role);
+15:   return ['--permission','--allow-fs-read=' + role.app,...role.readFiles.map(filename => '--allow-fs-read=' + filename),'--allow-fs-write=' + role.trace,'--import',role.guard,role.entry];
+16: }
+17: export function validateArguments(role, args, env) {
+18:   if (JSON.stringify(args) !== JSON.stringify(caseArguments(role)) || Object.hasOwn(env,'NODE_OPTIONS') || Object.hasOwn(env,'NODE_PATH')) throw Error('CHILD_ARGUMENT_AUTHORITY');
+19: }
+20: export function completion(receipt, lifecycle) {
+21:   return receipt?.profile === PROFILE && receipt.publicSettlement?.execObserved === true && receipt.publicSettlement?.disposeSettled === true && receipt.publicSettlement?.disposeRejected === false && lifecycle.exit === true && lifecycle.close === true && lifecycle.stdoutEOF === true && lifecycle.stderrEOF === true && lifecycle.capturesQualified === true && lifecycle.forced === false && lifecycle.primaryPresent === false;
+22: }
+23: 
+{"requests":24,"totalRead":684702,"admitted":18}
+1: import fs from 'node:fs';
+2: import {registerHooks} from 'node:module';
+3: import {fileURLToPath} from 'node:url';
+4: import {hash,readPinned} from './auth.mjs';
+5: import {PROFILE,validateRole,validateArguments} from './profile.mjs';
+6: const roleName = process.env.SURFACE_ROLE;
+7: const roleSize = Number(process.env.SURFACE_ROLE_BYTES);
+8: const raw = readPinned(roleName,{bytes:roleSize,sha256:process.env.SURFACE_ROLE_SHA256},2097152);
+9: const role = validateRole(JSON.parse(raw));
+10: if (roleName !== role.rolePath || process.execPath !== role.nodePath) throw Error('CHILD_IDENTITY');
+11: validateArguments(role,[...process.execArgv,process.argv[1]],process.env);
+12: if (!process.permission || ['child','worker','addon','wasi','inspector'].some(scope => process.permission.has(scope))) throw Error('PERMISSION_NOT_DENIED');
+13: let traceBytes = 0;
+14: function trace(event) {
+15:   const bytes = Buffer.from(JSON.stringify({...event,profile:PROFILE,role:role.id}) + '\n');
+16:   traceBytes += bytes.length;
+17:   if (traceBytes > 524288) throw Error('TRACE_LIMIT');
+18:   fs.appendFileSync(role.trace,bytes);
+19: }
+20: trace({event:'permission-admitted',child:false,worker:false,loaderThreads:0});
+21: registerHooks({
+22:   resolve(specifier,context,nextResolve) {
+23:     if (context.parentURL?.startsWith('file:')) {
+24:       const parent = fileURLToPath(context.parentURL);
+25:       if (!role.edges[parent]?.includes(specifier)) throw Error('EDGE_REFUSED');
+26:     }
+27:     if (specifier.startsWith('node:')) {
+28:       if (!role.builtins.includes(specifier)) throw Error('BUILTIN_REFUSED');
+29:       return nextResolve(specifier,context);
+30:     }
+31:     const resolved = nextResolve(specifier,context);
+32:     if (!resolved.url.startsWith('file:') || !Object.hasOwn(role.files,fileURLToPath(resolved.url))) throw Error('LOAD_BINDING_REFUSED');
+33:     return resolved;
+34:   },
+35:   load(url,context,nextLoad) {
+36:     if (url.startsWith('node:')) return nextLoad(url,context);
+37:     const filename = fileURLToPath(url), pin = role.files[filename];
+38:     if (!pin) throw Error('LOAD_BINDING_REFUSED');
+39:     const bytes = readPinned(filename,pin);
+40:     trace({event:'module-loaded',url,bytes:bytes.length,sha256:hash(bytes)});
+41:     return {format:'module',source:bytes,shortCircuit:true};
+42:   }
+43: });
+44: trace({event:'synchronous-hooks-installed',loaderThreads:0});
+45: 
+{"requests":25,"totalRead":686947,"admitted":19}
+1: {
+2:   "schema": "k08-source-disjointness-check-v1",
+3:   "at": "2026-08-29T14:47:34.247Z",
+4:   "liveRuntimeSha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6",
+5:   "originalSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+6:   "firstPredicate": {
+7:     "result": false,
+8:     "reason": "Source-only review helper removed the pre-existing arithmetic import instead of the new helper import. No source bytes changed.",
+9:     "removedLine": "import { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";",
+10:     "outputHash": "ff88c34b6dc4329b871defbeb5b75104db831eec9de0488a64272ed787eac0ad"
+11:   },
+12:   "correctedPredicate": {
+13:     "removedLine": "import { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";",
+14:     "result": true,
+15:     "reversedSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+16:     "callsiteBlocks": 2
+17:   }
+18: }
+19: 
+{"requests":26,"totalRead":687852,"admitted":20}
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: export function canonicalRoot(root){if(!path.isAbsolute(root)||!root.startsWith('/private/tmp/')||fs.realpathSync(root)!==root)throw Error('CANONICAL_ROOT');return root;}
+4: export function assertOwned(root,filename){if(filename!==root&&!filename.startsWith(root+'/'))throw Error('OWNED_PATH');if(filename.split('/').some(part=>part==='.'||part==='..'))throw Error('PATH_COMPONENT');return filename;}
+5: export function validateCanonicalRole(root,role,env){canonicalRoot(root);for(const name of ['app','entry','guard','trace','rolePath'])assertOwned(root,role[name]);for(const filename of [...role.readFiles,...Object.keys(role.files)])assertOwned(root,filename);for(const name of ['HOME','TMPDIR','PATH'])assertOwned(root,env[name]);if(fs.realpathSync(role.app)!==role.app)throw Error('APP_CANONICAL');return role;}
+6: 
+{"requests":27,"totalRead":688719,"admitted":21}
+55:   const child=await runDirect({id,node:seal.node,args:caseArguments(role),cwd:app,env:{...env,SURFACE_ROLE:rolePath,SURFACE_ROLE_BYTES:String(roleBytes.length),SURFACE_ROLE_SHA256:hash(roleBytes)},capture:path.join(capture,id),timeoutMs:30000,bodyDeadline,finalDeadline},ledger);record(id+'-lifecycle',child.row);if(!child.row.qualified)throw Error('TARGET_LIFECYCLE');
+56:   const stat=fs.lstatSync(trace);if(!stat.isFile()||stat.size>524288)throw Error('TRACE_CAP');const traceBytes=fs.readFileSync(trace);ledger.captureBytes+=traceBytes.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('TARGET_CAPTURE_CAP');const traceRows=traceBytes.toString().trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));if(traceRows.filter(row=>row.event==='permission-admitted').length!==1||traceRows.filter(row=>row.event==='synchronous-hooks-installed').length!==1)throw Error('DENIAL_WITNESS');
+57:   const stdout=child.row.captures.find(row=>row.kind==='stdout'),stderr=child.row.captures.find(row=>row.kind==='stderr');
+58:   if(refusal){const receipt={id,refusal,observed:child.row.status!==0&&stdout.bytes===0&&Buffer.from(stderr.base64,'base64').toString().includes(refusal)};record(id,receipt);return receipt;}
+59:   if(child.row.status!==0)throw Error('TARGET_DRIVER_FAILURE');const receipt=JSON.parse(Buffer.from(stdout.base64,'base64'));
+60:   if(receipt.caseId!==caseId||receipt.layout!==layout)throw Error('TARGET_MEMBERSHIP');
+61:   if(caseId==='HELPERS'){if(!receipt.helperSettlement?.completed||!receipt.helperSettlement.ownedClosed)throw Error('HELPER_SETTLEMENT');}else if(!completion(receipt,child.row))throw Error('PUBLIC_SETTLEMENT');
+62:   const observed={id,rolePin:{bytes:roleBytes.length,sha256:hash(roleBytes)},trace:{bytes:traceBytes.length,sha256:hash(traceBytes)},receipt};record(id,observed);return observed;
+{"requests":28,"totalRead":701429,"admitted":21}
+[
+  [
+    "*",
+    [
+      "schema",
+      "sourceCommit",
+      "root",
+      "app",
+      "deadline",
+      "node",
+      "helpersRoot",
+      "helpers",
+      "inputs",
+      "tools",
+      "compilerArgs",
+      "env",
+      "owner",
+      "roleGraph",
+      "oneCompilerOnly",
+      "productCalls",
+      "oldArchiveDecode",
+      "sourceCapsuleDecode",
+      "actualNativeOrWorker"
+    ]
+  ]
+]
+{"requests":29,"totalRead":786858,"admitted":22}
+{"error":"Error: output request too large; choose a smaller range","requests":30,"totalRead":1037556}
+1: import fs from 'node:fs';
+2: import {createHash} from 'node:crypto';
+3: export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+4: export function readPinned(filename, pin, maximum = 16777216) {
+5:   const before = fs.lstatSync(filename);
+6:   if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || before.size > maximum) throw Error('AUTH_TYPE_SIZE');
+7:   const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+8:   try {
+9:     const opened = fs.fstatSync(descriptor);
+10:     if (opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw Error('AUTH_CHANGED');
+11:     const bytes = Buffer.alloc(pin.bytes);
+12:     let offset = 0;
+13:     while (offset < bytes.length) {
+14:       const count = fs.readSync(descriptor, bytes, offset, Math.min(65536, bytes.length - offset), offset);
+15:       if (!count) throw Error('AUTH_SHORT');
+16:       offset += count;
+17:     }
+18:     if (fs.readSync(descriptor, Buffer.alloc(1), 0, 1, offset) || hash(bytes) !== pin.sha256) throw Error('AUTH_HASH');
+19:     return bytes;
+20:   } finally { fs.closeSync(descriptor); }
+21: }
+22: export function pinExecutable(pin) {
+23:   const before = fs.lstatSync(pin.path);
+24:   if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || (before.mode & 4095) !== pin.mode) throw Error('TOOL_TYPE_SIZE_MODE');
+25:   const descriptor = fs.openSync(pin.path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+26:   const digest = createHash('sha256'), buffer = Buffer.alloc(65536);
+27:   let size = 0;
+28:   try {
+29:     const opened = fs.fstatSync(descriptor);
+30:     if (opened.dev !== before.dev || opened.ino !== before.ino) throw Error('TOOL_CHANGED');
+31:     for (;;) {
+32:       const count = fs.readSync(descriptor, buffer, 0, buffer.length, null);
+33:       if (!count) break;
+34:       size += count;
+35:       if (size > pin.bytes) throw Error('TOOL_LONG');
+36:       digest.update(buffer.subarray(0, count));
+37:     }
+38:   } finally { fs.closeSync(descriptor); }
+39:   if (size !== pin.bytes || digest.digest('hex') !== pin.sha256) throw Error('TOOL_HASH');
+40: }
+41: export function errorRecord(reason) {
+42:   if (reason === undefined) return {kind:'undefined'};
+43:   if (reason === null) return {kind:'null'};
+44:   if (typeof reason !== 'object') return {kind:typeof reason, value:reason};
+45:   const row = {kind:'object'};
+46:   for (const key of ['name','message','code','errno','syscall','permission']) if (typeof reason[key] === 'string' || typeof reason[key] === 'number') row[key] = typeof reason[key] === 'string' ? reason[key].slice(0,1024) : reason[key];
+47:   return row;
+48: }
+49: export class Primary {
+50:   present = false;
+51:   reason;
+52:   secondary = [];
+53:   fail(reason) { if (!this.present) {this.present = true; this.reason = reason;} else this.secondary.push(errorRecord(reason)); }
+54: }
+55: export function publish(filename, bytes, finalDeadline, operations = fs) {
+56:   if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+57:   let descriptor, primary = new Primary();
+58:   try {
+59:     descriptor = operations.openSync(filename, 'wx+', 384);
+60:     if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+61:     operations.writeFileSync(descriptor, bytes);
+62:     operations.fsyncSync(descriptor);
+63:     if (operations.fstatSync(descriptor).size !== bytes.length) throw Error('PUBLICATION_SIZE');
+64:     const observed = Buffer.alloc(bytes.length);
+65:     let offset = 0;
+66:     while (offset < observed.length) { const count = operations.readSync(descriptor, observed, offset, observed.length-offset, offset); if (!count) throw Error('PUBLICATION_SHORT'); offset += count; }
+67:     if (hash(observed) !== hash(bytes)) throw Error('PUBLICATION_HASH');
+68:   } catch (reason) { primary.fail(reason); }
+69:   finally { if (descriptor !== undefined) try { operations.closeSync(descriptor); } catch(reason) { primary.fail(reason); } }
+70:   if (primary.present) throw primary.reason;
+71:   if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+72:   return {bytes:bytes.length,sha256:hash(bytes),qualified:true};
+73: }
+74: 
+{"requests":31,"totalRead":1041507,"admitted":24}
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import {gzipSync} from 'node:zlib';
+4: import {hash,readPinned} from './auth.mjs';
+5: export function write(filename,bytes,mode=0o600){fs.mkdirSync(path.dirname(filename),{recursive:true,mode:0o700});const descriptor=fs.openSync(filename,'wx',mode);try{fs.writeFileSync(descriptor,bytes);fs.fsyncSync(descriptor);}finally{fs.closeSync(descriptor);}}
+6: export function inventory(root,maximum=33554432){let total=0;const rows=[];function visit(relative){for(const name of fs.readdirSync(path.join(root,relative)).sort()){const next=relative?relative+'/'+name:name;const stat=fs.lstatSync(path.join(root,next));if(stat.isSymbolicLink())throw Error('MEMBER_SYMLINK');if(stat.isDirectory())visit(next);else if(stat.isFile()){if(rows.length>=2000||total+stat.size>maximum)throw Error('MEMBER_LIMIT');total+=stat.size;const bytes=fs.readFileSync(path.join(root,next));rows.push({path:next,bytes:bytes.length,sha256:hash(bytes),mode:stat.mode&0o777});}else throw Error('MEMBER_TYPE');}}visit('');return Object.freeze({root,bytes:total,rows});}
+7: export function sample(root,maximum){let bytes=0,entries=0;function visit(filename){if(++entries>16000)throw Error('WORK_ENTRIES');const stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('WORK_SYMLINK');if(stat.isDirectory())for(const name of fs.readdirSync(filename))visit(path.join(filename,name));else if(stat.isFile()){bytes+=stat.size;if(bytes>maximum)throw Error('WORK_BYTES');}else throw Error('WORK_TYPE');}visit(root);return Object.freeze({root,at:Date.now(),bytes,entries,qualification:'fresh sampled logical owned files, not RSS/continuous quota'});}
+8: export function pack(root,members){const chunks=[];let total=1024;for(const row of members){const filename='package/'+row.path;const header=Buffer.alloc(512);let name=filename,prefix='';if(Buffer.byteLength(name)>100){const split=filename.lastIndexOf('/');prefix=filename.slice(0,split);name=filename.slice(split+1);}if(Buffer.byteLength(name)>100||Buffer.byteLength(prefix)>155)throw Error('TAR_PATH');header.write(name,0,100);header.write(prefix,345,155);const octal=(offset,length,value)=>header.write(value.toString(8).padStart(length-1,'0')+'\0',offset,length);octal(100,8,row.mode);octal(108,8,0);octal(116,8,0);octal(124,12,row.bytes);octal(136,12,0);header.fill(32,148,156);header[156]=48;header.write('ustar\0',257,6);header.write('00',263,2);const checksum=header.reduce((sum,value)=>sum+value,0);header.write(checksum.toString(8).padStart(6,'0')+'\0 ',148,8);const data=readPinned(path.join(root,row.path),row);chunks.push(header,data,Buffer.alloc((512-row.bytes%512)%512));total+=512+Math.ceil(row.bytes/512)*512;if(total>33554432)throw Error('TAR_BYTES');}chunks.push(Buffer.alloc(1024));const decoded=Buffer.concat(chunks,total);const compressed=gzipSync(decoded,{level:9});if(compressed.length>2097152)throw Error('PACK_COMPRESSED');return {compressed,decodedBytes:decoded.length};}
+9: export function extract(buffer,destination){let offset=0;while(offset+512<=buffer.length){const header=buffer.subarray(offset,offset+512);if(header.every(value=>value===0))break;const field=(start,length)=>header.subarray(start,start+length).toString().split('\0')[0];const prefix=field(345,155),name=(prefix?prefix+'/':'')+field(0,100);const size=parseInt(field(124,12).trim(),8),mode=parseInt(field(100,8).trim(),8);write(path.join(destination,name.slice(8)),buffer.subarray(offset+512,offset+512+size),mode);offset+=512+Math.ceil(size/512)*512;}}
+10: 
+{"requests":32,"totalRead":1045016,"admitted":25}
+[
+  [
+    "*",
+    [
+      "schema",
+      "sourceCommit",
+      "started",
+      "inputs",
+      "ledger",
+      "productCalls",
+      "workerJobs",
+      "consumerChecks",
+      "inputManifestSha256",
+      "before",
+      "compiler",
+      "dist",
+      "primaryPresent",
+      "secondary",
+      "sampledWorkPresent",
+      "sampledWork",
+      "finished",
+      "status"
+    ]
+  ]
+]
+{"requests":33,"totalRead":1295714,"admitted":25}
+[
+  [
+    "*",
+    [
+      "schema",
+      "sourceCommit",
+      "capturedAt",
+      "build",
+      "sourceBinding",
+      "archive",
+      "futureSeal",
+      "authenticatedFiles",
+      "inheritedHelpers",
+      "declarationChanges",
+      "actual",
+      "snapshot",
+      "administrationSnapshot",
+      "history"
+    ]
+  ]
+]
+{"requests":34,"totalRead":1299449,"admitted":26}
+[
+  [
+    "*",
+    [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54",
+      "55",
+      "56",
+      "57",
+      "58",
+      "59",
+      "60",
+      "61",
+      "62",
+      "63",
+      "64",
+      "65",
+      "66",
+      "67",
+      "68",
+      "69",
+      "70",
+      "71",
+      "72",
+      "73",
+      "74",
+      "75",
+      "76",
+      "77",
+      "78",
+      "79",
+      "80",
+      "81",
+      "82",
+      "83",
+      "84",
+      "85",
+      "86",
+      "87",
+      "88",
+      "89",
+      "90",
+      "91",
+      "92",
+      "93",
+      "94",
+      "95",
+      "96",
+      "97",
+      "98",
+      "99",
+      "100",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "113",
+      "114",
+      "115",
+      "116",
+      "117",
+      "118",
+      "119",
+      "120",
+      "121",
+      "122",
+      "123",
+      "124",
+      "125",
+      "126",
+      "127",
+      "128",
+      "129",
+      "130",
+      "131",
+      "132",
+      "133",
+      "134",
+      "135",
+      "136",
+      "137",
+      "138",
+      "139",
+      "140",
+      "141",
+      "142",
+      "143",
+      "144",
+      "145",
+      "146",
+      "147",
+      "148",
+      "149",
+      "150",
+      "151",
+      "152",
+      "153",
+      "154",
+      "155",
+      "156",
+      "157",
+      "158",
+      "159",
+      "160",
+      "161",
+      "162",
+      "163",
+      "164",
+      "165",
+      "166",
+      "167",
+      "168",
+      "169",
+      "170",
+      "171",
+      "172",
+      "173",
+      "174",
+      "175",
+      "176",
+      "177",
+      "178",
+      "179",
+      "180",
+      "181",
+      "182",
+      "183",
+      "184",
+      "185",
+      "186",
+      "187",
+      "188",
+      "189",
+      "190",
+      "191",
+      "192",
+      "193",
+      "194",
+      "195",
+      "196",
+      "197",
+      "198",
+      "199",
+      "200",
+      "201",
+      "202",
+      "203",
+      "204",
+      "205",
+      "206",
+      "207",
+      "208",
+      "209",
+      "210",
+      "211",
+      "212",
+      "213",
+      "214",
+      "215",
+      "216",
+      "217",
+      "218",
+      "219",
+      "220",
+      "221",
+      "222",
+      "223",
+      "224",
+      "225",
+      "226",
+      "227",
+      "228",
+      "229",
+      "230",
+      "231",
+      "232",
+      "233",
+      "234",
+      "235",
+      "236",
+      "237",
+      "238",
+      "239",
+      "240",
+      "241",
+      "242",
+      "243",
+      "244",
+      "245",
+      "246",
+      "247",
+      "248",
+      "249",
+      "250",
+      "251",
+      "252",
+      "253",
+      "254",
+      "255",
+      "256",
+      "257",
+      "258",
+      "259",
+      "260",
+      "261",
+      "262",
+      "263",
+      "264",
+      "265",
+      "266",
+      "267",
+      "268",
+      "269",
+      "270",
+      "271",
+      "272",
+      "273",
+      "274",
+      "275",
+      "276",
+      "277",
+      "278",
+      "279",
+      "280",
+      "281",
+      "282",
+      "283",
+      "284",
+      "285",
+      "286",
+      "287",
+      "288",
+      "289",
+      "290",
+      "291",
+      "292",
+      "293",
+      "294",
+      "295",
+      "296",
+      "297",
+      "298",
+      "299",
+      "300",
+      "301",
+      "302",
+      "303",
+      "304",
+      "305"
+    ]
+  ]
+]
+{"requests":35,"totalRead":1347074,"admitted":27}
+300:     }
+301:   ],
+302:   "retainedGroups": [
+303:     {
+304:       "path": "tests/shell/core.test.ts",
+305:       "title": "functions, positional arguments, groups, returns and exits"
+306:     },
+307:     {
+308:       "path": "tests/shell/core.test.ts",
+309:       "lines": [
+310:         64,
+311:         66
+312:       ],
+313:       "rule": "prior effects before deferred arithmetic error"
+314:     },
+315:     {
+316:       "path": "tests/shell/runtime-regressions.test.ts",
+317:       "title": "arithmetic stays bounded and handles short circuit, updates and overflow"
+318:     },
+319:     {
+320:       "path": "tests/shell/fatal-expansion.test.ts",
+321:       "rule": "fatal substitution vs nonfatal arithmetic command"
+322:     },
+323:     {
+324:       "path": "tests/shell/invocation-closure-sh.test.ts",
+325:       "rule": "readonly arithmetic writes"
+326:     },
+327:     {
+328:       "path": "tests/shell/parser-regressions.test.ts",
+329:       "lines": [
+330:         34,
+331:         37
+332:       ],
+333:       "rule": "malformed arithmetic stays deferred"
+334:     },
+335:     {
+336:       "path": "tests/shell/substring-cases.ts",
+337:       "rule": "existing substring bridge is unchanged"
+338:     }
+339:   ],
+340:   "historical": "No replacement of original K08/51of54/24of24/2MiB STOP. All proposed cases currently UNRUN.",
+341:   "fixtures": [
+342:     {
+343:       "path": "a.txt",
+344:       "bytes": 2,
+345:       "sha256": "06f961b802bc46ee168555f066d28f4f0e9afdf3f88174c1ee6f9de004fc30a0",
+346:       "base64": "QQo=",
+347:       "mode": 384
+348:     },
+349:     {
+350:       "path": "b.txt",
+351:       "bytes": 2,
+352:       "sha256": "c0cde77fa8fef97d476c10aad3d2d54fcc2f336140d073651c2dcccf1e379fd6",
+353:       "base64": "Qgo=",
+354:       "mode": 384
+355:     },
+356:     {
+357:       "path": ".hidden",
+358:       "bytes": 2,
+359:       "sha256": "d98c786cff70da9d10a2c49cf9d849025d3669b95dd56cc7c27c1ebf4cbabc2c",
+360:       "base64": "SAo=",
+361:       "mode": 384
+362:     },
+363:     {
+364:       "path": "source-fixture",
+365:       "bytes": 37,
+366:       "sha256": "263a5f62d435857898f27371525a2b75a31acf4f5d1cc534e92ac10cefd41b17",
+367:       "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg==",
+368:       "mode": 384
+369:     }
+370:   ]
+{"requests":36,"totalRead":1357969,"admitted":27}

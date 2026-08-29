@@ -1,0 +1,63 @@
+{
+  "schema": "virtual37B-actual-publication-manifest-v1",
+  "sourceCommit": "83f750e57470546a95782cb9ce54a81d4900127a",
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "grantSha256": "ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e",
+  "commandSha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "archiveSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "files": {
+    "REPORT.md": {
+      "bytes": 6517,
+      "sha256": "1dd35847598c4bd1e7a3e5903745fbdb5a683c8529a60b65ebca941eb38890ee"
+    },
+    "OUTCOME-MATRIX.json": {
+      "bytes": 793985,
+      "sha256": "3e9cd44080c40ba2a9d32a245697fbe905f8f0238c83d858c73d0e65e8a56bd9"
+    },
+    "MEMBERSHIP.json": {
+      "bytes": 642411,
+      "sha256": "d7919e20c8250eef6b94217e85e4ac24e246f38cc226ed1f5667264eb44a89ea"
+    },
+    "GAP-CLASSIFICATION.json": {
+      "bytes": 1435,
+      "sha256": "44c913e448f65d3b6c97dcba4c55e1c03dea365ba5cf22ca542726f63a459863"
+    },
+    "TOOL-RECEIPT.json": {
+      "bytes": 2272,
+      "sha256": "a5c93bdba360f9a345a3a20ce95791a6e5d397af3ad8e6f22c27667199b49dcc"
+    },
+    "RAW-CAPTURE.json.gz.base64": {
+      "bytes": 11875437,
+      "sha256": "fefdc27656e2f48832d355a32dcea93051b478004d5fa6253329dc87cc010763"
+    },
+    "ROOT-ACTUAL-GO.md": {
+      "bytes": 1029,
+      "sha256": "fd855da444a0b4b865bd537760e42bfd5ab97ff8a424cf416a335b8a229afa14"
+    }
+  },
+  "captureArchive": {
+    "encodedBytes": 11875437,
+    "encodedSha256": "fefdc27656e2f48832d355a32dcea93051b478004d5fa6253329dc87cc010763",
+    "gzipBytes": 8906576,
+    "gzipSha256": "ff9b0c96251653f3ab2c2839e3ce54c8aca8766d28e41f3b1c7fdeaddf553b9b",
+    "decodedBytes": 47634417,
+    "decodedSha256": "7409a7c80b1fa78b19db9937fc490d441d25bba6f4b27ec38f8c63d46f9a68cb",
+    "rawFileBytes": 35655081,
+    "files": 678,
+    "decoderRule": "regular/type/encoded-size/hash before base64 conversion; compressed size/hash before gzip decode; same admitted Buffer"
+  },
+  "results": {
+    "observations": 111,
+    "rawEqual": 57,
+    "rawDifferent": 54,
+    "identities": 37,
+    "layouts": 3,
+    "nativeWithheld": 3
+  },
+  "knownExecutionStarts": 116,
+  "publicationAdministration": "separate captured tail; exact final count in closure; no further product authority",
+  "originalCapture": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/capture",
+  "admissionAndMetadataCapture": "/tmp/bash-surface-virtual37-actual-admission-5w1gMT",
+  "postflight": "1908shipping+293source-input pinned hashes and34packet files unchanged; no append-proof census"
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "actual-exec-command-observation-v1",
+  "source": "assistant tool responses, retained as explicit tool-level receipt rather than invented ChildProcess events",
+  "command": "exec /usr/bin/env -i HOME=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/home TMPDIR=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/tmp PATH=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/outer.mjs --seal-sha256 6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252 --grant-sha256 ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e\n",
+  "commandBytes": 615,
+  "commandSha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+  "workdir": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2",
+  "login": false,
+  "configuredPermissionPath": "use_default under danger-full-access; no escalation demanded and no fallback",
+  "launchResponse": {
+    "chunk": "829c19",
+    "sessionId": 22882,
+    "processRunning": true,
+    "outputBytes": 0
+  },
+  "terminalResponse": {
+    "chunk": "7f4340",
+    "sessionId": 22882,
+    "exitCode": 0,
+    "outputBytes": 0
+  },
+  "ownerRawStdout": {
+    "bytes": 299,
+    "sha256": "0a4c2947c96b435fc7a90e462249aa05275d49b4678c7e38d3cc8bee5f66cd12",
+    "base64": "eyJldmVudCI6IkNBUFRVUkVfU1RBUlRFRCIsInN0YXJ0ZWQiOjE3ODgwMDI3MzYzMjUsInByb2ZpbGUiOiJmdW5jdGlvbmFsLWRpcmVjdC1vd25lZC1jaGlsZCIsInRvb2xTaGVsbFN0YXJ0dXAiOiJUUlVTVEVEX0hPU1RfT1VUU0lERV9DSElMRF9FTlZfQU5EX0NBUFRVUkVfUVVBTElGSUNBVElPTiJ9CnsiZXZlbnQiOiJURVJNSU5BTCIsImNvbXBsZXRlZCI6MTExLCJ1bnJ1biI6MCwicHJpbWFyeVByZXNlbnQiOmZhbHNlLCJ0ZXJtaW5hbFB1YmxpY2F0aW9uRmFpbGVkIjpmYWxzZSwia25vd25DaGlsZFN0YXJ0cyI6MTE1fQo="
+  },
+  "ownerRawStderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "base64": ""
+  },
+  "limitations": "Initial trusted tool-shell startup not child fresh-env/capture qualified; no OS PID or descendant census inferred from session identity."
+}

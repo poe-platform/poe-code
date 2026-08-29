@@ -1,0 +1,31 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/control-entry.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal-controls.mjs
+{"path":"tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/CONTROL-PRESEAL.json","bytes":908,"sha256":"37ba088783aa0502e0eb5649e185beb5f2288bbb5943c8d2ad663e76a086b926"}
+[main bd0f227d0] Preseal B1-r2 PUBLIC15 explicit origins and new bounded admission
+ 24 files changed, 31146 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/AUTHENTICATED-INPUTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/CONTROL-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/DERIVED.patch
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/ORIGINALS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PREPARATION-HISTORY.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PROFILE.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/SEAL-RECEIPT.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/STAGED-IMPORT-ORIGINS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/bootstrap.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/capture/manifest-body.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/capture/manifest-body.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/capture/manifest-type.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/capture/manifest-type.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/control-entry.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/origins.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal-controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal.mjs
+bd0f227d081829512bafc2936f0b33632e02890b

@@ -23,6 +23,7 @@ interface ConditionalContext {
   readonly locale: string;
   readonly work: { remaining: number; signal: AbortSignal; exhausted: () => never };
   expand(word: Word, pattern?: boolean): Promise<string>;
+  regex?(subject: string, pattern: Word): Promise<number>;
   present(name: string): boolean;
   option(name: string): boolean;
 }
@@ -130,10 +131,11 @@ async function unary(operator: string, value: string, context: ConditionalContex
   }
 }
 
-async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "unary" | "binary" }>, context: ConditionalContext): Promise<boolean> {
+async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "unary" | "binary" }>, context: ConditionalContext): Promise<boolean | number> {
   if (node.kind === "nonempty") return (await context.expand(node.operand)).length > 0;
   if (node.kind === "unary") return unary(node.operator, await context.expand(node.operand), context);
   const left = await context.expand(node.left);
+  if (node.operator === "=~" && context.regex) return context.regex(left, node.right);
   const pattern = ["=", "==", "!="].includes(node.operator);
   const right = await context.expand(node.right, pattern);
   if (node.operator === "=~" || ["-nt", "-ot", "-ef"].includes(node.operator)) unsupported(node.operator);
@@ -160,20 +162,20 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
   }
 }
 
-export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<boolean> {
+export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<number> {
   const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];
-  let result = false;
+  let result = 1;
   while (stack.length) {
     await charge(context);
     const frame = stack.at(-1)!, node = frame.node;
     if (node.kind === "not") {
       if (frame.stage++ === 0) stack.push({ node: node.operand, stage: 0 });
-      else { result = !result; stack.pop(); }
+      else { result = result === 0 ? 1 : 0; stack.pop(); }
     } else if (node.kind === "and" || node.kind === "or") {
       if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }
-      else if (frame.stage === 1 && (node.kind === "and" ? result : !result)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }
+      else if (frame.stage === 1 && (node.kind === "and" ? result === 0 : result !== 0)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }
       else stack.pop();
-    } else { result = await leaf(node, context); stack.pop(); }
+    } else { const value = await leaf(node, context); result = typeof value === "number" ? value : Number(!value); stack.pop(); }
   }
   context.signal.throwIfAborted();
   return result;

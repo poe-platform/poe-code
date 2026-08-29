@@ -33,6 +33,11 @@ import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } fr
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
 import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
+import { EreTransportRoot } from "../commands/regex-execution/ere/transport/root.js";
+import { EreTransportProfileLimitError, EreTransportSemanticError } from "../commands/regex-execution/ere/transport/protocol.js";
+import type { EreTransportResult } from "../commands/regex-execution/ere/transport/protocol.js";
+import { EreProfileLimitError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
+import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -869,6 +874,17 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 }
 
 export class Runtime {
+  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();
+
+  static registerEreRoot(budget: Budget, scope: InvocationScope): void {
+    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };
+    scope.register(async () => {
+      entry.closed = true;
+      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }
+    });
+    Runtime.#ereRoots.set(budget, entry);
+  }
+
   constructor(
     readonly fs: FileSystem,
     readonly commands: CommandRegistry,
@@ -885,6 +901,110 @@ export class Runtime {
     readonly cancellationMaxDepth: number,
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
   ) {}
+
+  private async ereDiagnostic(io: IO, detail: string): Promise<void> {
+    try { await this.diagnostic(io, detail); }
+    catch (reason) {
+      this.signal.throwIfAborted();
+      if (reason instanceof ShellLimitError) throw reason;
+      throw new NounsetDiagnosticFailure(reason);
+    }
+  }
+
+  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    const store = requireArrays(state);
+    let operation: ArrayOwner | undefined;
+    let holding: ReturnType<ArrayOwner["hold"]> | undefined;
+    let staged: IndexedBinding | undefined;
+    let closing: Promise<void> | undefined;
+    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {
+      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }
+    });
+    let primary = false;
+    try {
+      operation = ArrayOwner.create(store.owner.ledger, store.owner);
+      holding = store.owner.hold();
+      await this.prepareArrayObservers(state, operation);
+      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });
+      const fragments: EreFragment[] = [];
+      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {
+        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });
+        fragments.push({ text, literal });
+      });
+      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
+      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
+      if (![collation, characters].every(locale => locale === "C" || locale === "POSIX")) {
+        await this.ereDiagnostic(io, "[[ unsupported ERE profile: locale must be C or POSIX");
+        return 2;
+      }
+      await textToken(operation, subject, this.signal);
+      const name = "BASH_REMATCH";
+      const watch = await store.watch(name, operation, this.signal);
+      const entry = Runtime.#ereRoots.get(this.budget);
+      if (!entry || entry.closed) throw new Error("ERE invocation owner is closed");
+      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {
+        scope.assertOpen();
+        if (entry.closed) throw new Error("ERE invocation owner is closed");
+        entry.cleanup = cleanup;
+      });
+      const session = entry.root.openSession(cleanup => scope.register(cleanup));
+      let result: EreTransportResult;
+      let sessionEscaping = false;
+      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }
+      catch (error) {
+        sessionEscaping = true;
+        this.signal.throwIfAborted();
+        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {
+          await this.ereDiagnostic(io, `[[ ${error.message}`);
+          sessionEscaping = false;
+          return 2;
+        }
+        throw error;
+      } finally {
+        try { await session.close(); }
+        catch (error) { if (sessionEscaping) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }
+      }
+      const status = result.matched ? 0 : 1;
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
+      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      const prepared = await store.prepareName(name, operation, this.signal);
+      staged = IndexedBinding.create(store.owner);
+      if (result.matched) for (let index = 0; index < result.spans.length; index++) {
+        const span = result.spans[index]!;
+        const size = span === null ? 0 : span.end - span.start;
+        operation.reserve({ payload: size, metadata: 32, work: size + 2 });
+        const value = span === null ? "" : subject.slice(span.start, span.end);
+        const token = await textToken(staged.owner, value, this.signal);
+        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }
+      }
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
+      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (!watch.valid()) throw new ArrayFailure("stale binding");
+      let released: Promise<void> | undefined;
+      stateMonitor(state)!.publish(tickets, name, () => {
+        supersede();
+        delete state.variables[name];
+        released = store.publish(name, staged!, tickets, prepared);
+      });
+      staged = undefined;
+      watch.close();
+      await released;
+      return status;
+    } catch (error) { primary = true; throw error; }
+    finally {
+      try { await close(); }
+      catch (error) { if (primary) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }
+    }
+  }
 
   static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {
     const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));
@@ -1540,11 +1660,12 @@ export class Runtime {
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
       if (command.kind === "conditional") {
         try {
-          return Number(!await evaluateConditional(command.expression, {
+          return await evaluateConditional(command.expression, {
             fs: this.fs, cwd: state.cwd, signal: this.signal,
             locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
             expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(""),
+            regex: (subject, pattern) => this.ere(subject, pattern, state, io),
             option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
@@ -1556,15 +1677,21 @@ export class Runtime {
               if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
               return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
             },
-          }));
+          });
         } catch (error) {
           this.signal.throwIfAborted();
+          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
+          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {
+            try { await this.diagnostic(io, `[[ ${error.message}`); }
+            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
+            return 3;
+          }
           if (error instanceof ConditionalUnsupported) {
             try { await this.diagnostic(io, error.message); }
             catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
             return 2;
           }
-          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;
           diagnosticFailure = new NounsetDiagnosticFailure(error);
           throw diagnosticFailure;
         }
@@ -3802,7 +3929,7 @@ export class Runtime {
     return result;
   }
 
-  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {
+  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
@@ -3815,6 +3942,7 @@ export class Runtime {
       const size = Buffer.byteLength(value);
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
       expansionBytes += size;
+      regexAppend?.(value, !glob);
       const field = fields.at(-1)!;
       if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });
       field.value += value;

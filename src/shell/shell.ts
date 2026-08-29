@@ -171,7 +171,7 @@ export class Shell implements PluginHost {
       callerSignal: options.signal,
       controls: [{ role: "budget-control", signal: budget.controller.signal }],
     });
-    try { owner.activate(boundary); }
+    try { Runtime.registerEreRoot(budget, scope); owner.activate(boundary); }
     catch (error) {
       scope.failures.push(...boundary.close().failures);
       await scope.close();

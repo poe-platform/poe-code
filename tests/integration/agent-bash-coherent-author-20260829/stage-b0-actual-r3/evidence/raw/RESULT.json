@@ -1,0 +1,527 @@
+{
+  "status": "PASS",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "aggregate": [
+    {
+      "layout": "source-built",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "source-built",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70877
+    },
+    {
+      "layout": "installed",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "installed",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70881
+    },
+    {
+      "layout": "physically-moved",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "physically-moved",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70886
+    }
+  ],
+  "retirement": {
+    "children": 4,
+    "attemptedBytes": 8653,
+    "storedBytes": 8653,
+    "elapsedMs": 8590.688375,
+    "failures": []
+  },
+  "workBytes": 12902570,
+  "stageBRemaining": "UNRUN",
+  "coherentAcceptance": false
+}

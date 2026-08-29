@@ -1,0 +1,661 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-actual-r3/snapshot.mjs
+RESULT.json {
+  "status": "PASS",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "aggregate": [
+    {
+      "layout": "source-built",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "source-built",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70877
+    },
+    {
+      "layout": "installed",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "installed",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70881
+    },
+    {
+      "layout": "physically-moved",
+      "report": {
+        "schema": "coherent-b0-result-v1",
+        "layout": "physically-moved",
+        "rows": [
+          {
+            "id": "C01",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 2,
+            "cleanup": [
+              "fulfilled",
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C02",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C03",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C04",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C05",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C06",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C07",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "writerQualification": "Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C08",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C09",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "diagnostic": "name/presence only; exact GNU status/bytes unqualified",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C12",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C13",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C14",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [],
+            "patchStdout": "redirected; not an exact diagnostic-format oracle",
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          },
+          {
+            "id": "C17",
+            "role": "ENGINE_FREE_PRODUCT_PROFILE",
+            "status": "PASS",
+            "events": [
+              "registered",
+              "diagnostic",
+              "cleanup-enter",
+              "release",
+              "cleanup-finished",
+              "settled"
+            ],
+            "shells": 1,
+            "cleanup": [
+              "fulfilled"
+            ],
+            "prepares": 0
+          }
+        ],
+        "passed": 13,
+        "failed": 0,
+        "guestEngineCalls": 0
+      },
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "pid": 70886
+    }
+  ],
+  "retirement": {
+    "children": 4,
+    "attemptedBytes": 8653,
+    "storedBytes": 8653,
+    "elapsedMs": 8590.688375,
+    "failures": []
+  },
+  "workBytes": 12902570,
+  "stageBRemaining": "UNRUN",
+  "coherentAcceptance": false
+}
+
+CAPTURE_FILES [{"path":"RESULT.json","type":"file","bytes":13742,"sha256":"62a667836c2e9121388b59ae06b1900c0002da978305cbda50512cbc0ab8bdb4"},{"path":"capture/00-offline-install.stderr","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"capture/00-offline-install.stdout","type":"file","bytes":23,"sha256":"41fcd409eab93f589e77ddb9817fde45343692cd78042cfac5cad46c251a42ec"},{"path":"capture/01-workflow-source-built.stderr","type":"file","bytes":751,"sha256":"1cd822b8eaef271457c46a4ea2371f1df2e6ef4b2ac879da8c1ef075f2c57612"},{"path":"capture/01-workflow-source-built.stdout","type":"file","bytes":2125,"sha256":"4ef05e4366f0bcf016cccd0c769b2eb6b72fae59f85915590cae563a59e4de9e"},{"path":"capture/02-workflow-installed.stderr","type":"file","bytes":748,"sha256":"b203f9b3b27d333aa02e3a4d31875c79456831f780731afe86c7c375bc22e045"},{"path":"capture/02-workflow-installed.stdout","type":"file","bytes":2122,"sha256":"6f37b73e07ed69cd5febb96fe063116f52b83de300d00663f22bb985ab5337f8"},{"path":"capture/03-workflow-physically-moved.stderr","type":"file","bytes":755,"sha256":"144a3510f55ecf6928186b93c35219a9bddd2663e6208fbbd8d3e4ee4c157f67"},{"path":"capture/03-workflow-physically-moved.stdout","type":"file","bytes":2129,"sha256":"a584e918f1745422c309dfd8506ae469a71ff8a6d1e97d277f0db8f3095ba2ee"},{"path":"capture/events.jsonl","type":"file","bytes":8981,"sha256":"564e2131f11646f5e0d3f4ab626f8fbf4eab5feca5607ddc063463575eb00364"},{"path":"/private/tmp/coherent-b0-39-20260829-r3.launch.stdout","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"/private/tmp/coherent-b0-39-20260829-r3.launch.stderr","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"/private/tmp/coherent-b0-actual-r3-authorize-20260829.stdout","type":"file","bytes":651,"sha256":"53fd35fb0d45472323a13da6772a5fcc158717ec250160c6526b71ad94f126c9"},{"path":"/private/tmp/coherent-b0-actual-r3-authorize-20260829.stderr","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"/private/tmp/coherent-b0-actual-r3-preflight-20260829.stdout","type":"file","bytes":1189,"sha256":"667544dad51a0aa8b6fc650fc4b8575523c453160bcff230ae9b7ab479ca0d72"},{"path":"/private/tmp/coherent-b0-actual-r3-preflight-20260829.stderr","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}]
+ROOT_ENTRIES [{"path":"RESULT.json","type":"file","bytes":13742,"sha256":"62a667836c2e9121388b59ae06b1900c0002da978305cbda50512cbc0ab8bdb4"},{"path":"cache","type":"directory"},{"path":"cache/_cacache","type":"directory"},{"path":"cache/_logs","type":"directory"},{"path":"capture","type":"directory"},{"path":"capture/00-offline-install.stderr","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"capture/00-offline-install.stdout","type":"file","bytes":23,"sha256":"41fcd409eab93f589e77ddb9817fde45343692cd78042cfac5cad46c251a42ec"},{"path":"capture/01-workflow-source-built.stderr","type":"file","bytes":751,"sha256":"1cd822b8eaef271457c46a4ea2371f1df2e6ef4b2ac879da8c1ef075f2c57612"},{"path":"capture/01-workflow-source-built.stdout","type":"file","bytes":2125,"sha256":"4ef05e4366f0bcf016cccd0c769b2eb6b72fae59f85915590cae563a59e4de9e"},{"path":"capture/02-workflow-installed.stderr","type":"file","bytes":748,"sha256":"b203f9b3b27d333aa02e3a4d31875c79456831f780731afe86c7c375bc22e045"},{"path":"capture/02-workflow-installed.stdout","type":"file","bytes":2122,"sha256":"6f37b73e07ed69cd5febb96fe063116f52b83de300d00663f22bb985ab5337f8"},{"path":"capture/03-workflow-physically-moved.stderr","type":"file","bytes":755,"sha256":"144a3510f55ecf6928186b93c35219a9bddd2663e6208fbbd8d3e4ee4c157f67"},{"path":"capture/03-workflow-physically-moved.stdout","type":"file","bytes":2129,"sha256":"a584e918f1745422c309dfd8506ae469a71ff8a6d1e97d277f0db8f3095ba2ee"},{"path":"capture/events.jsonl","type":"file","bytes":8981,"sha256":"564e2131f11646f5e0d3f4ab626f8fbf4eab5feca5607ddc063463575eb00364"},{"path":"home","type":"directory"},{"path":"home/global.npmrc","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"home/user.npmrc","type":"file","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"input","type":"directory"},{"path":"input/product.tgz","type":"file","bytes":930368,"sha256":"2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"},{"path":"physically-moved","type":"directory"},{"path":"physically-moved/b0","type":"directory"},{"path":"physically-moved/binding-installed.json","type":"file","bytes":185637,"sha256":"04e7ea29d8f43de9caa4436df3162e6a63a981b025144a3a71ee8bd6491467de"},{"path":"physically-moved/binding-physically-moved.json","type":"file","bytes":185700,"sha256":"ca162d05a0fadcf5fd2094b93c5fa01aee7120bf68e2e5bfae9dcb435c49a85c"},{"path":"physically-moved/loads-installed.jsonl","type":"file","bytes":49893,"sha256":"196718fa365d7e246dbb95e1713369be95912c08db801da4ef2cb14dec5c1f49"},{"path":"physically-moved/loads-physically-moved.jsonl","type":"file","bytes":51629,"sha256":"e876016831642c576f733c87c3cf9d1180bb67d6350d14107a62de74c0e0107b"},{"path":"physically-moved/node_modules","type":"directory"},{"path":"physically-moved/package.json","type":"file","bytes":92,"sha256":"d806c7de07af4436ed33a5d8d9b8aafde19d51fdc5ef3d9b45b83a552d36d5df"},{"path":"physically-moved/request-installed.json","type":"file","bytes":279,"sha256":"e6eeadc9ebfa1b21d5a57639d2f6face9406ff8d006c618efc6a752c75ac3941"},{"path":"physically-moved/request-physically-moved.json","type":"file","bytes":286,"sha256":"9182eaaecaf5657c8d25f191d547132e792f0a08267367d65623116204269ba5"},{"path":"physically-moved/resources-installed.jsonl","type":"file","bytes":91,"sha256":"f8f76b91076b465043d86b61e0800010f1dd7a079703d8ba6462942ce4a32725"},{"path":"physically-moved/resources-physically-moved.jsonl","type":"file","bytes":91,"sha256":"e3a95f956dc0f7a0ba6c36d4cdfcad566fc37a40bce267c4172223ed0d60d51e"},{"path":"source-built","type":"directory"},{"path":"source-built/b0","type":"directory"},{"path":"source-built/binding-source-built.json","type":"file","bytes":185664,"sha256":"92b1f77012a646889519f207103fb728488da1ad66ce9362906505c5b48039cc"},{"path":"source-built/loads-source-built.jsonl","type":"file","bytes":50637,"sha256":"23e8620195f7810bd54b7315807a3d67fec8215f498cdab8db79713a25a54a86"},{"path":"source-built/node_modules","type":"directory"},{"path":"source-built/request-source-built.json","type":"file","bytes":282,"sha256":"30c1b511cbb3a58e704ecd30a69ca9ae19c17a266d62d800fef4cb47249e4e3d"},{"path":"source-built/resources-source-built.jsonl","type":"file","bytes":91,"sha256":"f502b4281b82d81ddfe332363c07ae7c2f1d9df47f02e2ddea6c293ff39f5b34"}]
+SEALED_SOURCE_REFERENCE run.mjs import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import {gunzipSync} from 'node:zlib';
+import {read,sha,streamed,inventory,json,supervisor,safe,reasonRecord} from './owner.mjs';
+const here=import.meta.dirname,base=path.dirname(here),repo='/Users/kjopek/Workspace/safe-bash';
+const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+function closure(root,members){const expected=new Map(members.map(row=>[row.path,row]));const dirs=new Set(['']);for(const row of members){let name=path.posix.dirname(row.path);while(name!=='.'){dirs.add(name);name=path.posix.dirname(name);}}const observed=inventory(root);assert.deepEqual(observed,members.slice().sort((left,right)=>Buffer.compare(Buffer.from(left.path),Buffer.from(right.path))));function directories(relative=''){for(const item of fs.readdirSync(path.join(root,relative),{withFileTypes:true})){const name=relative?relative+'/'+item.name:item.name;if(item.isDirectory()){assert.ok(dirs.has(name),'added directory '+name);directories(name);}else assert.ok(expected.has(name));}}directories();}
+function unpackVerified(raw,members){const result=gunzipSync(raw,{maxOutputLength:67108864,info:true});assert.equal(result.engine.bytesWritten,raw.length);const tar=result.buffer;assert.ok(raw.length+tar.length+16777216<=100663296);const expected=new Map(members.map(row=>[row.path,row])),seen=new Set();let cursor=0,pax={},ended=false;const text=body=>body.subarray(0,body.indexOf(0)<0?body.length:body.indexOf(0)).toString();const oct=body=>{const value=text(body).trim();assert.match(value,/^[0-7]*$/);return parseInt(value||'0',8);};while(cursor+512<=tar.length){const header=tar.subarray(cursor,cursor+512);if(header.every(value=>value===0)){assert.ok(tar.subarray(cursor).every(value=>value===0));ended=true;break;}let sum=0;for(let index=0;index<512;index++)sum+=index>=148&&index<156?32:header[index];assert.equal(oct(header.subarray(148,156)),sum);const size=oct(header.subarray(124,136));assert.ok(size<=16777216);const start=cursor+512,end=start+size;assert.ok(end<=tar.length);const body=tar.subarray(start,end);cursor=start+Math.ceil(size/512)*512;if(header[156]===120){let offset=0;pax={};while(offset<body.length){const space=body.indexOf(32,offset);assert.ok(space>offset);const length=Number(body.subarray(offset,space).toString());assert.ok(Number.isSafeInteger(length)&&length>0&&offset+length<=body.length);const entry=body.subarray(space+1,offset+length-1).toString();assert.equal(body[offset+length-1],10);const equal=entry.indexOf('=');assert.ok(equal>0);pax[entry.slice(0,equal)]=entry.slice(equal+1);offset+=length;}continue;}assert.ok(header[156]===0||header[156]===48);assert.equal(text(header.subarray(157,257)),'');assert.ok(Object.keys(pax).every(key=>['path','mtime','atime','ctime','size','uid','gid','uname','gname'].includes(key)));const prefix=text(header.subarray(345,500));let name=pax.path??((prefix?prefix+'/':'')+text(header.subarray(0,100)));if(pax.size)assert.equal(Number(pax.size),size);pax={};assert.ok(name.startsWith('package/'));name=safe(name.slice(8));assert.ok(!seen.has(name));seen.add(name);const row=expected.get(name);assert.ok(row);assert.equal(size,row.bytes);assert.equal(sha(body),row.sha256);assert.equal(oct(header.subarray(100,108))&511,row.mode);}assert.ok(ended);assert.deepEqual([...seen].sort(),[...expected.keys()].sort());}
+export async function main(args,started=performance.now()){assert.equal(args.length,4);assert.equal(args[0],'--run');const seal=JSON.parse(read(args[1],1048576,{sha256:args[2],bytes:Number(args[3])}));assert.equal(seal.schema,'coherent-b0-executable-preseal-v1');assert.equal(process.env.B0_ROOT_GO,'ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION');assert.equal(seal.productSha256,'2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
+ for(const row of seal.files)read(path.join(repo,row.path),4194304,row);await streamed(node,seal.node);const producer='/private/tmp/safe-bash-coherent-stage-a-20260829-r2',work=seal.workRoot;assert.equal(fs.existsSync(work),false);fs.mkdirSync(work);assert.equal(fs.realpathSync(work),work);for(const name of ['capture','home','cache','input','source-built'])fs.mkdirSync(path.join(work,name));fs.writeFileSync(path.join(work,'home/user.npmrc'),'');fs.writeFileSync(path.join(work,'home/global.npmrc'),'');
+ const manager=supervisor(path.join(work,'capture'),1620,67108864,{started});let failure;try{
+ const stage=JSON.parse(read(path.join(here,'../stage-b0-r2/stageAProducerPreseal.json'),65536,seal.stageAProducerPreseal));const records=seal.producerRecords;const get=name=>{const row=records.find(item=>item.path===name);assert.ok(row);return JSON.parse(read(path.join(base,'stage-a-r2/evidence',name),2097152,row));};const members=get('PACKAGE-MEMBERS.json'),emits=get('EMITTED.json'),source=JSON.parse(read(stage.source.path,262144,stage.source));assert.equal(source.inputs.length,309);assert.equal(emits.length,1012);assert.equal(members.length,1014);const toolExpected=get('TOOLS-BEFORE.json'),toolLinks=Object.fromEntries(stage.links.map(row=>[row.package+'/'+row.path,row.target]));assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);
+ const verifyRetained=()=>{for(const row of source.inputs)read(path.join(producer,'source',safe(row.path)),33554432,row);for(const row of emits)read(path.join(producer,'source/dist',safe(row.path)),33554432,row);};verifyRetained();
+ const raw=read(path.join(base,'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz'),1048576,seal.package);unpackVerified(raw,members);const archive=path.join(work,'input/product.tgz');fs.writeFileSync(archive,raw,{flag:'wx'});
+ const sourcePackage=path.join(work,'source-built/node_modules/virtual-bash');fs.mkdirSync(sourcePackage,{recursive:true});for(const row of members){const origin=path.join(producer,'source',row.path);const body=read(origin,16777216,row);const target=path.join(sourcePackage,safe(row.path));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,body,{mode:row.mode,flag:'wx'});}closure(sourcePackage,members);
+ const metadata=JSON.parse(read(path.join(sourcePackage,'package.json'),1048576,members.find(row=>row.path==='package.json')));assert.deepEqual(metadata.dependencies??{},{});for(const key of ['preinstall','install','postinstall','prepare'])assert.equal(metadata.scripts?.[key],undefined);
+ const commonEnv={PATH:path.dirname(node),HOME:path.join(work,'home'),TMPDIR:work,TMP:work,TEMP:work,LANG:'C',LC_ALL:'C',TZ:'UTC',NODE_OPTIONS:'',NPM_CONFIG_USERCONFIG:path.join(work,'home/user.npmrc'),NPM_CONFIG_GLOBALCONFIG:path.join(work,'home/global.npmrc'),NPM_CONFIG_OFFLINE:'true',NPM_CONFIG_AUDIT:'false',NPM_CONFIG_FUND:'false',NPM_CONFIG_UPDATE_NOTIFIER:'false'};
+ const install=path.join(work,'installed');fs.mkdirSync(install);fs.writeFileSync(path.join(install,'package.json'),'{"private":true,"type":"module"}\n');const npm=path.join(producer,'tools/npm/bin/npm-cli.js');await manager.run('offline-install',node,['--experimental-permission','--allow-fs-read='+work,'--allow-fs-read='+path.join(producer,'tools'),'--allow-fs-read='+node,'--allow-fs-write='+install,'--allow-fs-write='+path.join(work,'cache'),'--allow-fs-write='+path.join(work,'home'),npm,'install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--cache',path.join(work,'cache'),'--prefix',install,archive],{cwd:install,env:commonEnv,seconds:120});closure(path.join(install,'node_modules/virtual-bash'),members);
+ const aggregate=[];for(const layout of ['source-built','installed','physically-moved']){manager.remaining();let consumer=path.join(work,layout);if(layout==='physically-moved')fs.renameSync(install,consumer);const packageRoot=path.join(consumer,'node_modules/virtual-bash');closure(packageRoot,members);const scripts=path.join(consumer,'b0');if(!fs.existsSync(scripts))fs.mkdirSync(scripts);for(const row of seal.stageFiles){const body=read(path.join(repo,row.source),4194304,row);fs.writeFileSync(path.join(scripts,row.target),body);}const resourceLog=path.join(consumer,'resources-'+layout+'.jsonl'),trace=path.join(consumer,'loads-'+layout+'.jsonl');const harness=seal.stageFiles.map(row=>({path:path.join(scripts,row.target),bytes:row.bytes,sha256:row.sha256}));const binding={root:packageRoot,inputs:members.filter(row=>row.path.startsWith('dist/')).map(row=>({...row,path:row.path.slice(5)})),harness,trace};json(path.join(consumer,'binding-'+layout+'.json'),binding);json(path.join(consumer,'request-'+layout+'.json'),{action:'B0_ENGINE_FREE_13',sourceTree:seal.sourceTree,layout,ids:seal.ids});
+ const env={...commonEnv,RESOURCE_LOG:resourceLog,RESOURCE_ALLOWANCE:'2',PUBLIC_BINDING:path.join(consumer,'binding-'+layout+'.json'),B0_REQUEST:path.join(consumer,'request-'+layout+'.json')};const result=await manager.run('workflow-'+layout,node,['--experimental-permission','--allow-fs-read='+consumer,'--allow-fs-read='+node,'--allow-fs-write='+consumer,'--allow-worker','--import',path.join(scripts,'denials.mjs'),'--import',path.join(scripts,'resources.mjs'),'--loader',pathToFileURL(path.join(scripts,'loader.mjs')).href,path.join(scripts,'runner.mjs')],{cwd:consumer,env,seconds:420});
+ const report=JSON.parse(read(result.stdout,8388608));assert.equal(report.schema,'coherent-b0-result-v1');assert.deepEqual(report.rows.map(row=>row.id),seal.ids);assert.equal(report.layout,layout);assert.equal(report.rows.length,13);const events=read(resourceLog,1048576).toString().trim().split('\n').map(line=>JSON.parse(line));const created=events.filter(row=>row.kind==='worker-create'),exited=events.filter(row=>row.kind==='worker-exit');assert.ok(created.length<=2);assert.deepEqual(created.map(row=>row.id).sort(),exited.map(row=>row.id).sort());assert.ok(events.some(row=>row.kind==='before-exit'&&row.live===0));closure(packageRoot,members);for(const row of harness)read(row.path,4194304,row);aggregate.push({layout,report,regexWorkers:created.length,internalLoaderAdmissions:1,pid:result.pid});}
+ verifyRetained();assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);read(archive,1048576,seal.package);for(const row of seal.files)read(path.join(repo,row.path),4194304,row);const workBytes=inventory(work).reduce((sum,row)=>sum+row.bytes,0);assert.ok(workBytes<=805306368);const retirement=manager.finish();manager.publish(path.join(work,'RESULT.json'),{status:aggregate.some(row=>row.report.failed)?'ASSERTION_FAILURE':'PASS',sourceTree:seal.sourceTree,package:seal.package,aggregate,retirement,workBytes,stageBRemaining:'UNRUN',coherentAcceptance:false});process.exitCode=aggregate.some(row=>row.report.failed)?1:0;
+ }catch(error){failure=error;const retirement=manager.abort(error);try{manager.publish(path.join(work,'STOP.json'),{primaryPresent:true,primary:reasonRecord(error),retirement,automaticRetry:false,productSourceChanged:false});}catch(publicationError){console.error(JSON.stringify({terminalPersistence:false,primary:reasonRecord(error),publication:reasonRecord(publicationError)}));}process.exitCode=78;throw failure;}}
+if(process.argv[1]&&path.resolve(process.argv[1])===import.meta.filename)await main(process.argv.slice(2));
+
+SEALED_SOURCE_REFERENCE owner.mjs import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+export {read,sha,streamed,inventory,safe} from '../stage-a-r2/common.mjs';
+
+export function completeWrite(io,descriptor,body,progress=()=>{}) {
+  let offset=0;
+  while(offset<body.length){
+    const count=io.writeSync(descriptor,body,offset,body.length-offset);
+    if(!Number.isSafeInteger(count)||count<=0||count>body.length-offset)throw new Error('capture write made invalid progress');
+    offset+=count;progress(count);
+  }
+  return offset;
+}
+export function reasonRecord(reason){
+  if(reason===null)return{type:'null'};
+  if(reason===undefined)return{type:'undefined'};
+  if(typeof reason==='number')return{type:'number',value:Number.isFinite(reason)?reason:String(reason)};
+  if(['boolean','string'].includes(typeof reason))return{type:typeof reason,value:reason};
+  return{type:typeof reason};
+}
+export function durableJSON(io,filename,value,observe=()=>{}){
+  let descriptor,opened=false,hasPrimary=false,primary;const secondary=[];
+  const remember=error=>{observe(error);if(!hasPrimary){hasPrimary=true;primary=error;}else secondary.push(error);};
+  try{descriptor=io.openSync(filename,'wx');opened=true;completeWrite(io,descriptor,Buffer.from(JSON.stringify(value,null,2)+'\n'));io.fsyncSync(descriptor);}
+  catch(error){remember(error);}
+  finally{if(opened)try{io.closeSync(descriptor);}catch(error){remember(error);}}
+  if(hasPrimary)throw primary;
+  return{secondary};
+}
+export function json(filename,value){return durableJSON(fs,filename,value);}
+export function clock(started,now=()=>performance.now(),seconds=1800,reserve=180){
+  assert.ok(Number.isFinite(started)&&seconds>reserve&&reserve>=5);
+  const absolute=started+seconds*1000,active=absolute-reserve*1000;
+  function remaining(){const value=active-now();assert.ok(value>0,'inclusive active deadline/publication reserve');return value;}
+  function publication(){const value=absolute-now();assert.ok(value>0,'inclusive publication deadline');return value;}
+  return{remaining,publication,started,absolute,active};
+}
+
+export function supervisor(directory,seconds,totalMaximum=67108864,options={}){
+  const io=options.io??fs,spawnChild=options.spawn??spawn,kill=options.kill??process.kill.bind(process),now=options.now??(()=>performance.now());
+  const shared=clock(options.started??now(),now,1800,180);
+  const roles=options.roles??['offline-install','workflow-source-built','workflow-installed','workflow-physically-moved'];
+  const records=[];let eventDescriptor,eventOpen=false,children=0,attempted=0,stored=0,activeChild=false,finished=false,poisoned=false;
+  function remember(error,phase){records.push({phase,reason:error});}
+  function event(value){completeWrite(io,eventDescriptor,Buffer.from(JSON.stringify({...value,elapsedMs:now()-shared.started})+'\n'));}
+  function closeEvents(){let present=false,primary;const keep=error=>{remember(error,'event-close');if(!present){present=true;primary=error;}};
+    if(eventOpen){try{io.fsyncSync(eventDescriptor);}catch(error){keep(error);}try{io.closeSync(eventDescriptor);}catch(error){keep(error);}eventOpen=false;}
+    if(present)throw primary;
+  }
+  eventDescriptor=io.openSync(path.join(directory,'events.jsonl'),'wx');eventOpen=true;
+  async function run(role,binary,args,{cwd,env,input,seconds:childSeconds=120}){
+    shared.remaining();assert.ok(!finished&&!poisoned&&!activeChild&&roles.includes(role)&&children<roles.length,'known role/owner admission');
+    const label=String(children).padStart(2,'0')+'-'+role;const descriptors=[];
+    let child,exited=false,closed=false,hasPrimary=false,primary,waitResolve,deadlineTimer,killTimer,drainTimer,teardownStarted=false,unknown=false;
+    let stdoutBytes=0,stderrBytes=0,storedStdout=0,storedStderr=0;
+    const retain=(error,phase)=>{remember(error,phase);if(!hasPrimary){hasPrimary=true;primary=error;}};
+    const note=value=>{try{event(value);return true;}catch(error){retain(error,'observation');return false;}};
+    const signal=name=>{if(!child?.pid)return;try{kill(-child.pid,name);note({role,pid:child.pid,signal:name});}catch(error){if(error?.code!=='ESRCH')retain(error,'signal');}};
+    const teardown=()=>{if(teardownStarted||!child?.pid||closed)return;teardownStarted=true;signal('SIGTERM');killTimer=setTimeout(()=>{if(!closed)signal('SIGKILL');},2000);drainTimer=setTimeout(()=>{if(!closed){unknown=true;retain(new Error('known owned child retirement UNKNOWN'),'retirement');signal('SIGKILL');waitResolve?.();}},5000);};
+    const fail=(error,phase)=>{retain(error,phase);teardown();};
+    try{
+      const output=io.openSync(path.join(directory,label+'.stdout'),'wx');descriptors.push(output);
+      const errorOutput=io.openSync(path.join(directory,label+'.stderr'),'wx');descriptors.push(errorOutput);
+      activeChild=true;
+      await new Promise(resolve=>{
+        waitResolve=resolve;
+        try{child=spawnChild(binary,args,{cwd,env,detached:true,stdio:['pipe','pipe','pipe']});children++;}
+        catch(error){retain(error,'spawn');resolve();return;}
+        const consume=(descriptor,channel)=>body=>{try{attempted+=body.length;if(channel==='stdout')stdoutBytes+=body.length;else stderrBytes+=body.length;assert.ok(attempted<=totalMaximum,'capture attempted-byte cap');completeWrite(io,descriptor,body,count=>{stored+=count;if(channel==='stdout')storedStdout+=count;else storedStderr+=count;});}catch(error){fail(error,'capture');}};
+        child.stdout.on('data',consume(output,'stdout'));child.stderr.on('data',consume(errorOutput,'stderr'));
+        child.stdout.on('error',error=>fail(error,'stdout'));child.stderr.on('error',error=>fail(error,'stderr'));
+        child.stdin.on('error',error=>{if(error?.code!=='EPIPE')fail(error,'stdin');});child.on('error',error=>fail(error,'child-error'));
+        child.on('exit',(status,signalValue)=>{exited=true;if(!note({role,pid:child.pid,event:'exit',status,signal:signalValue}))teardown();});
+        child.on('close',(status,signalValue)=>{closed=true;if(status!==0||signalValue!==null)retain(new Error(`${role} status=${status} signal=${signalValue}`),'child-outcome');note({role,pid:child.pid,event:'close',status,signal:signalValue,stdoutBytes,stderrBytes,storedStdout,storedStderr});resolve();});
+        if(!note({role,pid:child.pid,binary,args,cwd,env,spawned:true}))teardown();
+        try{deadlineTimer=setTimeout(()=>fail(new Error('inclusive child deadline'),'deadline'),Math.min(shared.remaining(),childSeconds*1000));child.stdin.end(input);}catch(error){fail(error,'activation');}
+      });
+      if(child?.pid){
+        if(!exited||!closed){unknown=true;retain(new Error('exit/close not both observed'),'retirement');signal('SIGKILL');}
+        let groupAbsent=false;try{kill(-child.pid,0);}catch(error){if(error?.code==='ESRCH')groupAbsent=true;else retain(error,'group-observation');}
+        if(!groupAbsent){unknown=true;retain(new Error('owned group absence unproved'),'retirement');signal('SIGKILL');}
+        note({role,pid:child.pid,groupAbsent,exited,closed,unknown});
+      }
+      try{shared.remaining();}catch(error){retain(error,'inclusive-clock');}
+    }catch(error){retain(error,'acquisition');}
+    finally{
+      if(child?.pid&&!closed){teardown();signal('SIGKILL');unknown=true;}
+      clearTimeout(deadlineTimer);clearTimeout(killTimer);clearTimeout(drainTimer);
+      for(const descriptor of descriptors){try{io.fsyncSync(descriptor);}catch(error){retain(error,'capture-flush');}try{io.closeSync(descriptor);}catch(error){retain(error,'capture-close');unknown=true;}}
+      activeChild=false;
+    }
+    if(unknown)remember(new Error('dependent work forbidden: unknown retirement/descriptor state'),'unknown');
+    if(hasPrimary){poisoned=true;throw primary;}
+    return{stdout:path.join(directory,label+'.stdout'),stderr:path.join(directory,label+'.stderr'),pid:child?.pid,stdoutBytes,stderrBytes,storedStdout,storedStderr};
+  }
+  function snapshot(){return{children,attemptedBytes:attempted,storedBytes:stored,elapsedMs:now()-shared.started,failures:records.map(row=>({phase:row.phase,reason:reasonRecord(row.reason)}))};}
+  return{run,remaining:shared.remaining,note:event,records,
+    finish(){assert.ok(!activeChild&&!finished);shared.remaining();let present=false,primary;try{event({finished:true,...snapshot()});}catch(error){present=true;primary=error;remember(error,'terminal-event');}try{closeEvents();}catch(error){if(!present){present=true;primary=error;}}finished=true;if(present)throw primary;return snapshot();},
+    publish(filename,value){shared.publication();const result=durableJSON(io,filename,value,error=>remember(error,'publication'));shared.publication();return result;},
+    abort(primary){remember(primary,'outer-failure');let secondaryPresent=false,secondary;try{closeEvents();}catch(error){secondaryPresent=true;secondary=error;}finished=true;return{...snapshot(),secondaryPresent,secondary:reasonRecord(secondary)};},
+  };
+}
+
+SNAPSHOT {"at":"2026-08-29T12:06:49.793Z","bytes":12916428,"entries":2189,"rawFiles":16}

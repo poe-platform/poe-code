@@ -1,0 +1,27 @@
+{
+  "maximumKnownStarts": 24,
+  "maximumConcurrentKnownProcesses": 2,
+  "maximumCompilerStarts": 2,
+  "plannedCompilerStarts": 1,
+  "elapsedMillisecondsIncludingPublication": 600000,
+  "roles": [
+    "A01 direct startup/instruction reader (exec replaces shell)",
+    "A02 bounded source/fixture inspection (exec replaces shell)",
+    "A03 scoped Git index snapshot",
+    "A04 patch shell",
+    "A05 apply_patch invocation",
+    "A06 seal coordinator (exec replaces shell)",
+    "A07 scoped Git committed-handoff lookup",
+    "A08 scoped Git intent-to-add",
+    "A09 explicit-path preseal commit",
+    "A10 type coordinator (exec replaces shell)",
+    "A11 strict compiler-only child",
+    "A12 publication patch shell",
+    "A13 publication apply_patch invocation",
+    "A14 publication coordinator (exec replaces shell)",
+    "A15 scoped Git intent-to-add",
+    "A16 explicit-path evidence commit",
+    "A17 scoped Git index comparison"
+  ],
+  "qualification": "Roles are a finite plan, not automatic start or retirement credit. Preserve actual receipts; no old-campaign census certification."
+}

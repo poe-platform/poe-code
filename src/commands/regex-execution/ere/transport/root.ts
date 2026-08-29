@@ -69,7 +69,9 @@ export class EreTransportRoot {
     const close = (): Promise<void> => {
       if (closing) return closing;
       closed = true;
-      closing = this.#closeSession(id).finally(() => { this.#sessions.delete(id); metadata.retire(); });
+      closing = this.#closeSession(id).finally(() => {
+        if (this.#worker?.retirementState !== "UNCONFIRMED") { this.#sessions.delete(id); metadata.retire(); }
+      });
       return closing;
     };
     try { registerCleanup(close); }
@@ -145,6 +147,11 @@ export class EreTransportRoot {
     if (!ticket) return;
     this.#active = ticket;
     const complete = (outcome: { ok: true; value: EreTransportResult } | { ok: false; reason: unknown }): void => {
+      if (this.#worker?.retirementState === "UNCONFIRMED") {
+        this.#closed = true;
+        ticket.reject(outcome.ok ? this.#failurePresent ? this.#failure : this.#worker.cleanupFailureReason : outcome.reason);
+        return;
+      }
       try {
         if (!this.#retiring || this.#retired) this.#release(ticket);
         else if (ticket.cancelListener) { ticket.signal?.removeEventListener("abort", ticket.cancelListener); ticket.cancelListener = undefined; }
@@ -164,7 +171,10 @@ export class EreTransportRoot {
 
   #retireWorker(): Promise<void> {
     if (!this.#retiring) {
-      this.#retiring = Promise.resolve().then(async () => { await this.#worker?.close(); this.#retired = true; });
+      this.#retiring = Promise.resolve().then(async () => {
+        try { await this.#worker?.close(); }
+        finally { this.#retired = !this.#worker || this.#worker.retirementState === "RETIRED"; }
+      });
       void this.#retiring.catch(() => {});
     }
     return this.#retiring;
@@ -181,7 +191,7 @@ export class EreTransportRoot {
       if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
       replyStorage = this.#transport.reserve(479);
       if (!this.#worker) {
-        this.#workerMetadata = this.#transport.owned(metadataUnits.worker);
+        this.#workerMetadata = this.#transport.owned(metadataUnits.worker + 6);
         this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);
         observed = true;
       }
@@ -230,11 +240,31 @@ export class EreTransportRoot {
     }
   }
 
+  get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" {
+    return this.#worker?.retirementState ?? (this.#retired ? "RETIRED" : "NOT_ACQUIRED");
+  }
+
+  #throwCloseFailure(active: Ticket | undefined, cleanupPresent: boolean, cleanupReason: unknown): void {
+    if (active?.signal?.aborted) throw active.signal.reason;
+    if (active?.cancelled) throw active.cancelReason;
+    if (this.#failurePresent) throw this.#failure;
+    if (cleanupPresent) throw cleanupReason;
+  }
+
   async #closeSession(id: number): Promise<void> {
     this.#rejectQueued(id);
-    const active = this.#active;
-    if (active?.session === id) { this.#cancel(active, new EreTransportError("CLOSED", "ERE session closed")); await active.done; }
-    if (this.#retiring) await this.#retiring;
+    const active = this.#active?.session === id ? this.#active : undefined;
+    if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE session closed"));
+    let cleanupPresent = false;
+    let cleanupReason: unknown;
+    try { if (this.#retiring) await this.#retiring; }
+    catch (reason) { cleanupPresent = true; cleanupReason = reason; }
+    if (this.#worker?.retirementState === "UNCONFIRMED") {
+      this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+      return;
+    }
+    if (active) await active.done;
+    this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
   }
 
   close(): Promise<void> {
@@ -242,13 +272,21 @@ export class EreTransportRoot {
     this.#closed = true;
     this.#rejectQueued();
     const active = this.#active;
-    if (active) this.#cancel(active, new EreTransportError("CLOSED", "ERE invocation root closed"));
+    if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE invocation root closed"));
     this.#closing = Promise.resolve().then(async () => {
-      const results = await Promise.allSettled([this.#retireWorker(), active?.done]);
-      for (const result of results) if (result.status === "rejected") throw result.reason;
+      let cleanupPresent = false;
+      let cleanupReason: unknown;
+      try { await this.#retireWorker(); }
+      catch (reason) { cleanupPresent = true; cleanupReason = reason; }
+      if (this.#worker?.retirementState === "UNCONFIRMED") {
+        this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+        return;
+      }
+      if (active) await active.done;
       this.#workerMetadata?.retire();
       for (const metadata of this.#sessions.values()) metadata.retire();
       this.#sessions.clear(); this.#metadata.retire();
+      this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
     });
     void this.#closing.catch(() => {});
     return this.#closing;

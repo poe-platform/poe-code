@@ -30,7 +30,27 @@ export class EreWorkerOwner {
   #exitListenerInstalled = false;
   #notificationFailed = false;
   #notificationFailure: unknown;
+  #retirementState: "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" = "NOT_ACQUIRED";
+  #cleanupPresent = false;
+  #cleanupReason: unknown;
+  #exitObserved = false;
+  #stdoutObserved = false;
+  #stderrObserved = false;
   constructor(readonly onFailure: (reason: unknown) => void, readonly transport: TransportAccounting) {}
+
+  get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" { return this.#retirementState; }
+  get cleanupFailurePresent(): boolean { return this.#cleanupPresent; }
+  get cleanupFailureReason(): unknown { return this.#cleanupReason; }
+
+  #cleanupFailure(reason: unknown): void {
+    if (!this.#cleanupPresent) { this.#cleanupPresent = true; this.#cleanupReason = reason; }
+  }
+
+  #throwFailure(): void {
+    if (this.#failed) throw this.#failure;
+    if (this.#cleanupPresent) throw this.#cleanupReason;
+    if (this.#notificationFailed) throw this.#notificationFailure;
+  }
 
   #settle(reason: unknown): void {
     clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
@@ -49,13 +69,17 @@ export class EreWorkerOwner {
     void this.close().catch(() => {});
   }
 
-  #stream(stream: Readable): Promise<void> {
-    const ended = new Promise<void>(resolve => {
-      stream.once("end", resolve); stream.once("close", resolve);
-      stream.on("error", (reason: unknown) => this.#fail(reason));
-      stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
-      if (stream.readableEnded || stream.closed) resolve();
-    });
+  #stream(stream: Readable, channel: "stdout" | "stderr"): Promise<void> {
+    let resolveEnd: () => void = () => {};
+    const ended = new Promise<void>(resolve => { resolveEnd = resolve; });
+    const observe = (): void => {
+      if (channel === "stdout") this.#stdoutObserved = true; else this.#stderrObserved = true;
+      resolveEnd();
+    };
+    stream.once("end", observe); stream.once("close", observe);
+    stream.on("error", (reason: unknown) => this.#fail(reason));
+    stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+    if (stream.readableEnded || stream.closed) observe();
     return ended;
   }
 
@@ -71,16 +95,24 @@ export class EreWorkerOwner {
           workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
           resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
         });
-        this.#worker = worker;
-        worker.once("exit", () => {
-          this.#exitResolve?.();
-          if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
-        });
-        this.#exitListenerInstalled = true;
-        worker.on("error", (reason: unknown) => this.#fail(reason));
-        worker.on("messageerror", (reason: unknown) => this.#fail(reason));
-        this.#stdout = this.#stream(worker.stdout);
-        this.#stderr = this.#stream(worker.stderr);
+        this.#worker = worker; this.#retirementState = "PENDING";
+        let setupFailed = false;
+        let setupFailure: unknown;
+        try {
+          worker.once("exit", () => {
+            this.#exitObserved = true; this.#exitResolve?.();
+            if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+          });
+          this.#exitListenerInstalled = true;
+          worker.on("error", (reason: unknown) => this.#fail(reason));
+          worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+        } catch (reason) { setupFailed = true; setupFailure = reason; }
+        try { this.#stdout = this.#stream(worker.stdout, "stdout"); }
+        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+        try { this.#stderr = this.#stream(worker.stderr, "stderr"); }
+        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+        if (setupFailed) throw setupFailure;
+        if (this.#failed) throw this.#failure;
         worker.on("message", (message: unknown) => {
           if (this.#closing || this.#failed) return;
           try {
@@ -127,16 +159,25 @@ export class EreWorkerOwner {
     const request = this.#request;
     this.#closing = Promise.resolve().then(async () => {
       const worker = this.#worker;
-      const termination = Promise.resolve().then(async () => {
-        if (!worker) return;
-        await worker.terminate();
-        if (!this.#exitListenerInstalled) this.#exitResolve?.();
-      });
-      const retired = await Promise.allSettled([termination, this.#exited, this.#stdout, this.#stderr]);
-      await Promise.allSettled([ready, request]);
-      for (const result of retired) if (result.status === "rejected") throw result.reason;
-      if (this.#notificationFailed) throw this.#notificationFailure;
+      let terminationFailed = false;
+      try {
+        if (worker) {
+          await worker.terminate();
+          this.#exitObserved = true;
+          if (!this.#exitListenerInstalled) this.#exitResolve?.();
+        }
+      } catch (reason) { terminationFailed = true; this.#cleanupFailure(reason); }
+      if (worker && ((terminationFailed && !(this.#exitObserved && this.#stdoutObserved && this.#stderrObserved)) ||
+          (!this.#stdout && !this.#stdoutObserved) || (!this.#stderr && !this.#stderrObserved))) {
+        this.#retirementState = "UNCONFIRMED";
+        await Promise.allSettled([ready, request]);
+        this.#throwFailure();
+        return;
+      }
+      await Promise.allSettled([this.#exited, this.#stdout, this.#stderr, ready, request]);
+      this.#retirementState = "RETIRED";
       this.#worker = undefined;
+      this.#throwFailure();
     });
     this.#settle(this.#failed ? this.#failure : new EreTransportError("CLOSED", "ERE Worker closed"));
     void this.#closing.catch(() => {});

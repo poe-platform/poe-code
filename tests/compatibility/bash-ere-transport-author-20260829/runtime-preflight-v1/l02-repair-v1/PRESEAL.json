@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "sourceManifest": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5",
+  "buildPreseal": "65c7431b0c9fad8853bf5c36e23d50ddbad97a6e4e5bd61bb37ac2321d702333",
+  "commandSha256": "828823c09146480b386dfda669abc78e83b4a76a22881ac1744a7b272ae543e7",
+  "roleGraph": {
+    "outerTool": "observed tool session; no hidden-transitive zero claim",
+    "controller": 1,
+    "strictCompilerChild": 1,
+    "pureHelperChild": 1,
+    "knownPresealShellExecs": 3,
+    "applyPatchExecutions": 2
+  },
+  "original": "5001adc7 75PASS/1nonpass/59UNRUN unchanged; 874450 diagnosis separate",
+  "stateContract": "UNCONFIRMED completion rejects raw primary and retains ownership; no claimed universal owner close timeout when reliable events remain pending",
+  "newMetadata": "six retained owner state fields precharged via existing worker metadata + 6; no A/W or wire formula increase",
+  "remaining": "60 runtime variants not certified; 13-cell followup only proposal"
+}

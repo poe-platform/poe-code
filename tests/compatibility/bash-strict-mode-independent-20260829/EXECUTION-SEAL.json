@@ -1,0 +1,61 @@
+{
+  "role": "FINAL_EXECUTION_SEAL_BEFORE_FIRST_ACTUAL_CAMPAIGN",
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "packageSha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+  "sourceSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+  "files": [
+    {
+      "path": "PRESEAL.json",
+      "bytes": 6503,
+      "sha256": "509769ec491828f0e71d03c11db3a08bf2ddd617b61ac9af2053aff20cb2ad77"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 8607,
+      "sha256": "ad80589602b9584d688c3d42763b592ea0ac5ee169043e9c8c708176993c1a0f"
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 13019,
+      "sha256": "440224933eb572b8f0d272d914d43210fa3b6abdaacf8174390f04a60c76ad74"
+    },
+    {
+      "path": "CENSUS.json",
+      "bytes": 1364,
+      "sha256": "8d15f484ee454f84a4f820be7809cb56ea97e9fb90bbc73115ef5d7c9d1412af"
+    },
+    {
+      "path": "NOVEL-CASES.json",
+      "bytes": 4408,
+      "sha256": "639d05ab79413b4e9932f93962093cf90168d820cd5ea75a97780b66298b9741"
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 5965,
+      "sha256": "dbb69509f0d33b7a4c995c4b40e4b9c48d027de08d8ac2610fcaadbb88a0e261"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 28870,
+      "sha256": "088974453fb138555e68255f5c2573a21408fd66ff57b35f09c3f81d340540f9"
+    },
+    {
+      "path": "launch.py",
+      "bytes": 4665,
+      "sha256": "a75e4a263ff0ad5bf3a5693c3fa8fc51f20fcb9e3e429adf97ec16341b3b8478"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 1180,
+      "sha256": "8668a36bb6fae391c5f94b3196bc5e1f17e89ef556486d8ba911de70c09fc065"
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    }
+  ],
+  "actualProductRuns": 0,
+  "rootConditionalGo": "Latest strict-mode assignment plus exact unchanged Unit1 accepted-dependency update",
+  "oldPreparationFailure": "PREP-COMPOSITION-V1-HOLD.json preserved; this final seal uses committed Unit1 display/parser/runtime authority"
+}

@@ -1,0 +1,52 @@
+{
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "base": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "unit1": {
+    "commit": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+    "derived": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+    "changedPaths": [
+      "src/shell/display.ts",
+      "src/shell/parser.ts",
+      "src/shell/runtime.ts"
+    ],
+    "accepted": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628/c565f9251bd59332a58c37bc5c48948cc2f24683"
+  },
+  "unit2": {
+    "commit": "928be5585f05c15867fbbb5f4b5debe153b0734e",
+    "changedPaths": [
+      "src/shell/parser.ts",
+      "src/shell/runtime.ts"
+    ]
+  },
+  "sourceInputs": 292,
+  "allRetainedInputBytesBlobsAuthenticated": true,
+  "treeRecomputed": true,
+  "canonicalTreeOrder": "Git tree names with slash suffix for directory entries, raw UTF8 byte comparison, mode/name/NUL/raw20byteOID",
+  "sourceManifestSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+  "archive": {
+    "path": "tests/compatibility/bash-strict-mode-author-20260829/results-v1/virtual-bash-0.0.0.tgz",
+    "sha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+    "bytes": 865091,
+    "members": 950
+  },
+  "tools": {
+    "typescript": {
+      "version": "5.9.3",
+      "rows": 132
+    },
+    "@types/node": {
+      "version": "22.20.1",
+      "rows": 74
+    },
+    "undici-types": {
+      "version": "6.21.0",
+      "rows": 41
+    },
+    "npm": {
+      "version": "10.9.7",
+      "rows": 2039
+    }
+  },
+  "derivedTreeNeedNotExistInGitDatabase": true,
+  "priorPreparationFailure": "PREP-COMPOSITION-V1-HOLD.json preserved; no product executions"
+}

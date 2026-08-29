@@ -1,0 +1,128 @@
+[
+  {
+    "id": "N01",
+    "purpose": "Nested functions in AND/OR cannot catch current-boundary nounset",
+    "program": "set -u; inner(){ printf \"%s\" \"$missing\"; printf WRONG; }; outer(){ inner && printf WRONG; printf WRONG; }; outer || printf WRONG; printf WRONG",
+    "status": 1,
+    "stdout": "",
+    "diagnostics": 1
+  },
+  {
+    "id": "N02",
+    "purpose": "Sourced fatal propagates through function and conditional",
+    "program": "set -u; f(){ . /fatal.sh && printf WRONG; printf WRONG; }; f || printf WRONG; printf WRONG",
+    "files": {
+      "/fatal.sh": "printf \"%s\" \"$missing\"; printf WRONG\n"
+    },
+    "status": 1,
+    "stdout": "",
+    "diagnostics": 1
+  },
+  {
+    "id": "N03",
+    "purpose": "Subshell catches only its own fatal and parent OR continues",
+    "program": "set -u; ( { printf \"%s\" \"$missing\"; printf WRONG; } ) || printf \"rescued\\n\"; printf \"parent\\n\"",
+    "status": 0,
+    "stdout": "rescued\nparent\n",
+    "diagnostics": 1
+  },
+  {
+    "id": "N04",
+    "purpose": "Fatal function in nonfinal pipeline stage without pipefail",
+    "program": "set -u; f(){ printf \"%s\" \"$missing\"; printf WRONG; }; f | cat; printf \"status:%s\\n\" \"$?\"",
+    "status": 0,
+    "stdout": "status:0\n",
+    "diagnostics": 1
+  },
+  {
+    "id": "N05",
+    "purpose": "Pipefail/errexit guarded pipeline remains parent-catchable",
+    "program": "set -euo pipefail; f(){ printf \"%s\" \"$missing\"; printf WRONG; }; f | cat || printf \"caught\\n\"; printf \"done\\n\"",
+    "status": 0,
+    "stdout": "caught\ndone\n",
+    "diagnostics": 1
+  },
+  {
+    "id": "N06",
+    "purpose": "Fatal function inside guarded substitution stops its child only",
+    "program": "set -u; f(){ printf \"%s\" \"$missing\"; printf WRONG; }; value=$(f || printf WRONG); printf \"status:%s|<%s>\\n\" \"$?\" \"$value\"",
+    "status": 0,
+    "stdout": "status:1|<>\n",
+    "diagnostics": 1
+  },
+  {
+    "id": "N07",
+    "purpose": "Nested lazy alternatives distinguish present-empty and missing",
+    "program": "present=; set -u; printf \"<%s>|<%s>|<%s>\\n\" \"${present-${missing}}\" \"${absent+${missing}}\" \"${present:+${missing}}\"; : \"${assigned:=${other:-ok}}\"; printf \"%s\\n\" \"$assigned\"",
+    "status": 0,
+    "stdout": "<>|<>|<>\nok\n",
+    "diagnostics": 0
+  },
+  {
+    "id": "N08",
+    "purpose": "Unselected substitution creates neither bytes nor VFS side effects",
+    "program": "value=ready; set -u; printf \"%s\\n\" \"${value:-$(touch /sideeffect; printf \"%s\" \"$missing\")}\"",
+    "status": 0,
+    "stdout": "ready\n",
+    "diagnostics": 0,
+    "absentPaths": [
+      "/sideeffect"
+    ]
+  },
+  {
+    "id": "N09",
+    "purpose": "Positional empty versus missing guards survive -- updates",
+    "program": "set -u -- \"\"; printf \"<%s>|%s\\n\" \"$1\" \"${2:-fallback}\"; set --; printf \"<%s>\\n\" \"${1+${missing}}\"",
+    "status": 0,
+    "stdout": "<>|fallback\n<>\n",
+    "diagnostics": 0
+  },
+  {
+    "id": "N10",
+    "purpose": "Valid signed clusters with terminal named o apply in sequence",
+    "program": "set -ueo pipefail; set +uo nounset; printf \"%s|\" \"$-\"; set +eo pipefail; printf \"<%s>|%s\\n\" \"$missing\" \"$-\"",
+    "status": 0,
+    "stdout": "e|<>|\n",
+    "diagnostics": 0
+  },
+  {
+    "id": "N11",
+    "purpose": "Subshell option disable does not disable parent nounset",
+    "program": "set -u; (set +u; printf \"<%s>\" \"$missing\"); printf \"%s\" \"$missing\"; printf WRONG",
+    "status": 1,
+    "stdout": "<>",
+    "diagnostics": 1
+  },
+  {
+    "id": "N12",
+    "purpose": "Sourced conditional fatal honors active redirected stderr",
+    "program": "set -u; { . /fatal.sh || printf WRONG; } 2>/err; printf WRONG",
+    "files": {
+      "/fatal.sh": "printf \"%s\" \"$missing\"; printf WRONG\n"
+    },
+    "status": 1,
+    "stdout": "",
+    "diagnostics": 0,
+    "errorFile": "/err"
+  },
+  {
+    "id": "N13",
+    "purpose": "False diagnostic sink rejection escapes command substitution",
+    "host": "substitution-false-sink"
+  },
+  {
+    "id": "N14",
+    "purpose": "Null diagnostic rejection survives source/function/OR",
+    "host": "source-null-sink"
+  },
+  {
+    "id": "N15",
+    "purpose": "Public output limit remains raw through subshell pipeline",
+    "host": "pipeline-output-limit"
+  },
+  {
+    "id": "N16",
+    "purpose": "Caller cancellation wins with registered invoke cleanup",
+    "host": "invoke-caller-cleanup"
+  }
+]

@@ -1,0 +1,108 @@
+{
+  "schema": "AP753-U12-L07-postguard-v1",
+  "sourcePresealCommit": "4eb3bf73",
+  "presealSha256": "b23396701e4e06318eb200b8b04866bb81d87c3b1cd511bd528604f86d0ed4a4",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "sourceTree": "6a59ca403c5411344dea2ee057909ba179bf7043",
+  "packageSha256": "f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+  "members": {
+    "EVENTS.jsonl": {
+      "bytes": 3046,
+      "sha256": "a260845f6b9191f9559d837bd46c7174247acdd4d3d692e3effae059d80f98f4",
+      "mode": 384
+    },
+    "LOAD-SEAL.json": {
+      "bytes": 605349,
+      "sha256": "c7516a09ac8830cbdd57d0ded12e792da5d5ed47cee9c3207d708f4fb7c651ea",
+      "mode": 384
+    },
+    "OWNER.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "OWNER.stdout.raw": {
+      "bytes": 655,
+      "sha256": "a7034f33ec01393d0365a58feef25bddb23ec925423722436aa2d0a846004e37",
+      "mode": 384
+    },
+    "RESULT.json": {
+      "bytes": 590885,
+      "sha256": "f61cc0d9ce7b13eec713cf974688db77c05fa991eed994debb17621b2fac48b1",
+      "mode": 384
+    },
+    "ROOT-GO.json": {
+      "bytes": 1542,
+      "sha256": "9f917f673433ddcff43dac5efec1e1ac6f2a29e4d14ea4e7f6e049a97fab47ed",
+      "mode": 384
+    },
+    "installed.receipt.json": {
+      "bytes": 485,
+      "sha256": "764c4ac36e46c52c1faf472ea4d51f299b759f6938f18c8411f1ef57c8e5d44d",
+      "mode": 384
+    },
+    "installed.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "installed.stdout.raw": {
+      "bytes": 87603,
+      "sha256": "e54d24bbffc67cf8ed2179f2b1b62cc6de204e548d4e6138edaea3c5db080e29",
+      "mode": 384
+    },
+    "moved.receipt.json": {
+      "bytes": 473,
+      "sha256": "8738cc6a89d5c9fef2b055efb598aa3b169c8d29f907fb2d111e96427edd95a4",
+      "mode": 384
+    },
+    "moved.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "moved.stdout.raw": {
+      "bytes": 85859,
+      "sha256": "05c49748cf9778d5ac5fd918a62c8c2b73b1b11c4fb320de24e808782a287572",
+      "mode": 384
+    },
+    "source.receipt.json": {
+      "bytes": 477,
+      "sha256": "5b4b8bb44cf62eed0c1229c27db6607fde0e32fa0cfba4ba835336762b909284",
+      "mode": 384
+    },
+    "source.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    "source.stdout.raw": {
+      "bytes": 228564,
+      "sha256": "f427e384efb48f71b43bbbd28d328af051431dca5e08173b6cffeb2a985c4819",
+      "mode": 384
+    }
+  },
+  "totalBeforePostguard": 1604938,
+  "sourceAndInputBindingsUnchanged": true,
+  "rawReportExactMatch": true,
+  "outerToolExitObserved": 0,
+  "rawChildObservedRetainedBytes": 402026,
+  "rawLostBytes": 0,
+  "actualRuntimeProcesses": 4,
+  "totalRuntimePeak": 2,
+  "childReceiptsClosedAbsent": true,
+  "unhandled": 0,
+  "scratchRemoved": true,
+  "noRetry": true,
+  "caseClassifier": {
+    "pass": 7,
+    "fail": 2,
+    "unrun": 0
+  },
+  "newFailureAdjudication": "L07 lower endpoints assert cleanups.length===1 but actual successful route registers Work.close and OutputOperation.close; retained failures, not product defects or rescores",
+  "sourceBasis": [
+    "src/commands/apply-patch/apply.ts:196",
+    "src/commands/apply-patch/apply.ts:221",
+    "src/contracts/output.ts:68"
+  ]
+}

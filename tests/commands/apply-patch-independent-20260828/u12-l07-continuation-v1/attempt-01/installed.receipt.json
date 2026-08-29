@@ -1,0 +1,21 @@
+{
+  "layout": "installed",
+  "pid": 18691,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "absent": true,
+  "failure": null,
+  "channels": {
+    "stdout": {
+      "path": "installed.stdout.raw",
+      "bytes": 87603,
+      "sha256": "e54d24bbffc67cf8ed2179f2b1b62cc6de204e548d4e6138edaea3c5db080e29"
+    },
+    "stderr": {
+      "path": "installed.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

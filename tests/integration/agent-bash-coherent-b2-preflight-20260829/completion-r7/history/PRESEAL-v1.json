@@ -1,5 +1,5 @@
 {
-  "schema": "B2_R7_HARMLESS_REPAIR_PRESEAL_V2",
+  "schema": "B2_R7_HARMLESS_REPAIR_PRESEAL_V1",
   "created": "2026-08-29T15:31:30.158Z",
   "deadline": "2026-08-29T15:40:19.581Z",
   "workRoot": "/private/tmp/safe-bash-b2-r7-harmless",
@@ -126,7 +126,7 @@
     {
       "path": "staged/new/controls.mjs",
       "bytes": 3703,
-      "sha256": "b3906776beb767b4fc5989a8ea0a6bf2b8a79ec41d60df48321f9e70e6e4e15b"
+      "sha256": "afe8841b1eed95050373a04e3c8031eaf78d08cb54a07f3516c184f854d23c17"
     },
     {
       "path": "staged/new/coordinator.mjs",
@@ -186,7 +186,7 @@
     {
       "path": "staged/PACKET.json",
       "bytes": 6519,
-      "sha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a"
+      "sha256": "bb98cce13214cd56ce9aad24574bb6647b108a016cbf67f18ec394d4a76a7518"
     }
   ],
   "fixtures": [
@@ -234,7 +234,5 @@
     "finalGit": 3,
     "remainingAdministrativeReserve": 25
   },
-  "expectedRuntimeProductCalls": 0,
-  "supersedesUnexecuted": "2823fcf76adcc5586cb6214db087b4ca51c0b0bad84abe479693bf67d59d2280",
-  "versionReason": "Copied control fixture tokens now agree with versioned r7 grant/trace, before any execution. Original seal retained."
+  "expectedRuntimeProductCalls": 0
 }

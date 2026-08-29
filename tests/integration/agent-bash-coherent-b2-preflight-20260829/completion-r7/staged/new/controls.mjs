@@ -23,7 +23,7 @@ export async function runControls({ work, recipe }) {
       if (role === "type-valid") outcomes.push(classifyTypes(result, text, filename, recipe.expectedDiagnostics, true));
       if (role === "type-wrong") { assert.throws(() => classifyTypes(result, text, filename, recipe.expectedDiagnostics, true)); outcomes.push({ rejectedWrongDiagnostic: true }); }
       if (role === "mutant") {
-        const trace = [{ kind: "authenticated-source-supplied", member: `dist/${mutation.file}`, sha256: mutation.prospectiveMutantSha256 }];
+        const trace = [{ kind: "authenticated-source-prepared", member: `dist/${mutation.file}`, sha256: mutation.prospectiveMutantSha256 }];
         outcomes.push(classifyMutant(result, rows(text), trace, mutation, recipe.mutantFailures[mutation.id]));
         assert.throws(() => classifyMutant(result, rows(text), [], mutation, recipe.mutantFailures[mutation.id]));
         assert.throws(() => classifyMutant({ ...result, signalCount: 1 }, rows(text), trace, mutation, recipe.mutantFailures[mutation.id]));
@@ -31,7 +31,7 @@ export async function runControls({ work, recipe }) {
       if (role === "restore") outcomes.push(classifyCases(result, rows(text), [mutation.case]));
     }
     const now = Date.now();
-    const valid = { schema: "B2_RUNTIME_GO_R6", authority: "ROOT_B2_672_EXPLICIT_FRESH_GO", reviewAuthority: "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED", reviewCommit: "a".repeat(40), packetSha256: "b".repeat(64), caps, workRoot: "/private/tmp/safe-bash-b2-runtime-r6", issuedAt: new Date(now - 1000).toISOString(), notBefore: new Date(now).toISOString(), activeDeadline: new Date(now + 1620000).toISOString(), deadline: new Date(now + 1800000).toISOString() };
+    const valid = { schema: "B2_RUNTIME_GO_R7", authority: "ROOT_B2_672_EXPLICIT_FRESH_GO", reviewAuthority: "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED", reviewCommit: "a".repeat(40), packetSha256: "b".repeat(64), caps, workRoot: "/private/tmp/safe-bash-b2-runtime-r7", issuedAt: new Date(now - 1000).toISOString(), notBefore: new Date(now).toISOString(), activeDeadline: new Date(now + 1620000).toISOString(), deadline: new Date(now + 1800000).toISOString() };
     grant(valid, now);
     assert.throws(() => grant({ ...valid, caps: { ...caps, seconds: Infinity } }, now));
     assert.throws(() => grant({ ...valid, activeDeadline: valid.issuedAt }, now));

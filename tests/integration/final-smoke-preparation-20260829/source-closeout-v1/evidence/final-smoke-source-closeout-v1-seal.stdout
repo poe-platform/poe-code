@@ -1,0 +1,68 @@
+CHECK_PID=26902
+CHECK_EXIT=0
+{
+  "groups": [
+    {
+      "id": "strict-authenticated-link-schema",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_NPM"
+    },
+    {
+      "id": "reject-alias-and-extra-shape",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_NPM"
+    },
+    {
+      "id": "target-and-hash-types",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_NPM"
+    },
+    {
+      "id": "UTC-epoch-not-local-label",
+      "status": "PASS",
+      "role": "PURE_DATA_NO_NPM"
+    }
+  ],
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/source-closeout-v1/PRESEAL.json",
+    "bytes": 9497,
+    "sha256": "b76e357418ba52be70ddc566bdaf7ac14716a8843c7a36a8949c580c95c66a67"
+  },
+  "endedUTC": "2026-08-29T18:10:58.477Z",
+  "phaseDeadlineUTC": "2026-08-29T18:16:02.359Z",
+  "actualAttempt": "NOT_STARTED",
+  "strictNpmAdapter": "SOURCE_ONLY_NEVER_INVOKED_BY_SOURCE_BATCH",
+  "oldFailurePreserved": true
+}
+[main fa1a81afcac38328f01baa50bbd591a1b014a130] Seal separate source-only smoke and strict npm link descriptor correction
+ 30 files changed, 34910 insertions(+)
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/PREP-RESULT.json
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/PRESEAL.json
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/driver.mjs
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/finish.mjs
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/npm-descriptor.mjs
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/npm-runtime-successor.patch
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/prepare.mjs
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/1.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/10.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/11.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/12.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/13.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/14.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/15.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/16.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/17.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/18.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/19.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/2.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/20.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/21.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/22.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/23.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/3.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/4.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/5.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/6.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/7.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/8.txt
+ create mode 100644 tests/integration/final-smoke-preparation-20260829/source-closeout-v1/raw/9.txt

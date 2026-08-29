@@ -1,0 +1,45 @@
+{"phase":"source-only-activation","pid":26981,"epochMs":1788027086558,"utc":"2026-08-29T18:11:26.558Z"}
+FILE=/private/tmp/final-smoke-source-closeout-v1/SOURCE-RESULT.json BYTES=1714
+{"schema":"FINAL_SMOKE_LAYOUT_RESULT_R4","layout":"source-built","primaryPresent":false,"rows":[{"id":"C01","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"shells":2,"cleanup":["fulfilled","fulfilled"],"prepares":0},{"id":"C02","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"shells":1,"cleanup":["fulfilled"],"prepares":0},{"id":"C07","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"writerQualification":"Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.","shells":1,"cleanup":["fulfilled"],"prepares":0},{"id":"C12","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"shells":1,"cleanup":["fulfilled"],"prepares":0},{"id":"C13","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"shells":1,"cleanup":["fulfilled"],"prepares":0},{"id":"C14","role":"ENGINE_FREE_PRODUCT_PROFILE","status":"PASS","events":[],"patchStdout":"redirected; not an exact diagnostic-format oracle","shells":1,"cleanup":["fulfilled"],"prepares":0},{"id":"R17","status":"PASS","stdout":"local=<1 0>\nouter=<0>\n","stderr":"","exitCode":0},{"id":"R16","status":"PASS","stdout":"local=<>\nouter=<0>\n","stderr":"","exitCode":0}],"registeredShellDisposalCompleted":true,"opaqueProviderFinalization":"NOT_CLAIMED","observations":[{"id":"R17","primaryPresent":false,"primary":{"type":"undefined"},"cleanupPresent":false,"cleanup":{"type":"undefined"},"reportingPresent":false,"reporting":{"type":"undefined"}},{"id":"R16","primaryPresent":false,"primary":{"type":"undefined"},"cleanupPresent":false,"cleanup":{"type":"undefined"},"reportingPresent":false,"reporting":{"type":"undefined"}}]}
+FILE=/private/tmp/final-smoke-source-closeout-v1/SOURCE-RESULT-IDENTITY.json BYTES=176
+{
+  "path": "/private/tmp/final-smoke-source-closeout-v1/SOURCE-RESULT.json",
+  "bytes": 1714,
+  "sha256": "2d9702b5d0b8858c0bb7b4a1a2355d20cfa1d6884d1e3a875c75365a90e78fa7"
+}
+FILE=/private/tmp/final-smoke-source-closeout-v1/raw/source-only-eight.stderr BYTES=823
+(node:26984) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26984) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("file%3A///private/tmp/final-smoke-source-closeout-v1/stage/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs", pathToFileURL("./"));'
+(node:26984) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+TERMINAL_SELECTED_FIELDS
+      "pid": 26984,
+      "exitObserved": true,
+      "closeObserved": true,
+      "stdoutEnd": true,
+      "stderrEnd": true,
+      "exitCode": 0,
+      "closeCode": 0,
+      "exitCode": 0
+      "exitCode": 0
+  "ShellRetirement": "EXPLICIT_RESULT_COMPLETED",
+        "pid": 26984,
+        "attempts": 0,
+        "created": 0,
+  "postguards": true,
+      "pid": 26981,
+      "exitObserved": false,
+      "closeObserved": false,
+        "pid": 26984,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "exitCode": 0,
+        "closeCode": 0,
+    "attempts": [
+    "knownStarts": 2,
+    "activeKnownPIDs": [],

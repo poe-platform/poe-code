@@ -8,6 +8,19 @@ and historical expectations are unchanged.
 
 ## Authoritative request
 
+**2026-08-29 Node status:** ROOT qualified-accepted restricted module `a2f3983d`
+through independent evidence `1a15f7a5`; its partial-family, diagnostic and resource
+qualifications remain. Explicit-provider root/exact `commands/node` public
+integration is an author candidate, not yet independently accepted. `nodeCommands`
+and `createNodeCommands` require provider configuration, preserve seven denied-by-
+default grants/fixed24 limits, and add Node only when explicitly installed.
+Default80, `AgentCommandsOptions`, npm/npx exclusions and curl opt-in are unchanged.
+No bundled/ambient engine, private access or native fallback; trusted-host ABI,
+static adapter authorization and NP1/Worker-L limitations remain explicit.
+See `tests/integration/node-public-author-20260829/README.md` for the exact candidate,
+future/current author results and inherited qualifications; no live-HEAD or full
+Node/Bash compatibility acceptance follows.
+
 The following counts and shares are **USER-PROVIDED**, not independently verified
 statistics. Shares are transcribed, not recalculated or normalized. The exact
 unseparated input is retained in `COMMAND_PRIORITIES.json`.

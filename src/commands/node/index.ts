@@ -1,11 +1,12 @@
 import { posix } from "node:path";
 import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
+import type { VirtualShellPlugin } from "../../contracts/plugin.js";
 import { admitSource } from "./admission.js";
 import { invocation } from "./cli.js";
 import { NodeHost } from "./host.js";
 import { NodeOwner } from "./lifecycle.js";
 import { buildNodeProgram } from "./program.js";
-import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
+import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeGrants, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
 import { environment, grants, record, text } from "./values.js";
 
 export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
@@ -13,6 +14,35 @@ export type { NodeCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, No
 export { createNodeWorkerProvider } from "./worker-provider.js";
 export { NODE_ENGINE_ABI } from "./worker-types.js";
 export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
+
+export interface NodeCommandsOptions extends NodeCommandOptions {
+  readonly replace?: boolean;
+}
+
+function commandConfiguration(options: NodeCommandsOptions): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
+  const settings = record(options, ["provider"], ["grants", "replace"]);
+  if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
+  const definition = createNodeCommand({
+    provider: settings.provider as NodeRuntimeProvider,
+    ...(Object.hasOwn(settings, "grants") ? { grants: settings.grants as NodeGrants } : {}),
+  });
+  return { definitions: Object.freeze([definition]), replace: settings.replace === true };
+}
+
+export function createNodeCommands(options: NodeCommandsOptions): readonly CommandDefinition[] {
+  return commandConfiguration(options).definitions;
+}
+
+export function nodeCommands(options: NodeCommandsOptions): VirtualShellPlugin {
+  const { definitions, replace } = commandConfiguration(options);
+  return {
+    name: "node-commands",
+    setup(host) {
+      if (!replace && host.commands.has("node")) throw new Error("Command already registered: node");
+      for (const definition of definitions) host.commands.register(definition, { replace });
+    },
+  };
+}
 
 function local(error: unknown): error is NodeProfileError | NodeUsageError { return error instanceof NodeProfileError || error instanceof NodeUsageError; }
 function providerValue(value: unknown): NodeRuntimeProvider {

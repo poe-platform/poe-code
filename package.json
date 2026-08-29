@@ -26,6 +26,10 @@
       "types": "./dist/commands/network/index.d.ts",
       "import": "./dist/commands/network/index.js"
     },
+    "./commands/node": {
+      "types": "./dist/commands/node/index.d.ts",
+      "import": "./dist/commands/node/index.js"
+    },
     "./commands/metadata": {
       "types": "./dist/commands/metadata/index.d.ts",
       "import": "./dist/commands/metadata/index.js"

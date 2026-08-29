@@ -8,6 +8,49 @@ tools; and piping, stdin, and full shell support.
 
 ## Status
 
+**Explicit opt-in Node integration candidate (August 29, 2026):** `nodeCommands`,
+`createNodeCommands` and `createNodeCommand` require a trusted qualifying provider.
+The exact `virtual-bash/commands/node` subpath and root expose the restricted
+NP1-CJS-WRQ-L-SYNC-1 / Worker-L APIs; **default80 does not include Node**.
+ROOT accepted module `a2f3983d` with its finite coverage/resource qualifications;
+public integration still requires separate independent review and ROOT acceptance.
+No engine is bundled, discovered, installed or imported implicitly; npm/npx and
+native evaluation/subprocess fallbacks remain excluded. The static adapter URL and
+identity are configuration, not byte authentication or host authorization.
+
+Proposed consumer usage below is part of the author validation candidate, not yet
+an independent public acceptance. The host supplies an already authorized adapter
+and VFS; the adapter implements the documented default-only engine ABI.
+
+```ts
+import { Shell, agentCommands, createNodeWorkerProvider, nodeCommands } from "virtual-bash";
+import type { FileSystem, NodeWorkerProviderOptions } from "virtual-bash";
+
+export async function printRestricted(fs: FileSystem, authorized: NodeWorkerProviderOptions) {
+  const shell = new Shell({ fs, cwd: "/" });
+  try {
+    shell.use(agentCommands());
+    shell.use(nodeCommands({
+      provider: createNodeWorkerProvider(authorized),
+      grants: { stdoutWrite: true, stderrWrite: true },
+    }));
+    return await shell.exec("node -p '1 + 2'");
+  } finally {
+    await shell.dispose();
+  }
+}
+```
+
+All seven grants default denied; all24 profile caps are fixed, with no overrides.
+Provider `prepare` is synchronous/inert; acquisition belongs to `start`, and owned
+retirement/cleanup precedes settlement. The host protocols are not guest authority.
+Worker-L may abandon guest continuations after entry return; it is not all-jobs-
+settled, full Node/CommonJS, hard RSS or a whole-invocation5s guarantee. `.cjs`,
+inline eval/primitive print and noninteractive stdin have a finite synchronous
+text/JSON/path profile, not ESM/TLA, package search, local JS require, Buffer,
+async FS or `process.exit`. See [module limits](src/commands/node/README.md) and
+[author integration evidence](tests/integration/node-public-author-20260829/README.md).
+
 TypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses
 TypeScript, `tsx`, and `node:test`. The package is currently private/unpublished;
 the repository directory is `safe-bash`, while the package name is `virtual-bash`.

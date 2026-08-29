@@ -1,0 +1,8 @@
+import {nodeCommands,type NodeRuntimeProvider} from 'virtual-bash';
+declare const provider: NodeRuntimeProvider;
+nodeCommands({});
+nodeCommands({provider,replace:'yes'});
+nodeCommands({provider,grants:{stdoutWrite:1}});
+nodeCommands({provider,limits:{}});
+import {NodeOwner} from 'virtual-bash/commands/node';
+import {NodeHost} from 'virtual-bash/commands/node/host';

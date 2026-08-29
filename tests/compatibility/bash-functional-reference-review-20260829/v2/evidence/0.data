@@ -1,0 +1,25 @@
+{
+  "schema": "functional-reference-tool-approval-v2",
+  "status": "TEMPLATE_ONLY_NO_REQUEST_ISSUED",
+  "parameters": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stdout 2>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only this newly sealed 37-case test-only Bash3.2.57 functional cohort after accepted v2 review and exact ROOT grant; no OS-containment claim or product native fallback?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "requiredResolution": "Replace ONLY ROOT_APPROVED_GRANT_SHA256 with authenticated raw SHA256 of fresh mode0600 GO.json, then publish/review the resolved exact command before tool approval.",
+  "preexecution": [
+    "authenticate source PRESEAL and every file",
+    "authenticate exact accepted independent receipt and mode0600 grant path/bytes/hash",
+    "authenticate env Node Bash and WRAPPER-TOOL metadata",
+    "authenticate PREPROVISION parent mode/device/inode; capture paths absent, journal empty, cases/captures dirs empty",
+    "no previous reservation; no actual GO or approval is supplied by this template"
+  ],
+  "redirection": "MULTIOS disabled; noclobber create then same-owned-path read/write reopen; source-only, not hostile-concurrent-mutation atomicity",
+  "managedRoles": "one exec-replaced owner PID, 37 exact Bash children, zero admin children; 13 internal fork reservations separate/not observed"
+}

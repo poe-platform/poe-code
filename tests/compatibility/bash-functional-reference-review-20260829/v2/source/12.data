@@ -1,0 +1,12 @@
+{
+  "schema": "functional-wrapper-tool-metadata-v2",
+  "path": "/bin/zsh",
+  "bytes": 1361216,
+  "mode": 493,
+  "regular": true,
+  "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+  "version": "NOT_PROBED",
+  "execution": "NONE_THIS_PHASE",
+  "scope": "platform tool wrapper only; not Bash reference",
+  "preexecutionRequired": true
+}

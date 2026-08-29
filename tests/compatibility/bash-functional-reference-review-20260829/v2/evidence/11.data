@@ -1,0 +1,38 @@
+{
+  "schema": "preprovisioned-outer-capture-parents-v2",
+  "parents": [
+    {
+      "path": "/private/tmp/safe-bash-surface-functional-v2-20260829-01",
+      "mode": 448,
+      "device": "16777232",
+      "inode": "185724608",
+      "directory": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer",
+      "mode": 448,
+      "device": "16777232",
+      "inode": "185724609",
+      "directory": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases",
+      "mode": 448,
+      "device": "16777232",
+      "inode": "185724610",
+      "directory": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/captures",
+      "mode": 448,
+      "device": "16777232",
+      "inode": "185724611",
+      "directory": true
+    }
+  ],
+  "stdoutAbsent": true,
+  "stderrAbsent": true,
+  "journalEmpty": true,
+  "createdDuringPreparation": true,
+  "controlRoot": "/tmp/bash-functional-launcher-v2-prep-JKgaZw/controls"
+}

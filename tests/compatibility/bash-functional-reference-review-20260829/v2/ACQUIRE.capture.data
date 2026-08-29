@@ -1,0 +1,10 @@
+{"phase":"start","at":"2026-08-29T07:27:18.535Z"}
+{"phase":"enrolled","starts":1,"args":["ls-tree","-r","-z","a5fd225af5f9985ae805f48ab1b1790a9c3fbc7f","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v2"]}
+{"phase":"retired","starts":1,"status":0,"signal":null,"stdoutBytes":3385,"stderrBytes":0}
+{"phase":"enrolled","starts":2,"args":["cat-file","--batch"]}
+{"phase":"retired","starts":2,"status":0,"signal":null,"stdoutBytes":148294,"stderrBytes":0}
+{"phase":"enrolled","starts":3,"args":["ls-tree","-r","-z","f9fe59338cf01863735ee67bef5ae03ef993d053","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v2"]}
+{"phase":"retired","starts":3,"status":0,"signal":null,"stdoutBytes":4609,"stderrBytes":0}
+{"phase":"enrolled","starts":4,"args":["cat-file","--batch"]}
+{"phase":"retired","starts":4,"status":0,"signal":null,"stdoutBytes":292475,"stderrBytes":0}
+{"phase":"complete","starts":4}

@@ -1,0 +1,56 @@
+{
+  "schema": "functional-reference-v2",
+  "runRoot": "/private/tmp/safe-bash-surface-functional-v2-20260829-01",
+  "outerCaptures": {
+    "stdout": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stdout",
+    "stderr": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stderr",
+    "mustNotExistBeforeActivation": true,
+    "streamEOF": null
+  },
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 80,
+    "knownPeakCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 37,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 13,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "rootRatification": {
+    "failedLookups": {
+      "B20": "mapfile",
+      "B21": "readarray",
+      "B39": "__surface_missing_command__"
+    },
+    "withheld": [
+      "B26",
+      "B27",
+      "B28"
+    ]
+  },
+  "publication": {
+    "insideDeadline": "all owned raw captures, observations, summaries and terminal records",
+    "laterGit": "NOT implicitly authorized or included; separate administrative permission required if outside closed actual-run window"
+  },
+  "processRoles": {
+    "owner": "exec-replaced tool shell -> env -> Node; one managed PID/start, separate executable roles",
+    "native": "exact37 sequential managed children",
+    "administrativeChildren": [],
+    "sourceForks": "13 planning reservations; not directly observed and not an OS quota"
+  },
+  "profile": "FUNCTIONAL_ONLY_NOT_OS_CONTAINMENT",
+  "nativeGo": false
+}

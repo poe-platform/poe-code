@@ -1,0 +1,226 @@
+{
+  "status": "REVIEW_COMPLETE_TWO_BOUNDARY_FINDINGS",
+  "sourceCommit": "a5fd225af5f9985ae805f48ab1b1790a9c3fbc7f",
+  "evidenceCommit": "f9fe59338cf01863735ee67bef5ae03ef993d053",
+  "presealSha256": "384950a91459ff0ee66449a0604313b7af5af162b252426fe53ce787706a4dda",
+  "templateSha256": "d63d67428d19804b43177fe7d1671bb89c12496b16de78fc11c65fe6ffa12ff9",
+  "authorControlIdentities": 12,
+  "novelIdentities": 10,
+  "matchedObservations": 22,
+  "matchedDoesNotMeanLaunchAcceptance": true,
+  "actualNodeProcessesIncludingControlOwner": 5,
+  "wrapperShellRoles": 3,
+  "knownDistinctControlPids": 7,
+  "metadataAndPublicationSeparate": true,
+  "lifecycle": [
+    {
+      "id": "C11",
+      "status": 0,
+      "signal": null,
+      "stop": "CASE_DEADLINE",
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "termToKillMs": null,
+      "termToFinishMs": 172,
+      "observations": [
+        {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          },
+          "at": 1787988706841,
+          "afterKill": false
+        }
+      ]
+    },
+    {
+      "id": "C12",
+      "status": null,
+      "signal": "SIGKILL",
+      "stop": "CASE_DEADLINE",
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "termToKillMs": 2011,
+      "termToFinishMs": 2032,
+      "observations": [
+        {
+          "state": "present",
+          "error": null,
+          "at": 1787988711870,
+          "afterKill": true
+        },
+        {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          },
+          "at": 1787988711882,
+          "afterKill": true
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "status": 0,
+      "signal": null,
+      "stop": "CALLER_ABORT",
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "termToKillMs": null,
+      "termToFinishMs": 68,
+      "observations": [
+        {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          },
+          "at": 1787988712229,
+          "afterKill": false
+        }
+      ]
+    }
+  ],
+  "nativeEntry": 0,
+  "bash": 0,
+  "eligibleUnrun": 37,
+  "withheldUnrun": 3,
+  "goResolved": false,
+  "acceptReceiptCreated": false,
+  "findings": [
+    "R1 emergency terminal publication skips overall deadline",
+    "R2 actual tool-shell startup differs from clean-env derivative"
+  ],
+  "postIntegrity": "ALL_BOUND_FILES_UNCHANGED",
+  "workDeletion": "NONE; owned evidence retained",
+  "processBudget": {
+    "grant": 64,
+    "visibleRoleStartsThroughPlannedSuccessfulPublication": 51,
+    "editWrapperAdditionalConservativeAllowance": 4,
+    "totalConservative": 55,
+    "peakKnown": 3,
+    "notKernelCensus": true
+  }
+}

@@ -1,0 +1,467 @@
+{
+  "schema": "launcher-v2-control-results",
+  "status": "COMPLETE",
+  "sourceSealSha256": "184fe18871faeb0eee80fe3ae353f3657f2647368fa9cd619c6b416330a54fb5",
+  "results": [
+    {
+      "id": "C01",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "result": {
+          "captures": [
+            {
+              "name": "stdout",
+              "flush": false,
+              "size": true,
+              "hash": true,
+              "close": true,
+              "bytes": 1,
+              "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+              "base64": "QQ=="
+            },
+            {
+              "name": "stderr",
+              "flush": true,
+              "size": true,
+              "hash": true,
+              "close": true,
+              "bytes": 1,
+              "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+              "base64": "QQ=="
+            }
+          ],
+          "errors": [
+            {
+              "phase": "flush",
+              "name": "stdout",
+              "code": "EIO",
+              "message": "injected EIO"
+            }
+          ],
+          "success": false
+        },
+        "closed": [
+          11,
+          12
+        ]
+      }
+    },
+    {
+      "id": "C02",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "result": {
+          "captures": [
+            {
+              "name": "stdout",
+              "flush": true,
+              "size": true,
+              "hash": true,
+              "close": false,
+              "bytes": 1,
+              "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+              "base64": "QQ==",
+              "cleanupClose": true
+            },
+            {
+              "name": "stderr",
+              "flush": true,
+              "size": true,
+              "hash": true,
+              "close": true,
+              "bytes": 1,
+              "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+              "base64": "QQ=="
+            }
+          ],
+          "errors": [
+            {
+              "phase": "close",
+              "name": "stdout",
+              "code": "EIO",
+              "message": "injected close"
+            }
+          ],
+          "success": false
+        },
+        "closed": [
+          "failed",
+          11,
+          12
+        ]
+      }
+    },
+    {
+      "id": "C03",
+      "kind": "DATA",
+      "matched": true,
+      "detail": {
+        "negativeVariants": 6
+      }
+    },
+    {
+      "id": "C04",
+      "kind": "DATA",
+      "matched": true,
+      "detail": {
+        "authority": "SYNTHETIC_ONLY"
+      }
+    },
+    {
+      "id": "C05",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "ledger": {
+          "max": 3,
+          "peak": 2,
+          "starts": 3,
+          "active": 1,
+          "peakCharged": 2,
+          "confirmedStarts": 1,
+          "activeConfirmed": 1,
+          "peakConfirmed": 1,
+          "confirmedRoles": {
+            "owner": 1
+          },
+          "roles": {
+            "owner": 1,
+            "control": 2
+          },
+          "sourceForkReservations": 0
+        }
+      }
+    },
+    {
+      "id": "C06",
+      "kind": "DATA_SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "beforeWriteCapture": true,
+        "beforeWriteWork": true,
+        "observedOvershoot": true
+      }
+    },
+    {
+      "id": "C07",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "tail": 60000
+      }
+    },
+    {
+      "id": "C08",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "unknown": {
+          "state": "unknown",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "EPERM"
+              },
+              "errno": {
+                "presence": "absent"
+              },
+              "syscall": {
+                "presence": "absent"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "C09",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "schedule": {
+          "termAt": 123,
+          "killAt": 2123,
+          "endAt": 3123
+        }
+      }
+    },
+    {
+      "id": "C10",
+      "kind": "SYNTHETIC",
+      "matched": true,
+      "detail": {
+        "valid": 1,
+        "negativeVariants": 8
+      }
+    },
+    {
+      "id": "C11",
+      "kind": "ACTUAL_NODE_FIXTURE",
+      "matched": true,
+      "row": {
+        "id": "C11",
+        "started": 1787987556603,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": "CASE_DEADLINE",
+        "errors": [],
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 1787987559605,
+            "sent": true,
+            "error": null
+          }
+        ],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1787987559773,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 11,
+            "sha256": "077939ad6c652025a8c6c7aa1de0d13379e460382e8e96b6bfa875b5753d53de",
+            "base64": "VjJfREVMQVlFRAo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 46918,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "termAttemptAt": 1787987559605,
+        "cleanupClock": {
+          "termAt": 1787987559605,
+          "killAt": 1787987561605,
+          "endAt": 1787987562605
+        },
+        "retired": true,
+        "finished": 1787987559779
+      }
+    },
+    {
+      "id": "C12",
+      "kind": "ACTUAL_NODE_FIXTURE",
+      "matched": true,
+      "row": {
+        "id": "C12",
+        "started": 1787987559786,
+        "exit": true,
+        "close": true,
+        "status": null,
+        "signal": "SIGKILL",
+        "stop": "CASE_DEADLINE",
+        "errors": [],
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 1787987562796,
+            "sent": true,
+            "error": null
+          },
+          {
+            "signal": "SIGKILL",
+            "at": 1787987564798,
+            "sent": true,
+            "error": null
+          }
+        ],
+        "groupObservations": [
+          {
+            "state": "present",
+            "error": null,
+            "at": 1787987564798,
+            "afterKill": true
+          },
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1787987564810,
+            "afterKill": true
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "3b2dcb1907dd612d52fa946bef97a6ae1aa857dd55ec04a44a04236d5402eb9b",
+            "base64": "VjJfS0lMTAo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 46994,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "termAttemptAt": 1787987562796,
+        "cleanupClock": {
+          "termAt": 1787987562796,
+          "killAt": 1787987564796,
+          "endAt": 1787987565796
+        },
+        "retired": true,
+        "finished": 1787987564820
+      }
+    }
+  ],
+  "synthetic": 10,
+  "actualLiteralFixtures": 2,
+  "knownNodeStartsIncludingOwner": 3,
+  "ledger": {
+    "max": 3,
+    "peak": 2,
+    "starts": 3,
+    "active": 1,
+    "peakCharged": 2,
+    "confirmedStarts": 3,
+    "activeConfirmed": 1,
+    "peakConfirmed": 2,
+    "confirmedRoles": {
+      "owner": 1,
+      "control": 2
+    },
+    "roles": {
+      "owner": 1,
+      "control": 2
+    },
+    "sourceForkReservations": 0
+  },
+  "nativeBash": 0,
+  "product": 0,
+  "finished": 1787987564825
+}

@@ -1,0 +1,414 @@
+{
+  "schema": "v1-v2-functional-input-delta",
+  "auditSha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6",
+  "all40ProgramsAndFourFixturesByteIdentical": true,
+  "rows": [
+    {
+      "id": "B01",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B01/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B01/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B02",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B02/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B02/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B03",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B03/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B03/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B04",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B04/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B04/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B05",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B05/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B05/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B06",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B06/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B06/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B07",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B07/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B07/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B08",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B08/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B08/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B09",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B09/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B09/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B10",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B10/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B10/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B11",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B11/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B11/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B12",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B12/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B12/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B13",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B13/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B13/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B14",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B14/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B14/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B15",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B15/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B15/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B16",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B16/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B16/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B17",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B17/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B17/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B18",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B18/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B18/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B19",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B19/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B19/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B20",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B20/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B20/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B21",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B21/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B21/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B22",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B22/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B22/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B23",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B23/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B23/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B24",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B24/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B24/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B25",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B25/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B25/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B29",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B29/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B29/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B30",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B30/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B30/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B31",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B31/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B31/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B32",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B32/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B32/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B33",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B33/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B33/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B34",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B34/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B34/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B35",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B35/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B35/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B36",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B36/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B36/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B37",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B37/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B37/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B38",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B38/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B38/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B39",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B39/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B39/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    },
+    {
+      "id": "B40",
+      "programAndStdinUnchanged": true,
+      "oldCwd": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B40/work",
+      "newCwd": "/private/tmp/safe-bash-surface-functional-v2-20260829-01/cases/B40/work",
+      "onlyOtherChangedFields": [
+        "environment.HOME",
+        "environment.TMPDIR",
+        "environment.PATH"
+      ]
+    }
+  ]
+}

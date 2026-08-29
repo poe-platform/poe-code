@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "role": "Two DATA helpers, zero product imports or Worker construction",
+  "producerSha256": "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02",
+  "helpers": [
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "materialize-layouts.mjs",
+      "size": 2623,
+      "sha256": "42cee557241e1543b3092fb36eb5fdb55ce2b447ba9be3de426ed96b148086f0"
+    },
+    {
+      "name": "data-controls.mjs",
+      "size": 3690,
+      "sha256": "baaf5849d8f1eca39368112fd3c84919e89e80960c007c22f118ebd77a45cde4"
+    }
+  ],
+  "commands": [
+    [
+      "materialize-layouts.mjs",
+      "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02"
+    ],
+    [
+      "data-controls.mjs",
+      "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02"
+    ]
+  ],
+  "plannedGroups": 14,
+  "limits": {
+    "DATAprocesses": 2,
+    "perProcessMilliseconds": 30000,
+    "captureBytes": 4194304,
+    "workBytes": 8388608
+  },
+  "priorCompilerProcesses": 1,
+  "priorControllerHelpers": 1,
+  "Workers": 0,
+  "productImports": 0
+}

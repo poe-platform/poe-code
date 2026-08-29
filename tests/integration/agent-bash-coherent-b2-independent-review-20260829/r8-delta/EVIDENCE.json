@@ -1,0 +1,57 @@
+{
+  "status": "INDEPENDENT_REVIEW_INCOMPLETE_HOLD",
+  "startedUTC": "2026-08-29T16:37:16.115Z",
+  "publicationPID": 65359,
+  "originalOwnerToolExit": 78,
+  "independentControlsExecuted": 0,
+  "candidateRuntimeExecuted": 0,
+  "sourceReviewComplete": false,
+  "fullTaskProcessCensus": "NOT_ESTABLISHED",
+  "copiedBytes": 44724,
+  "records": [
+    {
+      "name": "owner.stdout",
+      "source": "/private/tmp/b2-r8-independent-delta-review.stdout",
+      "bytes": 30568,
+      "mode": 420,
+      "sha256": "7164bf32d2270547b40ffdfd32b3f8dc94b9c538836c9951ba59baef898f071b"
+    },
+    {
+      "name": "owner.stderr",
+      "source": "/private/tmp/b2-r8-independent-delta-review.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "STOP.json",
+      "source": "/private/tmp/b2-r8-independent-delta-review/STOP.json",
+      "bytes": 3823,
+      "mode": 420,
+      "sha256": "dc3c0327191e28759c717274496437d087b88948d291ade3db125641a6d88f45"
+    },
+    {
+      "name": "first-check-read.json",
+      "source": "/private/tmp/b2-r8-independent-delta-review/read-ed8d77d06e7c.json",
+      "bytes": 6346,
+      "mode": 420,
+      "sha256": "420002fef4b60e58c36c0ef16e3e75a5cfddaf8cd657382d768c7e2bc3dd2422"
+    },
+    {
+      "name": "checkpoint.stdout",
+      "source": "/private/tmp/b2-r8-independent-delta-checkpoint.stdout",
+      "bytes": 3987,
+      "mode": 420,
+      "sha256": "f82a9dc5f55a19679cec7cb34a9ea034e19794ad7f054ed143782285928d0269"
+    },
+    {
+      "name": "checkpoint.stderr",
+      "source": "/private/tmp/b2-r8-independent-delta-checkpoint.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "publicationOwnerState": "EXIT_PENDING_EXTERNAL_OBSERVATION",
+  "priorFailurePreserved": true
+}

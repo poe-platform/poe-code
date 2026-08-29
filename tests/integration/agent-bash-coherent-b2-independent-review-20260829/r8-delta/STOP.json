@@ -1,0 +1,137 @@
+{
+  "message": "EEXIST: file already exists, open '/private/tmp/b2-r8-independent-delta-review/read-ed8d77d06e7c.json'",
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-60273",
+      "role": "administrative-owner",
+      "pid": 60273,
+      "startUTC": "2026-08-29T16:32:23.797Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "git-root-60275",
+        "role": "git-root",
+        "pid": 60275,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "startUTC": "2026-08-29T16:32:23.861Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:32:24.075Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:32:24.075Z"
+      },
+      {
+        "id": "git-scoped-status-60288",
+        "role": "git-scoped-status",
+        "pid": 60288,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-b2-independent-review-20260829/r8-delta"
+        ],
+        "startUTC": "2026-08-29T16:32:24.077Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:32:24.151Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:32:24.151Z"
+      },
+      {
+        "id": "git-author-tree-60312",
+        "role": "git-author-tree",
+        "pid": 60312,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "ls-tree",
+          "-rz",
+          "8bb8e583047fcf8929150cd69f455c2d918db513",
+          "--",
+          "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2"
+        ],
+        "startUTC": "2026-08-29T16:32:24.154Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:32:24.189Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:32:24.189Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "git-root",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "atUTC": "2026-08-29T16:32:23.860Z",
+        "spawned": true
+      },
+      {
+        "role": "git-scoped-status",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-b2-independent-review-20260829/r8-delta"
+        ],
+        "atUTC": "2026-08-29T16:32:24.077Z",
+        "spawned": true
+      },
+      {
+        "role": "git-author-tree",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "ls-tree",
+          "-rz",
+          "8bb8e583047fcf8929150cd69f455c2d918db513",
+          "--",
+          "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2"
+        ],
+        "atUTC": "2026-08-29T16:32:24.154Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 4,
+    "activeKnownPIDs": [],
+    "captureBytes": 28900,
+    "metadataBytes": 28549,
+    "elapsedMs": 12002.743958000001,
+    "poisoned": false
+  }
+}

@@ -1,0 +1,11 @@
+(node:71739) SecurityWarning: The flag --allow-child-process must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls-v3.mjs:6
+const check=(id,pass,record,extra={})=>{const row={id,pass:pass===true,...startupReceipt(record),...extra};rows.push(row);process.stdout.write(JSON.stringify(row)+'\n');if(!row.pass)throw Error('startup control '+id);};
+                                                                                                                                                                                            ^
+
+Error: startup control S05
+    at check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls-v3.mjs:6:189)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls-v3.mjs:13:320
+
+Node.js v22.22.2

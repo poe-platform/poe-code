@@ -75,7 +75,7 @@ const transportBridge: NodeBridge = function (op, authority, path, flag, body, m
     if (reply.phase !== phases.data || reply.total !== bytes || reply.offset !== copied || reply.bytes.length !== Math.min(65536, bytes - copied)) throw new NodeProfileError("result data reply");
     assembled.set(reply.bytes, copied); copied += reply.bytes.length;
   }
-  const resultText = metadata.kind === "text" ? new TextDecoder("utf-8", { fatal: true }).decode(assembled) : null;
+    const resultText = metadata.kind === "text" ? new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(assembled) : null;
   assembled = undefined;
   reply = exchange(phases.final, bytes, copied);
   if (reply.phase !== phases.final || reply.total !== 0 || reply.offset !== 0 || reply.bytes.length !== 0) throw new NodeProfileError("final reply");

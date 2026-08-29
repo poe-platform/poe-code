@@ -118,7 +118,7 @@ class WorkerSession {
   }
   async #perform(input: NodeFrame): Promise<void> {
     const incoming = this.#incoming!;
-    const body = incoming.request.text === null ? null : new TextDecoder("utf-8", { fatal: true }).decode(incoming.bytes);
+    const body = incoming.request.text === null ? null : new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(incoming.bytes);
     const request = { ...incoming.request, text: body };
     this.#event("request", request.sequence);
     this.#result = await this.services.request(request);

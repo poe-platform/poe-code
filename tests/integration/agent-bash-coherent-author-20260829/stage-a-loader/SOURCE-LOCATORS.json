@@ -1,0 +1,408 @@
+[
+  {
+    "file": "primary/lib__fs.js.txt",
+    "line": 2815,
+    "lines": [
+      {
+        "line": 2810,
+        "text": "        if (seenLinks.has(id)) {"
+      },
+      {
+        "line": 2811,
+        "text": "          linkTarget = seenLinks.get(id);"
+      },
+      {
+        "line": 2812,
+        "text": "        }"
+      },
+      {
+        "line": 2813,
+        "text": "      }"
+      },
+      {
+        "line": 2814,
+        "text": "      if (linkTarget === null) {"
+      },
+      {
+        "line": 2815,
+        "text": "        binding.stat(base, false, undefined, true);"
+      },
+      {
+        "line": 2816,
+        "text": "        linkTarget = binding.readlink(base, undefined);"
+      },
+      {
+        "line": 2817,
+        "text": "      }"
+      },
+      {
+        "line": 2818,
+        "text": "      resolvedLink = pathModule.resolve(previous, linkTarget);"
+      },
+      {
+        "line": 2819,
+        "text": ""
+      },
+      {
+        "line": 2820,
+        "text": "      cache?.set(base, resolvedLink);"
+      },
+      {
+        "line": 2821,
+        "text": "      if (!isWindows) seenLinks.set(id, linkTarget);"
+      },
+      {
+        "line": 2822,
+        "text": "    }"
+      }
+    ]
+  },
+  {
+    "file": "primary/lib__internal__modules__run_main.js.txt",
+    "line": 28,
+    "lines": [
+      {
+        "line": 23,
+        "text": "} = internalBinding('util');"
+      },
+      {
+        "line": 24,
+        "text": "/**"
+      },
+      {
+        "line": 25,
+        "text": " * Get the absolute path to the main entry point."
+      },
+      {
+        "line": 26,
+        "text": " * @param {string} main - Entry point path"
+      },
+      {
+        "line": 27,
+        "text": " */"
+      },
+      {
+        "line": 28,
+        "text": "function resolveMainPath(main) {"
+      },
+      {
+        "line": 29,
+        "text": "  const defaultType = getOptionValue('--experimental-default-type');"
+      },
+      {
+        "line": 30,
+        "text": "  /** @type {string} */"
+      },
+      {
+        "line": 31,
+        "text": "  let mainPath;"
+      },
+      {
+        "line": 32,
+        "text": "  if (defaultType === 'module') {"
+      },
+      {
+        "line": 33,
+        "text": "    if (getOptionValue('--preserve-symlinks-main')) { return; }"
+      },
+      {
+        "line": 34,
+        "text": "    mainPath = path.resolve(main);"
+      },
+      {
+        "line": 35,
+        "text": "  } else {"
+      }
+    ]
+  },
+  {
+    "file": "primary/lib__internal__modules__helpers.js.txt",
+    "line": 60,
+    "lines": [
+      {
+        "line": 55,
+        "text": "const realpathCache = new SafeMap();"
+      },
+      {
+        "line": 56,
+        "text": "/**"
+      },
+      {
+        "line": 57,
+        "text": " * Resolves the path of a given `require` specifier, following symlinks."
+      },
+      {
+        "line": 58,
+        "text": " * @param {string} requestPath The `require` specifier"
+      },
+      {
+        "line": 59,
+        "text": " */"
+      },
+      {
+        "line": 60,
+        "text": "function toRealPath(requestPath) {"
+      },
+      {
+        "line": 61,
+        "text": "  return fs.realpathSync(requestPath, {"
+      },
+      {
+        "line": 62,
+        "text": "    [internalFS.realpathCacheKey]: realpathCache,"
+      },
+      {
+        "line": 63,
+        "text": "  });"
+      },
+      {
+        "line": 64,
+        "text": "}"
+      },
+      {
+        "line": 65,
+        "text": ""
+      },
+      {
+        "line": 66,
+        "text": "/** @type {Set<string>} */"
+      },
+      {
+        "line": 67,
+        "text": "let cjsConditions;"
+      }
+    ]
+  },
+  {
+    "file": "primary/lib__internal__modules__cjs__loader.js.txt",
+    "line": 733,
+    "lines": [
+      {
+        "line": 728,
+        "text": "      if (rc === 0) {  // File."
+      },
+      {
+        "line": 729,
+        "text": "        if (!isMain) {"
+      },
+      {
+        "line": 730,
+        "text": "          if (getOptionValue('--preserve-symlinks')) {"
+      },
+      {
+        "line": 731,
+        "text": "            filename = path.resolve(basePath);"
+      },
+      {
+        "line": 732,
+        "text": "          } else {"
+      },
+      {
+        "line": 733,
+        "text": "            filename = toRealPath(basePath);"
+      },
+      {
+        "line": 734,
+        "text": "          }"
+      },
+      {
+        "line": 735,
+        "text": "        } else if (getOptionValue('--preserve-symlinks-main')) {"
+      },
+      {
+        "line": 736,
+        "text": "          // For the main module, we use the --preserve-symlinks-main flag instead"
+      },
+      {
+        "line": 737,
+        "text": "          // mainly for backward compatibility, as the preserveSymlinks flag"
+      },
+      {
+        "line": 738,
+        "text": "          // historically has not applied to the main module.  Most likely this"
+      },
+      {
+        "line": 739,
+        "text": "          // was intended to keep .bin/ binaries working, as following those"
+      },
+      {
+        "line": 740,
+        "text": "          // symlinks is usually required for the imports in the corresponding"
+      }
+    ]
+  },
+  {
+    "file": "primary/lib__internal__modules__cjs__loader.js.txt",
+    "line": 746,
+    "lines": [
+      {
+        "line": 741,
+        "text": "          // files to resolve; that said, in some use cases following symlinks"
+      },
+      {
+        "line": 742,
+        "text": "          // causes bigger problems which is why the --preserve-symlinks-main option"
+      },
+      {
+        "line": 743,
+        "text": "          // is needed."
+      },
+      {
+        "line": 744,
+        "text": "          filename = path.resolve(basePath);"
+      },
+      {
+        "line": 745,
+        "text": "        } else {"
+      },
+      {
+        "line": 746,
+        "text": "          filename = toRealPath(basePath);"
+      },
+      {
+        "line": 747,
+        "text": "        }"
+      },
+      {
+        "line": 748,
+        "text": "      }"
+      },
+      {
+        "line": 749,
+        "text": ""
+      },
+      {
+        "line": 750,
+        "text": "      if (!filename) {"
+      },
+      {
+        "line": 751,
+        "text": "        // Try it with each of the extensions"
+      },
+      {
+        "line": 752,
+        "text": "        if (exts === undefined) {"
+      },
+      {
+        "line": 753,
+        "text": "          exts = ObjectKeys(Module._extensions);"
+      }
+    ]
+  },
+  {
+    "file": "primary/src__node_file.cc.txt",
+    "line": 1077,
+    "lines": [
+      {
+        "line": 1072,
+        "text": ""
+      },
+      {
+        "line": 1073,
+        "text": "constexpr bool is_uv_error_except_no_entry_dir(int result) {"
+      },
+      {
+        "line": 1074,
+        "text": "  return result < 0 && !(result == UV_ENOENT || result == UV_ENOTDIR);"
+      },
+      {
+        "line": 1075,
+        "text": "}"
+      },
+      {
+        "line": 1076,
+        "text": ""
+      },
+      {
+        "line": 1077,
+        "text": "static void Stat(const FunctionCallbackInfo<Value>& args) {"
+      },
+      {
+        "line": 1078,
+        "text": "  Realm* realm = Realm::GetCurrent(args);"
+      },
+      {
+        "line": 1079,
+        "text": "  BindingData* binding_data = realm->GetBindingData<BindingData>();"
+      },
+      {
+        "line": 1080,
+        "text": "  Environment* env = realm->env();"
+      },
+      {
+        "line": 1081,
+        "text": ""
+      },
+      {
+        "line": 1082,
+        "text": "  const int argc = args.Length();"
+      },
+      {
+        "line": 1083,
+        "text": "  CHECK_GE(argc, 3);"
+      },
+      {
+        "line": 1084,
+        "text": ""
+      }
+    ]
+  },
+  {
+    "file": "primary/src__node_file.cc.txt",
+    "line": 1128,
+    "lines": [
+      {
+        "line": 1123,
+        "text": "        static_cast<const uv_stat_t*>(req_wrap_sync.req.ptr));"
+      },
+      {
+        "line": 1124,
+        "text": "    args.GetReturnValue().Set(arr);"
+      },
+      {
+        "line": 1125,
+        "text": "  }"
+      },
+      {
+        "line": 1126,
+        "text": "}"
+      },
+      {
+        "line": 1127,
+        "text": ""
+      },
+      {
+        "line": 1128,
+        "text": "static void LStat(const FunctionCallbackInfo<Value>& args) {"
+      },
+      {
+        "line": 1129,
+        "text": "  Realm* realm = Realm::GetCurrent(args);"
+      },
+      {
+        "line": 1130,
+        "text": "  BindingData* binding_data = realm->GetBindingData<BindingData>();"
+      },
+      {
+        "line": 1131,
+        "text": "  Environment* env = realm->env();"
+      },
+      {
+        "line": 1132,
+        "text": ""
+      },
+      {
+        "line": 1133,
+        "text": "  const int argc = args.Length();"
+      },
+      {
+        "line": 1134,
+        "text": "  CHECK_GE(argc, 3);"
+      },
+      {
+        "line": 1135,
+        "text": ""
+      }
+    ]
+  }
+]

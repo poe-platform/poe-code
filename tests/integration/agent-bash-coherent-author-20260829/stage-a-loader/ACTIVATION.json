@@ -1,0 +1,8 @@
+{
+  "scope": "TWO_HARMLESS_LOADER_FIXTURES",
+  "authorization": "ROOT August 29 2026 fresh source diagnosis plus at most two harmless Node-entry fixtures; no producer retry or StageB",
+  "presealSha256": "cf07bed631f05f83db4a06b7058a0e6fb8a6a67672d0c0007ef0308291e8dc66",
+  "presealBytes": 2670,
+  "stageA": "CONSUMED_STOP_UNCHANGED",
+  "stageB": "UNRUN_NO_AUTHORITY"
+}

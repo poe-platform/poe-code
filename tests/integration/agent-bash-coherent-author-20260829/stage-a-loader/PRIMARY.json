@@ -1,0 +1,48 @@
+{
+  "tag": "v22.22.2",
+  "role": "OFFICIAL_PRIMARY_HTTPS_SOURCE_NOT_BINARY_REPRODUCIBLE_BUILD_ATTESTATION",
+  "primary": [
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/fs.js",
+      "filename": "primary/lib__fs.js.txt",
+      "bytes": 87228,
+      "sha256": "7ce17b5a74abfe1b988222f62522a70958bac154f1828a11b047379648c688b6",
+      "etag": "W/\"e4a35619a9e4a697e5a8a8e9fd8af8427f3b1449852f4b22ae8513b5c83698e5\""
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/modules/run_main.js",
+      "filename": "primary/lib__internal__modules__run_main.js.txt",
+      "bytes": 7147,
+      "sha256": "cd282d78d962d34e9f6970c2e50fd34f0e42402b3bbc89c3a6038819b147e4c6",
+      "etag": "W/\"616e013eff6cfda6055643b1f918eb762edb3fbc9b613444e2c8a0cfe78c79db\""
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/modules/helpers.js",
+      "filename": "primary/lib__internal__modules__helpers.js.txt",
+      "bytes": 13467,
+      "sha256": "7795490fc5e4e38161fca26132a0d2da0e03c7f9bdd08af7084c885a9ff00b44",
+      "etag": "W/\"8847eb64e3cc6798c0a45c21694394e7c0755cf5b89f8b71f1952f929d70cdc5\""
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/modules/cjs/loader.js",
+      "filename": "primary/lib__internal__modules__cjs__loader.js.txt",
+      "bytes": 67996,
+      "sha256": "b87c979ab4d14c4b57ee6e63bcf058b351703e3f29cb6528cd442561e13e7e7b",
+      "etag": "W/\"c31a67c805ea2cd62640471aa080ae25d21bf7003205a9b53b4bd77cf524bfdc\""
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_file.cc",
+      "filename": "primary/src__node_file.cc.txt",
+      "bytes": 137052,
+      "sha256": "d9bd85b74171f392d96217ca5e1fbf522b504c2cb94f0f84965ebd4ceee9ef06",
+      "etag": "W/\"ca3329a154435352523e9f335b4e7c403141de2edc4e4298e35bd05592967424\""
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/permission/fs_permission.cc",
+      "filename": "primary/src__permission__fs_permission.cc.txt",
+      "bytes": 7075,
+      "sha256": "e5348d8441ca02d29977adcc2484aa46028557e1a9bae2b375199d074724b5cb",
+      "etag": "W/\"bd43ebafca584bdcb9b56fd3f29e7cf70e4a13d93ce5c9435cebda0048e8bf8e\""
+    }
+  ]
+}

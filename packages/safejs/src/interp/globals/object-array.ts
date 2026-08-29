@@ -166,7 +166,10 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         MIN_SAFE_INTEGER: Number.MIN_SAFE_INTEGER,
         EPSILON: Number.EPSILON,
         MAX_VALUE: Number.MAX_VALUE,
-        MIN_VALUE: Number.MIN_VALUE
+        MIN_VALUE: Number.MIN_VALUE,
+        NaN: Number.NaN,
+        NEGATIVE_INFINITY: Number.NEGATIVE_INFINITY,
+        POSITIVE_INFINITY: Number.POSITIVE_INFINITY
       }
     }),
     Boolean: createSandboxClosure({

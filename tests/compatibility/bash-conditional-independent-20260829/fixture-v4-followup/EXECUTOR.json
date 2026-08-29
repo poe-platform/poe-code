@@ -1,0 +1,127 @@
+{
+  "role": "FRESH_BOUND_EXECUTABLE",
+  "source": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+  "files": [
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/SOURCE.json",
+      "bytes": 227922,
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/prepare.mjs",
+      "bytes": 598,
+      "sha256": "262b26b868d58b4fb75be9561205802de01e1e91436dbba09c72491d742b9a63"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-closure.mjs",
+      "bytes": 1367,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/TOOL-CENSUS.json",
+      "bytes": 558347,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/derived-tree.mjs",
+      "bytes": 2460,
+      "sha256": "035cc96d2379fc7065581cc6a051cd16d1a6f22b7486d707c23fc76568dfe244"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-observer.mjs",
+      "bytes": 1246,
+      "sha256": "96e0965c85070efb81e58be21a6a581d9bfec9bd85a86940b5c845261a6d71ef"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/NOVEL-CASES.json",
+      "bytes": 6004,
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/novel-v4.mjs",
+      "bytes": 3079,
+      "sha256": "70ed7cd33417d8356ee4cca9ce638418f0af9b853d60a1bcfd2329b918c0880f"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/STAGE-INPUTS.json",
+      "bytes": 2928,
+      "sha256": "65e8f657efedbb7b42e4b9cf04817c3d860529b443338058f8019a66efdc1dfa"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/stage-inputs.mjs",
+      "bytes": 1125,
+      "sha256": "dd8df916d553fc45b4f4fa33767c0c18ef2c865fd6849903d60ef70f5ca0110a"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PLAN.json",
+      "bytes": 2032,
+      "sha256": "5814d0d53d82966d1250c600883341f308e7b386df6b8d581280bc70087357a1"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/run.mjs",
+      "bytes": 26948,
+      "sha256": "4242fd612aa15e527e5834505aa5071785072c472525365e3fcde9ac01116140"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/launch.mjs",
+      "bytes": 5038,
+      "sha256": "c3d3131ec8b0baf2363e1f0634aacb851d7cff8808f1de91823e9f7d15073011"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PRESEAL.json",
+      "bytes": 11410,
+      "sha256": "dfdad31c61aaca090fe21ec501c55a7c98913e154eb9c35c5821f3fc84f7d02c"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admit.mjs",
+      "bytes": 3286,
+      "sha256": "8124f6d358bca356d358774079b241508a22cfa8b2136b1324a1efafc3247236"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/RECIPE.md",
+      "bytes": 3231,
+      "sha256": "dcb495f776f0420bef53f1bba0e02a51aaf0aa55c64d08451431e6638b7a6f25"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/RESULT.json",
+      "bytes": 3975711,
+      "sha256": "5aaa6245af4d173c5699c0a71ccb729bd7fb9ea75239bb1fccc4165d06d4120e"
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/OUTER.json",
+      "bytes": 197,
+      "sha256": "8cc78afeeb5d678ac861ea89ae9adf22898744598e6db1e891b3862d3bff3eb6"
+    }
+  ]
+}
+

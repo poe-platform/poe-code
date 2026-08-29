@@ -1,0 +1,85 @@
+{
+  "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6",
+  "commit": "d7ec5e26c34a26ec9194ddc88d5159fecf4abeca",
+  "inputs": [
+    {
+      "from": "SOURCE.json",
+      "blob": "29a9ada8f0573b2667a63cb7e0e605011b218bec",
+      "bytes": 227922,
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32"
+    },
+    {
+      "from": "prepare.mjs",
+      "blob": "ba192587a4654379c6e1066fb7e20ea847ec513e",
+      "bytes": 598,
+      "sha256": "262b26b868d58b4fb75be9561205802de01e1e91436dbba09c72491d742b9a63"
+    },
+    {
+      "from": "loader.mjs",
+      "blob": "f92cd818d9965c7b48211cd6ad3e5b86680d6164",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "from": "resources.mjs",
+      "blob": "efd880e3a394fa4e1b2e1a5c0063edf220572255",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "from": "worker-policy.mjs",
+      "blob": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "from": "internal-loader-arguments.mjs",
+      "blob": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "from": "hash-regular-file.mjs",
+      "blob": "2f5d1436cf40ed0548146e9cf9801427bcecd4d1",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "from": "tool-closure.mjs",
+      "blob": "b284e2fa16114ffef9c5f902246b4405450f038c",
+      "bytes": 1367,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d"
+    },
+    {
+      "from": "TOOL-CENSUS.json",
+      "blob": "2727840ce30d0b5ccf3131cb16d677e51f0d77e9",
+      "bytes": 558347,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791"
+    },
+    {
+      "from": "derived-tree.mjs",
+      "blob": "e09b0686dafc2f37585df936d6c9aa55be96bff3",
+      "bytes": 2460,
+      "sha256": "035cc96d2379fc7065581cc6a051cd16d1a6f22b7486d707c23fc76568dfe244"
+    },
+    {
+      "from": "tool-observer.mjs",
+      "blob": "dff3787819c78123f6b2871db1b7024d71daec29",
+      "bytes": 1246,
+      "sha256": "96e0965c85070efb81e58be21a6a581d9bfec9bd85a86940b5c845261a6d71ef"
+    },
+    {
+      "from": "fixtures/conditional.mjs",
+      "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "from": "NOVEL-CASES.json",
+      "blob": "2e40cdffae67049a288cc37e2661c0bdc476d40a",
+      "bytes": 6004,
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805"
+    }
+  ]
+}
+

@@ -1,0 +1,25 @@
+[main bf30795be] Seal ERE T1 r2 final immutable DATA authentication and publication controls
+ 24 files changed, 600 insertions(+), 1 deletion(-)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/CONTROL-RESULT.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/DATA-RESULT.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/FINAL-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/LAUNCH-TOOLS.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/OWNER-CONTROL-RESULT.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/H2-syntax.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/H2.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/H2.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/H3.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/H3.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/add03.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/add03.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/clock-false.receipt.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/clock-false.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/clock-false.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/commit02.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/commit02.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/normal.receipt.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/normal.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/normal.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/patch08.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/capture/patch08.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/finalize-data.mjs

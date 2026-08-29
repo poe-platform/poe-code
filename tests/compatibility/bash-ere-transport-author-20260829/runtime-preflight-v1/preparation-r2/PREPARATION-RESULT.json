@@ -1,0 +1,194 @@
+{
+  "schema": 2,
+  "status": "READY_FOR_DIFFERENT_PREEXECUTION_REVIEW_ONLY",
+  "sampledAt": "2026-08-29T12:58:46.695Z",
+  "started": "2026-08-29T12:38:10.135Z",
+  "source": "bf30795be31f725eceb6a9d141f369e93340693d",
+  "originalStop": "8cb3658469abf714b95557b167cd92ae0c7325c1",
+  "knownOSClosedThroughThisReceipt": 24,
+  "knownRoles": [
+    {
+      "number": 1,
+      "role": "scoped Git status",
+      "closed": true
+    },
+    {
+      "number": 2,
+      "role": "apply_patch01",
+      "closed": true
+    },
+    {
+      "number": 3,
+      "role": "Git add01",
+      "closed": true
+    },
+    {
+      "number": 4,
+      "role": "Git commit01",
+      "closed": true
+    },
+    {
+      "number": 5,
+      "role": "H1 syntax diagnosis exit1",
+      "closed": true
+    },
+    {
+      "number": 6,
+      "role": "apply_patch02",
+      "closed": true
+    },
+    {
+      "number": 7,
+      "role": "apply_patch03",
+      "closed": true
+    },
+    {
+      "number": 8,
+      "role": "apply_patch04",
+      "closed": true
+    },
+    {
+      "number": 9,
+      "role": "apply_patch05",
+      "closed": true
+    },
+    {
+      "number": 10,
+      "role": "apply_patch06",
+      "closed": true
+    },
+    {
+      "number": 11,
+      "role": "apply_patch07",
+      "closed": true
+    },
+    {
+      "number": 12,
+      "role": "Git add02",
+      "closed": true
+    },
+    {
+      "number": 13,
+      "role": "Git commit02",
+      "closed": true
+    },
+    {
+      "number": 14,
+      "role": "H2 syntax/DATA/materialization exit0",
+      "closed": true
+    },
+    {
+      "number": 15,
+      "role": "H3 owner controller exit0",
+      "closed": true
+    },
+    {
+      "number": 16,
+      "role": "H4 harmless normal PID43939 exit0",
+      "closed": true
+    },
+    {
+      "number": 17,
+      "role": "H5 harmless held PID43940 SIGTERM",
+      "closed": true
+    },
+    {
+      "number": 18,
+      "role": "apply_patch08",
+      "closed": true
+    },
+    {
+      "number": 19,
+      "role": "Git add03",
+      "closed": true
+    },
+    {
+      "number": 20,
+      "role": "Git commit03",
+      "closed": true
+    },
+    {
+      "number": 21,
+      "role": "H6 final DATA exit0",
+      "closed": true
+    },
+    {
+      "number": 22,
+      "role": "Git commit metadata",
+      "closed": true
+    },
+    {
+      "number": 23,
+      "role": "apply_patch09",
+      "closed": true
+    },
+    {
+      "number": 24,
+      "role": "Git diff check",
+      "closed": true
+    }
+  ],
+  "reservedPublicationStarts": 4,
+  "totalProposedThroughPublication": 28,
+  "knownOSLimit": 56,
+  "peakKnownOS": 3,
+  "existingOuterToolOwner": "already present; included in peak, not counted as new child",
+  "helperStarts": 6,
+  "helpers": {
+    "H1": 1,
+    "H2": 1,
+    "H3": 1,
+    "H4": 1,
+    "H5": 1,
+    "H6": 1
+  },
+  "controls": {
+    "retainedDataReplay": 14,
+    "newH2": 16,
+    "newH6": 3,
+    "harmlessChildren": 2,
+    "harmlessChildrenClosed": 2,
+    "rescue": 0
+  },
+  "syntax": {
+    "H1": {
+      "files": 28,
+      "diagnostics": 1,
+      "code": 1487,
+      "exit": 1
+    },
+    "H2": {
+      "files": 16,
+      "diagnostics": 0,
+      "exit": 0
+    },
+    "H6": {
+      "files": 17,
+      "diagnostics": 0,
+      "exit": 0
+    }
+  },
+  "Workers": 0,
+  "compiler": 0,
+  "productImports": 0,
+  "matching": 0,
+  "allRuntimeVariants": "60 UNRUN",
+  "resourceSnapshot": {
+    "fileBasedHelper": "data-support.mjs#census",
+    "helperSha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017",
+    "explicitRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2",
+    "entries": 5057,
+    "bytes": 23896850,
+    "captureEntries": 55,
+    "captureBytes": 22408,
+    "scope": "fresh r2 only; inherited r1 compiler/layout bytes retained unchanged, no new copies/build; numeric snapshot precedes final publication"
+  },
+  "unknowns": [
+    "Full host OS/V8/helper-thread census not claimed",
+    "TERM actual for one harmless child only; KILL remains SOURCE-only",
+    "All actual Worker loader, retirement, cancellation and matching semantics UNRUN",
+    "No inherited authority from expr/Node/comparison campaigns"
+  ],
+  "executionPresealSha256": "97c27022e9f5b80be43c2b74e5e2901a970ac52138ec653336d6e38a62d3430c",
+  "authoritySha256": "3f200a4f93160caa9ba5c6cad93dfb185fc3cefd994157ef92f71aebd90529b5"
+}

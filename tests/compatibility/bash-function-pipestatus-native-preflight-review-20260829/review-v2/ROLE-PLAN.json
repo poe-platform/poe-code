@@ -1,0 +1,59 @@
+{
+  "grantStart": "2026-08-29T13:00:32.791Z",
+  "deadline": "2026-08-29T13:15:32.791Z",
+  "limits": {
+    "knownOS": 64,
+    "peak": 4,
+    "capture": 67108864,
+    "work": 268435456
+  },
+  "roles": [
+    {
+      "name": "bootstrap apply_patch",
+      "reserved": 3
+    },
+    {
+      "name": "six sequential owner invocations",
+      "reserved": 6
+    },
+    {
+      "name": "old publication Git add/commit/status",
+      "reserved": 3
+    },
+    {
+      "name": "prepare syntax Node child",
+      "reserved": 2
+    },
+    {
+      "name": "preseal Git add/commit",
+      "reserved": 2
+    },
+    {
+      "name": "cohort controller plus two sequential Node fixtures",
+      "reserved": 3
+    },
+    {
+      "name": "final Git add/commit/status",
+      "reserved": 3
+    },
+    {
+      "name": "up to four file-reader invocations",
+      "reserved": 4
+    },
+    {
+      "name": "correction/edit/syntax reserves",
+      "reserved": 10
+    }
+  ],
+  "plannedAndReserved": 36,
+  "remainingReserve": 28,
+  "topology": "owner -> controller -> one harmless Node fixture; direct peak3, explicit ceiling4; administrative/syntax/Git readers sequential, never free overhead",
+  "controllerCeiling": 4,
+  "fixtureCeiling": 4,
+  "plannedControllers": 1,
+  "plannedFixtures": 2,
+  "Bash": 0,
+  "Workers": 0,
+  "asyncLoaders": 0,
+  "unknownTransitiveCensusNotClaimed": true
+}

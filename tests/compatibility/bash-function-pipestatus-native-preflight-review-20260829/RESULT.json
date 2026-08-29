@@ -1,0 +1,131 @@
+{
+  "schema": "native26-independent-preexecution-v1",
+  "results": [
+    {
+      "id": "D01",
+      "status": "PASS",
+      "assertions": 30,
+      "error": null
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "assertions": 7,
+      "error": null
+    },
+    {
+      "id": "D04",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D05",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D06",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    },
+    {
+      "id": "D07",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D08",
+      "status": "PASS",
+      "assertions": 9,
+      "error": null
+    },
+    {
+      "id": "D09",
+      "status": "PASS",
+      "assertions": 9,
+      "error": null
+    },
+    {
+      "id": "D10",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "D11",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    },
+    {
+      "id": "D12",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    },
+    {
+      "id": "N01",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "N02",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    },
+    {
+      "id": "N03",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    },
+    {
+      "id": "N04",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "N05",
+      "status": "PASS",
+      "assertions": 3,
+      "error": null
+    },
+    {
+      "id": "N06",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    },
+    {
+      "id": "N07",
+      "status": "PASS",
+      "assertions": 3,
+      "error": null
+    },
+    {
+      "id": "N08",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    }
+  ],
+  "assertionCount": 142,
+  "pass": 20,
+  "fail": 0,
+  "nativeStarts": 0,
+  "fixtureChildren": 2,
+  "at": "2026-08-29T12:56:24.860Z"
+}

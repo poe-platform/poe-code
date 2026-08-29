@@ -1,0 +1,7 @@
+{
+  "code": 0,
+  "signal": null,
+  "stdout": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/review.stdout",
+  "stderr": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/review.stderr",
+  "at": "2026-08-29T12:56:24.933Z"
+}

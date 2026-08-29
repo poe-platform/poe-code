@@ -116,6 +116,9 @@
   readonly. Stage on the shared array ledger; publish qualifying numeric raw
   stage vectors before aggregate/errexit handling, not compound-wrapper or rejected
   completions. Local scalar shadows and outer indexed restoration remain distinct.
+- `local -a NAME[=VALUE]` creates a generic indexed local using the shared array
+  ownership/restoration path; plain `local` remains distinct. Do not special-case
+  PIPESTATUS to simulate indexed declarations or reinterpret unsupported flags as names.
 - Use readBytes/writeBytes with the supplied signal. POSIX path helpers are
   virtual; lexical containment is not symlink containment or namespace authority.
 - Safe empty-directory removal uses optional FileSystem.rmdir, otherwise ENOTSUP.

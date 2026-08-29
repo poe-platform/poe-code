@@ -1,0 +1,81 @@
+{
+  "author": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2",
+  "files": [
+    {
+      "name": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2902
+    },
+    {
+      "name": "CONTROL-CORRECTION.md",
+      "bytes": 1205
+    },
+    {
+      "name": "CONTROL-PRESEAL.initial.json.data",
+      "bytes": 1473
+    },
+    {
+      "name": "CONTROL-PRESEAL.json",
+      "bytes": 1473
+    },
+    {
+      "name": "CONTROL-RESULT.json",
+      "bytes": 1450
+    },
+    {
+      "name": "GO.template.json",
+      "bytes": 1840
+    },
+    {
+      "name": "HANDOFF-RESULT.json",
+      "bytes": 2783
+    },
+    {
+      "name": "HANDOFF.md",
+      "bytes": 3373
+    },
+    {
+      "name": "LIFECYCLE-LEDGER.json",
+      "bytes": 290
+    },
+    {
+      "name": "PREEXEC-PLAN.md",
+      "bytes": 2311
+    },
+    {
+      "name": "PUBLICATION.md",
+      "bytes": 3566
+    },
+    {
+      "name": "READY-SEAL.json",
+      "bytes": 20778
+    },
+    {
+      "name": "REVIEW-ACCEPTANCE.template.json",
+      "bytes": 367
+    },
+    {
+      "name": "SOURCE-DELTA.json",
+      "bytes": 1998
+    },
+    {
+      "name": "SYNTAX-RESULT.json",
+      "bytes": 1386
+    },
+    {
+      "name": "cohort.fragment.data",
+      "bytes": 1422
+    },
+    {
+      "name": "controller.initial.mjs.data",
+      "bytes": 25030
+    },
+    {
+      "name": "controller.mjs",
+      "bytes": 30128
+    },
+    {
+      "name": "observation.mjs.source",
+      "bytes": 2170
+    }
+  ]
+}

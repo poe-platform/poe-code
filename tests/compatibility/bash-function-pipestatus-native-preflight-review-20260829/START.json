@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T12:50:32.440Z",
+  "grant": {
+    "minutes": 20,
+    "knownOS": 48,
+    "peak": 4,
+    "capture": 67108864,
+    "work": 268435456
+  },
+  "scope": "preexecution SOURCE/DATA and sealed harmless Node controls only; no Bash"
+}

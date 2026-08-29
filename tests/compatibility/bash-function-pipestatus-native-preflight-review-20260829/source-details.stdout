@@ -1,0 +1,486 @@
+2026-08-29T12:53:43.640Z
+
+FILE controller.mjs
+const deadline=fs.statSync(root+'/raw/startup.stdout').birthtimeMs+1200000;
+const checkTime=()=>assert(Date.now()<=deadline,'PREPARATION_DEADLINE');checkTime();
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const blob=bytes=>crypto.createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+const decode=bytes=>new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+const read=(filename,maximum=4194304)=>{const stat=fs.lstatSync(filename);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=maximum);const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const first=fs.fstatSync(descriptor);assert.equal(first.ino,stat.ino);assert.equal(first.dev,stat.dev);const bytes=fs.readFileSync(descriptor);const last=fs.fstatSync(descriptor);assert.equal(bytes.length,stat.size);assert.equal(last.mtimeMs,first.mtimeMs);assert.equal(last.size,first.size);return bytes;}finally{fs.closeSync(descriptor);}};
+const write=(relative,bytes)=>{checkTime();const filename=root+'/'+relative;fs.mkdirSync(path.dirname(filename),{recursive:true,mode:448});fs.writeFileSync(filename,bytes,{flag:'wx',mode:384});};
+const json=(relative,value)=>write(relative,JSON.stringify(value,null,2)+'\n');
+const parse=filename=>JSON.parse(decode(read(filename)));
+const executable=root+'/materialized',runRoot='/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2';
+const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+const modules=['admission','entry','observation','capture','lifecycle','group-observer','observer-state','state','storage'];
+const replace=(source,before,after)=>{assert.equal(source.split(before).length,2,'EXACT_REPLACEMENT');return source.replace(before,after);};
+ await test('D03',()=>{const file=scratch+'/pin';fs.writeFileSync(file,'{broken',{mode:384});const pin={bytes:7,mode:384,sha256:hash(Buffer.from('{broken'))};verify(admission.small(file,pin).toString()==='{broken');rejects(()=>admission.small(file,{...pin,sha256:'0'.repeat(64)}));rejects(()=>admission.small(file,{...pin,mode:420}));rejects(()=>admission.small(file,{...pin,bytes:8}));rejects(()=>admission.small(scratch,pin));verify(admission.validateManifest(seal));const bad=structuredClone(seal);bad.files.push({...bad.files[0],path:'../x'});rejects(()=>admission.validateManifest(bad));});
+ await test('D04',()=>{verify(admission.validateReview(goodReview,goodReview));rejects(()=>admission.validateReview({...goodReview,profile:'ere-capture-reference-v1'},goodReview));rejects(()=>admission.validateReview({...goodReview,requestsSha256:'0'.repeat(64)},goodReview));verify(admission.validateGrant(goodGrant,now));rejects(()=>admission.validateGrant({...goodGrant,failedLookupNames:['anything']},now));rejects(()=>admission.validateGrant({...goodGrant,decision:'PENDING'},now));rejects(()=>admission.admit(executable,executable+'/MISSING-GO.json','0'.repeat(64)));const accessor={};Object.defineProperty(accessor,'a',{get(){throw Error('MUST_NOT_INVOKE');},enumerable:true});rejects(()=>admission.exactKeys(accessor,['a']));});
+ await test('D05',()=>{verify(admission.validateGrant(goodGrant,goodGrant.deadlineEpochMs-600000));rejects(()=>admission.validateGrant(goodGrant,goodGrant.deadlineEpochMs-599999));rejects(()=>admission.validateGrant({...goodGrant,deadlineEpochMs:goodGrant.deadlineEpochMs+1},now));verify(state.deadlineAdmission(0,66000));verify(!state.deadlineAdmission(1,66000));const storage=new Storage(scratch,{deadline:10},{now:()=>11});rejects(()=>storage.terminal({no:'late'}));verify(!fs.existsSync(scratch+'/TERMINAL-STOP.json'));let caught='not';const fault=new Storage(scratch,{deadline:100},{now:()=>0,terminalOperations:{openSync(){throw 0;}}});try{fault.terminal({falsy:true});}catch(reason){caught=reason;}verify(caught===0);});
+ await test('D06',()=>{const sha='a'.repeat(64),resolved=structuredClone(template.parameters);resolved.cmd=resolved.cmd.replace('ROOT_APPROVED_GRANT_SHA256',sha);verify(admission.resolveApproval(template,resolved,sha));rejects(()=>admission.resolveApproval(template,{...resolved,prefix_rule:['node']},sha));rejects(()=>admission.resolveApproval(template,{...resolved,cmd:resolved.cmd+' '},sha));rejects(()=>admission.resolveApproval(template,{...resolved,login:true},sha));verify(!fs.existsSync(executable+'/GO.json'));});
+ await test('D07',()=>{const base=scratch+'/fd';fs.mkdirSync(base,{mode:448});fs.mkdirSync(base+'/outer',{mode:448});const file=base+'/outer/bootstrap.stdout';fs.writeFileSync(file,'AB',{mode:384});for(const flag of ['r+','w','r']){const fd=fs.openSync(file,flag);const operations=Object.create(fs);operations.fstatSync=()=>fs.fstatSync(fd);operations.readSync=(_fd,...args)=>fs.readSync(fd,...args);operations.writeSync=(_fd,...args)=>fs.writeSync(fd,...args);try{if(flag==='r+'){const first=Buffer.alloc(1);fs.readSync(fd,first,0,1,null);verify(first.toString()==='A');verify(admission.validateOuter(base,'stdout',1,operations));const second=Buffer.alloc(1);fs.readSync(fd,second,0,1,null);verify(second.toString()==='B');}else rejects(()=>admission.validateOuter(base,'stdout',1,operations));}finally{fs.closeSync(fd);}}const empty=fs.openSync(file,'r+');const ops=Object.create(fs);ops.fstatSync=()=>fs.fstatSync(empty);ops.readSync=(_fd,...args)=>fs.readSync(empty,...args);ops.writeSync=(_fd,...args)=>fs.writeSync(empty,...args);try{verify(admission.validateOuter(base,'stdout',1,ops));rejects(()=>admission.validateOuter(base,'stdout',2,ops));const wrong=Object.create(ops);wrong.lstatSync=()=>({...fs.lstatSync(file),ino:-1,isFile:()=>true,isSymbolicLink:()=>false});rejects(()=>admission.validateOuter(base,'stdout',1,wrong));}finally{fs.closeSync(empty);}});
+ await test('D08',()=>{const before=[{path:'work',type:'directory',mode:448}],output={path:'work/out',type:'file',mode:420,base64:'eA=='};verify(observation.validateEffects('F05',before,[...before,output]));verify(observation.validateEffects('P02',before,before));rejects(()=>observation.validateEffects('F05',before,before));for(const change of [{...output,path:'work/other'},{...output,type:'symlink'},{...output,mode:511},{...output,base64:Buffer.alloc(65537).toString('base64')}])rejects(()=>observation.validateEffects('F05',before,[...before,change]));rejects(()=>observation.validateEffects('P02',before,[...before,output]));rejects(()=>observation.validateEffects('F05',before,[...before,output,output]));});
+ await test('D09',async()=>{const fixtureRoot=scratch+'/lifecycle';fs.mkdirSync(fixtureRoot,{mode:448});fs.writeFileSync(fixtureRoot+'/JOURNAL.jsonl','',{mode:384});const storage=new Storage(fixtureRoot,{deadline:Math.min(deadline,Date.now()+20000)}),ledger=new state.ManagedLedger(3,2);const fixtures=[{id:'normal',body:"process.stdout.write(Buffer.from([0,65,10]));process.stderr.write('err');",perCaseMs:3000},{id:'ignore-term',body:"process.on('SIGTERM',()=>{});process.stdout.write('ready');setInterval(()=>{},1000);",perCaseMs:300}];for(const fixture of fixtures){const captures=fixtureRoot+'/'+fixture.id;fs.mkdirSync(captures,{mode:448});const row=await runManaged({id:fixture.id,role:'control',executable:node,args:['-e',fixture.body],env:{PATH:'',HOME:fixtureRoot,LANG:'C',LC_ALL:'C',TZ:'UTC'},cwd:fixtureRoot,stdin:Buffer.alloc(0),captureRoot:captures},{storage,ledger,signal:new AbortController().signal,perCaseMs:fixture.perCaseMs,termMs:100,killMs:1000});json('raw/lifecycle-'+fixture.id+'.json',row);if(!row.retired||row.group.state!=='absent')throw Object.assign(Error('SAFETY_UNKNOWN_RETIREMENT'),{fatal:true});if(row.errors.length||!row.capture.every(item=>item.flush&&item.size&&item.hash&&item.close))throw Object.assign(Error('SAFETY_CAPTURE_FAILURE'),{fatal:true});verify(row.exit&&row.close&&row.retired&&row.group.state==='absent');verify(row.capture.every(item=>item.flush&&item.size&&item.hash&&item.close));if(fixture.id==='normal')verify(row.status===0&&row.stop===null);else{verify(row.stop!==null);verify(!state.completion(row));verify(row.signals.some(item=>item.signal==='SIGKILL'));}}verify(ledger.active===1&&ledger.activeConfirmed===1);json('LIFECYCLE-LEDGER.json',ledger);});
+ await test('D10',()=>{const captured=(name,bytes)=>({name,flush:true,size:true,hash:true,close:true,bytes:bytes.length,sha256:hash(bytes),base64:bytes.toString('base64')});const row={id:'P02',status:2,capture:[captured('stdout',Buffer.from([0,255,10])),captured('stderr',Buffer.alloc(0))],filesVerified:true,filesBefore:[],filesAfter:[]};const frame=observation.encodeObservation(row),fields=frame.toString('ascii').split('\0');verify(fields.length===9&&fields[0]==='FNPIPEOBS1'&&fields[2]==='2');verify(Buffer.from(fields[4],'base64').equals(Buffer.from([0,255,10])));verify(fields[5]==='0'&&fields[6]==='');const wrong=structuredClone(row);wrong.capture[0].sha256='0'.repeat(64);rejects(()=>observation.encodeObservation(wrong));rejects(()=>observation.encodeObservation({...row,status:256}));rejects(()=>observation.encodeObservation({...row,filesVerified:false}));});
+ await test('D11',()=>{const ledger=new state.ManagedLedger(2,2);ledger.enter('case');ledger.confirm('case');rejects(()=>ledger.enter('case'));ledger.retire(true);verify(ledger.active===1&&ledger.confirmedStarts===2);verify(requests.reduce((sum,row)=>sum+row.extraProcessReservation,0)===19);const storage=new Storage(scratch,{deadline:Date.now()+10000,capture:1});rejects(()=>storage.scan());});
+ await test('D12',()=>{let closes=0;const finalized=finalizeCaptures([{name:'stdout',fd:12,ino:1}],65536,{fsyncSync(){throw Error('flush');},fstatSync(){throw Error('stat');},closeSync(){closes++;}});verify(!finalized.success&&closes===1&&finalized.errors.length===2);const row={exit:true,close:true,group:{state:'absent'},signal:null,stop:null,errors:[],capture:[{flush:true,size:true,hash:true,close:true}],filesVerified:true,receiptPublished:true};verify(!state.completion(row));row.capture.push({...row.capture[0]});let recorded=0;rejects(()=>state.creditObservation(row,{checkTime(){throw Error('late');},record(){recorded++;}},0));verify(recorded===0);});
+ authenticateSeal(executable+'/PRESEAL.json');await tools();json('CONTROL-RESULT.json',{schema:'function-pipestatus-controls-v2',results,assertionCount,pass:results.filter(row=>row.status==='PASS').length,fail:results.filter(row=>row.status==='FAIL').length,nativeStarts:0,fixtures:2,controllerChildren:2,allKnownFixtureChildrenRetired:true,deadline});console.log(JSON.stringify({phase:'controls',pass:results.filter(row=>row.status==='PASS').length,fail:results.filter(row=>row.status==='FAIL').length,assertionCount}));process.exitCode=results.some(row=>row.status==='FAIL')?1:0;
+ if(process.exitCode!==1){
+
+FILE materialized/admission.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+export const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const requireValue=(value,message)=>{if(!value)throw Error(message);};
+const hex=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
+export const startupScope='INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE';
+export function validateStartupScope(value){requireValue(value===startupScope,'STARTUP_SCOPE');return true;}
+export function exactKeys(value,keys){
+ requireValue(value!==null&&typeof value==='object'&&!Array.isArray(value),'OBJECT');
+ const actual=Reflect.ownKeys(value);requireValue(actual.length===keys.length&&actual.every((key,index)=>key===keys[index]),'KEYS');
+ for(const key of keys){const property=Object.getOwnPropertyDescriptor(value,key);requireValue(property&&Object.hasOwn(property,'value'),'DATA_PROPERTY');}
+ return true;
+}
+function metadata(stat,pin,maximum){requireValue(stat.isFile()&&stat.nlink===1&&Number.isSafeInteger(pin.bytes)&&pin.bytes>=0&&stat.size===pin.bytes&&stat.size<=maximum&&Number.isSafeInteger(pin.mode)&&(stat.mode&511)===pin.mode&&hex(pin.sha256),'PIN_METADATA');}
+export function pinned(filename,pin,{maximum=134217728}={}){
+ requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');
+ const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+ try{const before=fs.fstatSync(descriptor);metadata(before,pin,maximum);const digest=createHash('sha256'),buffer=Buffer.alloc(Math.min(1048576,Math.max(1,before.size)));let total=0,count;while((count=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){total+=count;requireValue(total<=before.size,'PIN_GROWTH');digest.update(buffer.subarray(0,count));}requireValue(total===before.size&&digest.digest('hex')===pin.sha256,'PIN_HASH');const after=fs.fstatSync(descriptor);requireValue(after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_RACE');}finally{fs.closeSync(descriptor);}return true;
+}
+export function small(filename,pin){
+ requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+ try{const before=fs.fstatSync(descriptor);metadata(before,pin,1048576);const bytes=fs.readFileSync(descriptor),after=fs.fstatSync(descriptor);requireValue(bytes.length===before.size&&hash(bytes)===pin.sha256&&after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_BYTES_OR_RACE');return bytes;}finally{fs.closeSync(descriptor);}
+}
+export function validateReview(receipt,expected){
+ exactKeys(receipt,['schema','decision','profile','presealSha256','requestsSha256','reviewer','reviewCommit']);
+ requireValue(receipt.schema==='function-pipestatus-independent-acceptance-v2'&&receipt.decision==='ACCEPT'&&receipt.profile==='function-pipestatus-reference-v2'&&hex(receipt.presealSha256)&&hex(receipt.requestsSha256)&&receipt.presealSha256===expected.presealSha256&&receipt.requestsSha256===expected.requestsSha256&&typeof receipt.reviewer==='string'&&receipt.reviewer.length>0&&receipt.reviewer.length<=128&&typeof receipt.reviewCommit==='string'&&/^[0-9a-f]{40}$/.test(receipt.reviewCommit),'REVIEW_CONTENT');return true;
+}
+export function validateGrant(grant,now){
+ exactKeys(grant,['schema','decision','profile','issuedEpochMs','deadlineEpochMs','startupScope','preseal','independentReviewReceipt','preprovision','limits','failedLookupNames']);
+ requireValue(grant.schema==='function-pipestatus-root-grant-v2'&&grant.decision==='GO'&&grant.profile==='function-pipestatus-reference-v2'&&Number.isSafeInteger(grant.issuedEpochMs)&&grant.issuedEpochMs<=now&&Number.isSafeInteger(grant.deadlineEpochMs)&&grant.deadlineEpochMs-grant.issuedEpochMs===2700000&&now+600000<=grant.deadlineEpochMs&&JSON.stringify(grant.failedLookupNames)===JSON.stringify(['function','__surface_missing_command__']),'GRANT_CONTENT');validateStartupScope(grant.startupScope);return true;
+}
+export function validateManifest(seal){
+ requireValue(seal.schema==='function-pipestatus-executable-preseal-v2'&&Array.isArray(seal.files)&&seal.files.length>9&&seal.files.length<=64,'SEAL');
+ const names=new Set();for(const item of seal.files){requireValue(typeof item.path==='string'&&/^(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+$/.test(item.path)&&!item.path.split('/').some(part=>part==='.'||part==='..')&&!names.has(item.path),'SEAL_PATH');names.add(item.path);}
+ for(const name of ['entry.mjs','admission.mjs','capture.mjs','lifecycle.mjs','group-observer.mjs','observer-state.mjs','state.mjs','storage.mjs','observation.mjs','REQUESTS.json','COHORT.json','PROTOCOL.json','TOOLS.json'])requireValue(names.has(name),'SEAL_MEMBER');
+ for(const name of ['GO.json','REVIEW-ACCEPTANCE.json','PREPROVISION.json','PRESEAL.json'])requireValue(!names.has(name),'SEAL_CYCLE');
+ return true;
+}
+export function validateCohort(audit,requests,root){
+ const ids=['F02','F03','F04','F05','F06','F07','F08','F09','F10','P02','P03','P04','P05','P06','P07','P08','P09','P10','P11','P12','P13','P14','P15','P16','P17','P18'];
+ const forks={P04:3,P05:2,P06:2,P10:2,P11:2,P12:1,P13:3,P18:2,F06:1,P15:1};
+ requireValue(Array.isArray(audit.cases)&&audit.cases.length===26&&Array.isArray(requests)&&requests.length===26&&Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'EXACT26');
+ for(let index=0;index<26;index++){
+  const literal=audit.cases[index],request=requests[index],id=ids[index],caseRoot=root+'/cases/'+id;
+  requireValue(literal.id===id&&request.id===id,'ID');
+  requireValue(typeof literal.program==='string'&&hash(Buffer.from(literal.program))===literal.programSha256&&JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'surface-function-pipestatus'])&&request.executable==='/bin/bash','LITERAL_BINDING');
+  requireValue(literal.stdinBase64===''&&request.stdinBase64===''&&request.cwd===caseRoot+'/work'&&request.extraProcessReservation===(forks[id]??0),'REQUEST_BINDING');
+  const expected={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};exactKeys(request.environment,Object.keys(expected));requireValue(JSON.stringify(request.environment)===JSON.stringify(expected),'ENVIRONMENT_BINDING');
+ }
+ return true;
+}
+export function validateOuter(root,name,fd,operations=fs){
+ requireValue((name==='stdout'&&fd===1)||(name==='stderr'&&fd===2),'OUTER_ROLE');
+ const filename=root+'/outer/bootstrap.'+name,stat=operations.fstatSync(fd),named=operations.lstatSync(filename);
+ requireValue(stat.isFile()&&named.isFile()&&!named.isSymbolicLink()&&stat.ino===named.ino&&stat.dev===named.dev&&stat.nlink===1&&(stat.mode&511)===384&&operations.realpathSync(filename)===filename,'OUTER_FD_BINDING');
+ operations.readSync(fd,Buffer.alloc(1),0,1,0);operations.writeSync(fd,Buffer.alloc(0),0,0,0);
+ return {name,fd,ino:stat.ino,path:filename};
+}
+export function validateProvision(provision,root,operations=fs){
+ exactKeys(provision,['parents']);const expected=[root,root+'/outer',root+'/cases',root+'/captures'];requireValue(Array.isArray(provision.parents)&&provision.parents.length===4,'PROVISION_MEMBERSHIP');
+ for(let index=0;index<4;index++){const parent=provision.parents[index];exactKeys(parent,['path','device','inode','mode']);requireValue(parent.path===expected[index]&&typeof parent.device==='string'&&/^\d+$/.test(parent.device)&&typeof parent.inode==='string'&&/^\d+$/.test(parent.inode)&&parent.mode===448,'PROVISION_ROLE');const stat=operations.lstatSync(parent.path,{bigint:true});requireValue(stat.isDirectory()&&!stat.isSymbolicLink()&&String(stat.dev)===parent.device&&String(stat.ino)===parent.inode&&Number(stat.mode&511n)===parent.mode&&operations.realpathSync(parent.path)===parent.path,'PREPROVISION_DRIFT');}
+ return true;
+}
+export function admit(directory,grantPath,grantSha256){
+ requireValue(grantPath===directory+'/GO.json'&&hex(grantSha256),'GRANT_PATH_OR_HASH');const stat=fs.lstatSync(grantPath),grantRaw=small(grantPath,{mode:384,bytes:stat.size,sha256:grantSha256}),grant=JSON.parse(grantRaw);validateGrant(grant,Date.now());
+ const sealRaw=small(directory+'/PRESEAL.json',grant.preseal),seal=JSON.parse(sealRaw);validateManifest(seal);for(const item of seal.files)pinned(directory+'/'+item.path,item,{maximum:1048576});
+ const requestsRaw=small(directory+'/REQUESTS.json',seal.files.find(item=>item.path==='REQUESTS.json'));
+ const reviewPin=grant.independentReviewReceipt;requireValue(reviewPin&&reviewPin.path===directory+'/REVIEW-ACCEPTANCE.json'&&reviewPin.mode===384&&Number.isSafeInteger(reviewPin.bytes)&&reviewPin.bytes>0&&reviewPin.bytes<=65536&&hex(reviewPin.sha256),'REVIEW_PIN');
+ const review=JSON.parse(small(reviewPin.path,reviewPin));validateReview(review,{presealSha256:hash(sealRaw),requestsSha256:hash(requestsRaw)});
+ const provisionPin=grant.preprovision;requireValue(provisionPin&&provisionPin.path===directory+'/PREPROVISION.json'&&provisionPin.mode===384&&Number.isSafeInteger(provisionPin.bytes)&&provisionPin.bytes>0&&provisionPin.bytes<=65536&&hex(provisionPin.sha256),'PROVISION_PIN');
+ const provision=JSON.parse(small(provisionPin.path,provisionPin));return {grant,seal,review,provision,requests:JSON.parse(requestsRaw)};
+}
+export function resolveApproval(template,resolved,grantSha256){
+ requireValue(hex(grantSha256),'GRANT_SHA');const token='ROOT_APPROVED_GRANT_SHA256';requireValue(template.parameters.cmd.split(token).length===2,'SLOT_COUNT');
+ const expected=structuredClone(template.parameters);expected.cmd=expected.cmd.replace(token,grantSha256);
+ exactKeys(resolved,Object.keys(expected));requireValue(JSON.stringify(resolved)===JSON.stringify(expected)&&resolved.login===false&&resolved.sandbox_permissions==='require_escalated'&&!Object.hasOwn(resolved,'prefix_rule'),'APPROVAL_DRIFT');return true;
+}
+
+
+FILE materialized/entry.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import {fileURLToPath} from 'node:url';
+import {Storage} from './storage.mjs';
+import {ManagedLedger,deadlineAdmission,creditObservation} from './state.mjs';
+import {admit,small,pinned,hash,validateOuter,validateProvision,validateCohort} from './admission.mjs';
+import {runManaged} from './lifecycle.mjs';
+import {finalizeCaptures} from './capture.mjs';
+import {encodeObservation,validateEffects} from './observation.mjs';
+const directory=path.dirname(fileURLToPath(import.meta.url));
+const root='/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2';
+const started=Date.now();
+const ledger=new ManagedLedger(27,2);
+const storage=new Storage(root,{deadline:started+600000});
+const abort=new AbortController();
+const callerSignal=()=>abort.abort('OWNER_SIGNAL');
+process.on('SIGTERM',callerSignal);process.on('SIGINT',callerSignal);
+let completed=0,halted=false,outerHandles=[],finalizedOuter=false,publicationFailure=null;
+const rows=[];
+const assert=(value,message)=>{if(!value)throw Error(message);};
+function snapshot(caseRoot){const result=[];let total=0;function walk(absolute,relative){for(const name of fs.readdirSync(absolute).sort()){const filename=path.join(absolute,name),stat=fs.lstatSync(filename),rel=relative?relative+'/'+name:name;assert(result.length<32&&!stat.isSymbolicLink(),'SNAPSHOT_ENTRY');if(stat.isDirectory()){result.push({path:rel,type:'directory',mode:stat.mode&511});walk(filename,rel);}else{assert(stat.isFile()&&stat.nlink===1&&stat.uid===process.getuid()&&stat.size<=65536,'SNAPSHOT_FILE');const bytes=fs.readFileSync(filename);total+=bytes.length;assert(total<=262144,'SNAPSHOT_BYTES');result.push({path:rel,type:'file',mode:stat.mode&511,base64:bytes.toString('base64')});}}}walk(caseRoot,'');return result;}
+try{
+ assert(process.argv.length===6&&process.argv[2]==='--grant'&&process.argv[4]==='--grant-sha256','EXACT_ARGUMENTS');
+ for(const [name,fd] of [['stdout',1],['stderr',2]])outerHandles.push(validateOuter(root,name,fd));
+ const accepted=admit(directory,process.argv[3],process.argv[5]);
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+600000);storage.checkTime();
+ validateProvision(accepted.provision,root);
+ storage.record({event:'AUTHENTICATED_START',pid:process.pid,started,externalCapture:'pre-opened regular descriptors before Node module loading'});
+ const protocol=JSON.parse(small(directory+'/PROTOCOL.json',accepted.seal.files.find(row=>row.path==='PROTOCOL.json')));
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+protocol.limits.totalMs);assert(JSON.stringify(accepted.grant.limits)===JSON.stringify(protocol.limits),'GRANT_LIMITS');
+ const tools=JSON.parse(small(directory+'/TOOLS.json',accepted.seal.files.find(row=>row.path==='TOOLS.json')));for(const tool of [...tools.toolPins,tools.environmentLauncher])pinned(tool.path,tool);
+ assert(process.execPath===tools.toolPins.find(row=>row.path.includes('/node/')).path&&process.execArgv.length===0&&!process.env.NODE_OPTIONS,'OWNER_IDENTITY');
+ assert(Date.now()-started<=60000,'SETUP_DEADLINE');
+ const audit=JSON.parse(small(directory+'/COHORT.json',accepted.seal.files.find(row=>row.path==='COHORT.json')));
+ validateCohort(audit,accepted.requests,root);
+ for(const literal of audit.cases){const relative='programs/'+literal.id+'.bash.data';assert(small(directory+'/'+relative,accepted.seal.files.find(item=>item.path===relative)).equals(Buffer.from(literal.program)),'PROGRAM_FILE_BINDING');}
+ const expectedIds=audit.cases.map(row=>row.id);
+ assert(JSON.stringify(expectedIds)===JSON.stringify(accepted.requests.map(row=>row.id))&&expectedIds.length===26,'EXACT26');
+ process.umask(18);
+ for(const request of accepted.requests){
+  assert(!abort.signal.aborted&&deadlineAdmission(Date.now(),storage.deadline),'ADMISSION_DEADLINE');
+  const literal=audit.cases.find(row=>row.id===request.id),caseRoot=root+'/cases/'+request.id,captureRoot=root+'/captures/'+request.id;
+  assert(JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'surface-function-pipestatus'])&&hash(Buffer.from(literal.program))===literal.programSha256&&request.executable==='/bin/bash','LITERAL_BINDING');
+  assert(request.stdinBase64===literal.stdinBase64,'STDIN_BINDING');
+  assert(request.cwd===caseRoot+'/work','REQUEST_NAMESPACE_BINDING');
+  const env={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};
+  assert(JSON.stringify(request.environment)===JSON.stringify(env),'ENVIRONMENT_BINDING');
+  fs.mkdirSync(caseRoot,{mode:448});fs.mkdirSync(captureRoot,{mode:448});for(const name of ['work','home','tmp','empty-path'])fs.mkdirSync(caseRoot+'/'+name,{mode:448});
+  assert(Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'NO_FIXTURES');
+  assert(fs.readdirSync(caseRoot+'/empty-path').length===0,'EMPTY_PATH');const before=snapshot(caseRoot);
+  ledger.sourceForkReservations+=request.extraProcessReservation;assert(Number.isSafeInteger(request.extraProcessReservation)&&request.extraProcessReservation>=0&&ledger.sourceForkReservations<=19,'SOURCE_RESERVATION_DRIFT');
+  const row=await runManaged({id:request.id,role:'case',executable:'/bin/bash',args:request.argv,env,cwd:caseRoot+'/work',stdin:Buffer.from(request.stdinBase64,'base64'),captureRoot},{storage,ledger,signal:abort.signal});
+  rows.push({id:row.id,status:row.status,stop:row.stop,retired:row.retired});
+  if(row.stop||row.errors.length||!row.regularCaptureCompletion){halted=true;break;}
+  row.filesBefore=before;row.filesAfter=snapshot(caseRoot);validateEffects(request.id,before,row.filesAfter);row.filesVerified=true;const framed=encodeObservation(row);storage.write(root+'/'+row.id+'.observation.nul',framed);row.observation={format:'FNPIPEOBS1',bytes:framed.length,sha256:hash(framed)};
+  storage.checkTime();storage.scan();storage.write(root+'/'+row.id+'.json',JSON.stringify(row)+'\n');row.receiptPublished=true;
+  completed=creditObservation(row,storage,completed);
+ }
+ storage.checkTime();storage.scan();
+ const outer=finalizeCaptures(outerHandles);finalizedOuter=true;assert(outer.success,'OUTER_CAPTURE_FINALIZATION');
+ storage.checkTime();storage.write(root+'/RESULTS.json',JSON.stringify({schema:'function-pipestatus-native-observations-v2',completed,halted,rows,ledger,outer:outer.captures,sourceForkCounts:'PLANNED_NOT_OBSERVED',osContainment:false,version:'Bash3.2.57',notStarted:expectedIds.slice(rows.length),deadline:storage.deadline})+'\n');storage.checkTime();storage.scan();
+ process.exitCode=halted?1:0;
+}catch(error){halted=true;try{storage.terminal({event:'HOLD_OR_STOP',message:String(error.message??error).slice(0,512),completed,ledger,at:Date.now()});}catch(secondary){publicationFailure={primary:error,secondary,terminal:storage.terminalState,late:Date.now()>storage.deadline};}
+ process.exitCode=1;
+}finally{process.removeListener('SIGTERM',callerSignal);process.removeListener('SIGINT',callerSignal);if(!finalizedOuter&&outerHandles.length){const result=finalizeCaptures(outerHandles);if(!result.success)process.exitCode=1;}}
+
+
+FILE materialized/lifecycle.mjs
+import fs from 'node:fs';
+import {spawn} from 'node:child_process';
+import {observeOwnedGroup,signalOwnedGroup} from './group-observer.mjs';
+import {cleanupTimes} from './state.mjs';
+import {finalizeCaptures} from './capture.mjs';
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+export async function runManaged(spec,{storage,ledger,signal,perCaseMs=3000,termMs=2000,killMs=1000}){
+ const row={id:spec.id,started:Date.now(),exit:false,close:false,status:null,signal:null,stop:null,errors:[],signals:[],groupObservations:[],group:{state:'unknown'},capture:[],filesVerified:false,receiptPublished:false,regularCaptureCompletion:false,streamEOF:null};
+ const handles=[];let child,firstStop=null,killSent=false,retired=false,enrolled=false;
+ const fault=(reason,error)=>{row.stop??=reason;if(error)row.errors.push({phase:reason,name:error.name,code:error.code??null,message:String(error.message??error).slice(0,128)});if(firstStop===null)firstStop=Date.now();};
+ const observe=()=>{const observed=child?.pid?observeOwnedGroup(child.pid):{state:'unknown',error:{kind:'NO_PID'}};row.group=observed;const previous=row.groupObservations.at(-1);if(!previous||previous.state!==observed.state||previous.afterKill!==killSent)row.groupObservations.push({...observed,at:Date.now(),afterKill:killSent});return observed;};
+ const send=kind=>{const at=Date.now();if(kind==='SIGTERM')row.termAttemptAt=at;const result=signalOwnedGroup(child.pid,kind);row.signals.push({signal:kind,at,...result});if(!result.sent&&result.error?.fields?.code?.value!=='ESRCH')fault('SIGNAL_ERROR');};
+ try{
+  storage.checkTime();storage.scan();for(const name of ['stdout','stderr']){const filename=spec.captureRoot+'/'+name;const descriptor=fs.openSync(filename,fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);const stat=fs.fstatSync(descriptor);handles.push({name,path:filename,fd:descriptor,ino:stat.ino});}
+  ledger.enter(spec.role);enrolled=true;storage.record({event:'CHILD_ENROLLED',id:spec.id,executable:spec.executable,args:spec.args,at:Date.now()});
+  child=spawn(spec.executable,spec.args,{env:spec.env,cwd:spec.cwd,detached:true,shell:false,stdio:['pipe',handles[0].fd,handles[1].fd]});
+  child.on('spawn',()=>{row.spawnObserved=true;ledger.confirm(spec.role);});
+  child.on('error',error=>fault('CHILD_ERROR',error));child.on('exit',(status,exitSignal)=>{row.exit=true;row.status=status;row.signal=exitSignal;if(exitSignal!==null)fault('SIGNALLED_EXIT');});child.on('close',()=>{row.close=true;});child.stdin.on('error',error=>{if(error.code==='EPIPE')row.stdinEpipe=true;else fault('STDIN_ERROR',error);});child.stdin.on('finish',()=>{row.stdinFinished=true;});row.pid=child.pid;child.stdin.end(spec.stdin??Buffer.alloc(0));
+  while(true){
+   const now=Date.now();if(signal?.aborted)fault('CALLER_ABORT');if(now>=row.started+perCaseMs)fault('CASE_DEADLINE');
+   try{storage.checkTime();for(const handle of handles){if(fs.fstatSync(handle.fd).size>65536)throw Error('PER_STREAM_CAPTURE_CAP');}storage.scan();}catch(error){fault('CAPTURE_OR_STORAGE',error);}
+   if(row.close){const group=observe();if(group.state==='absent'&&row.exit){retired=true;break;}fault(group.state==='unknown'?'UNKNOWN_GROUP':'RESIDUAL_GROUP');}
+   if(firstStop!==null){if(row.signals.length===0&&child.pid)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;if(!killSent&&now>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}if(now>=times.endAt){observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');break;}}
+   await pause(10);
+  }
+ }catch(error){fault('LAUNCH_OR_MONITOR',error);}
+ finally{
+  if(child&&!retired){if(firstStop===null)firstStop=Date.now();if(child.pid&&row.signals.length===0)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;
+   if(child.pid&&row.signals.length===0)send('SIGTERM');
+   while(Date.now()<times.endAt){if(row.close){const group=observe();if(row.exit&&group.state==='absent'){retired=true;break;}}if(!killSent&&Date.now()>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}await pause(10);}
+   observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');
+  }
+  if(!child&&enrolled){row.noProcessCreated=true;retired=true;}
+  if(child&&!row.close){child.stdin.destroy();child.unref();}
+  const finalized=finalizeCaptures(handles);row.capture=finalized.captures;row.errors.push(...finalized.errors);row.regularCaptureCompletion=finalized.success&&retired&&row.exit&&row.close;if(!finalized.success)fault('CAPTURE_FINALIZATION');
+  if(row.exit&&!row.spawnObserved)fault('MISSING_SPAWN_OBSERVER');if(enrolled&&retired)ledger.retire(row.spawnObserved===true);row.retired=retired;row.finished=Date.now();
+  try{storage.record({event:'CHILD_TERMINAL',row});}catch(error){fault('TERMINAL_PUBLICATION',error);try{storage.terminal({event:'TERMINAL_PUBLICATION_FAILED',id:row.id,stop:row.stop,exit:row.exit,close:row.close,group:row.group,retired,errors:row.errors});}catch(secondary){row.errors.push({phase:'EMERGENCY_PUBLICATION',message:String(secondary.message).slice(0,128)});}}
+ }
+ return row;
+}
+
+
+FILE materialized/storage.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+export class Storage{
+ constructor(root,{capture=33554432,work=134217728,emergency=65536,deadline=Infinity}={}, {now=Date.now,terminalOperations=fs}={}){this.root=root;this.captureLimit=capture;this.workLimit=work;this.emergency=emergency;this.deadline=deadline;this.samples=[];this.emergencyUsed=false;this.now=now;this.terminalOperations=terminalOperations;this.terminalState=null;}
+ checkTime(){if(this.now()>this.deadline)throw Error('FINALIZATION_DEADLINE');}
+ scan(){let bytes=0,entries=0;const visit=directory=>{for(const name of fs.readdirSync(directory)){if(++entries>4096)throw Error('STORAGE_ENTRIES');const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('STORAGE_SYMLINK');if(stat.isDirectory())visit(filename);else{if(!stat.isFile())throw Error('STORAGE_FILE_TYPE');bytes+=stat.size;}}};visit(this.root);this.last={bytes,entries,at:this.now()};if(bytes>this.captureLimit||bytes>this.workLimit)throw Error('OBSERVED_STORAGE_CAP');return this.last;}
+ admit(bytes){this.checkTime();const sample=this.scan();if(!Number.isSafeInteger(bytes)||bytes<0||bytes>262144||sample.bytes+bytes+this.emergency>this.captureLimit||sample.bytes+bytes+this.emergency>this.workLimit)throw Error('BEFORE_WRITE_STORAGE_CAP');}
+ write(filename,value,{append=false}={}){const bytes=Buffer.isBuffer(value)?value:Buffer.from(value);if(!filename.startsWith(this.root+'/'))throw Error('WRITE_SCOPE');this.admit(bytes.length);this.checkTime();const descriptor=fs.openSync(filename,append?fs.constants.O_WRONLY|fs.constants.O_APPEND|fs.constants.O_NOFOLLOW:fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);let primary;try{this.checkTime();fs.writeFileSync(descriptor,bytes);this.checkTime();fs.fsyncSync(descriptor);}catch(error){primary=error;}finally{try{fs.closeSync(descriptor);}catch(error){primary??=error;}}if(primary)throw primary;this.checkTime();this.scan();}
+ record(value){this.write(path.join(this.root,'JOURNAL.jsonl'),JSON.stringify(value)+'\n',{append:true});}
+ terminal(value){
+  this.checkTime();
+  if(this.emergencyUsed)return false;
+  this.emergencyUsed=true;
+  const state=this.terminalState={qualified:false,opened:false,wrote:false,flushed:false,closed:false,late:false,primary:null,secondary:[]};
+  const operations=this.terminalOperations;
+  let descriptor;
+  const failure=(phase,error)=>{if(state.primary===null)state.primary={phase,error};else state.secondary.push({phase,error});};
+  try{
+   const bytes=Buffer.from(JSON.stringify(value)+'\n');
+   if(bytes.length>this.emergency)throw Error('EMERGENCY_SIZE');
+   this.checkTime();
+   descriptor=operations.openSync(path.join(this.root,'TERMINAL-STOP.json'),fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
+   state.opened=true;
+   this.checkTime();operations.writeFileSync(descriptor,bytes);state.wrote=true;
+   this.checkTime();operations.fsyncSync(descriptor);state.flushed=true;
+   this.checkTime();
+  }catch(error){failure('PUBLICATION',error);}
+  finally{
+   if(descriptor!==undefined){
+    try{operations.closeSync(descriptor);state.closed=true;}
+    catch(error){failure('CLOSE',error);try{operations.closeSync(descriptor);state.closed=true;}catch(secondary){failure('CLOSE_CLEANUP',secondary);}}
+   }
+   state.late=this.now()>this.deadline;
+   try{this.checkTime();}catch(error){failure('FINAL_DEADLINE',error);}
+  }
+  if(state.primary!==null)throw state.primary.error;
+  state.qualified=true;
+  return true;
+ }
+}
+
+
+FILE materialized/state.mjs
+export function completion(row){return row.exit===true&&row.close===true&&row.group?.state==='absent'&&row.signal===null&&row.stop===null&&row.errors.length===0&&Array.isArray(row.capture)&&row.capture.length===2&&row.capture.every(item=>item.flush&&item.size&&item.hash&&item.close)&&row.filesVerified===true&&row.receiptPublished===true;}
+export function cleanupTimes(firstStop,termMs=2000,killMs=1000){return {termAt:firstStop,killAt:firstStop+termMs,endAt:firstStop+termMs+killMs};}
+export function deadlineAdmission(now,deadline,caseMs=3000,termMs=2000,killMs=1000,tailMs=60000){return now+caseMs+termMs+killMs+tailMs<=deadline;}
+export class ManagedLedger{
+ constructor(max=80,peak=6){this.max=max;this.peak=peak;this.starts=1;this.active=1;this.peakCharged=1;this.confirmedStarts=1;this.activeConfirmed=1;this.peakConfirmed=1;this.confirmedRoles={owner:1};this.roles={owner:1};this.sourceForkReservations=0;}
+ enter(role){if(!['case','control'].includes(role)||this.starts+1>this.max||this.active+1>this.peak)throw Error('MANAGED_ADMISSION_CAP');this.starts++;this.active++;this.roles[role]=(this.roles[role]??0)+1;this.peakCharged=Math.max(this.peakCharged,this.active);}
+ confirm(role){this.confirmedStarts++;this.activeConfirmed++;this.confirmedRoles[role]=(this.confirmedRoles[role]??0)+1;this.peakConfirmed=Math.max(this.peakConfirmed,this.activeConfirmed);if(this.confirmedStarts>this.starts)throw Error('UNADMITTED_SPAWN');}
+ retire(confirmed=false){if(this.active<2)throw Error('RETIREMENT_UNDERFLOW');this.active--;if(confirmed)this.activeConfirmed--; }
+}
+export function creditObservation(row,storage,completed){
+ if(!completion(row))throw Error('OBSERVATION_INELIGIBLE');
+ storage.checkTime();
+ storage.record({event:'OBSERVATION_READY_FOR_CREDIT',id:row.id});
+ storage.checkTime();
+ return completed+1;
+}
+
+
+FILE materialized/TOOLS.json
+{
+  "schema": "ere-reference-tools-v1",
+  "toolPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "environmentLauncher": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "mode": 493,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "phase": "metadata-read-only-not-executed"
+  },
+  "wrapperTool": {
+    "schema": "functional-wrapper-tool-metadata-v2",
+    "path": "/bin/zsh",
+    "bytes": 1361216,
+    "mode": 493,
+    "regular": true,
+    "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+    "version": "NOT_PROBED",
+    "execution": "NONE_THIS_PHASE",
+    "scope": "platform tool wrapper only; not Bash reference",
+    "preexecutionRequired": true
+  },
+  "freshPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "observedAt": "2026-08-29T09:07:47.839Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observedAt": "2026-08-29T09:07:47.845Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed",
+      "observedAt": "2026-08-29T09:07:47.846Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true,
+      "observedAt": "2026-08-29T09:07:47.850Z",
+      "operation": "metadata/stream-hash only"
+    }
+  ],
+  "bashLoadCommands": [
+    {
+      "path": "/bin/bash",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    }
+  ],
+  "qualifiedRuntimeLoaderGraph": false,
+  "currentDyldCacheRehash": false,
+  "source": "frozen functional-v3 metadata; fresh executable stream hashes; no version execution"
+}
+
+
+FILE materialized/PROTOCOL.json
+{
+  "schema": "function-pipestatus-reference-v2",
+  "runRoot": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2",
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 27,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 64,
+    "allKnownPeakProposalCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 26,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 19,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "profile": "FUNCTIONAL_OBSERVATION_ONLY_NOT_CONTAINMENT",
+  "nativeGo": false,
+  "initialToolShellStartup": "TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_RAW_CAPTURE",
+  "bashChildren": "exact six-key env, fresh empty HOME/TMPDIR/PATH, --noprofile --norc, empty closed stdin; no BASH_ENV/ENV/SHELLOPTS/BASHOPTS/functions",
+  "output": {
+    "format": "host FNPIPEOBS1 NUL-delimited ASCII/base64 fields; raw stdout/stderr/status/effects preserved",
+    "expectedNative": null
+  },
+  "publication": "inclusive final deadline before/after writes, terminal/flush/credit; cleanup attempted independently; late cleanup cannot qualify",
+  "authorization": "independent review plus fresh runtime receipt/GO and resolved-slot DATA review plus exact require_escalated tool approval; no old authority reuse"
+}
+
+
+FILE SOURCE-DELTA.json
+[
+  {
+    "path": "admission.mjs",
+    "before": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa",
+    "after": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+    "changed": true
+  },
+  {
+    "path": "entry.mjs",
+    "before": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+    "after": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+    "changed": true
+  },
+  {
+    "path": "observation.mjs",
+    "before": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+    "after": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+    "changed": true
+  },
+  {
+    "path": "capture.mjs",
+    "before": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+    "after": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+    "changed": false
+  },
+  {
+    "path": "lifecycle.mjs",
+    "before": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+    "after": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+    "changed": false
+  },
+  {
+    "path": "group-observer.mjs",
+    "before": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+    "after": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+    "changed": false
+  },
+  {
+    "path": "observer-state.mjs",
+    "before": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+    "after": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+    "changed": false
+  },
+  {
+    "path": "state.mjs",
+    "before": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+    "after": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+    "changed": false
+  },
+  {
+    "path": "storage.mjs",
+    "before": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+    "after": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+    "changed": false
+  }
+]
+

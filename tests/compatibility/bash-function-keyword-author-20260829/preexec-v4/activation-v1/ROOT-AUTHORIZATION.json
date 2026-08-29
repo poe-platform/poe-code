@@ -1,0 +1,69 @@
+{
+  "schema": "b35-v4-binding-only-root-record-v1",
+  "disposition": "READY_FOR_DIFFERENT_FINAL_SLOT_REVIEW_NOT_ACTUAL_GO",
+  "rootInstruction": "ROOT selects lateststart issued+20min / expiry issued+45min, preserving25min exact validator interval. Do not change validator.",
+  "bindingGrant": {
+    "durationMs": 480000,
+    "knownOS": 20,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "priorStoppedPhase": "Preserved; fresh allocation, no counters reused.",
+  "source": "18e4c9a717809edd10230e3e5187111d9ed304b1",
+  "preseal": {
+    "path": "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/PRESEAL.json",
+    "bytes": 9470,
+    "sha256": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3"
+  },
+  "independent": {
+    "commit": "556fc7efba79497fc64b8b8ce537b5d265dde266",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/RECEIPT.json",
+    "bytes": 3766,
+    "sha256": "015f658695999a2ba0c10fb9c6875015a74605468a3a35e2a7631f5278e163ae"
+  },
+  "activationReviewSchema": "Exactly decision/preseal/scope/independentCommit; command hashes the four-field record, not the richer evidence receipt.",
+  "window": {
+    "issuedUTC": "2026-08-29T14:00:06.737Z",
+    "latestStartUTC": "2026-08-29T14:20:06.737Z",
+    "expiresUTC": "2026-08-29T14:45:06.737Z"
+  },
+  "actualActivation": "WITHHELD pending independent resolved-slot review and fresh ROOT actual GO; do not execute pending command.",
+  "futureRoles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 65,
+    "extraSyntaxMetadataPublication": 7,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0,
+    "collector": 1
+  },
+  "futureCalls": {
+    "primary": 54,
+    "legacyComparison": 24,
+    "mutant": 5,
+    "actualThisPhase": 0
+  },
+  "futurePrepublicationMeasuredRoleCount": {
+    "state": "PENDING_ACTUAL_OBSERVATION",
+    "slot": "Actual campaign prepublication receipt must include measured runtime/admin/total known starts, retirement, peak and pending owned work, prior to publication; planned 65+7 is not a measurement.",
+    "runtimeKnownStarts": null,
+    "administrativeKnownStarts": null,
+    "totalKnownStarts": null,
+    "allKnownRetired": null
+  },
+  "qualifications": [
+    "Initial tool-shell startup is trusted host behavior outside internal capture.",
+    "Functional direct-owned profile; no OS containment, process-group absence, universal census, or RSS claim.",
+    "Original 0/54 startup STOP and S01/F01/F02/N02/N03 records unchanged.",
+    "No compiler, build, install, product, Worker, native or readiness execution in this binding phase."
+  ]
+}

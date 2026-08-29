@@ -1,0 +1,288 @@
+{
+  "schema": "m1b-relative-deadline-preseal-v7",
+  "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "source": {
+    "path": "runner/v7/batch-phases.mjs",
+    "mode": 420,
+    "bytes": 4966,
+    "sha256": "d831b386870b922bba269874f40ec96ff495e9325c25a5cff95dcde1c62821a2"
+  },
+  "controls": {
+    "pass": 38,
+    "fail": 0,
+    "role": "DATA_SYNTHETIC_ONLY_NO_PRODUCT_OR_REAL_WATCHDOG",
+    "receiptSha256": "b7b068a7dbe27d3cda2b9d2e225246e4a5fe6e597c16c68613cedaea15f90843",
+    "captures": [
+      {
+        "path": "clock-v7/CONTROLS-01/01.json",
+        "mode": 384,
+        "bytes": 83,
+        "sha256": "6dc93bed681f264d8b4ca372c927923ca860e1db5a596423f4ec2f4d996468d0"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/02.json",
+        "mode": 384,
+        "bytes": 83,
+        "sha256": "e4c4b317f4ba0f29482a58dfbbc229e583ec38e645def1089692700da42aa44d"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/03.json",
+        "mode": 384,
+        "bytes": 78,
+        "sha256": "71a1a283d1d435c5ba6fa7a41284a944f7b34b36676bfab36ac1d080a934da01"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/04.json",
+        "mode": 384,
+        "bytes": 78,
+        "sha256": "4b9832d9623fed02529a1bd34e9d44b75b580832c55dba4f30ada1a2a2ea22e0"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/05.json",
+        "mode": 384,
+        "bytes": 74,
+        "sha256": "596209f353bfceb7866e6061082c4ee6046892338383d21503a8c4a77b74cedd"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/06.json",
+        "mode": 384,
+        "bytes": 77,
+        "sha256": "749445f3e77a74c63dba0c39050ccf4aa196304138144c97dd331789070b6cb2"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/07.json",
+        "mode": 384,
+        "bytes": 76,
+        "sha256": "bc6bc97cf226d167795ff5952ead4f41faf920b89938a745e4aa3cd1203e5e5d"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/08.json",
+        "mode": 384,
+        "bytes": 79,
+        "sha256": "9d23ddcba875838779ded5bc6d8c3f862b4f347c8efd5d00184b57559801666e"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/09.json",
+        "mode": 384,
+        "bytes": 80,
+        "sha256": "f9f459a75d51db0e1c67b864e810385a9df6175d33157a0f34c30db3427629a6"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/10.json",
+        "mode": 384,
+        "bytes": 73,
+        "sha256": "dc9d68cc992d011eb067cb33611e9816f2930754521f639ea267425337485ece"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/11.json",
+        "mode": 384,
+        "bytes": 76,
+        "sha256": "620ff44d1d7e1d0c4707a81ef493ac6e35999a956b6d7b1300583e10c24ebfea"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/12.json",
+        "mode": 384,
+        "bytes": 78,
+        "sha256": "f55677e7e215542c757bbfdbcd299e2f9e1d2441a1d90a52601cad3107db3f63"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/13.json",
+        "mode": 384,
+        "bytes": 83,
+        "sha256": "cf2ad8229902fa08c77b8df15fb195b04bd7d3eb8ac872c4c2cfd1615bfcc31b"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/14.json",
+        "mode": 384,
+        "bytes": 80,
+        "sha256": "a7b81878909926ebbb59cd2488b0d8b925ba1c2d8b2a56f4a06ae46208c62cb3"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/15.json",
+        "mode": 384,
+        "bytes": 64,
+        "sha256": "8645d51aa61595135fafc45796f3138aaf864cebc6fec197964064f0565f2a79"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/16.json",
+        "mode": 384,
+        "bytes": 67,
+        "sha256": "cbcabef11983f2c8058a2e8e58670463bba4f6bb787265ee92fa5b24d43e35d6"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/17.json",
+        "mode": 384,
+        "bytes": 68,
+        "sha256": "de718cbbb62ad74af2780ddf89e18c7f3945e1ed1af04e934c2f6f6f86fee818"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/18.json",
+        "mode": 384,
+        "bytes": 70,
+        "sha256": "13667259585628f2899affe72623fcbdad3c744492b75a1b863134a8b18937d4"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/19.json",
+        "mode": 384,
+        "bytes": 65,
+        "sha256": "65634b58accd4d260f33ebcc91f896240f0ff81621807f974c508ce4a7082ff4"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/20.json",
+        "mode": 384,
+        "bytes": 64,
+        "sha256": "d3b5f210acccc11acb8c1b50943723edcc104025638a98dc8b7e8a9044e7d9ef"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/21.json",
+        "mode": 384,
+        "bytes": 73,
+        "sha256": "9ca6e8831705ac0b5e3e7af6bac77fb2d0f9ef174ce782c4fb9ef67aecc1c1a1"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/22.json",
+        "mode": 384,
+        "bytes": 70,
+        "sha256": "4582d2b43f6c810eb0ddd663e33d118ec8ad8c936eeb0d6ac9d35b88e6e31d11"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/23.json",
+        "mode": 384,
+        "bytes": 72,
+        "sha256": "405d80cf57e32e1641e514ec305a2dc8f73d3297feb4d1cc58e3b08e37e7b528"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/24.json",
+        "mode": 384,
+        "bytes": 70,
+        "sha256": "cfa28a048cb14dfce070b6685bb8cdc47180f7f113aa27249e92b9dcff28a49b"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/25.json",
+        "mode": 384,
+        "bytes": 68,
+        "sha256": "cc1b1c3a105b36690dd4d78ce9981915e94ce2476b48edd4c874cec913c39317"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/26.json",
+        "mode": 384,
+        "bytes": 73,
+        "sha256": "0241e5e353f6b9db184b83de87ab1535fb3e84fdc5fb18827c87155e19a293fd"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/27.json",
+        "mode": 384,
+        "bytes": 83,
+        "sha256": "8d5fe066217676a074f13a83d0246bac201ad5e4a3e5daf59862146ef8987965"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/28.json",
+        "mode": 384,
+        "bytes": 81,
+        "sha256": "1e00ea1974e97eacf2a22d3e3ecad0934256ed6ec78e33a3d5a89fe7d91319a4"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/29.json",
+        "mode": 384,
+        "bytes": 76,
+        "sha256": "c76f59632a375f2aa18d58d24f9ec554bb77514a98db77251b741df9eb5ba11c"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/30.json",
+        "mode": 384,
+        "bytes": 76,
+        "sha256": "542409c269852477eda987b29cb235e054d8a36027db3ed77f840b11cf87d728"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/31.json",
+        "mode": 384,
+        "bytes": 72,
+        "sha256": "8a9cf9f38f1d30deca3a60ffb6e150ece1403f8321d8bf0ce2364a1f0fbaaa8e"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/32.json",
+        "mode": 384,
+        "bytes": 76,
+        "sha256": "f7acc8dd6136dd41bf4f0bb7851ab09a84594067a4c19972910285fd2ab6f296"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/33.json",
+        "mode": 384,
+        "bytes": 72,
+        "sha256": "b0c27811d8a5490e9361ba26f7c32d0edba7c2f242d203d50d15b3b49470a344"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/34.json",
+        "mode": 384,
+        "bytes": 72,
+        "sha256": "23796a429d3a84be03a80fa8100e3552c7031938978df7778652f26f3caf3176"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/35.json",
+        "mode": 384,
+        "bytes": 79,
+        "sha256": "d7d1f92f7eeda603c9a85ea70b8e7cd997c7d75391280a89bdd1e00ccea5575b"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/36.json",
+        "mode": 384,
+        "bytes": 69,
+        "sha256": "9e259ac4d430d4f7d2afb9d3bc35793ffc485e8255141ba9b5573617f6a7d15b"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/37.json",
+        "mode": 384,
+        "bytes": 74,
+        "sha256": "66b568b99add5a447c396c84eb0e5dfd0c0ab7c01dc307d9416e26db15bd20f6"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/38.json",
+        "mode": 384,
+        "bytes": 75,
+        "sha256": "cb8f00e1f15c628aa63a7d8979e0c158c56681acaed3c4bfd0ea69bfde26ac00"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/RESULT.json",
+        "mode": 384,
+        "bytes": 3936,
+        "sha256": "b7b068a7dbe27d3cda2b9d2e225246e4a5fe6e597c16c68613cedaea15f90843"
+      },
+      {
+        "path": "clock-v7/CONTROLS-01/STARTUP.json",
+        "mode": 384,
+        "bytes": 118,
+        "sha256": "cc809363e394044ef1bdd31d0be29ddb8c5b7b265b1fd3e3c617db070f2c9cb5"
+      }
+    ],
+    "creationAuthority": {
+      "path": "clock-v7/check-phases.mjs",
+      "sha256": "ac22a6a11a0662f2854893fdb89a7554b7f9d4a7e97b224d47aafc2a474c3235",
+      "mode": 384,
+      "method": "exclusive wx0600 publication; not Git index mode"
+    }
+  },
+  "planned": {
+    "calls": 33,
+    "batches": 29,
+    "runtimeProcesses": 43,
+    "maximumRequiredMs": 6150000,
+    "globalCapMs": 7200000,
+    "remainingAdmissions": "full30+120 must fit orUNRUN"
+  },
+  "historical": "47924ab0 preserved0fullyverified33unfulfilled rawT01-M3/3; no old score or clock reset",
+  "numericAuthority": {
+    "units": "binary64 milliseconds; no integer conversion/new rounding",
+    "root": "single monotonic hrtime origin",
+    "deadline": "constructed once using root-relative start and phase/global remaining; exact same values retained over IPC and END",
+    "localAbsolute": "timer/admit interface only; never retranslates into deadline authority",
+    "domainMs": [
+      0,
+      7200000
+    ],
+    "epsilon": 0,
+    "guardTolerance": 0,
+    "bodyCapMs": 30000,
+    "verificationCapMs": 120000
+  }
+}

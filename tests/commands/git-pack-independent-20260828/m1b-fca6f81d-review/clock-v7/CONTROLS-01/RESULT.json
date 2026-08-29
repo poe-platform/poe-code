@@ -1,0 +1,202 @@
+{
+  "role": "SYNTHETIC_NOT_PRODUCT_OR_REAL_WATCHDOG_PROOF",
+  "phaseSourceSha256": "d831b386870b922bba269874f40ec96ff495e9325c25a5cff95dcde1c62821a2",
+  "pass": 38,
+  "fail": 0,
+  "rows": [
+    {
+      "id": "captured-exact-excess-preserved",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "captured-relative-deadline-once",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "positive-fractional-origin",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "negative-fractional-origin",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "fractional-outer-clamp",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "fractional-zero-remaining",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "overflow-window-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "overflow-admission-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "negative-coordinate-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "nan-metadata-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "string-metadata-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "overflow-metadata-rejected",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "fractional-genuine-overdeadline",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "fractional-protocol-late-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-fixed30",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verify-fixed120",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-outer-clamp",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verify-phase-clamp",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "outer-expired",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "invalid-kind",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "full-window-exact-fit",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "full-window-no-fit",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "finalization-reserve",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-inclusive-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-expired-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "body-failure-distinct",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-independent-window",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-failure-distinct",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "verification-expired-end",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "overlapping-phase-denied",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-start-valid",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-body-overbudget",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-extra-field",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-wrong-batch",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-verify-before-body",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-end-late",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-full-sequence",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "id": "protocol-overall-expiry",
+      "passed": true,
+      "failure": null
+    }
+  ],
+  "elapsedMs": 15.255625000000002,
+  "captureBytesBeforeResult": 2945,
+  "children": 0,
+  "activeOwnedChildren": 0
+}

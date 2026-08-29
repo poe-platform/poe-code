@@ -1,0 +1,46 @@
+{
+  "schema": "m1b-relative-deadline-review-v7",
+  "disposition": "SOURCE_SYNTHETIC_COMPLETE_ROOT_ACTUAL_GO_AFTER_FRESH_PREAUTH",
+  "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "recipeSha256": "f0adf8d086383d70fbae6489387515ee0835b702afda928206c0cf3bd0f8708f",
+  "components": [
+    {
+      "component": "complete-executor-v7",
+      "sourceSeal": "9e8898e82b972003beed56a637f7989c6600fbd2df3f3e0fd43f7157200b3ffa"
+    },
+    {
+      "component": "qualified-host-type-api-v3",
+      "sourceSeal": "2aa5474b3f589306ff89d416255afc430b7531d918e88088ca507cb7565d156b"
+    },
+    {
+      "component": "semantic-mode-v3",
+      "sourceSeal": "9e597aec4494f171a4921b2617787fc682400d39531f81b9db9cd0d7ea08ae4c"
+    },
+    {
+      "component": "semantic-loaded-v2",
+      "sourceSeal": "7a26dae3833255423416068f8810e94f5f85b698f5f9a15f78095a5a4155f69a"
+    },
+    {
+      "component": "neutral-decoder-v3",
+      "sourceSeal": "ca809a22ac6570310bc0f6d93024884997964aacb0f549fba8af988b05247ed5"
+    },
+    {
+      "component": "capture-mode-v4",
+      "sourceSeal": "d2c2c754322f9aedb0704912529af8ed811d0047e4e819862ce07befc59137de"
+    },
+    {
+      "component": "single-relative-deadline-v7",
+      "sourceSeal": "d831b386870b922bba269874f40ec96ff495e9325c25a5cff95dcde1c62821a2"
+    }
+  ],
+  "phaseSourceSha256": "d831b386870b922bba269874f40ec96ff495e9325c25a5cff95dcde1c62821a2",
+  "controls": {
+    "pass": 38,
+    "fail": 0,
+    "receiptSha256": "b7b068a7dbe27d3cda2b9d2e225246e4a5fe6e597c16c68613cedaea15f90843",
+    "role": "SYNTHETIC_ONLY"
+  },
+  "actualCalls": 0,
+  "remainingCalls": 33
+}

@@ -1,0 +1,612 @@
+{
+  "schema": "m1b-selected-assembly-v2",
+  "selectionAuthority": "ROOT_AUTHORIZED_REMAINING33_SINGLE_RELATIVE_DEADLINE_REVIEW_ONLY",
+  "candidateSource": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "derivedOnlyTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+  "packageSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "pathnameDomain": "relative POSIX paths; assembly file rows ordered by full UTF8 path bytes",
+  "files": [
+    {
+      "path": "mechanical-type-api-v2/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/verification-v6/TYPE-CASES.json",
+      "sourceCommit": "69b5afa5635629dd2a75b113376c9a9401aae81f",
+      "role": "ACTIVE_CASE_MANIFEST",
+      "blob": "20289ed642e614acbee835be5be22cbd547ddbd1",
+      "mode": 420,
+      "bytes": 3932,
+      "sha256": "0756c004df33f6ac4989f9a152a59b72468d11dbdeea38b172cbbe9fab8a1f92"
+    },
+    {
+      "path": "mechanical-type-api-v2/FIXTURES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/FIXTURES.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "fbfa2730f35b849c47554fd70401c86c5b528d44",
+      "mode": 420,
+      "bytes": 3434,
+      "sha256": "cb9645b29df52051c964f0bafb2cdffcc2cf045ffdb344f8b6a9eb616bbf7b85"
+    },
+    {
+      "path": "mechanical-type-api-v2/SUBJECT.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/SUBJECT.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "c30be2f994045efc95637f8ac92e9832e738fe6a",
+      "mode": 420,
+      "bytes": 179664,
+      "sha256": "5026285d3b9817d39e161d83f5c33447a457b15826aa49581d5826eb7f5140c9"
+    },
+    {
+      "path": "mechanical-type-api-v2/TOOLS.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/TOOLS.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "0db2c82578341d14c51998ee4e3bb0f4c3953b43",
+      "mode": 420,
+      "bytes": 59469,
+      "sha256": "47117b49837e6ef0281778c428625200cdc4bb58db687c9d5593272bb9f3b01c"
+    },
+    {
+      "path": "mechanical-type-api-v2/adapter.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/adapter.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "a574eab6d71bd36ffd36100a0005e831a9e89407",
+      "mode": 420,
+      "bytes": 2083,
+      "sha256": "37b4c7e98f92b0ff1795db87e8e8c4d5cd381abaa4dafb222dcf32a8fcb53c94"
+    },
+    {
+      "path": "mechanical-type-api-v2/admission.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/remaining-v5/admission.mjs",
+      "sourceCommit": "cd1b8940d34ae752e7630cddfc0e10f1fca2ab79",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "8fe0b918d9babf169c3f01f157ff17118bc6b445",
+      "mode": 420,
+      "bytes": 9862,
+      "sha256": "2aa5474b3f589306ff89d416255afc430b7531d918e88088ca507cb7565d156b"
+    },
+    {
+      "path": "mechanical-type-api-v2/compiler-api-worker.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-api-worker.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "1ed8d8f1e5071f16c626ad004b3a8e6456e1b0e8",
+      "mode": 420,
+      "bytes": 4633,
+      "sha256": "78bcbcff93977889e810c70fc706f876577ab9642c2c2a7cf7174be974cbeb02"
+    },
+    {
+      "path": "mechanical-type-api-v2/compiler-host.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-host.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "bdca10f6e0054a56d6eb65e18c0fcecf598bf612",
+      "mode": 420,
+      "bytes": 9325,
+      "sha256": "97bc9c20b3438addb0561995963e51e5b2b67a12a94b47a8f1fa2f1b0fa8411c"
+    },
+    {
+      "path": "mechanical-type-api-v2/fixtures.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/fixtures.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "73a47ca5992606b3ab2813cf5269c6c6597cbcf5",
+      "mode": 420,
+      "bytes": 3208,
+      "sha256": "08631ec3df33e9587b51bc3fd5b0892b9ca6561c881221ca588b4c9912e717d6"
+    },
+    {
+      "path": "mechanical-type-api-v2/pins.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/pins.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "b1b424e22634ccec57696de580e2fc52aee46ee1",
+      "mode": 420,
+      "bytes": 471,
+      "sha256": "fe10792244dcd163126e312ba0e7bcc05ad60e8c0f5e33bf48536f8749d86e0b"
+    },
+    {
+      "path": "mechanical-type-api-v2/protocol.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/protocol.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "1c2d3252a2f9f98d870cdf0d5364ec291a86448f",
+      "mode": 420,
+      "bytes": 8586,
+      "sha256": "6e41eb4aa325ff1d9c996917386e2098ec4751d2eddfb6756893d10d155985c9"
+    },
+    {
+      "path": "mechanical/checkpoints.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/checkpoints.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "a29a82f4706ab0a06e85efe9cc7d8671a6034511",
+      "mode": 420,
+      "bytes": 3536,
+      "sha256": "c2d14cba023194cee68f3692370fd137f9e19ddf66618585a95a47ae8d0fa28b"
+    },
+    {
+      "path": "mechanical/counter.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/counter.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "302051f8fa9524796e6207979f37d71ec5f506ad",
+      "mode": 420,
+      "bytes": 1395,
+      "sha256": "f376fc1322132af4308825f79dec3abb231474d1584740f33d420e4fe438f575"
+    },
+    {
+      "path": "mechanical/fixture-data.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/fixture-data.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "adb18ef77e421afc7490c802cf5438a531b91841",
+      "mode": 420,
+      "bytes": 1729,
+      "sha256": "a7005b60f913bf395094bd4bea0df971052be7da265384992b702cddd0695677"
+    },
+    {
+      "path": "mechanical/ownership.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/ownership.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "aaaf0398b1f7642dd9448c3465e9fb922b11c0f6",
+      "mode": 420,
+      "bytes": 5919,
+      "sha256": "abdb7c32441578a5b2415bd484c2bdf244dba723d555afaa021210ef7264ad84"
+    },
+    {
+      "path": "mechanical/session-observation.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "be78105828232939fb8a7d32e7321fe6080eaefa",
+      "mode": 420,
+      "bytes": 3368,
+      "sha256": "1161e5091ba13f0fc880244202b10778dd0ac7692a32c8b60d5595c03b6f3b14"
+    },
+    {
+      "path": "mechanical/types/T01-positive.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T01-positive.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "47c02f8efef39b315aff2c5853fb13d7cf32e2c2",
+      "mode": 420,
+      "bytes": 460,
+      "sha256": "c31d31f589ea3c923be1e4b70630cb8c94a86320d2a288fdbbfa94bf0af26cd5"
+    },
+    {
+      "path": "mechanical/types/T02-limits.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T02-limits.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "e54f2d242926f966dcb18a9d23f68156f1be87f4",
+      "mode": 420,
+      "bytes": 84,
+      "sha256": "74db8bee8a71490437b8857041423fba674cdd23211f938e12681b36d696d058"
+    },
+    {
+      "path": "mechanical/types/T03-spawn.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T03-spawn.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "8f31d19d767d1eee8a630f40741f6d85607b1708",
+      "mode": 420,
+      "bytes": 86,
+      "sha256": "3c7b02c308b1a99cf8a8874ce67a71fe059c35a19ec49f6a3c9d6ebc0535c668"
+    },
+    {
+      "path": "mechanical/types/T04-boundary.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T04-boundary.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "9e92d7cf5f7097dc927025f05710c58984fcd44a",
+      "mode": 420,
+      "bytes": 96,
+      "sha256": "9d90ba44f8598b763c8ff0e03d2f36ee2335cdc2a2991a27365dfd8e832a8aff"
+    },
+    {
+      "path": "mechanical/types/T05-replace.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T05-replace.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "ab0a30b2fc9caac35e06fcbd46f17148224a8ed0",
+      "mode": 420,
+      "bytes": 78,
+      "sha256": "ba3ddb82b49dc2676d151cfbd55381f772bde481f20016290abe401272d56fc7"
+    },
+    {
+      "path": "remaining-semantic/CASE-DATA.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/remaining-v5/CASE-DATA.json",
+      "sourceCommit": "cd1b8940d34ae752e7630cddfc0e10f1fca2ab79",
+      "role": "ACTIVE_DATA",
+      "blob": "80ee093f433b5fdb2bd6572502e92bfa08b64e70",
+      "mode": 420,
+      "bytes": 105221,
+      "sha256": "ea7073ae9207b02d59536002fa8bb5abe3730dbff8ea331737a3ee7b1db29e43"
+    },
+    {
+      "path": "remaining-semantic/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/remaining-v5/CASES.json",
+      "sourceCommit": "cd1b8940d34ae752e7630cddfc0e10f1fca2ab79",
+      "role": "ACTIVE_DATA",
+      "blob": "330d286c5cd70e432a5afa4f299f06c51f230a9b",
+      "mode": 420,
+      "bytes": 6430,
+      "sha256": "084cc514e44ce52f367285b07b7d435a880e4a3cdfab6c91f8128eb3d9c556a0"
+    },
+    {
+      "path": "remaining-semantic/semantic.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/remaining-v5/semantic.mjs",
+      "sourceCommit": "cd1b8940d34ae752e7630cddfc0e10f1fca2ab79",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "051b5b4222da7fb1f71e26a36c933c5953f02913",
+      "mode": 420,
+      "bytes": 18647,
+      "sha256": "33206443b2d532870632430eeb85208058addf8a890a3a3b90d38f6702a7d12f"
+    },
+    {
+      "path": "runner/PACKAGE-MAP.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/PACKAGE-MAP.json",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "7c6d0eb00bbb568ae0d4b47bf3f088b9e5d40ddf",
+      "mode": 420,
+      "bytes": 170625,
+      "sha256": "800e13db20d0c9ea317078d706753804a3f2c5945e3402d735d2a4b2968bbb04"
+    },
+    {
+      "path": "runner/SOURCE-MAP.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/SOURCE-MAP.json",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "2df33b92e20760f786300abc48eb43647b90791f",
+      "mode": 420,
+      "bytes": 102180,
+      "sha256": "72519e90e6a69aa0d595ca3a6ba456513b3942ce7258214f8972efb921b0f128"
+    },
+    {
+      "path": "runner/TOOLS.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/TOOLS.json",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "bc687e7601df215d8d57c30109b9bcb21391f571",
+      "mode": 420,
+      "bytes": 653408,
+      "sha256": "3089de05f4d78c96997b1f7e18bc1ee8a853f8bf278411d5e268f546bc6d29da"
+    },
+    {
+      "path": "runner/admission-controls.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/admission-controls.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "84e9b61614337980b8c20bee0b148c6395967f8f",
+      "mode": 420,
+      "bytes": 4751,
+      "sha256": "37fde6d7bfd3cf1ce5feaa79afda9d2cf1bc6985078116ff9219fb8572dbd019"
+    },
+    {
+      "path": "runner/archive.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/archive.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "22f28bd2f61fb2bbd779accbc779f788275e0720",
+      "mode": 420,
+      "bytes": 2967,
+      "sha256": "7d581b4326cb0f69f6285faf572084d44a9342f91a03dfcfde50314e89f11733"
+    },
+    {
+      "path": "runner/batch-phases.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v7/batch-phases.mjs",
+      "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+      "role": "ACTIVE_EXECUTABLE",
+      "blob": "5032f364692424e179ee23358b99af52ee568d0b",
+      "mode": 420,
+      "bytes": 4966,
+      "sha256": "d831b386870b922bba269874f40ec96ff495e9325c25a5cff95dcde1c62821a2"
+    },
+    {
+      "path": "runner/budget.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/budget.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "fc46e1decb155d1bbe51090272deeecbc02b7e9b",
+      "mode": 420,
+      "bytes": 5371,
+      "sha256": "33c3405fc05062e00f26d5eded5ac7401338519881d315f998008a8bcb6a1f7a"
+    },
+    {
+      "path": "runner/cases.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v7/cases.mjs",
+      "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "6a81c2a78367813297f408aa1d8a75189f229400",
+      "mode": 420,
+      "bytes": 13848,
+      "sha256": "40f891a462287b18af1af5a91e0ccb9028279d7b630d43f97185c52e5e81a9fb"
+    },
+    {
+      "path": "runner/coordinator.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v7/coordinator.mjs",
+      "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "cc5cd00331fa549c3db37ef470726ebdd819c636",
+      "mode": 420,
+      "bytes": 18806,
+      "sha256": "e4d6559244a5f8f2186a03f8b40b7361cd2b2894188237f6ef88e07f920a3511"
+    },
+    {
+      "path": "runner/launch.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v7/launch.mjs",
+      "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "f312d3f8b027aabb47095a2bd783a9d976a33669",
+      "mode": 420,
+      "bytes": 8019,
+      "sha256": "2450eede30588c8f20a2f33f6595ac3ba156e6b162dc70fbc80f197701e67160"
+    },
+    {
+      "path": "runner/load-policy.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/load-policy.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "8c62477db56aa0a52c447b9c406e2e00f3d7130b",
+      "mode": 420,
+      "bytes": 738,
+      "sha256": "22c21928e4999fbf62fe8b4df9314b88f88d29630a8e0bcdacd47b313545f5e2"
+    },
+    {
+      "path": "runner/loaded-controls.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/loaded-controls.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "6ad08512a82438a61f9d8d7513a17cf3fbe77b43",
+      "mode": 420,
+      "bytes": 7127,
+      "sha256": "6bda580dabd2b9839685bbaf484c82d8379d616dd2321c03cf26cb7101877496"
+    },
+    {
+      "path": "runner/loader.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/loader.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "1d5b0403e12d66a2c325ca032701a996e1aa2d1a",
+      "mode": 420,
+      "bytes": 2010,
+      "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
+    },
+    {
+      "path": "runner/materialize.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/materialize.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "0620cfa17d977f839cc2241d4f16723faff3dcbe",
+      "mode": 420,
+      "bytes": 4215,
+      "sha256": "6b0d09ba60e525accb3bbd9766e6b5adef4e5b61485e57486429e6713d7e8e49"
+    },
+    {
+      "path": "runner/outer.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v7/outer.mjs",
+      "sourceCommit": "c99d1036fec5053c3b564b1a2937f9f3c48f8c0b",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "2b053a8b9d299059ae6a81a587ed6a183a30f66c",
+      "mode": 420,
+      "bytes": 11966,
+      "sha256": "24a6251d93b86e77729fb9c654e07cbe9463dee332981ae8e2fbb19084931bcc"
+    },
+    {
+      "path": "runner/postimages/L-COUNTER.js.base64.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-COUNTER.js.base64.data",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "92dc4caba5ee2e837f9f96d8e4147bdaedaebe0f",
+      "mode": 420,
+      "bytes": 22917,
+      "sha256": "b321bd54c37c0e654edd970d2e1636c32b0d4f860e0d74a15a58c65f868ff025"
+    },
+    {
+      "path": "runner/postimages/L-CRC.js.base64.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-CRC.js.base64.data",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "9f92c7394e585ffc3c0fdbde57847fd069073394",
+      "mode": 420,
+      "bytes": 19113,
+      "sha256": "02dd349f389807e93a11011b517dc1d5f3676211ce2883bf8834de11f0a6b29b"
+    },
+    {
+      "path": "runner/postimages/L-DEPTH.js.base64.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-DEPTH.js.base64.data",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "ab89414355ecc6bbe4d403ef51fe18c1c5a6e357",
+      "mode": 420,
+      "bytes": 19129,
+      "sha256": "76452019d1ac8490f736918be7859baf73ad45770cc9033364353c25b03084bb"
+    },
+    {
+      "path": "runner/postimages/L-OID.js.base64.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-OID.js.base64.data",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "f9a8dc6f70f73f5de26b9062f283363fe53627c6",
+      "mode": 420,
+      "bytes": 19113,
+      "sha256": "91cf29cba1b7c468df3f378f29bf559f5ee608c420f10d93003f3dc5c8c8c3eb"
+    },
+    {
+      "path": "runner/postimages/L-S01.js.base64.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-S01.js.base64.data",
+      "sourceCommit": "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+      "role": "FRESH_ADMITTED_UNCHANGED_DATA_PROJECTION",
+      "blob": "7d24396f7848820acdcd54e90d6121cfa7fe4fb6",
+      "mode": 420,
+      "bytes": 19033,
+      "sha256": "1994ec45b26a9737fb768d0d6728648fa41c5049f4f1226c6c7730da6730a38c"
+    },
+    {
+      "path": "runner/primitives.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/primitives.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "c6ba2409bf9efeed86396b27b7ed656b4f0c21b9",
+      "mode": 420,
+      "bytes": 6187,
+      "sha256": "129b839da2d92ee55c617d40d4e59ad2cba2b3302d6578990f74c360809598e5"
+    },
+    {
+      "path": "runner/source-admission.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/source-admission.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "79433736864af712d65d66eecda622c3e383deac",
+      "mode": 420,
+      "bytes": 5696,
+      "sha256": "5c79d0696b8b0ea09e2bffcdbcd682476116df95fd36e6047270568c676a16fb"
+    },
+    {
+      "path": "runner/supervisor.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/supervisor.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "96748deb73f1019e7485046772394d74015addce",
+      "mode": 420,
+      "bytes": 6968,
+      "sha256": "6a17fa73907f225a29a83dbda2d11d519ec6c44a9b705de66091287a5f031d6d"
+    },
+    {
+      "path": "runner/tool-fence.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/tool-fence.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "53af563ea599c41708ef0b9d6cd81eabcab2598f",
+      "mode": 420,
+      "bytes": 1312,
+      "sha256": "d58c3b36f40e474a2da408c1754d56a8f9b5251d22dcdeb678ae1fe64f60536c"
+    },
+    {
+      "path": "runner/type-bridge.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/type-bridge.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "07dae3e939c54a687595d50a94d3d8c8d975fe8c",
+      "mode": 420,
+      "bytes": 8381,
+      "sha256": "8418addde828aa71b6b5a1776353f58d65fcf84203302d82ab966e2bff2ef74d"
+    },
+    {
+      "path": "runner/worker.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/worker.mjs",
+      "sourceCommit": "8c6d71fad00c656b93646f0573154a6f6736d569",
+      "role": "ACTIVE_VERSIONED_EXECUTABLE",
+      "blob": "579fb6436a0676d1c3ce49c1691c6200eeacb5f9",
+      "mode": 420,
+      "bytes": 6000,
+      "sha256": "5f40db4561554a4b7753bb2d32738f27119e4731ff667f034492099bac53a272"
+    },
+    {
+      "path": "semantic-integration-v2/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/CASES.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "2a42d8cb7c515255985af52cd17d1f33e03afd4f",
+      "mode": 420,
+      "bytes": 4546,
+      "sha256": "9fad5b63d02ff2e4961ad6cd6dc4bf84b5333c75ae146acab365a438c1a549e9"
+    },
+    {
+      "path": "semantic-integration-v2/SCHEDULE.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/SCHEDULE.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "7536a4f8640a6010f5664c1542b413737757396f",
+      "mode": 420,
+      "bytes": 8039,
+      "sha256": "7b6b19c71627a03f0e4873f92bdf3d832f7dc347acc83442cf2ac1adadac7ae4"
+    },
+    {
+      "path": "semantic-integration-v2/WITNESSES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/WITNESSES.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "c9e37affc07170759b1def6ffc7ae7b3a4e62f9b",
+      "mode": 420,
+      "bytes": 10543,
+      "sha256": "7131dbdca29346915b4d2e600fd3dc63f30a4965ae80fd7fde67a34999dba3e3"
+    },
+    {
+      "path": "semantic-integration-v2/loaded.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/loaded.mjs",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_CODE",
+      "blob": "79ab8c61f284c52fbc2fc0835de5e4bf1ef50654",
+      "mode": 420,
+      "bytes": 13641,
+      "sha256": "edc0d9d8e5f4f178310f69a0553722564af245769519e2afeaa7a8aa88f0d539"
+    },
+    {
+      "path": "semantic/CASE-DATA.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASE-DATA.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "d7b30ae77aa042bc557931b38536f619b1e50094",
+      "mode": 420,
+      "bytes": 166027,
+      "sha256": "cdff96c2817366c7506e1cf785f9b4ca9056cfc1d787df232bd1dde95d6f2ff0"
+    },
+    {
+      "path": "semantic/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASES.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_CASE_MANIFEST",
+      "blob": "da16afd79d269b64a7f4bdb6941cc243cec22433",
+      "mode": 420,
+      "bytes": 47492,
+      "sha256": "bc12868ad2897c28363280d7a93f21f20f7729130f8f70bc07bd5c1acdc2d737"
+    },
+    {
+      "path": "semantic/FROZEN-DATA.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/FROZEN-DATA.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "24875b4a409ccb0791d50262aeb637b37e49fc8f",
+      "mode": 420,
+      "bytes": 128512,
+      "sha256": "a57c3da7b9354dd5d5cc1af23f5a10160aaafa0a2f05c94ee64d022946b4811d"
+    },
+    {
+      "path": "semantic/fixtures.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/decoder-v3/fixtures.mjs",
+      "sourceCommit": "c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f",
+      "role": "ACTIVE_CODE",
+      "blob": "7ced98b2c393bce4a9956c3d3d2066f2bd578581",
+      "mode": 420,
+      "bytes": 14156,
+      "sha256": "bcd1e82a32263ca882c66d22627ff402fc11ae97149af3b8eaa8089510c14abe"
+    },
+    {
+      "path": "semantic/semantic.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/semantic.mjs",
+      "sourceCommit": "5f937ee171bbcd5564c78709440e1fbbf3ef927a",
+      "role": "ACTIVE_MODE_ONLY_OVERLAY",
+      "blob": "88ac4f01330bbb2a6ff7468bf291cb308b0f7708",
+      "mode": 420,
+      "bytes": 18613,
+      "sha256": "0f8e4b79ec3cf233b9b31a166f83feef264384a62039417ef2f0e049f899da7f"
+    }
+  ],
+  "sourcePreparation": "v7 constructs one relative phase deadline; fixture/product/remaining33 membership unchanged from v6",
+  "counts": {
+    "files": 59,
+    "moduleBodies": 34,
+    "bytes": 1988131
+  },
+  "inertExcluded": "All unselected sibling files/reviews/history, including original HOLD scopes, confer no active authority and do not enter this projection.",
+  "predecessor": {
+    "path": "ASSEMBLY-v6.json",
+    "sha256": "0e820f9bb78c4712c2c47d2888fe2df490abea96551c6aa1f3ba5e5bb6916a75",
+    "result": "47924ab0 floating-recomposition HOLD; rawT01-M3/3 but0fullyverified33unfulfilled"
+  }
+}

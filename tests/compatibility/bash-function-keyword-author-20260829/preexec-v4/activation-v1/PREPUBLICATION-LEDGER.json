@@ -1,0 +1,290 @@
+{
+  "started": 1788011847231,
+  "deadline": 1788012327231,
+  "starts": [
+    {
+      "index": 1,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "556fc7ef",
+        "18e4c9a7",
+        "1d961ceda"
+      ],
+      "started": 1788011847232,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788011847301,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/01.stdout",
+        "bytes": 123,
+        "sha256": "4e3ae730117ea210e32b2324600dc8c584d340f661948995e07542698e4a87c1"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/01.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 2,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "src/shell/parser.ts",
+        "tests/compatibility/bash-function-keyword-author-20260829"
+      ],
+      "started": 1788011847304,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788011847748,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/02.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/02.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 3,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "556fc7ef"
+      ],
+      "started": 1788011847750,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788011847823,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/03.stdout",
+        "bytes": 693,
+        "sha256": "981d00c5e270f6dfcc8c4c2f8fca95f04d18d5576eb2d10ddd86386bf71d006e"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/03.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 4,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788012051806,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012051835,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/04.stdout",
+        "bytes": 608,
+        "sha256": "0bab18e4f06f7d95420b169a55dac593214d6177bd9559f3e793c08ffa186b4f"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/04.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 5,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4"
+      ],
+      "started": 1788012062047,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012062095,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/05.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/05.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 6,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/GO.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/REVIEW.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/COMMAND.pending.txt",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/ROOT-AUTHORIZATION.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/BINDING.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/HANDOFF.md"
+      ],
+      "started": 1788012062097,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012062197,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/06.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/06.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 7,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "commit",
+        "--only",
+        "-m",
+        "test(b35): bind reviewed v4 activation slots without dispatch",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/GO.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/REVIEW.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/COMMAND.pending.txt",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/ROOT-AUTHORIZATION.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/BINDING.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/HANDOFF.md"
+      ],
+      "started": 1788012062199,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012062472,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/07.stdout",
+        "bytes": 793,
+        "sha256": "a347989c244290b3f897456d236f9a7c53c4cedaccf8d3c1f458daef47a7b0fd"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/07.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 8,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "5ea187ecc"
+      ],
+      "started": 1788012068232,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012068279,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/08.stdout",
+        "bytes": 41,
+        "sha256": "028a3bc0491da4e9d02b14651326491ae04df8d46ecebb5d8f761879ee7ca97c"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/08.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 9,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+        "src/shell/parser.ts"
+      ],
+      "started": 1788012068281,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012068347,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/09.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-binding-A8jb4X/capture/09.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captureBytes": 2258
+}

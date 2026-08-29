@@ -1,0 +1,45 @@
+review.stdout
+review.stderr
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    'PIPE_BOOTSTRAP_SHA',
+    'PIPE_GRANT',
+    'PIPE_GRANT_BYTES',
+-   'PIPE_GRANT_SHA256',
+    'PIPE_SEAL',
+    'PIPE_SEAL_BYTES',
+-   'PIPE_SEAL_SHA256'
+  ]
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/preexec-review-v1/window-delta-v1/review.mjs:27:98
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'PIPE_BOOTSTRAP_SHA',
+    'PIPE_GRANT',
+    'PIPE_GRANT_BYTES',
+    'PIPE_SEAL',
+    'PIPE_SEAL_BYTES'
+  ],
+  expected: [
+    'PIPE_BOOTSTRAP_SHA',
+    'PIPE_GRANT',
+    'PIPE_GRANT_BYTES',
+    'PIPE_GRANT_SHA256',
+    'PIPE_SEAL',
+    'PIPE_SEAL_BYTES',
+    'PIPE_SEAL_SHA256'
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2
+UTC 2026-08-29T16:34:15.974Z

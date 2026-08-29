@@ -1,0 +1,49 @@
+{
+  "utc": "2026-08-29T16:35:05.409Z",
+  "verdict": "HOLD_REVIEWER_SELECTOR_DEFECT",
+  "helperExit": 1,
+  "helperInvocations": 1,
+  "candidateFinding": false,
+  "remainingGroups": [
+    "D03",
+    "D04",
+    "D05"
+  ],
+  "raw": [
+    {
+      "path": "readout.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "readout.stdout",
+      "bytes": 1036,
+      "sha256": "25038574f6989f54d6aa0346dec9e28c88d2587c12181977f8ec1872bb1785a8"
+    },
+    {
+      "path": "review.stderr",
+      "bytes": 979,
+      "sha256": "eb6d5b40d60c3961d3997d9768707ec7186bbda8592b3ac06f6fd04ac0e761a0"
+    },
+    {
+      "path": "review.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "startup.stdout",
+      "bytes": 8306,
+      "sha256": "02f03a50616a3e8de3a05b6bae358ee28d69136b349f38ff425239c06cdc9047"
+    }
+  ],
+  "knownConservativeIncludingFinalReadout": 15,
+  "peak": 2,
+  "product": 0,
+  "Workers": 0,
+  "activeChildren": 0
+}

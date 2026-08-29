@@ -1,0 +1,46 @@
+{
+  "records": [
+    {
+      "role": "normal",
+      "started": "2026-08-29T13:12:10.336Z",
+      "exit": {
+        "present": true,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "present": true,
+        "code": 0,
+        "signal": null
+      },
+      "error": {
+        "present": false
+      },
+      "pid": 83383,
+      "ended": "2026-08-29T13:12:10.380Z"
+    },
+    {
+      "role": "held",
+      "started": "2026-08-29T13:12:10.382Z",
+      "exit": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "error": {
+        "present": false
+      },
+      "pid": 83385,
+      "ended": "2026-08-29T13:12:10.384Z"
+    }
+  ],
+  "failure": {
+    "present": false
+  },
+  "instrumentation": "Reviewer adds exit/close observers and fixed spawn admission; author controller/helpers/fixtures unchanged."
+}

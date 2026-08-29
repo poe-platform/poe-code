@@ -1,0 +1,30 @@
+[
+  {
+    "label": "final-diff",
+    "started": "2026-08-29T13:16:01.816Z",
+    "pid": 85717,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "ended": "2026-08-29T13:16:01.853Z"
+  },
+  {
+    "label": "final-state",
+    "started": "2026-08-29T13:16:01.853Z",
+    "pid": 85718,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "ended": "2026-08-29T13:16:01.896Z"
+  }
+]

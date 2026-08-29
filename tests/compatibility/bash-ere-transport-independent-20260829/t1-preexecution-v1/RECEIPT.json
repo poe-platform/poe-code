@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "verdict": "HOLD",
+  "created": "2026-08-29T13:17:00.023Z",
+  "reviewDeadline": "2026-08-29T13:22:07.880Z",
+  "sourceCommit": "06d28b8169fbbe71bd93e36390876e4baf113650",
+  "executionPresealSha256": "97c27022e9f5b80be43c2b74e5e2901a970ac52138ec653336d6e38a62d3430c",
+  "authoritySha256": "3f200a4f93160caa9ba5c6cad93dfb185fc3cefd994157ef92f71aebd90529b5",
+  "packageSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+  "cases": {
+    "families": 32,
+    "variants": 60,
+    "eligible": 47,
+    "deferred": 13,
+    "commonEligible": 44,
+    "layoutSpecificEligible": 3,
+    "cells": 135,
+    "perLayout": 45,
+    "plannedWorkers": 111,
+    "noWorkerCells": 24,
+    "actualCells": 0,
+    "actualWorkers": 0
+  },
+  "reviewOutcomes": {
+    "authorDATA": 33,
+    "harmlessOwnership": 2,
+    "independentRefusalPass": 1,
+    "independentRefusalFail": 7,
+    "controllersExitCloseZero": 2,
+    "fixtures": [
+      {
+        "role": "normal",
+        "exitCode": 0,
+        "signal": null,
+        "closed": true
+      },
+      {
+        "role": "held-clock-false",
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "closed": true
+      }
+    ],
+    "productImports": 0,
+    "matching": 0,
+    "compiler": 0,
+    "network": 0
+  },
+  "reviewAccounting": {
+    "grantKnownOS": 48,
+    "grantPeak": 4,
+    "knownAndPlannedThroughFinalPublication": 29,
+    "finalPublicationRolesPendingAtReceipt": 2,
+    "observedHelperPeak": 2,
+    "conservativePeakWithToolOwner": 3,
+    "universalProcessCensus": false,
+    "patchCapture": "development-tool records, not file-backed controller capture; internal descendants unobserved",
+    "rawCaptureSnapshotBytes": 8266268,
+    "ownedScopeBytesBeforeReceipt": 18277238,
+    "logicalCapsNotKernelQuota": true
+  },
+  "proposedActual": {
+    "knownOS": 146,
+    "roleGraph": {
+      "externalOwner": 1,
+      "sequentialCaseNodes": 135,
+      "reservedAdministration": 10
+    },
+    "peakOS": 3,
+    "Workers": 111,
+    "peakWorkers": 1,
+    "nativeThreads": "NOT_CENSUSED_OR_BOUNDED",
+    "wallMilliseconds": 1800000,
+    "publicationReserveMilliseconds": 180000,
+    "caseMilliseconds": 10000,
+    "termGraceMilliseconds": 2000,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "perChannelBytes": 65536,
+    "perReceiptBytes": 131072,
+    "perChildLoadBytes": 65536
+  },
+  "pending": [
+    "Receipt arrival/count/admission reconciliation",
+    "A03 exact nested-load binding and non-A03 refusal",
+    "Finite post-KILL unknown-retirement observation/ownership policy",
+    "Explicit ROOT importer-edge authority",
+    "Fresh exact ROOT-GRANT hash and launch approval"
+  ],
+  "diagnosticQualification": "Owner helper retains raw references; supervisor abbreviation is not exact reason serialization. No actual error lost in executed review.",
+  "files": [
+    {
+      "path": "BLOB-PROCESS.json",
+      "bytes": 190,
+      "sha256": "73b65c47d55cd0a2eef2cbb0ebda6112c64bd31d5a0bd9624777ad5cccd6f244"
+    },
+    {
+      "path": "CAPTURE-MANIFEST.json",
+      "bytes": 471,
+      "sha256": "57e6d35bcaa922bd6b3a002dfe74f77071cec7bb41e22214a75e5b1ad01a56da"
+    },
+    {
+      "path": "CAPTURE.json.gz",
+      "bytes": 7262921,
+      "sha256": "459b814a2c9d5adb67eba659b8d95204938350dfed5b9b3a0ce14e2e7a79d0b0"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2150,
+      "sha256": "624c03ce47dfb8e4c77b7239044eff7da4f60fc581e0775f4e5a0cd342a3fa91"
+    },
+    {
+      "path": "FINAL-METADATA-PROCESSES.json",
+      "bytes": 516,
+      "sha256": "369e02862afdc93b3b76e1550882b21b151a03ce25772329037ff216958b3c28"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 10923466,
+      "sha256": "76021d1a0d2253c22639f5a6d4d06ccf1a0948654a37decda8b061324cd75f9f"
+    },
+    {
+      "path": "INVENTORY.json",
+      "bytes": 30844,
+      "sha256": "fed600db88f4eaff42addf08e858fba75f22aeab640032edf2ab4d9fbdd0ab0e"
+    },
+    {
+      "path": "OWNERSHIP-PRESEAL.json",
+      "bytes": 1564,
+      "sha256": "6f803bede8e37ff0b62f79d875a0ec2269a01a3afa722a0179476e3a149574f9"
+    },
+    {
+      "path": "OWNERSHIP-RESULT.json",
+      "bytes": 969,
+      "sha256": "d6f8ec3815154aaae45b788651d869783df3347c20e5a6ec563661ca4388846e"
+    },
+    {
+      "path": "PRESEAL-preexecution-draft.json",
+      "bytes": 732,
+      "sha256": "1885f7f96a979e71025555d3d1d473262db1417a92bf64dcb09364a8979cfcc9"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 834,
+      "sha256": "8e6448012eeb45d25716d37786925deef2b73a492ad18d42e246b731ac90dddb"
+    },
+    {
+      "path": "PROSPECTIVE-COMMAND.txt",
+      "bytes": 906,
+      "sha256": "2a20b4eb73e98c80c1573be61bb6e11e87b4a6862411cdc78ffcce5256bde04e"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 12984,
+      "sha256": "85c53190060acf2d6d4b51e2252310b3705f1685f48c6163fa2cd1d42cd5b2db"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 3999,
+      "sha256": "e41c20ecd34b2893673e317f0166b8fd686de8d4fca31490ebc23256ee0f4ee4"
+    },
+    {
+      "path": "VARIANT-MAP.json",
+      "bytes": 22830,
+      "sha256": "23de8b94fc2fa8c1138c4c06b9b3b599946cf9bc061c5d0ef276d39bee65d109"
+    },
+    {
+      "path": "ownership-review.mjs",
+      "bytes": 2431,
+      "sha256": "cbbe44c0cd5f560646f5f625b2124729d79e4db2a5e812f338b9d63808c40346"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 9431,
+      "sha256": "cf69006bcc7acf65279f6fd2bb7dfa0e35b11f9fd4e3caf7e18fc8451635efec"
+    }
+  ]
+}

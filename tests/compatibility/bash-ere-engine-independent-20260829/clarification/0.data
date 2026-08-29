@@ -1,0 +1,231 @@
+{
+  "date": "2026-08-29",
+  "scope": "SOURCE_ONLY_NO_IMPLEMENTATION",
+  "unit3Source": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "unit3Derived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "unit3AdditionalSources": [
+    {
+      "path": "package.json",
+      "blob": "c0cc226556519d6bc8b54ab5e243a7609712e599",
+      "filename": "0-package.json",
+      "size": 5257,
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "filename": "1-src__commands__expr__index.ts",
+      "size": 5041,
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "filename": "2-src__commands__expr__internal.ts",
+      "size": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "filename": "3-src__commands__index.ts",
+      "size": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+    },
+    {
+      "path": "src/index.ts",
+      "blob": "b817e8162b5b1c29decb74ac9c24bdc19d71b391",
+      "filename": "4-src__index.ts",
+      "size": 1728,
+      "sha256": "02e5cf08f9c97f3abc9a2cf2f28b640e79024381ad17e0518dbf8333a63788f7"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "blob": "6ff991ac21d1357218d6816a6d1cea49416270e6",
+      "filename": "5-src__plugins__index.ts",
+      "size": 7201,
+      "sha256": "c0ea26c4dee43a6483d3f32868d0ebb69323803730a5c953eefc7ea4b8c9f585"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "filename": "6-src__shell__types.ts",
+      "size": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    }
+  ],
+  "rootReachableOptionSources": [
+    {
+      "path": "src/commands/grep.ts",
+      "blob": "68ebe72c37722cddb5f939be13653115b883429e",
+      "bytes": 5742,
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "blob": "8d94d01e37eb91c4ef97da40775ccc097b2d44f5",
+      "bytes": 881,
+      "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "blob": "f2a68de1dd392442cafe407923f7eb336a4c58c5",
+      "bytes": 995,
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "blob": "ffd06b0422a62d76d3d15c6a65ec2cc2805fe3fb",
+      "bytes": 983,
+      "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "blob": "3fbac16d008279ff195178f4960bc300e859fece",
+      "bytes": 8823,
+      "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "blob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "mode": "100644"
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "blob": "2eff6d5d3f142a6f10be7a081c0f4ac4b4a4d9e5",
+      "bytes": 4351,
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "mode": "100644"
+    }
+  ],
+  "nodePrecedent": {
+    "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+    "role": "error-channel precedent only, not Node/Unit3 composition",
+    "files": [
+      {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "455f946434ca7adb39e5bebac630854e138eb6a0",
+        "path": "src/commands/node/diagnostics.ts",
+        "sha256": "db2a5229f32a10cdea69c39ca00669d03f20c17648797739ed896224d3f65a15",
+        "bytes": 2034
+      },
+      {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "634a655de6c13c35fd41286e683f40109b92f561",
+        "path": "src/commands/node/index.ts",
+        "sha256": "954c9ed43187eb40cd72dd7cd56e196b945c6ccac6f125f8feddfb949aad4b2a",
+        "bytes": 8225
+      },
+      {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "62e4f598dded3652421613b3ade030d161315f76",
+        "path": "src/commands/node/types.ts",
+        "sha256": "75aac3f18fe5d95d8eec82a4a57f133fd67cac75049cfd903aafe24ea6c99b61",
+        "bytes": 4335
+      }
+    ]
+  },
+  "GNUReference": "Previous authenticated GNU5.3.15 source bindings in SOURCE-BINDINGS.json; no new native or libc execution",
+  "genuineShellLimitKeys": [
+    "maxOutputBytes",
+    "maxCommands",
+    "maxLoopIterations",
+    "maxSubstitutionDepth",
+    "maxSourceBytes",
+    "maxExpansionFields",
+    "maxExpansionBytes",
+    "pipeHighWaterMark"
+  ],
+  "proposedPrivateChannel": {
+    "class": "EreProfileLimitError",
+    "exitCode": 3,
+    "rootExport": false,
+    "resources": [
+      "patternBytes",
+      "subjectBytes",
+      "work",
+      "states",
+      "allocationUnits",
+      "captureBytes",
+      "captureSlots"
+    ]
+  },
+  "publicProtocolQualification": "RegexExecutionOptions is root-exported. Internal protocol declarations are shipped/reachable but executor injection is not in inspected supported options. Existing unions/options remain unchanged; later new internal exports are observable package deltas.",
+  "originalDesignSuperseded": "Do not map private ERE work/state/allocation/capture storage failures to unrelated public ShellLimits keys.",
+  "observedChildren": [
+    {
+      "seq": 1,
+      "pid": 31649,
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+        "src/commands/node/diagnostics.ts",
+        "src/commands/node/index.ts",
+        "src/commands/node/types.ts"
+      ],
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "seq": 2,
+      "pid": 31650,
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "seq": 3,
+      "pid": 31651,
+      "args": [
+        "diff",
+        "--cached",
+        "--raw",
+        "-z"
+      ],
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "seq": 4,
+      "pid": 33662,
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "seq": 5,
+      "pid": 33722,
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "closed": true,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "productExecution": false,
+  "workerExecution": false
+}

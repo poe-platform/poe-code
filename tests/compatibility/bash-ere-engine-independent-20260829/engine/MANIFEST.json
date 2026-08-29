@@ -1,0 +1,45 @@
+{
+  "commit": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "path": "src/commands/regex-execution/ere/errors.ts",
+      "bytes": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "capture": "0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "bytes": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "capture": "1.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "43a218c88adeab2bb2f4b1a212137ed7abdbed18",
+      "path": "src/commands/regex-execution/ere/matcher.ts",
+      "bytes": 8470,
+      "sha256": "d9eb7ec7b18648ddcbd853085aef6972cd5938d3817df458796b0a7354b0abeb",
+      "capture": "2.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "4376dacd656f4c07802dc526a81cc42258c250cd",
+      "path": "src/commands/regex-execution/ere/syntax.ts",
+      "bytes": 12570,
+      "sha256": "cf928a8e09a2fbe4bdd67c187849e40bde1d02e9eb1e79f509827b0a2f5cde6d",
+      "capture": "3.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "path": "src/commands/regex-execution/ere/types.ts",
+      "bytes": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "capture": "4.data"
+    }
+  ]
+}

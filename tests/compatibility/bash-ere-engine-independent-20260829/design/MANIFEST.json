@@ -1,0 +1,93 @@
+{
+  "commit": "a2249d466436f1f94ba2976265f4e1cc9d93137b",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "7ae38bf57184e7118faf1abd5d05cad347759068",
+      "path": "tests/compatibility/bash-ere-design-20260829/HOST-PROTOCOLS.json",
+      "bytes": 2440,
+      "sha256": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681",
+      "capture": "0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "65c589837bd91e486b5b6394fb16723ad0375de7",
+      "path": "tests/compatibility/bash-ere-design-20260829/INSPECTION.json",
+      "bytes": 8315,
+      "sha256": "dc6a2c46b921111f4f12cbafdda57c51554bbb48fe746ce2e6c87210c89aacfa",
+      "capture": "1.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "59ab4ec68c46ed524dd12199aa962377af9c3a97",
+      "path": "tests/compatibility/bash-ere-design-20260829/README.md",
+      "bytes": 19409,
+      "sha256": "7fb1f7348ba43c9e036ed71806061206d8be45ec77f3853fb89425bc0719b615",
+      "capture": "2.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "550da67b9e1479bd8eecdcbcda510f4d786b5880",
+      "path": "tests/compatibility/bash-ere-design-20260829/REFERENCE-PROGRAMS.json",
+      "bytes": 6174,
+      "sha256": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+      "capture": "3.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "0df0f1da9b40e570d6723df134494eadfae52cfe",
+      "path": "tests/compatibility/bash-ere-design-20260829/REFERENCES.json",
+      "bytes": 1289,
+      "sha256": "a529c31d3b1e180315b97119d45aca42a4ee5daf97765569ef12b54bf9048542",
+      "capture": "4.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "ce76744ab6c706b359887c376deaf3bb2bd294dc",
+      "path": "tests/compatibility/bash-ere-design-20260829/SOURCE-BINDINGS.json",
+      "bytes": 9486,
+      "sha256": "b469b7d88a49600e7b54ccd2bc3856caa4cca41b0f827cfda7cab64ffffeec8a",
+      "capture": "5.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "43a91b529e0706c172caee23c633a5513733a4a9",
+      "path": "tests/compatibility/bash-ere-design-20260829/blobs.json",
+      "bytes": 2317,
+      "sha256": "b5fad8caa772749645caf206476afa9f44901dde55e280bb4a1448f22c23f231",
+      "capture": "6.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "faf3c83210a74cd6ec9d6b66c4a42bb5d5a44354",
+      "path": "tests/compatibility/bash-ere-design-20260829/inspect-source.mjs",
+      "bytes": 4661,
+      "sha256": "9be50da3b47f49ff5ea981b9d87f74275f76aad36f61aa598a2fbf862986a8eb",
+      "capture": "7.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "dd23d31f62bb4200fafaa0675b5c84b702c5bbca",
+      "path": "tests/compatibility/bash-ere-design-20260829/metadata-bindings.json",
+      "bytes": 152,
+      "sha256": "df79d8da90c8670f2c8604e965c7c945e7fe1b5a144c6e2352301c291e4ebe27",
+      "capture": "8.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "2fa70f7413547284d9c413b663f7c88ffa5cadab",
+      "path": "tests/compatibility/bash-ere-design-20260829/metadata-v2.json",
+      "bytes": 338,
+      "sha256": "76572af779b259f73ba4033bf89cbebfcc4a2034c9d181bbcd98876fcfdbe8e1",
+      "capture": "9.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "6e9fac86e9d9e7cb2191e45efeef9cae73ed9332",
+      "path": "tests/compatibility/bash-ere-design-20260829/metadata.json",
+      "bytes": 254,
+      "sha256": "678cf8da6a9461eecf90729c7b11cd3be7fc7804d5a89840e82371e1a4ba3a57",
+      "capture": "10.data"
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "layouts": [
+    "source-built",
+    "offline-installed",
+    "physically-moved"
+  ],
+  "visibleCases": [
+    {
+      "id": "R01",
+      "script": "printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+      "stdout": "<>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R02",
+      "script": "false; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<1>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R03",
+      "script": "false | true | false; printf '%s:<%s>\\n' \"$?\" \"${PIPESTATUS[*]}\"",
+      "stdout": "1:<1 0 1>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R04",
+      "script": "set -o pipefail; false | true; printf '%s:<%s>\\n' \"$?\" \"${PIPESTATUS[*]}\"",
+      "stdout": "1:<1 0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R05",
+      "script": "! false | true; printf '%s:<%s>\\n' \"$?\" \"${PIPESTATUS[*]}\"",
+      "stdout": "1:<1 0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R06",
+      "script": "! [[ x = y ]]; printf '%s:<%s>\\n' \"$?\" \"${PIPESTATUS[*]}\"",
+      "stdout": "0:<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R07",
+      "script": "! ((0)); printf '%s:<%s>\\n' \"$?\" \"${PIPESTATUS[*]}\"",
+      "stdout": "0:<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R08",
+      "script": "{ false; }; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<1>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R09",
+      "script": "f(){ false | true; printf 'inner=<%s>\\n' \"${PIPESTATUS[*]}\"; return 7; }; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "inner=<1 0>\nouter=<7>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R10",
+      "script": "false; (printf 'inner=<%s>\\n' \"${PIPESTATUS[*]}\"); printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "inner=<1>\nouter=<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R11",
+      "script": "false; value=ok; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R12",
+      "script": "false; unset PIPESTATUS; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R13",
+      "script": "readonly PIPESTATUS; false; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<>\n",
+      "exitCode": 0,
+      "qualification": "visible projection only, not declare metadata inspection"
+    },
+    {
+      "id": "R14",
+      "script": "false; readonly PIPESTATUS; true; printf '<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "<0>\n",
+      "exitCode": 0,
+      "qualification": "ROOT internal readonly-index exemption"
+    },
+    {
+      "id": "R15",
+      "script": "PIPESTATUS=seed; false; printf '<%s>\\n' \"$PIPESTATUS\"",
+      "stdout": "<seed>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R16",
+      "script": "f(){ local PIPESTATUS; false | true; printf 'local=<%s>\\n' \"$PIPESTATUS\"; }; false; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "local=<>\nouter=<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R17",
+      "script": "f(){ local -a PIPESTATUS; false | true; printf 'local=<%s>\\n' \"${PIPESTATUS[*]}\"; }; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "local=<1 0>\nouter=<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R18",
+      "script": "PIPESTATUS=; false | true; printf '<%s>\\n' \"$PIPESTATUS\"",
+      "stdout": "<>\n",
+      "exitCode": 0
+    }
+  ],
+  "hostIds": [
+    "H01",
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H06",
+    "H07",
+    "H08"
+  ],
+  "perLayout": {
+    "cases": 26,
+    "publicExecCalls": 27,
+    "contextInvokeCalls": 1
+  },
+  "totals": {
+    "cases": 78,
+    "publicExecCalls": 81,
+    "contextInvokeCalls": 3
+  },
+  "actualExecuted": 0,
+  "workersAllowed": 0,
+  "nativeAllowed": 0,
+  "publicPackageOriginAbsenceRequired": true
+}

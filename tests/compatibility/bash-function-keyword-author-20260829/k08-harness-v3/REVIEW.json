@@ -1,0 +1,6 @@
+{
+  "decision": "ACCEPT",
+  "preseal": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9",
+  "scope": "k08-target-preexec-v3",
+  "independentCommit": "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76"
+}

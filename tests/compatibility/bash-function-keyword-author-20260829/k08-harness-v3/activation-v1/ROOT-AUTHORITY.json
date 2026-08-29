@@ -1,0 +1,71 @@
+{
+  "schema": "k08-v3-binding-root-authority",
+  "authority": "User ROOT binding-only message; not independent review or actual runtime authorization",
+  "independentPreexecCommit": "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76",
+  "independentReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/RECEIPT.json",
+    "bytes": 4132,
+    "sha256": "31c83a1d7ecb972c217a6f65b91976dc694bc0662e0dca1fb261a8a327cd05fa"
+  },
+  "source": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "package": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "seal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "binding": {
+    "grant": {
+      "bytes": 976,
+      "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+      "mode": 384
+    },
+    "review": {
+      "bytes": 211,
+      "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+      "mode": 384
+    },
+    "command": {
+      "bytes": 346,
+      "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d"
+    },
+    "window": {
+      "issuedAt": "2026-08-29T16:08:30.357Z",
+      "latestStart": "2026-08-29T16:28:30.357Z",
+      "expiresAt": "2026-08-29T16:53:30.357Z"
+    }
+  },
+  "prospectiveRuntime": {
+    "knownOS": 86,
+    "peak": 3,
+    "durationMs": 1500000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "primaryCalls": 69,
+    "mutantCalls": 2,
+    "finalizationTailMs": 60000
+  },
+  "currentPreparation": {
+    "started": "2026-08-29T16:06:47.139Z",
+    "deadline": "2026-08-29T16:13:47.139Z",
+    "knownOSMaximum": 20,
+    "peakMaximum": 3,
+    "captureMaximum": 25165824,
+    "workMaximum": 100663296,
+    "pureHelpers": 1,
+    "actualProductCalls": 0
+  },
+  "requirements": [
+    "Different final-slot review then fresh ROOT actual GO required; do not launch from these files alone",
+    "No compiler/build/install/native/Worker/product execution during this binding phase",
+    "Original v2 actual STOP, both primaries and collector UNKNOWN unchanged",
+    "No reuse of old authorization window or captures; v3 capture empty and twelve future/helper paths absent",
+    "Trusted initial tool-shell startup remains outside qualified child cohort",
+    "No full census repeated; exact regular file/hash/mode and consumed-path checks only"
+  ]
+}

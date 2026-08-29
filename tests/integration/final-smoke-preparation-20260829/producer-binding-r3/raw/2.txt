@@ -1,0 +1,81 @@
+{
+  "schema": "FINAL_SMOKE_R2_SOURCE_PURE_PRESEAL",
+  "oldPreseal": "c970b59e29472bc110f37e1e2367784fc97bcb0e429bd4f054d4d4a9bd446883",
+  "sources": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/consumer.mjs",
+      "bytes": 2007,
+      "sha256": "e9dbf488c7d501de3069f6e0f97750467f031f2b0871f6634d692ffca1e56055"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/profile.mjs",
+      "bytes": 2490,
+      "sha256": "f091f3dd82ad08017052dd66d6ca51ac93bab37acc6750c34574d8fd53fc3830"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/coordinator.mjs",
+      "bytes": 1858,
+      "sha256": "34ed84fc0530b61e041d8fc183fd228098f304d6d5e9d52535d524c2d4a7c5bf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/r2/finish.mjs",
+      "bytes": 10770,
+      "sha256": "68c51d35bc9fd648bbc6024cc4ebf2ffe69d2bba57ec4e416d3c21c492ce863d"
+    }
+  ],
+  "traceAndLoader": [
+    {
+      "path": "new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e",
+      "absolute": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs"
+    },
+    {
+      "path": "new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe",
+      "absolute": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs"
+    },
+    {
+      "path": "new/support.mjs",
+      "bytes": 8442,
+      "sha256": "ad950ba9f2807ad7b08131dc267b76132c5279cb31706441abf033bde46611e0",
+      "absolute": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs"
+    },
+    {
+      "path": "new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535",
+      "absolute": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs"
+    }
+  ],
+  "owner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+    "bytes": 7970,
+    "sha256": "00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446"
+  },
+  "groups": [
+    "F01-primary0-cleanupfalse-reportundefined",
+    "F02-cleanupfalse-reportundefined",
+    "F03-reportundefined-only",
+    "F04-primaryundefined-cleanupfalse-report0",
+    "F05-success24-shape",
+    "T01-short-writes-close",
+    "T02-zero-write-close-poison",
+    "T03-writefalse-closeundefined"
+  ],
+  "limits": {
+    "knownOS": 40,
+    "peak": 3,
+    "seconds": 1200,
+    "publicationSeconds": 180,
+    "captureBytes": 67108864,
+    "workBytes": 536870912,
+    "asyncLoaders": 3,
+    "peakAsyncLoaders": 1,
+    "guestWorkers": 0,
+    "regexWorkers": 0
+  },
+  "actualCells": "UNRUN",
+  "artifact": "NOT_BUILT_HASH_AND_COUNTS_PENDING"
+}

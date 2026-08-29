@@ -1,0 +1,9 @@
+[main 4abbdeec8] fix private ERE ownership on unconfirmed retirement and seal L02 doubles
+ 9 files changed, 2154 insertions(+), 35 deletions(-)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/COMMAND.txt
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/SOURCES.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/build-and-doubles.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs

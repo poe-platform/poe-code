@@ -1,0 +1,384 @@
+{
+  "schema": 1,
+  "status": "SOURCE_AND_STRICT_BUILD_AND_16_PURE_CONTROLS_COMPLETE; FINAL_EXTRA_ARCHIVE_HOLD",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "fixtureCorrectionCommit": "40948d132b8dc628b39eedb3069a9298d9788ff8",
+  "sourceManifestSha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5",
+  "compiler": {
+    "processes": 1,
+    "exit": 0,
+    "diagnosticBytes": 0,
+    "emissions": 24,
+    "strict": true,
+    "skipLibCheck": true,
+    "negativeConsumerProcesses": 0
+  },
+  "pure": {
+    "hostHelperProcesses": 2,
+    "firstParseFailure": {
+      "exit": 1,
+      "controlsExecuted": 0,
+      "preserved": true
+    },
+    "second": {
+      "exit": 0,
+      "uniqueGroups": 16,
+      "passed": 16
+    },
+    "thirdHelper": {
+      "role": "DATA only no control/production loads",
+      "exit": 1,
+      "reason": "archive row cap",
+      "exactOversizedRow": "NOT_RECORDED",
+      "retry": false,
+      "archivePublished": false
+    },
+    "actualWorkers": 0,
+    "matching": 0
+  },
+  "ownedProcesses": {
+    "controllerBuild": {
+      "toolSession": 48183,
+      "exit": 1
+    },
+    "compilerAndFirstHelper": [
+      {
+        "pid": 55128,
+        "role": "compiler",
+        "code": 0,
+        "state": "RETIRED",
+        "captureComplete": true,
+        "closed": true,
+        "stdoutClosed": true,
+        "stderrClosed": true,
+        "term": false,
+        "kill": false
+      },
+      {
+        "pid": 55266,
+        "role": "host-doubles",
+        "code": 1,
+        "state": "RETIRED",
+        "captureComplete": true,
+        "closed": true,
+        "stdoutClosed": true,
+        "stderrClosed": true,
+        "term": false,
+        "kill": false
+      }
+    ],
+    "secondController": {
+      "outerExit": 0,
+      "child": {
+        "pid": 63840,
+        "code": 0,
+        "state": "RETIRED",
+        "captureComplete": true,
+        "closed": true,
+        "term": false,
+        "kill": false
+      }
+    },
+    "dataHelper": {
+      "outerExit": 1,
+      "childSpawns": 0
+    },
+    "unknownRetirements": 0,
+    "rescues": 0,
+    "NodeProcessRoles": 6,
+    "qualification": "No actual Worker handles existed; fake unknown-retirement states are not OS unknowns. Tool/administrative transitive census not asserted complete."
+  },
+  "capture": {
+    "explicitClosedRawChannels": 42,
+    "bytes": 9947,
+    "finalGitPublication": "later own captures excluded from this precommit snapshot"
+  },
+  "storage": {
+    "fullFinalCensus": "NOT_PUBLISHED; final DATA helper passed its traversal then refused archive row>500000; do not infer exact total from missing receipt",
+    "artifacts": "existing emitted25-entry package+PRODUCER authenticate separately; no archive retry; all original work retained"
+  },
+  "future": {
+    "cells": 13,
+    "maximumWorkers": 10,
+    "actualAuthorization": false,
+    "nonpublicDeferred": 6,
+    "publicDeferred": 7
+  },
+  "history": {
+    "actualT1": "75PASS/1nonpass/59UNRUN immutable",
+    "cell76": "unknown telemetry; no retrospective exit evidence",
+    "diagnosis": "874450368b4f12c63358f88c31e45babeae64d66 separate"
+  },
+  "bindings": [
+    {
+      "path": "BUILD/RESULT.json",
+      "size": 18545,
+      "sha256": "27d2ace260e16b5bacf106b4171eafc9f22206b429f466d7ed5d53435ceea293"
+    },
+    {
+      "path": "BUILD/compiler.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "BUILD/compiler.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "BUILD/host-doubles.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "BUILD/host-doubles.stderr",
+      "size": 1542,
+      "sha256": "4c9468e30d6675b8f516bd15395a6112a2b31e4926d4d9d928ff602bbf02f2ce"
+    },
+    {
+      "path": "BUILD/owner.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "BUILD/owner.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "SOURCES.json",
+      "size": 108823,
+      "sha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5"
+    },
+    {
+      "path": "BUILD-PRESEAL.json",
+      "size": 94676,
+      "sha256": "65c7431b0c9fad8853bf5c36e23d50ddbad97a6e4e5bd61bb37ac2321d702333"
+    },
+    {
+      "path": "PRODUCER.json",
+      "size": 5127,
+      "sha256": "019575d863dbc99abcdcb3bb2a0aeb7f712c3812822f2ff90a21e7d4be7b6dbc"
+    },
+    {
+      "path": "PACKAGE.tgz.base64.data",
+      "size": 24001,
+      "sha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8"
+    },
+    {
+      "path": "DOUBLE-RESULT-v2.json",
+      "size": 2612,
+      "sha256": "f52a13cdcc298f760abe2cbc2dbf721426b11eed30273e546d450f9dc47904af"
+    },
+    {
+      "path": "DOUBLE-OWNER-v2.json",
+      "size": 1984,
+      "sha256": "29a3a5d3a766b8f135fb50e5dde58985dc63a1553cd044f4c427fc66b5fef871"
+    },
+    {
+      "path": "DOUBLE-PRESEAL-v2.json",
+      "size": 10221,
+      "sha256": "e22bb35e987e2be7f41293b216bf301c348dd5fe3f760183304e25844e198b9b"
+    },
+    {
+      "path": "HANDOFF.md",
+      "size": 4588,
+      "sha256": "2df27a9449fd9eaa3f9c226494b01cb964dba4dc6cd7c3fceac2a017ef45a8e8"
+    },
+    {
+      "path": "FOLLOWUP-13.json",
+      "size": 5646,
+      "sha256": "260e8c086be1fe6979830de584dca380720dcb051513dce94b88448d071e30a3"
+    },
+    {
+      "path": "REMAINING-COVERAGE.json",
+      "size": 6495,
+      "sha256": "046bdbb6e6527e7c436598165d5246a4ed0a710288ced2698015095f5aadb188"
+    },
+    {
+      "path": "capture/activation.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/activation.stdout",
+      "size": 89,
+      "sha256": "4d402082351326b562b4ed4e808af3c5e3ec22a8537283af68b15c67a3dc93bd"
+    },
+    {
+      "path": "capture/commits.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/commits.stdout",
+      "size": 82,
+      "sha256": "e8ca50df46440239d202f7c9c5770c14c56b11eda4a07530703db07f28a20b97"
+    },
+    {
+      "path": "capture/data-patch.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/data-patch.stdout",
+      "size": 260,
+      "sha256": "5016944f2a79f3e75c900d53fdaa254d3fedd2e8197b27e22c1c4a961c82a929"
+    },
+    {
+      "path": "capture/diff-check.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/diff-check.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/doubles-v2.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/doubles-v2.stdout",
+      "size": 38,
+      "sha256": "282a0909b8573e74d56dc06ac979a2a5765b244166d4c7a0a6022ddc22e525c5"
+    },
+    {
+      "path": "capture/fixture-v2-patch.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/fixture-v2-patch.stdout",
+      "size": 262,
+      "sha256": "1981825ebfe5009783b7f1d3e605b35ff7aa47018604e77ce480b298e5608659"
+    },
+    {
+      "path": "capture/patch.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/patch.stdout",
+      "size": 145,
+      "sha256": "0cb1f265548e61cacf5d3002a339c263a7dfba63c350bdcfa319f2e15236c4b8"
+    },
+    {
+      "path": "capture/preparation-patch.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preparation-patch.stdout",
+      "size": 369,
+      "sha256": "264ce6c45e9bd7831f70180c68ba8fb2380ab1224d5e80629fff3ca08298b7ec"
+    },
+    {
+      "path": "capture/preparation.jsonl",
+      "size": 237,
+      "sha256": "319d40087a5f895e5636f8859dfbbe7951a819f42300f3350e8772466f5ad793"
+    },
+    {
+      "path": "capture/preseal-add.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-add.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-commit.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-commit.stdout",
+      "size": 1026,
+      "sha256": "137d81f0ae5a0203f203f391ee0c81498c764e65cfec5b65df07dfc7a98b0fd4"
+    },
+    {
+      "path": "capture/publication-data.stderr",
+      "size": 4293,
+      "sha256": "0f3ab511dd52025930bdf4221d9ec165c8ff094fa38d60a57b1a00a21abb41d8"
+    },
+    {
+      "path": "capture/publication-data.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/publication-patch.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/publication-patch.stdout",
+      "size": 272,
+      "sha256": "f16c8b5ad3f32ed89fedca1a6e59baad183ffcfb6fe580598314965c36607adf"
+    },
+    {
+      "path": "capture/publication-preseal-add.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/publication-preseal-add.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/publication-preseal-commit.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/publication-preseal-commit.stdout",
+      "size": 915,
+      "sha256": "cdaeb8cc11b1abbe14f7a475236557d2bbe82fc6d1649c254e0485361b77c11c"
+    },
+    {
+      "path": "capture/status-initial.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/status-initial.stdout",
+      "size": 94,
+      "sha256": "77ec5b9069aaab8b687fcb8694b466b046fb88e85ab8da5e34495b5b2e918271"
+    },
+    {
+      "path": "capture/v2-activation.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/v2-activation.stdout",
+      "size": 44,
+      "sha256": "da64338151c12338bf38a9255740961de392dcecaf40764e32dce005d15ae53c"
+    },
+    {
+      "path": "capture/v2-add.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/v2-add.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/v2-commit.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/v2-commit.stdout",
+      "size": 516,
+      "sha256": "f5abb156db79251038cc5a2207b757c1100c53397520427a9470045bb7bc6783"
+    }
+  ]
+}

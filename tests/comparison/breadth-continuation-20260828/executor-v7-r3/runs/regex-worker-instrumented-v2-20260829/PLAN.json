@@ -1,0 +1,71 @@
+{
+  "schema": "BREADTH_REGEX_INSTRUMENTED_PREEXECUTION_V2",
+  "started": "2026-08-29T08:33:40.007Z",
+  "deadline": "2026-08-29T09:03:40.007Z",
+  "role": "DATA_AND_HARMLESS_WORKERS_ONLY",
+  "limits": {
+    "osProcesses": 64,
+    "peakOs": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "harmlessWorkers": 48,
+    "activeWorkers": 1,
+    "childMilliseconds": 30000,
+    "termMilliseconds": 2000,
+    "killMilliseconds": 1000,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "recordBytes": 262144
+  },
+  "sourceRead": {
+    "metadataBeforeRead": true,
+    "singleSourceMaximum": 2093056,
+    "gitStreamMaximum": 2097152,
+    "jsonDataMaximum": 16777216
+  },
+  "controls": {
+    "groups": 12,
+    "instantiations": 55,
+    "retainedProtocolControls": 0,
+    "runAttempts": 1,
+    "automaticRetry": false,
+    "plannedWorkers": 41,
+    "inProcessData": 4,
+    "childControls": 51
+  },
+  "target": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "realTargetImports": 0,
+  "comparatorImports": 0,
+  "C11": 0,
+  "semanticCalls": 0,
+  "future": {
+    "semanticCalls": 99,
+    "emptySetups": 66,
+    "osMaximum": 336,
+    "osPeak": 5,
+    "runtimeOsPlan": 302,
+    "administrationOs": 20,
+    "slackOs": 14,
+    "elapsedMinutes": 90,
+    "ownerMinutes": 75,
+    "administrationMinutes": 15,
+    "captureBytes": 269484032,
+    "workingBytes": 805306368,
+    "nestedStarts": 64,
+    "nestedActive": 1
+  },
+  "history": "All old executors, grants, failures, losses, DU FAILs, W03/W07 qualifications remain immutable. No actual admission grant.",
+  "osPlan": {
+    "alreadyLaunched": 3,
+    "patch": 3,
+    "sealGit": 2,
+    "captureOwner": 1,
+    "supervisor": 1,
+    "caseChildren": 51,
+    "publicationGit": 2,
+    "total": 63,
+    "reserve": 1,
+    "peak": 3
+  }
+}

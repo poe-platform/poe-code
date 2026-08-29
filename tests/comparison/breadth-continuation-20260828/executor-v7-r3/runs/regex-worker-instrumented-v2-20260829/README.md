@@ -1,0 +1,15 @@
+# RegexWorker instrumented successor v2 — PREEXECUTION ONLY
+
+Fresh grant starts 2026-08-29T08:33:40.007Z, ends 09:03:40.007Z, including publication. Prior v1 draft remains byte unchanged and all its controls UNRUN. No old elapsed/capture budget is extended or refunded.
+
+ROOT approved the explicitly instrumented environment-data channel: `safe-bash-breadth-regex-sticky-v1`, exact own `{token, flag}`, token operation + colon + ordinal, native four-byte SharedArrayBuffer. Synchronous install/constructor/finally restore under a module-global admission lock; no await or another admitted start in that interval. Restoration failure leaves admission locked and retirement unqualified. Prior key object restored even for undefined constructor rejection. Each admitted Worker owns its cell until retirement; cells are never reset. Missing/malformed or pre-refused witness denies. This is neither caller authentication nor tamper proofing; captured native constructors outside this admitted harness are not controlled. No process.env, Worker env, workerData or transferList changes.
+
+Requested execArgv stays empty; effective execArgv is exactly --import plus authenticated preload/config URL. Existing resources 128MiB old-generation / 4MiB stack unchanged. Configs are private600 <=32768B; journals <=65536B, records<=16384B. All emitted output is bounded.
+
+55 identities/12 groups, planned41 harmless Workers, ceiling48, one active. Four allocation/history DATA identities execute in the controller with no Worker/guard-body credit; 51 child controls execute the actual inherited offline guard and owned observer. Eleven malformed/pre-refused witness inputs use the exact preload validator in each child. G09.4 also covers synchronous reentrant admission refusal and restoration on thrown undefined; G07.2 covers first-cell refusal remaining sticky while seven later cells stay clear, alongside ninth-start refusal. These are finite subassertions, not additional control-family or Worker counts. Retained controls0.
+
+Planned OS63 including 3 already launched, patch3, presealGit2, outer1, supervisor1, casechildren51, publicationGit2; cap64 leaves1 slot. Peak3: outer/supervisor/case, threads separate. Capture128MiB/work512MiB including administration; streams64KiB, record262144, thirty-second child+TERM2/KILL1. Global exhaustion fails closed; no maximum-output fit guarantee.
+
+The harmless moved control physically renames owned fixture origin; only its owned worker symlink control points worker.mjs to owned matching.mjs. No candidate assets are imported or copied. Parent exact source bindings and nested actual load witnesses are distinct.
+
+Future target closure and eight eligible IDs are bound in policy.mjs. Product/runtime integration is NOT released: old cohort authorization/coordinator/operation assessor remain immutable, cumulative reservation and full successor composition need independent integration review before actual GO. This mechanism packet alone cannot authorize a real worker. Requested/effective observer distinction and non-stock comparator/older-target/W03 partial/W07 uncredited/DU2 historical FAILs remain.

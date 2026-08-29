@@ -1,0 +1,10 @@
+{
+  "role":"root",
+  "scope":"HARMLESS_REGEX_CONTROLS",
+  "runId":"controls-01",
+  "sealSha256":"PENDING_PRESEAL",
+  "attempts":1,
+  "environmentDataApproved":false,
+  "rootMessageSha256":null,
+  "expiresAt":"2026-08-29T08:47:33.751Z"
+}

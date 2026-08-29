@@ -1,0 +1,15 @@
+{
+  "role": "stop-evidence-data-preservation",
+  "pid": 90255,
+  "started": "2026-08-29T15:21:05.673Z",
+  "children": 0,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "ended": "2026-08-29T15:21:06.079Z"
+}

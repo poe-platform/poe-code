@@ -1,0 +1,1 @@
+{"status":"STOP_FIRST_CHILD_LOADER_FSYNC_PERMISSION_DENIAL","roles":41,"supervisedChildren":1,"retainedExecuted":0,"childCapture":{"childAttempted":1748,"childStored":1748,"stdout":0,"stderr":1748,"outer":473},"logicalBytes":7773088,"copiedRawBytes":74675,"activeKnownChildren":0}

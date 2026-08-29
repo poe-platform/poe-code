@@ -1,0 +1,19 @@
+{
+  "exactCommand": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/launch.sh /private/tmp/B2-R6-ROOT-GO.json 6222",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "session": 7195,
+  "dispatchToolResponse": {
+    "chunk": "5bf2fc",
+    "status": "running",
+    "yieldMilliseconds": 1000
+  },
+  "sameSessionObservation": {
+    "chunk": "a86a0d",
+    "exitCode": 78
+  },
+  "runtimeAttempts": 1,
+  "retries": 0,
+  "toolTransportTimeout": false,
+  "qualification": "Tool session exit observation; no separately instrumented outer Node exit/close events or outer PID claim"
+}

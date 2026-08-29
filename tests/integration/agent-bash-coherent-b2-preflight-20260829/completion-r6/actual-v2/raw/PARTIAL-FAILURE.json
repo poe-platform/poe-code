@@ -1,0 +1,31 @@
+{
+  "schema": "B2_PARTIAL_FAILURE_R3",
+  "completed": [],
+  "primary": "Error: retained-source-built-redirections-v3 status=1 signal=null\n    at ChildProcess.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/owner.mjs:76:188)\n    at ChildProcess.emit (node:events:519:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:304:5)",
+  "retirement": {
+    "children": 1,
+    "attemptedBytes": 1748,
+    "storedBytes": 1748,
+    "elapsedMs": 178721.748584,
+    "failures": [
+      {
+        "phase": "child-outcome",
+        "reason": {
+          "type": "object"
+        }
+      },
+      {
+        "phase": "outer-failure",
+        "reason": {
+          "type": "object"
+        }
+      }
+    ],
+    "secondaryPresent": false,
+    "secondary": {
+      "type": "undefined"
+    }
+  },
+  "successSchema": false,
+  "automaticRetry": false
+}

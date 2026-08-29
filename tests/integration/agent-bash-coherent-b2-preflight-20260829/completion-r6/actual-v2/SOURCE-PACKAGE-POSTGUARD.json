@@ -1,0 +1,12 @@
+{
+  "status": "AUTHENTICATED_DATA_POSTGUARD",
+  "packageFiles": 1014,
+  "completeRelativePathsBytesHashes": true,
+  "modesRechecked": false,
+  "bindingsMembers": 263,
+  "bindingBytes": 68731,
+  "bindingSha256": "7ce0075be20ceb12eb218d8a7b187f9b6f57299d8fdfc1f2d64dccdffe17b414",
+  "retainedExecuted": 0,
+  "actualCompletedLoaderSupply": false,
+  "qualification": "Postfailure captured-file inventory comparison, not semantic/runtime success; first trace logged before fsync denied and hook return did not complete"
+}

@@ -406,20 +406,6 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
   }
 }
 
-function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {
-  signal.throwIfAborted();
-  let indexed = false;
-  let offset = 0;
-  while (args[offset]?.startsWith("-")) {
-    signal.throwIfAborted();
-    const option = args[offset++]!;
-    if (option === "--") break;
-    if (option !== "-a") return { indexed, offset, error: option };
-    indexed = true;
-  }
-  return { indexed, offset, error: undefined };
-}
-
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -3534,20 +3520,6 @@ export class Runtime {
     }
     if (command === "export" || command === "local" || command === "readonly") {
       const declarationArgs = [...args];
-      let indexedLocal = false;
-      if (command === "local") {
-        const options = localDeclarationOptions(declarationArgs, this.signal);
-        if (options.error !== undefined) {
-          await writeText(stderr, `local: ${options.error}: unsupported option\n`);
-          return 2;
-        }
-        indexedLocal = options.indexed;
-        declarationArgs.splice(0, options.offset);
-        if (indexedLocal && declarationArgs.length === 0) {
-          await writeText(stderr, "local: -a requires a variable name\n");
-          return 2;
-        }
-      }
       if (command === "readonly") {
         while (declarationArgs[0]?.startsWith("-")) {
           const option = declarationArgs.shift();
@@ -3573,47 +3545,6 @@ export class Runtime {
         }
         if (arrayStore(state)?.get(name) && command === "export") {
           await this.diagnostic(context, "indexed array: indexed binding cannot be exported"); status = 1; continue;
-        }
-        if (command === "local" && indexedLocal) {
-          if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
-          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
-          const existingLocal = locals!.get(name);
-          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
-          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);
-          if (saved) await this.prepareVariable(state, name, saved);
-          const store = requireArrays(state);
-          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
-          const holding = store.owner.hold();
-          let shadow: IndexedBinding | undefined;
-          try {
-            const watch = await store.watch(name, operation, this.signal);
-            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
-            const prepared = await store.prepareName(name, operation, this.signal);
-            const current = store.get(name);
-            shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
-            const value = match[2] ?? (!saved && !current && Object.hasOwn(state.variables, name) ? state.variables[name] : undefined);
-            if (value !== undefined) {
-              const token = await textToken(shadow.owner, value, this.signal);
-              try { shadow.insert(0, token); } catch (error) { token.release(); throw error; }
-            }
-            this.signal.throwIfAborted();
-            if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
-            if (!watch.valid()) throw new ArrayFailure("stale binding");
-            let released: Promise<void> | undefined;
-            stateMonitor(state)!.publish(tickets, name, () => {
-              if (saved) locals!.set(name, saved);
-              delete state.variables[name];
-              released = store.publish(name, shadow!, tickets, prepared);
-            });
-            shadow = undefined;
-            watch.close();
-            await released;
-            assignments.delete(name);
-          } catch (error) {
-            if (saved && !locals!.has(name)) await this.discardVariable(saved);
-            throw error;
-          } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
-          continue;
         }
         if (command === "local" && !locals!.has(name)) {
           const saved = assignments.get(name) ?? saveVariable(state, name);

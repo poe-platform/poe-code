@@ -1,0 +1,8 @@
+[
+  {"id":"R17-UNCHANGED","script":"f(){ local -a PIPESTATUS; false | true; printf 'local=<%s>\\n' \"${PIPESTATUS[*]}\"; }; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"","expected":"local=<1 0>\nouter=<0>\n","state":"UNRUN"},
+  {"id":"SCALAR","script":"a=outer; f(){ local a=inner; printf '<%s>\\n' \"$a\"; }; f; printf '<%s>\\n' \"$a\"","expected":"<inner>\n<outer>\n","state":"UNRUN"},
+  {"id":"INDEXED-SHADOW","script":"a=(outer tail); f(){ local -a a; a=(inner); printf '<%s>\\n' \"${a[*]}\"; }; f; printf '<%s>\\n' \"${a[*]}\"","expected":"<inner>\n<outer tail>\n","state":"UNRUN"},
+  {"id":"SCALAR-OUTER","script":"a=outer; f(){ local -a a=inner; printf '<%s>\\n' \"${a[*]}\"; }; f; printf '<%s>\\n' \"$a\"","expected":"<inner>\n<outer>\n","state":"UNRUN"},
+  {"id":"REDECLARE","script":"f(){ local -a a; a=(one two); local -a a; printf '<%s>\\n' \"${a[*]}\"; }; f","expected":"<one two>\n","state":"UNRUN"},
+  {"id":"NESTED","script":"a=(outer); f(){ local -a a=middle; g(){ local -a a=inner; printf '<%s>\\n' \"${a[*]}\"; }; g; printf '<%s>\\n' \"${a[*]}\"; }; f; printf '<%s>\\n' \"${a[*]}\"","expected":"<inner>\n<middle>\n<outer>\n","state":"UNRUN"}
+]

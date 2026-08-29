@@ -1,0 +1,54 @@
+{
+  "startedUTC": "2026-08-29T16:48:11.375Z",
+  "endedUTC": "2026-08-29T16:48:59.040Z",
+  "conclusion": {
+    "summary": "Retained RESULT: C10/C11/C15/C16/C18 PASS in source-built, installed and physically-moved:15P0F. Each layout records5 guestWorkerCreates/Exits, peak1, Regex0/internalLoaderThreads0. Worker exit events code1 are retained, not child-process exit0. Child exit/close0 does not prove separately unobserved stream EOF. Publication preimport stderr: Identity duplicate path at identity.mjs:29 -> combinedIdentities:38 -> preimport.mjs:9/30. FINAL publisherFiles and preimportFiles both contain admin-owner-r2/ledger.mjs,7144B SHA09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd. No repair/replay. Publication HOLD; runtime15PASS is not successful campaign publication/coherent acceptance. C16 remains controlled-release, not opaque-preemption. Runtime retirement records4 children,511541 attempted/stored bytes,failures[]; no full census claim."
+  },
+  "records": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+      "exists": true,
+      "bytes": 25661,
+      "sha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "mode": 420,
+      "inode": 190012523,
+      "mtimeMs": 1788021022830.9253,
+      "capture": "/private/tmp/b1-window-v2-inner-inspection/raw-01.txt"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stdout",
+      "exists": true,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420,
+      "inode": 190027340,
+      "mtimeMs": 1788021748946.5684,
+      "capture": "/private/tmp/b1-window-v2-inner-inspection/raw-02.txt"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stderr",
+      "exists": true,
+      "bytes": 1046,
+      "sha256": "f1eec1d72869f685d1cb1944a321ee4a39ba63e1a09f4f4bd698c55f502fe5fe",
+      "mode": 420,
+      "inode": 190027341,
+      "mtimeMs": 1788021748995.208,
+      "capture": "/private/tmp/b1-window-v2-inner-inspection/raw-03.txt"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-runtime/RESULT.json",
+      "exists": true,
+      "bytes": 33587,
+      "sha256": "b434a5e57c190854f4996c4f2eebd4a6c76044afa68ab3d6f8ba10f25c0e26b5",
+      "mode": 420,
+      "inode": 190027335,
+      "mtimeMs": 1788021748876.1724,
+      "capture": "/private/tmp/b1-window-v2-inner-inspection/raw-04.txt"
+    }
+  ],
+  "totalReadBytes": 60294,
+  "referencedReads": 0,
+  "originalLedgerUntouched": true,
+  "inspectionPID": 71764,
+  "inspectionExit": "PENDING_TOOL_OBSERVATION"
+}

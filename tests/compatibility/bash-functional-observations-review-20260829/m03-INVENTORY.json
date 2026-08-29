@@ -1,0 +1,2333 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "85855f61f808239805b6cc917a314362582f1ca6",
+    "bytes": 22652,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/CASE-MATRIX.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "88165429df738f9b2fcace3a56c5412246f0d9a8",
+    "bytes": 1699,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/CONTROLS-PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f19ce4f699afcb115add6e8d5ae9fdc46adc47c3",
+    "bytes": 147,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/CORRECTION.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cc7dde3de14a6cf8c9c9b548c08bdefd4b088c82",
+    "bytes": 1926,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/CORRECTION.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "61407d1ecc2957092642211483355ea220d72a74",
+    "bytes": 54253,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/INSPECTION.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3d7c63393c13b73fcc8ac736c733f48b21d60ef7",
+    "bytes": 1848,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/LEGACY-FIXTURE-SOURCE.txt"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5f65fc75c356bb79eb238f01f1a96b2c2094b87a",
+    "bytes": 1570,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e43bd78948389a442cb1e4e32f7403d2614365d0",
+    "bytes": 10177,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "59d9bc22c0ed99173ecf2a5d4b0b9b5bafc02bc9",
+    "bytes": 5551,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c9e88f3ab7bb3d4fc8c9b25ca4585d148c810153",
+    "bytes": 5217,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/REVIEW.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ef8e26716a14a11bdf38c85a9bea8aa4611b5f77",
+    "bytes": 1427,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/REVIEWER-CORRECTION.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "401e5e2fa81621f4b5a82fd5f4818bd11ce1dcd3",
+    "bytes": 14496,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1eebcf547be7589376d6547a1c3d719a5c027cc1",
+    "bytes": 669,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/TOOL-METADATA.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/3.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/4.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/5.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad",
+    "bytes": 5682,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/legacy-0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3326af3aa57942dec50fa1a9efeac6b205e5b661",
+    "bytes": 9040,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/legacy-1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "eacd6a3d0d2ce19303188334f4de540069f84d2e",
+    "bytes": 242,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/legacy.inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "40bb378a16179b93d16c5874085343ffed440070",
+    "bytes": 713,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/legacy.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "01aa80027126da75debabd1ac07228b89dde7ad1",
+    "bytes": 993,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version-0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0ca6a475b87e02e93eaa19637729e5a1b77a8b99",
+    "bytes": 196,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version-1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "495a07c5ed30f799f7b1346328aebbcf01b88de1",
+    "bytes": 538,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version-2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version-3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "31f51dc2cf78c668920c2caeabf58df7fac9ed12",
+    "bytes": 109,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version-4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2b8af907532974794410f9d304c5fe1a88a9e4ec",
+    "bytes": 773,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version.inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5772843e92e037efae6e9e4d9d460676587339d5",
+    "bytes": 1833,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/authority/version.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ef43ba1ab3a4dd07f65976c689ebc43e2b09cc6f",
+    "bytes": 3796,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/collect.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b0b57508269b521c2f1b41e87aaf6ac1eeb757f8",
+    "bytes": 1209,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/inspect.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c495bfefdfd121243da06bf99e907a83daf83a80",
+    "bytes": 789,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e2bb3706bdfb12d45eb7639f5f40ffad894afbe9",
+    "bytes": 1465,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e56853c04b9563476477cf51f897e93bf607958a",
+    "bytes": 3024,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d4f0b7a9eb9fe6ee9ae6d8774be459eaef850011",
+    "bytes": 3557,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9202dad93412a1cc817c7296291f0e7a937ff066",
+    "bytes": 7139,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bad9d823e984647a3f32354512d9e3e38b0ef1b7",
+    "bytes": 2364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c562a7baf0339053e8ceabddb8a591d2d5923cf5",
+    "bytes": 29287,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "14ffc3b4753bf51d04fc442ec0556c9cadfe5752",
+    "bytes": 1267,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/16.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/17.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1da2d0451f7134506902fc3976cfa25d9c19936b",
+    "bytes": 1958,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/18.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/19.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c390d8793495081b86bf8dee9999e453098ad4a0",
+    "bytes": 8212,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f1ab6d6668e5d6c062d6941631bcd41063215b39",
+    "bytes": 12619,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/20.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/21.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95fcdd1771e3ca2c1006e8f76e3ef4cb021df71e",
+    "bytes": 4011,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/22.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2663fa4084fbb7727df7920bc571cabf1098e86b",
+    "bytes": 909,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f650109793761303f56fdea29d5ebe13c9dc0d58",
+    "bytes": 1868,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9825f779e700d624ecbb273d81098a9f8271061c",
+    "bytes": 838,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "18bf6f04cd283b3609a17fd2a259ecb2f297c081",
+    "bytes": 1207,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5c7c83604fc075121e6764525ee2873e1162d8ab",
+    "bytes": 3266,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f4270cd8613ad58bac038b55b96117d80bdac62a",
+    "bytes": 79969,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "625dfc25499a316a6fbc4344ae126cdd22770738",
+    "bytes": 10209,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8440a6b970264af81c014cf86627994be9c5666e",
+    "bytes": 7967,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/child-1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/child-2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dfd023e1da78dcd5904ddd47ac9f74b89a015d16",
+    "bytes": 3410,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/packet/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "979f0af095b8fe08f124cd0dcf9ca65bcbeb979a",
+    "bytes": 18364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/review.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "66b12de658a738f80d0f66cb3b22a5e9b377ec5e",
+    "bytes": 5444,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/seal-review.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ddad0c044ad1f299a5d2f62824142d812f65eb9e",
+    "bytes": 789,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c390d8793495081b86bf8dee9999e453098ad4a0",
+    "bytes": 8212,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1da2d0451f7134506902fc3976cfa25d9c19936b",
+    "bytes": 1958,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f1ab6d6668e5d6c062d6941631bcd41063215b39",
+    "bytes": 12619,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95fcdd1771e3ca2c1006e8f76e3ef4cb021df71e",
+    "bytes": 4011,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2663fa4084fbb7727df7920bc571cabf1098e86b",
+    "bytes": 909,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f650109793761303f56fdea29d5ebe13c9dc0d58",
+    "bytes": 1868,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d4f0b7a9eb9fe6ee9ae6d8774be459eaef850011",
+    "bytes": 3557,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9202dad93412a1cc817c7296291f0e7a937ff066",
+    "bytes": 7139,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bad9d823e984647a3f32354512d9e3e38b0ef1b7",
+    "bytes": 2364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c562a7baf0339053e8ceabddb8a591d2d5923cf5",
+    "bytes": 29287,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "14ffc3b4753bf51d04fc442ec0556c9cadfe5752",
+    "bytes": 1267,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5e37ac5a4e042181dd5b8ae50c1667c71c0cb1fd",
+    "bytes": 5577,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/child-1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/child-2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cd3e3b000b90b8856807d262bfbe8d3fd2152d77",
+    "bytes": 2358,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/source/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/3.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/4.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9b5672cff3eb98b62d13975307fd681257a39356",
+    "bytes": 952,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/ACQUIRE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a93ec7af4cf0ca671b02a8a27ed2651fb04a170c",
+    "bytes": 2503,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/CONTROL-PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f158001cba69670c22afbd8733b98bc11a9d1545",
+    "bytes": 2720,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/CONTROL-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2887108ffaf2d5758903341bd262dbce3d5cee1d",
+    "bytes": 15504,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/CONTROLS.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7a58e8c6bf4e3da7234b3a00222862fd78efc35b",
+    "bytes": 5725,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/FINAL-SUMMARY.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3a733753b604bff7bb3e93ad06e7f872f60d3153",
+    "bytes": 146,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/FINALIZE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "72e4c47d91d0aa4b681725f71aa11300d4d3ed71",
+    "bytes": 20406,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/MANUAL-0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c5065aeac29e47250961aefced907e540a4e8691",
+    "bytes": 80,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/PREPARE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d972cdb96893cb6e6261aa24ca508807b453d7a5",
+    "bytes": 1721,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e0c056eb4cbcbf6c09025a8ab70a7acafa0bd92",
+    "bytes": 9795,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5af5c26a0248773fa6027954af85f6fc8cc9bb2c",
+    "bytes": 22306,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1ef6665ac41c83d98b77fca0e7aac18d7228e061",
+    "bytes": 20018,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fc41185cd11975a5d61399e62afc2f85a2e6d1e1",
+    "bytes": 877,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/STARTUP-SOURCE-PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f3b925239f9baaec9c7fabfc48d6498e57d04a5e",
+    "bytes": 116,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/STARTUP-SOURCE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "94d94ca5b8153fe8fa119a012e68753787ceb08d",
+    "bytes": 4625,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/STARTUP-SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2a91587611cfa4ecd1ef41336a4c2afadecbb5b7",
+    "bytes": 1464,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/WRAPPER-DERIVATIVE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "672ec65023702ce1686d59857907b32fae4c922b",
+    "bytes": 497,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/WRAPPER-PAYLOAD.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8e7798082b0a69bec770c3628184b9628d7f4326",
+    "bytes": 3356,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/acquire.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3f2ee8744fe844a3bf3e4376cc4c604765e33b48",
+    "bytes": 2259,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "62ff90aef7103514d2f628618944f2f100017deb",
+    "bytes": 117057,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3ed2074fa0becfaa7236d773a8a2b4d0cd313b0c",
+    "bytes": 1024,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0916c201ae2d47756fce17efdfb7027257bc9d5d",
+    "bytes": 4520,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b241ab7b1a7087c2be4c43b4475ebcc6e099e3a7",
+    "bytes": 1849,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e04b18583ea9bd37d69281f18ad26e55ff8e82e1",
+    "bytes": 762,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bd371f12b1641bcecf52572e5f7ef8f9889d6f45",
+    "bytes": 6947,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0a65ec5bf176be209ffa154eca92a5a5661b7f46",
+    "bytes": 30175,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/16.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2aa91f937644f0fb136884693492d56455606296",
+    "bytes": 362,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/17.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/18.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/19.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8c6f0597336151e6935ad19b9b7828a233cc453",
+    "bytes": 7221,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "726ab82e91ec4f353200869e0f0800040ab01e1d",
+    "bytes": 364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/20.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1a6f6e48557de3e5b3120c183079d9e78ce4d188",
+    "bytes": 3716,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/21.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/22.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d0c315ff76ea3b1926bacc43d8a94e61d114465",
+    "bytes": 8564,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/23.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8505ab2189e608d5f224d94e28decce37f3e73ee",
+    "bytes": 7665,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/24.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/25.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/26.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/27.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "22b2286d8438a8a2bcb029eccc4a5e4ec07b298e",
+    "bytes": 4227,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/28.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b586d94e7375c617ee0574d4c95a332cfa34fe7",
+    "bytes": 1572,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/29.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ea16906c8ab5b4d7e95480b0a2a375dfcb62d42b",
+    "bytes": 3273,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "28adc8f185e99f4cfa574fd73b0e00caa4732273",
+    "bytes": 2510,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/30.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbfde6cff0c02e58d9e842596f54e6007d587f4f",
+    "bytes": 11321,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dd69a7f9865f73a252d7de1749dce07dd9bc93d1",
+    "bytes": 2658,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e0e2a90f4c6ce3a25860c376042b9927454542f",
+    "bytes": 864,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b4bac51f8b00c47381ba2ffa1074ea1ccfdc20a4",
+    "bytes": 1124,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ff4878bea1e435c0ea71d2e68c6f02f86e162434",
+    "bytes": 3502,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1da17185ad8953b376154b81e9cf284b9dae1520",
+    "bytes": 14076,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e35dc6dc8c446690c7d46117662b8b8ca6dd3409",
+    "bytes": 10596,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9d29e62bf1e83650194706ca3488ff80596bc7fe",
+    "bytes": 4609,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/evidence/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "51dd546968e942d1dfd9f02e8aa6224dde8a73bb",
+    "bytes": 4077,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/finalize.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48d4e9a4e0fe19f80a88253f136a50b1c9715809",
+    "bytes": 5116,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/AUTHOR-BRANCHES.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1a6f6e48557de3e5b3120c183079d9e78ce4d188",
+    "bytes": 3716,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/admission.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/capture.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/group-observer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/lifecycle.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/observer-state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b586d94e7375c617ee0574d4c95a332cfa34fe7",
+    "bytes": 1572,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "28adc8f185e99f4cfa574fd73b0e00caa4732273",
+    "bytes": 2510,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/modules/storage.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e6af2e8ab2dceebd851600fe88f4884227e7f6b0",
+    "bytes": 4702,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/prepare-controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "68f38b68fed50cdf78876e1f3633fbb183682fd5",
+    "bytes": 13922,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/review-controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8c6f0597336151e6935ad19b9b7828a233cc453",
+    "bytes": 7221,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "726ab82e91ec4f353200869e0f0800040ab01e1d",
+    "bytes": 364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1a6f6e48557de3e5b3120c183079d9e78ce4d188",
+    "bytes": 3716,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d0c315ff76ea3b1926bacc43d8a94e61d114465",
+    "bytes": 8564,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8505ab2189e608d5f224d94e28decce37f3e73ee",
+    "bytes": 7665,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/16.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/17.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/18.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/19.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ea16906c8ab5b4d7e95480b0a2a375dfcb62d42b",
+    "bytes": 3273,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "22b2286d8438a8a2bcb029eccc4a5e4ec07b298e",
+    "bytes": 4227,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/20.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b586d94e7375c617ee0574d4c95a332cfa34fe7",
+    "bytes": 1572,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/21.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "28adc8f185e99f4cfa574fd73b0e00caa4732273",
+    "bytes": 2510,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/22.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbfde6cff0c02e58d9e842596f54e6007d587f4f",
+    "bytes": 11321,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dd69a7f9865f73a252d7de1749dce07dd9bc93d1",
+    "bytes": 2658,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3ed2074fa0becfaa7236d773a8a2b4d0cd313b0c",
+    "bytes": 1024,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b241ab7b1a7087c2be4c43b4475ebcc6e099e3a7",
+    "bytes": 1849,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e04b18583ea9bd37d69281f18ad26e55ff8e82e1",
+    "bytes": 762,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bd371f12b1641bcecf52572e5f7ef8f9889d6f45",
+    "bytes": 6947,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0a65ec5bf176be209ffa154eca92a5a5661b7f46",
+    "bytes": 30175,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d4122114d03f6b2b72e0eb947284a83ee4bc9ddf",
+    "bytes": 7843,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0f97ad75f0464458b5e6f70b24371f4703c94d3b",
+    "bytes": 3385,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/source/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1f130ead021fb0f779bfd3ad324292121f14672f",
+    "bytes": 1941,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/startup-source.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/C11/stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1833b014420860e755a7410d2ee03b5f69c1e525",
+    "bytes": 11,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/C11/stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/C12/stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4e122b8698100b8a9d2a4f036ebd677bdd91d2cc",
+    "bytes": 8,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/C12/stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7bf42b7dc95be538755f815548996051c1737263",
+    "bytes": 5217,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/JOURNAL.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N04/stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "21f3bcb3f8ff7389eaba3ac187dda2ed34407f41",
+    "bytes": 12,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N04/stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7fa8c94584fe007c8c1040554832a8f78015e082",
+    "bytes": 1180,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N05/DERIVATIVE-COMMAND.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d171a7cc6bc5618645828e6795fad0149f7f1225",
+    "bytes": 15,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N05/bootstrap.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9dfdd46a5131ea913e808035c1ab16c5e61f2f90",
+    "bytes": 118,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N05/bootstrap.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N05/observer.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N05/observer.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fe945e054eeb8a1b00232d0dce9972cc76ba9734",
+    "bytes": 1180,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N06/DERIVATIVE-COMMAND.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2cf00fb45215774ed3d461df5ef48cbf28cbbbde",
+    "bytes": 14,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N06/bootstrap.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c0fe6266aa3718baf5b4c67d6159fff7b2811de4",
+    "bytes": 8,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N06/bootstrap.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3a7d24d2f7cc790c1bf726610d6be4108cc06150",
+    "bytes": 145,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N06/observer.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N06/observer.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0e111e2786d408ef59310888595b384fa4bfe485",
+    "bytes": 1208,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N07/DERIVATIVE-COMMAND.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "30b15fb7c53426128fa40aad4bfbcaa0da9ef9de",
+    "bytes": 166,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N07/observer.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N07/observer.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6874ff5f566afc428eb7d7c009cd559ad2729aa0",
+    "bytes": 39,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N08/TERMINAL-STOP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6eef08017d54d3d558c06ba5b592eb5417d189ae",
+    "bytes": 14,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N10/TERMINAL-STOP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "01f8147f301d68b116392ca1a00323ca88e4aad4",
+    "bytes": 50,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/N10/data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f9cd8fecd00382741b6db700b234e1d9b1ff459a",
+    "bytes": 372,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/synthetic/valid-synthetic-review.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+    "bytes": 2,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v2/work/synthetic/wrong-mode.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/3.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/4.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "28c3603c0d9b72846801326bd14053c87401367c",
+    "bytes": 864,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/ACQUIRE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48ae627880ca0d427d2699805d7a099a4cf2fde0",
+    "bytes": 1773,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/CONTROL-PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b2fd27e931e729009b4d7035022b6d99f184a3f1",
+    "bytes": 1219,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/CONTROL-SEAL-r3.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e38ec4df7dda506363dfa4e03d166a1d530e98d8",
+    "bytes": 1207,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/CONTROL-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5f7b3b1df2117cd254bc7a73cc74888fb4a3d9c7",
+    "bytes": 895,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/CORRECTION-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d28ada553a9bcb6b61d49862884f35d5d8d224a1",
+    "bytes": 1178,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/CORRECTION-r3-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "21491403eecf5b5bd0bba24e8d694be594d7e4c0",
+    "bytes": 296,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/FINAL-REPAIR.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e28221013fe247ad2ea8345df3166a045e03ebf5",
+    "bytes": 1476,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "213dd16fa4d83a78fe0b1edd1a35b165e1351147",
+    "bytes": 316,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/REPAIR.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3dd8101308893683fc362658102be471ac9a4393",
+    "bytes": 5279,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a76a29f7136610b5e4dd2db9e5226b2deef03ca5",
+    "bytes": 8228,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/RESULT-r3.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "778943b9a9d5d94a298454a98ce978c5884b4224",
+    "bytes": 1422,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/RETURN-SHAPE-CORRECTION.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b9902eea622ac15637b23f3a72d61914e9a225bb",
+    "bytes": 114,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/REVIEW-r2.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "259b084400f28de1f79a6c038075c8c71ef67d30",
+    "bytes": 4734,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/REVIEW-r3.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "86c81be9d22ea91df4d91fa71203168831d1c45e",
+    "bytes": 132,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/REVIEW.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3c0ab501f4fa25a14986214548fbba2106843abb",
+    "bytes": 1053,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/ROLE-CORRECTION.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7f8d2e759dd0b9370c2aafb6b10548f9c6ffa42b",
+    "bytes": 1314,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/SCOPED-RECEIPT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b2ad44db4a04203c64ccedd72a5ac723d8a18eba",
+    "bytes": 15593,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9e09f8ef3eefb1253374984b93a6bf7625dac6de",
+    "bytes": 3128,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/acquire.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/1.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/2.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/3.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/4.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d30845479c1b52e04e134ccd8df2d826899066a",
+    "bytes": 1568,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/ACQUIRE.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/ACQUIRE.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e1a8a849559c704b449339afc01553e9f5312e7f",
+    "bytes": 4592,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/ACQUIRE.stdout.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4708ff2cf519f6350b51f83dc917688bc1b777ce",
+    "bytes": 5442,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/PLACEHOLDER-HISTORY.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6d4456fcea6ae50ace86324f9d94317f2a6829a9",
+    "bytes": 1948,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/PRESEAL.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7b9e90e7bd2d0a7c70c7172c50654577cfccad8e",
+    "bytes": 705,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/PUBLICATION-TRANSPORT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b3dd2fa8929cf8c473dfb89b42aaf2af9f243c49",
+    "bytes": 2215,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bb9827ec9ba6bee3bbfb832b990cf5e65734a923",
+    "bytes": 6379,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fbcfc9007b6aed80859fd1cd845f62c4405d25dc",
+    "bytes": 3662,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/REVIEW.capture.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/REVIEW.stderr.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d712855ea2883cc2780efce3548871dd3e663640",
+    "bytes": 286,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/REVIEW.stdout.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d2f4a4d704e15af556fe945391922d77d3f9e980",
+    "bytes": 6718,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4d3b3650b7a9dc384ac42b1af92990ef6f08f966",
+    "bytes": 3290,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/acquire.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0074cc4929cc1dd00dba8dd11e407c4721ebc250",
+    "bytes": 1290,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "87a09850b813a83ef97e0423c3f9e791f6887ee5",
+    "bytes": 493,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "147613bfac63c7e392f2733b000f09ba6b249465",
+    "bytes": 3290,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ec329f5bd10818bde4b76ce308c872a97e26a0d4",
+    "bytes": 10078,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76debaa7fb7ff6ce3d584c136dfdd911216ec047",
+    "bytes": 810,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "22b7ef1c057fffdffc8965c058bd65887cfd9c8b",
+    "bytes": 3072,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bf6952c54772c417f33a99296c605f0f9a454e35",
+    "bytes": 3061,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "839cfe50d7d49cfd7473b8f704382c0d1315ab9a",
+    "bytes": 4816,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f12f49e7286cb017ac18f6c3ae2bdd26b1aac67a",
+    "bytes": 4496,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "192b5f8688d9a22e8ebd6afef3f90eb42e2f7f3c",
+    "bytes": 3218,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e5a1d2e8ec1908754542e9a0067fad1d8b6bee9",
+    "bytes": 1434,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/binding/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0074cc4929cc1dd00dba8dd11e407c4721ebc250",
+    "bytes": 1290,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "87a09850b813a83ef97e0423c3f9e791f6887ee5",
+    "bytes": 493,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f12f49e7286cb017ac18f6c3ae2bdd26b1aac67a",
+    "bytes": 4496,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "147613bfac63c7e392f2733b000f09ba6b249465",
+    "bytes": 3290,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ec329f5bd10818bde4b76ce308c872a97e26a0d4",
+    "bytes": 10078,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76debaa7fb7ff6ce3d584c136dfdd911216ec047",
+    "bytes": 810,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "22b7ef1c057fffdffc8965c058bd65887cfd9c8b",
+    "bytes": 3072,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bf6952c54772c417f33a99296c605f0f9a454e35",
+    "bytes": 3061,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "839cfe50d7d49cfd7473b8f704382c0d1315ab9a",
+    "bytes": 4816,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dd41be5fbb2523a4c3c318b06248ec6a2e07d0a1",
+    "bytes": 32617,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9c1d7e5a2fc5d4d7b6a2f94298a47c9888aaf912",
+    "bytes": 1873,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d8ac9de313ce8ff9fbe30f111a8eabb8dc3a2289",
+    "bytes": 3940,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7289988433b4d10a1d78496805210ded8b0ef406",
+    "bytes": 1774,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/publication/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9007e87e48fc5f040bf9b82e265f9a8917d63769",
+    "bytes": 15935,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/activation-v1/review.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1ea04b3d452b8224cc5ffd7f04c2009cada64d77",
+    "bytes": 3252,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "01c7be7c6210f21e9f3a0b2c4cfbb0446d469149",
+    "bytes": 914,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a9f06fec007d16027b2e7ba1807e229b8b163313",
+    "bytes": 95465,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9ec645cad53994ab050f811d15b4d18aa6ad1674",
+    "bytes": 950,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0729e214c9b6297a79a29ddbb0b63f57f5673689",
+    "bytes": 5602,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fd99f3e34e68c1db6ed7a132031fcdd14f8b642b",
+    "bytes": 2969,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b11323784c4e31af0832b7596c0a38b8d2c5a3bb",
+    "bytes": 6462,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "db6e78f0cde8ab4c956968252812bff90ed6436d",
+    "bytes": 30175,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/16.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d209d66334360f6d3f2aa6ecdb09e5de656f366c",
+    "bytes": 362,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/17.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/18.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/19.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95e4a3cbd35812de519f6f5244a4eebe1bf39dd2",
+    "bytes": 1079,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "726ab82e91ec4f353200869e0f0800040ab01e1d",
+    "bytes": 364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/20.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48badd4afc89781287df3163e0db440748dbd04f",
+    "bytes": 3973,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/21.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/22.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a813852a3f7535b82209ed1d857f7c4e454713dd",
+    "bytes": 5389,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/23.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa2042b0d22790df47839b046964bb98df8abfd1",
+    "bytes": 7559,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/24.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/25.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/26.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/27.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "edac0f2fb39bfea29e8d39abb50ceac52bca6504",
+    "bytes": 4011,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/28.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+    "bytes": 1824,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/29.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6bb65e077e88503b0773b00c7d18084f46faa896",
+    "bytes": 3909,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+    "bytes": 3583,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/30.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "01ac0c33033605569c51137af80db63b6ba430c8",
+    "bytes": 4032,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ab81626ce48c413ea2d8dd21c3ef6d7c774b9b4c",
+    "bytes": 2017,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "19c6b0a9d41ba7ad4aed19971afca7f61dcd7e44",
+    "bytes": 2465,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7f5f8858ee71cb498a81662feaa2426f5d4e18de",
+    "bytes": 4118,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1904342548173a46ba2703d5845e197cc624f49c",
+    "bytes": 1223,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ec4b50be0881b69d3bf3ef8767a0ec7e48420f7a",
+    "bytes": 1817,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1d1d8eb8c529a8f44e11462dae174a5c93b4da67",
+    "bytes": 10581,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e8b6de3c8477172e078feac0ba788a2b58915a1c",
+    "bytes": 4597,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/evidence/inventory.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bc6a15df8c892415a25fd75cd1abcc43ab9ae7c6",
+    "bytes": 4889,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/final-review.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48badd4afc89781287df3163e0db440748dbd04f",
+    "bytes": 3973,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules-r3/admission.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a813852a3f7535b82209ed1d857f7c4e454713dd",
+    "bytes": 5389,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules-r3/data-controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+    "bytes": 1824,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules-r3/state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+    "bytes": 3583,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules-r3/storage.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48badd4afc89781287df3163e0db440748dbd04f",
+    "bytes": 3973,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules/admission.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a813852a3f7535b82209ed1d857f7c4e454713dd",
+    "bytes": 5389,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules/data-controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+    "bytes": 1824,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules/state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+    "bytes": 3583,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/modules/storage.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1249af19bf0e7c87fabbd4904d68f277698fcf65",
+    "bytes": 1846,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/repair-and-run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4a72d00e238257e007a563bc0889630b8d86199f",
+    "bytes": 12853,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/review-r2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d4827d6b3904e23cde53e2fae285bc468e01eef5",
+    "bytes": 13433,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/review-r3.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "249833c7b3d35ec2608927980e9c4000cc5c1e9c",
+    "bytes": 12670,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/review.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+    "bytes": 40103,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/0.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95e4a3cbd35812de519f6f5244a4eebe1bf39dd2",
+    "bytes": 1079,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/1.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "726ab82e91ec4f353200869e0f0800040ab01e1d",
+    "bytes": 364,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/10.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "48badd4afc89781287df3163e0db440748dbd04f",
+    "bytes": 3973,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/11.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/12.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a813852a3f7535b82209ed1d857f7c4e454713dd",
+    "bytes": 5389,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/13.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa2042b0d22790df47839b046964bb98df8abfd1",
+    "bytes": 7559,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/14.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/15.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/16.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/17.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "edac0f2fb39bfea29e8d39abb50ceac52bca6504",
+    "bytes": 4011,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/18.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+    "bytes": 1824,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/19.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6bb65e077e88503b0773b00c7d18084f46faa896",
+    "bytes": 3909,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/2.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+    "bytes": 3583,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/20.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ab81626ce48c413ea2d8dd21c3ef6d7c774b9b4c",
+    "bytes": 2017,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/3.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "01c7be7c6210f21e9f3a0b2c4cfbb0446d469149",
+    "bytes": 914,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/4.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9ec645cad53994ab050f811d15b4d18aa6ad1674",
+    "bytes": 950,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/5.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fd99f3e34e68c1db6ed7a132031fcdd14f8b642b",
+    "bytes": 2969,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/6.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "db6e78f0cde8ab4c956968252812bff90ed6436d",
+    "bytes": 30175,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/7.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5dff32f80013d9257aad201a64d013572b0fb59e",
+    "bytes": 2657,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/8.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cbddd16ae0187160af05130cf27fd816081ccb10",
+    "bytes": 1323,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/9.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5262eb6f0e6177dbecca032e1296bc55281f9cd6",
+    "bytes": 7150,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1c1b8c5194e20216cf9ef03bf635fb6579025804",
+    "bytes": 3076,
+    "path": "tests/compatibility/bash-functional-reference-review-20260829/v3/source/inventory.data"
+  }
+]

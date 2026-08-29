@@ -1,0 +1,13 @@
+{
+  "notBefore": "2026-08-29T15:52:01.060Z",
+  "lastPrelaunchCheck": "2026-08-29T15:53:06.068Z",
+  "session": 21583,
+  "oneAttempt": true,
+  "execYieldMs": 1000,
+  "sessionPolls": 1,
+  "exitCode": 78,
+  "toolOutputBytes": 0,
+  "recorded": "2026-08-29T15:53:37.133Z",
+  "noRetry": true,
+  "grantSha256": "720bee1710c078eb4c9ee606ae69cb101fe5fc688f5a420d715ddfe4d793f7d1"
+}

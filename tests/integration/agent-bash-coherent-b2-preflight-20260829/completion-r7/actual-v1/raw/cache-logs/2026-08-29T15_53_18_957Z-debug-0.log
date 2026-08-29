@@ -1,0 +1,13 @@
+0 verbose cli /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/npm/bin/npm-cli.js
+1 info using npm@10.9.7
+2 info using node@v22.22.2
+3 silly config load:file:/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/npm/npmrc
+4 silly config load:file:/private/tmp/safe-bash-b2-runtime-r7/installed/.npmrc
+5 silly config load:file:/private/tmp/safe-bash-b2-runtime-r7/home/user.npmrc
+6 silly config load:file:/private/tmp/safe-bash-b2-runtime-r7/home/global.npmrc
+7 verbose title npm install /private/tmp/safe-bash-b2-runtime-r7/input/product.tgz
+8 verbose argv "install" "--offline" "--ignore-scripts" "--no-audit" "--no-fund" "--package-lock" "false" "--cache" "/private/tmp/safe-bash-b2-runtime-r7/cache" "--prefix" "/private/tmp/safe-bash-b2-runtime-r7/installed" "/private/tmp/safe-bash-b2-runtime-r7/input/product.tgz"
+9 verbose logfile logs-max:10 dir:/private/tmp/safe-bash-b2-runtime-r7/cache/_logs/2026-08-29T15_53_18_957Z-
+10 verbose logfile /private/tmp/safe-bash-b2-runtime-r7/cache/_logs/2026-08-29T15_53_18_957Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368

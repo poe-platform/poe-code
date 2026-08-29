@@ -1,0 +1,46 @@
+{
+  "schema": "B2_PARTIAL_FAILURE_R3",
+  "completed": [
+    "retained-source-built-redirections-v3",
+    "retained-source-built-strict",
+    "retained-source-built-conditional",
+    "retained-source-built-extension",
+    "retained-source-built-arrays",
+    "retained-source-built-n14",
+    "types-source-built-positive",
+    "types-source-built-negative"
+  ],
+  "primary": "Error: ENOENT: no such file or directory, lstat '/private/tmp/safe-bash-b2-runtime-r7/cache/_cacache/tmp/E83Yqx/dist/commands/regex-execution/client.js'\n    at Object.lstatSync (node:fs:1722:25)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:40:21)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs:41:82)",
+  "retirement": {
+    "children": 9,
+    "attemptedBytes": 105843,
+    "storedBytes": 105843,
+    "elapsedMs": 79169.266125,
+    "failures": [
+      {
+        "phase": "work-census",
+        "reason": {
+          "type": "object"
+        }
+      },
+      {
+        "phase": "child-outcome",
+        "reason": {
+          "type": "object"
+        }
+      },
+      {
+        "phase": "outer-failure",
+        "reason": {
+          "type": "object"
+        }
+      }
+    ],
+    "secondaryPresent": false,
+    "secondary": {
+      "type": "undefined"
+    }
+  },
+  "successSchema": false,
+  "automaticRetry": false
+}

@@ -1,0 +1,18 @@
+{
+  "commit": "6c68be44446ad6f3251697f1be6a07910155c53f",
+  "sourceCommits": [
+    "65f0e08078a186d322b7ab975bac5972f09bef17",
+    "0f36459ccf38623906c5c80702c5d32111167f4d"
+  ],
+  "completed": "2026-08-29T10:04:50.911Z",
+  "elapsedMs": 1685,
+  "gitChildren": 8,
+  "retired": 8,
+  "newCaptureBytes": 132580,
+  "indexUnchanged": true,
+  "sourceAndRetainedEvidencePostcheck": true,
+  "compressedInputs": 0,
+  "newRuntime": 0,
+  "old64Compliance": "NOT CERTIFIED",
+  "outerAndGitRaw": "retained untracked append/finalization receipts; not claimed inside earlier commit"
+}

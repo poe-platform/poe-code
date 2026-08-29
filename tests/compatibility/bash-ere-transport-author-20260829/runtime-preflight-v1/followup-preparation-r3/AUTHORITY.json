@@ -1,0 +1,73 @@
+{
+  "schema": 3,
+  "inheritedR2ProfileSha256": "b46dd4e58efdf4efb9244ae6beb1a046ab51c734a457a65ce7f898c1e5c2d808",
+  "ownImporters": {
+    "budget.mjs": [
+      "node:fs",
+      "../followup-preparation-r2/journal.mjs"
+    ],
+    "startup-receipt.mjs": [
+      "node:fs",
+      "node:crypto",
+      "../followup-preparation-r2/journal.mjs"
+    ],
+    "activation.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "../followup-preparation-r2/journal.mjs",
+      "./budget.mjs",
+      "./supervisor.mjs"
+    ],
+    "supervisor.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "../preparation-r3/data-support.mjs",
+      "./budget.mjs",
+      "../followup-preparation-r2/journal.mjs",
+      "../followup-preparation-r2/receipt-gate.mjs"
+    ],
+    "admin-publication.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "./startup-receipt.mjs",
+      "./budget.mjs"
+    ],
+    "controls.mjs": [
+      "node:assert",
+      "node:fs",
+      "node:url",
+      "./startup-receipt.mjs",
+      "./budget.mjs"
+    ]
+  },
+  "inheritedImporters": {
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs": [
+      "node:fs",
+      "node:util"
+    ],
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs": [
+      "node:util",
+      "./journal.mjs"
+    ],
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs": [
+      "node:child_process",
+      "node:fs",
+      "./data-support.mjs"
+    ],
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:path",
+      "node:zlib"
+    ]
+  }
+}

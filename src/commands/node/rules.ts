@@ -1,4 +1,4 @@
-export const nodeValueRules = String.raw\`
+export const nodeValueRules = String.raw`
   const valueRecords = [];
   function remember(value, kind, locked) {
     if (value === null || typeof value !== 'object') return value;
@@ -130,4 +130,4 @@ export const nodeValueRules = String.raw\`
     const result = []; for (let index = 0; index < keys.length; index = index + 1) if (keys[index] === 'name' || keys[index] === 'message' || keys[index] === 'code' || keys[index] === 'errno' || keys[index] === 'path' || keys[index] === 'syscall' || keys[index] === 'dest') result.push(keys[index]); return result;
   }
   const __vnodeRules = nativeObject.freeze({adopt: adopt, get: getValue, key: computedKey, reference: reference, assign: assign, binary: binary, unary: unary, compound: compound, update: update, updateVariable: updateVariable, remove: remove, call: callValue, method: method, unbound: unbound, object: function (value) { return remember(value, 'record', false); }, array: function (value) { return remember(value, 'array', false); }});
-\`;
+`;

@@ -1,0 +1,1 @@
+{"pass":false,"unsafe":false,"stopped":{"present":true,"isUndefined":false,"name":null,"message":"strict source build failed; downstream slots unrun"},"processCount":2,"workers":0,"guestEntries":0,"cleanup":true,"raw":{"bytes":66625,"sha256":"bd0afcb0740d68bc4496af0d1781dacc594778f8ba3ad5fbc58f767a906d3f51","mode":384}}

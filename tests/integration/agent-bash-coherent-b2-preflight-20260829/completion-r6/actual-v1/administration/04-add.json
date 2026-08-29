@@ -1,0 +1,13 @@
+{
+  "role": "04-add",
+  "pid": 65826,
+  "started": "2026-08-29T15:06:55.053Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

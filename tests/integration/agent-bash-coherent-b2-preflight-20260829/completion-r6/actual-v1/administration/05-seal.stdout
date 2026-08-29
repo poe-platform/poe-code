@@ -1,0 +1,16 @@
+[main 2faba94db] test: seal one B2 scheduling timer and actual authority
+ 14 files changed, 507 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/ROOT-GO-RECORD.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/SCHEDULING-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/01-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/01-slot-paths.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/01-slot-paths.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/02-receipt.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/02-receipt.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/02-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/03-binding.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/03-binding.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/03-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/04-add.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/administration/04-add.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v1/schedule.mjs

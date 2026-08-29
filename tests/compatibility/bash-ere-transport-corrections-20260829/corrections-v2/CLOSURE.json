@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "presealSha256": "214d3feba92e3c59baa482255f62265a6c4d7212328a25c11ef7ae6262ba3403",
+  "archiveAuthenticatedBeforeCleanup": true,
+  "archiveEntries": 37,
+  "archiveCompressedSha256": "238582e29cc1a2667305e29f7c08f394feab1d617ce0b1139ac9dcc6736f2071",
+  "fullOwnedOutputCensus": {
+    "files": 284,
+    "bytes": 27596677,
+    "changedOriginalPaths": 0,
+    "newPaths": 0
+  },
+  "ownedWorkRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work",
+  "ownedWorkRemoved": true,
+  "rawRunCaptures": "RUN/*.stdout, RUN/*.stderr, RUN/RESULT.json retained locally and included in authenticated archive; copied tools/source/emits removed only after full census/authentication",
+  "administrativeCapture": {
+    "stdout": "PREP.stdout.data",
+    "stderr": "PREP.stderr.data",
+    "scope": "outer capture opened before first metadata; instructions excluded; raw administration retained locally, not claimed to be inside earlier ACTUAL archive; final publication tail is observed via tool and captured here",
+    "snapshotKnownStarted": 19,
+    "snapshotClosed": 19,
+    "existingToolOwner": 1,
+    "peakKnownIncludingOwner": 3
+  },
+  "actualValidationChildren": 4,
+  "actualController": 1,
+  "actualWorkers": 0,
+  "elapsedAtCleanupMilliseconds": 889974,
+  "grantMilliseconds": 1200000,
+  "noRuntimeAuthorityTransferred": true
+}

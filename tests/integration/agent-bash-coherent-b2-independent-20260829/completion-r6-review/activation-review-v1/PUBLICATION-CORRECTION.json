@@ -1,0 +1,9 @@
+{
+  "original": "EBADF writeSync after closing publication.jsonl, before Git-add child launched",
+  "source": "tool93606a transcription, not raw capture",
+  "unchangedHelperExit": 0,
+  "helperRerun": false,
+  "knownOsConservativeCeiling": 20,
+  "peakConservative": 2,
+  "publicationUtc": "2026-08-29T15:02:49.394Z"
+}

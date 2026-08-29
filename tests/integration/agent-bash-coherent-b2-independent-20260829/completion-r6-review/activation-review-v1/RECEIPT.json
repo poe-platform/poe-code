@@ -1,0 +1,33 @@
+{
+  "status": "ACCEPT_FINAL_SLOT_ONLY_ROOT_ACTUAL_GO_REQUIRED",
+  "utc": "2026-08-29T15:02:24.154Z",
+  "bindingCommit": "f9534894b19085108ac042ff0f48805499d5c1dd",
+  "bindingReceipt": "32ecaf2ebdde79e196ccbaaed3d23732b617af9eb29367f55928b2f3e4ac83bf",
+  "grantSha256": "c002da2a04caa6486b7c60fe4ece42a81fe9b28115ef35585ab19d3e998bd7b7",
+  "resultSha256": "7b6140e0fa92f5a2ca3ddad11e8fa7ec1d2af7077c88f8ccd3e2e659185c1e72",
+  "presealSha256": "aed8fa1899d32a7e390b634587a87b43583fa1c7f04c292f5a1d98e1f41cf78b",
+  "helperStdoutSha256": "062da7a56c0051ce8ed3356414b47bcac0dceaf7a27d1767cebc883657c3918c",
+  "helperStderrBytes": 0,
+  "helperExit": 0,
+  "gitMemberBindings": 4,
+  "currentRuntimeCalls": 0,
+  "helperRuns": 1,
+  "publicationKnownRolesReserved": 5,
+  "knownOsConservativeTotal": 18,
+  "peakConservative": 2,
+  "notGlobalCensus": true,
+  "notBefore": "2026-08-29T15:15:12.109Z",
+  "externalLatest": "2026-08-29T15:20:12.109Z",
+  "activeEnd": "2026-08-29T15:42:12.109Z",
+  "expiry": "2026-08-29T15:45:12.109Z",
+  "command": {
+    "shell": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/launch.sh",
+      "/private/tmp/B2-R6-ROOT-GO.json",
+      "6222"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  }
+}

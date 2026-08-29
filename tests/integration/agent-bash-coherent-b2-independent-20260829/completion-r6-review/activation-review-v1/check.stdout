@@ -1,0 +1,1 @@
+{"status":"ACCEPT_FINAL_SLOT_ONLY","utc":"2026-08-29T15:01:16.793Z","packetFiles":30,"consumedPins":10,"tools":4,"timingChecks":[{"name":"anchor","activeMs":1620000,"totalMs":1800000,"publicationReserveMs":180000},{"name":"external-latest","activeMs":1320000,"totalMs":1500000,"publicationReserveMs":180000}]}

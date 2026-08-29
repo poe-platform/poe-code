@@ -1,0 +1,41 @@
+[
+  {
+    "label": "scope-status",
+    "started": "2026-08-29T13:31:38.320Z",
+    "pid": 23912,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "label": "scope-index",
+    "started": "2026-08-29T13:31:38.546Z",
+    "pid": 23915,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "label": "scope-diff",
+    "started": "2026-08-29T13:31:38.605Z",
+    "pid": 23917,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

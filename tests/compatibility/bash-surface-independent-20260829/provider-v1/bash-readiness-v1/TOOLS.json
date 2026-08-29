@@ -1,0 +1,263 @@
+{
+  "schema": "bash-readiness-tools-binding-v1",
+  "sourceBindings": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/CACHE-BINDING.json",
+      "object": "a93b71e71a5d4a21e29a05b705ca58d8ce6f722f",
+      "bytes": 4488,
+      "sha256": "3ec808fd077357d190021d096ae24e7785f9a1a37dcaf51f88a02ff97cd7e2e1"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/LOADER-GRAPH.json",
+      "object": "d0280494cf43129d0b786ee0ce609ebf3df4cd93",
+      "bytes": 74957,
+      "sha256": "a43776521a54462851a3ad91fd20a39375380ac5934df69c6e94c9fc085ae7c3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/TOOL-IDENTITIES.json",
+      "object": "80cd0d32f2105a8860ea7941d11b4ba820bd91ff",
+      "bytes": 10248,
+      "sha256": "2eb3cab6394677af2fcc11a07ebbdeed3dac530e02ac04edf48030be0d7d5ada"
+    }
+  ],
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "execution": "author-fixture-role",
+      "dev": "16777232",
+      "ino": "3707231",
+      "readBytes": 112989184
+    },
+    {
+      "role": "sandbox",
+      "path": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "execution": "author-fixture-role",
+      "dev": "16777232",
+      "ino": "1152921500312572052",
+      "readBytes": 102560
+    },
+    {
+      "role": "bash",
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "execution": "NOT_AUTHORIZED",
+      "dev": "16777232",
+      "ino": "1152921500312570708",
+      "readBytes": 1293840
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+      "bytes": 573440,
+      "mode": 493,
+      "sha256": "23f83bb30ccedb95598b24850ac875df4031b84fa76da68cb6b1abff2537ef75",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48089",
+      "readBytes": 573440
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01",
+      "bytes": 1702723584,
+      "mode": 493,
+      "sha256": "ce476f10e3ea73246d7afd68d451feabab2cf490879e198964016c733faa1d15",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48091",
+      "readBytes": 1702723584
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata",
+      "bytes": 233996288,
+      "mode": 493,
+      "sha256": "e6ceb585882a12a180584cb39654f01cce6f4712ebc806232af230582bb0f7b8",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48093",
+      "readBytes": 233996288
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly",
+      "bytes": 126664704,
+      "mode": 493,
+      "sha256": "c6d9f2c9837e101d8bf63f36a9ef48acb6b0f8cfe940d6ddcd41c4c3f452eef8",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48095",
+      "readBytes": 126664704
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit",
+      "bytes": 601358336,
+      "mode": 493,
+      "sha256": "e950f0ef3f3aab696926dd725a1ce3792be0b699975881ca6a990a4ad633049e",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48097",
+      "readBytes": 601358336
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05",
+      "bytes": 1825177600,
+      "mode": 493,
+      "sha256": "e5d615efc54391e8f46bc0c47102b22771d1ea9fcee39c3523ff60900ed03b10",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48099",
+      "readBytes": 1825177600
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata",
+      "bytes": 237207552,
+      "mode": 493,
+      "sha256": "723faa7ae72f3643d7b2cd5ee04838e34878086611a8dc06f3d39beb18c36dba",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48101",
+      "readBytes": 237207552
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly",
+      "bytes": 7290880,
+      "mode": 493,
+      "sha256": "5b1b963becd703c424e98cc30e17f0732a0bdc275681957580b8352f3057c6fc",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48103",
+      "readBytes": 7290880
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit",
+      "bytes": 616185856,
+      "mode": 493,
+      "sha256": "be37939c10b4f7a76a43c44c8556343e4219bd24a49509075ead2a942c146431",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48105",
+      "readBytes": 616185856
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09",
+      "bytes": 165773312,
+      "mode": 493,
+      "sha256": "568bc08127a319958eb58cc97cb6dbe6037d0bc389d6d796eb3a61bc83dc719d",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48107",
+      "readBytes": 165773312
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata",
+      "bytes": 21872640,
+      "mode": 493,
+      "sha256": "6e7fb49ae747ee5de1eb601863bb3323fe978ce934537fdbc9f524c0c3746578",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48109",
+      "readBytes": 21872640
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11",
+      "bytes": 32768,
+      "mode": 493,
+      "sha256": "65e7fbc5db98baca30cb60db2ec12c607bc2832f8cc2b43d734290779e127e1b",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48111",
+      "readBytes": 32768
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit",
+      "bytes": 249774080,
+      "mode": 493,
+      "sha256": "468c2658c38eb2ddc41bbaeba5e539f403c3afd6fade16704f3216807d5d0f93",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48113",
+      "readBytes": 249774080
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.atlas",
+      "bytes": 2368216,
+      "mode": 493,
+      "sha256": "e0599b7cbba24b52fb4910cda6e9a494e895127de74551699e6e7dd838e61ee6",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48115",
+      "readBytes": 2368216
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.map",
+      "bytes": 1335703,
+      "mode": 493,
+      "sha256": "22fb14ddcf854e3d828696b9b34b11f247b74ae456468bfc700b8cc20b14365b",
+      "role": "system-cache-or-dyld",
+      "dev": "16777231",
+      "ino": "48117",
+      "readBytes": 1335703
+    },
+    {
+      "path": "/usr/lib/dyld",
+      "bytes": 2357376,
+      "mode": 493,
+      "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7",
+      "role": "system-cache-or-dyld",
+      "dev": "16777232",
+      "ino": "1152921500312572606",
+      "readBytes": 2357376
+    }
+  ],
+  "streamedBytes": 5909077919,
+  "storedBinaryBytes": 0,
+  "bufferBytes": 262144,
+  "bashLoadCommands": [
+    {
+      "path": "/bin/bash",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    }
+  ],
+  "bashEdges": [
+    {
+      "owner": "/bin/bash",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/bash",
+      "name": "/usr/lib/libncurses.5.4.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/bash",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/bash",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    }
+  ],
+  "runtimeLoadedImageProof": false,
+  "extraPermissionDecision": "No extra system permissions added. ncurses is a declared system-image dependency outside prior literal image list; declaration alone does not establish an additional filesystem read is required. Existing cache/dyld identities are reauthenticated; readiness remains a sufficiency observation, not loader membership proof."
+}

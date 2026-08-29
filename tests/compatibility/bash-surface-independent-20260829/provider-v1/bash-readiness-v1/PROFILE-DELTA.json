@@ -1,0 +1,95 @@
+{
+  "baseSha256": "cd24747ce2db626904e4c6c3986e6a303a85dada923a9dc1e6e8496dee9a93a5",
+  "changes": [
+    {
+      "from": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "to": "/bin/bash"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "to": "/bin/bash"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+      "to": "/bin/bash"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/case"
+    },
+    {
+      "from": "/Users",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions/node",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions/node/v22.22.2",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+      "to": "/bin"
+    },
+    {
+      "from": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "to": "/bin/bash"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/cases",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/stage",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+      "to": "/bin/bash"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/case"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/case"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stdout",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/stdout"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stderr",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/stderr"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stdout",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/stdout"
+    },
+    {
+      "from": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stderr",
+      "to": "/private/tmp/safe-bash-reference-readiness-v1-abpaov/stderr"
+    }
+  ],
+  "operationSkeletonUnchanged": true,
+  "systemLiteralsAndSysctlsIdentical": true
+}

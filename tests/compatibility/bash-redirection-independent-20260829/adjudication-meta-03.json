@@ -1,0 +1,11 @@
+{
+  "args": [
+    "show",
+    "2764c0541ebe1a517965bdc73f33b1651cb15935:tests/integration/git-public-20260829/FIXTURE-v2.md"
+  ],
+  "closed": true,
+  "capture": 1974,
+  "pid": 2634,
+  "code": 0,
+  "signal": null
+}

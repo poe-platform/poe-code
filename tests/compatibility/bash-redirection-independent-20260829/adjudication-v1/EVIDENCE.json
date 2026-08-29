@@ -1,0 +1,525 @@
+{
+  "schema": "redirection-failure-adjudication-source-data-v1",
+  "candidate": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "sourceCommit": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+  "executionsThisTask": 0,
+  "bootstrap": {
+    "import": "import { parseShell } from 'virtual-bash/shell';",
+    "child": {
+      "label": "source-novel",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/harness/resources.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/harness/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/source/__consumer/novel.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/source",
+      "signals": [],
+      "closed": true,
+      "pid": 71232,
+      "resources": {
+        "events": [
+          {
+            "kind": "bootstrap",
+            "pid": 71232,
+            "allowance": 0
+          }
+        ],
+        "births": 0,
+        "exits": 0,
+        "loaderReservation": 1
+      },
+      "code": 1,
+      "signal": null,
+      "alarm": false,
+      "outputBytes": 1959,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "257b660040580e5d3489b5da111366cb500bc5cc59cd69b76965b2f07decfdcb",
+      "scratchBytesAfterClose": 55949755
+    },
+    "coordinatorError": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(summary)\n\n    at cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:117:151)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:199:259)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:201:3",
+    "stderrSha256": "257b660040580e5d3489b5da111366cb500bc5cc59cd69b76965b2f07decfdcb",
+    "novelBodies": 0,
+    "originalN11": "frozen but unexecuted"
+  },
+  "fixtureDelta": [
+    {
+      "oldLine": 3,
+      "newLine": 3,
+      "removed": [
+        "import { parseShell } from 'virtual-bash/shell';"
+      ],
+      "added": [
+        "import { parseShell } from 'virtual-bash';"
+      ]
+    },
+    {
+      "oldLine": 46,
+      "newLine": 46,
+      "removed": [
+        "  streams(await shell.exec(source), 'OEOE'); assert.equal(JSON.stringify(parsed), before); assert.equal(counters.entered, 2); assert.equal(counters.cleaned, 2); await files(memory, { unused: '' });",
+        "  const display = await shell.exec('type f'); assert.equal(display.exitCode, 0); assert.equal((display.stdout.match(/\\|&/g) ?? []).length, 1); assert.doesNotMatch(display.stdout, /2>&\\s*1/);"
+      ],
+      "added": [
+        "  const display = await shell.exec(source + '; type f'); assert.equal(display.exitCode, 0); assert.equal(display.stderr, ''); assert.ok(display.stdout.startsWith('OEOE'));",
+        "  assert.equal(JSON.stringify(parsed), before); assert.equal(counters.entered, 2); assert.equal(counters.cleaned, 2); await files(memory, { unused: '' });",
+        "  assert.equal((display.stdout.match(/\\|&/g) ?? []).length, 1); assert.doesNotMatch(display.stdout, /2>&\\s*1/);"
+      ]
+    }
+  ],
+  "n11": {
+    "script": "emit &>first &>/absent/out",
+    "v2Failures": [
+      {
+        "label": "source-novel",
+        "cases": [
+          {
+            "id": "N11-later-open-failure",
+            "pass": false,
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to: ''\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__consumer/novel.mjs:65:236\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__consumer/novel.mjs:18:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__consumer/novel.mjs:65:1",
+            "created": 1,
+            "disposed": 1,
+            "cleanupFailure": false
+          }
+        ]
+      },
+      {
+        "label": "installed-novel",
+        "cases": [
+          {
+            "id": "N11-later-open-failure",
+            "pass": false,
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to: ''\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/installed/novel.mjs:65:236\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/installed/novel.mjs:18:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/installed/novel.mjs:65:1",
+            "created": 1,
+            "disposed": 1,
+            "cleanupFailure": false
+          }
+        ]
+      },
+      {
+        "label": "moved-novel",
+        "cases": [
+          {
+            "id": "N11-later-open-failure",
+            "pass": false,
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to: ''\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/moved%20package/novel.mjs:65:236\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/moved%20package/novel.mjs:18:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/moved%20package/novel.mjs:65:1",
+            "created": 1,
+            "disposed": 1,
+            "cleanupFailure": false
+          }
+        ]
+      }
+    ],
+    "originalAssertions": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "not empty",
+      "entered": 0,
+      "files": {
+        "first": ""
+      }
+    },
+    "unreachedInV2": [
+      "entered equals0",
+      "sole first file",
+      "first contents empty"
+    ],
+    "v3": [
+      {
+        "label": "n11-source",
+        "cases": [
+          {
+            "id": "N11-v3-later-open-error-uses-current-stderr",
+            "pass": true,
+            "observed": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 1,
+              "entered": 0,
+              "entries": [
+                {
+                  "name": "first",
+                  "type": "file"
+                }
+              ],
+              "first": "shell: line 1: /absent/out: No such file or directory\n"
+            },
+            "disposed": true
+          }
+        ],
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "label": "n11-installed",
+        "cases": [
+          {
+            "id": "N11-v3-later-open-error-uses-current-stderr",
+            "pass": true,
+            "observed": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 1,
+              "entered": 0,
+              "entries": [
+                {
+                  "name": "first",
+                  "type": "file"
+                }
+              ],
+              "first": "shell: line 1: /absent/out: No such file or directory\n"
+            },
+            "disposed": true
+          }
+        ],
+        "pass": 1,
+        "fail": 0
+      },
+      {
+        "label": "n11-moved",
+        "cases": [
+          {
+            "id": "N11-v3-later-open-error-uses-current-stderr",
+            "pass": true,
+            "observed": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 1,
+              "entered": 0,
+              "entries": [
+                {
+                  "name": "first",
+                  "type": "file"
+                }
+              ],
+              "first": "shell: line 1: /absent/out: No such file or directory\n"
+            },
+            "disposed": true
+          }
+        ],
+        "pass": 1,
+        "fail": 0
+      }
+    ]
+  },
+  "sourceExcerpts": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "05f7015213faf030ef8a0d87d273c9d30e7ff69489b1f3bf0ec5bb7a5645c11d",
+      "excerpts": [
+        {
+          "from": 411,
+          "to": 418,
+          "text": "\nfunction message(error: unknown): string { return error instanceof Error ? error.message : String(error); }\n\nfunction filesystemDiagnostic(error: unknown, target: string): string | undefined {\n  const descriptions: Readonly<Record<string, string>> = { ENOENT: \"No such file or directory\", EACCES: \"Permission denied\", EPERM: \"Operation not permitted\", ENOTDIR: \"Not a directory\", EISDIR: \"Is a directory\", ELOOP: \"Too many levels of symbolic links\", ENOSPC: \"No space left on device\", EROFS: \"Read-only file system\" };\n  const description = descriptions[errorCode(error) ?? \"\"];\n  return description ? `${target}: ${description}` : undefined;\n}"
+        },
+        {
+          "from": 1556,
+          "to": 1584,
+          "text": "      return status;\n    } catch (error) {\n      const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;\n      if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }\n      this.signal.throwIfAborted();\n      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;\n      this.clearOutcomeReport();\n      if (error instanceof HereDocumentSyntaxError) {\n        await writeText(io.stderr, error.diagnostic);\n        this.errexit(1, state, io);\n        return 1;\n      }\n      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }\n      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;\n      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`);\n      else {\n        try { await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`); }\n        catch { this.signal.throwIfAborted(); }\n      }\n      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);\n      const status = error instanceof CommandFailure ? error.status : 1;\n      this.errexit(status, state, io);\n      return status;\n    } finally {\n      for (const close of outputs) close();\n      await Promise.all([...inputs].map((input) => input.close()));\n    }\n  }"
+        },
+        {
+          "from": 1742,
+          "to": 1757,
+          "text": "                offset += copy.length;\n              }\n            });\n          } }, this.signal);\n          descriptors.set(redirect.descriptor, { output });\n          if (redirect.operator === \"&>\") {\n            replaced.add(2);\n            descriptors.set(2, { output });\n          }\n        }\n      }\n    } } catch (error) {\n      const diagnostic = errorTarget === undefined ? undefined : filesystemDiagnostic(error, errorTarget);\n      throw new ExecutionFailure(error, currentIO(), diagnostic);\n    }\n    return currentIO();"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "excerpts": [
+        {
+          "from": 243,
+          "to": 248,
+          "text": "        variables.OPTIND = \"1\";\n        variables.OPTERR = \"1\";\n        const state: State = {\n          cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },\n          directoryStack: { entries: [], bytes: 0 },\n          dotglob: false,"
+        }
+      ]
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "02e5cf08f9c97f3abc9a2cf2f28b640e79024381ad17e0518dbf8333a63788f7",
+      "excerpts": [
+        {
+          "from": 1,
+          "to": 40,
+          "text": "export * from \"./contracts/index.js\";\nexport * from \"./plugins/index.js\";\nexport * from \"./shell/index.js\";\nexport * from \"./commands/index.js\";\nexport type { RegexExecutionOptions } from \"./commands/regex-execution/protocol.js\";\nexport * from \"./commands/text-programs/index.js\";\nexport * from \"./commands/structured/index.js\";\nexport * from \"./commands/search/index.js\";\nexport * from \"./commands/bytes/index.js\";\nexport * from \"./commands/diff-patch/index.js\";\nexport * from \"./commands/safejs/index.js\";\nexport * from \"./commands/network/index.js\";\nexport * from \"./commands/metadata/index.js\";\nexport * from \"./commands/archive/index.js\";\nexport * from \"./commands/table-text/index.js\";\nexport * from \"./commands/stream-inspection/index.js\";\nexport * from \"./commands/stream-format/index.js\";\nexport * from \"./commands/split/index.js\";\nexport * from \"./commands/time-env/index.js\";\nexport * from \"./commands/tree/index.js\";\nexport * from \"./commands/file/index.js\";\nexport * from \"./commands/grep-aliases/index.js\";\nexport * from \"./commands/column/index.js\";\nexport * from \"./commands/html-to-markdown/index.js\";\nexport * from \"./commands/du/index.js\";\nexport * from \"./commands/expr/index.js\";\nexport * from \"./commands/which/index.js\";\nexport * from \"./commands/timeout/index.js\";\nexport * from \"./commands/apply-patch/index.js\";\nexport * from \"./commands/git/index.js\";\nexport * from \"./fs/memory/index.js\";\nexport * from \"./fs/real/index.js\";\nexport * from \"./fs/s3/index.js\";\nexport * from \"./fs/s3/http/index.js\";\nexport * from \"./fs/webdav/index.js\";\nexport * from \"./fs/readonly/index.js\";\nexport * from \"./fs/mount/index.js\";\nexport * from \"./fs/overlay/index.js\";\nexport * from \"./integrations/safejs/index.js\";\n"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/index.ts",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "excerpts": [
+        {
+          "from": 1,
+          "to": 5,
+          "text": "export { Shell } from \"./shell.js\";\nexport { parseShell } from \"./parser.js\";\nexport { ShellLimitError, ShellSyntaxError } from \"./types.js\";\nexport type { ShellCommandContext, ShellExecOptions, ShellInvokeOptions, ShellLimits, ShellOptions, ShellResult } from \"./types.js\";\n"
+        }
+      ]
+    },
+    {
+      "path": "package.json",
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+      "excerpts": [],
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "import": "./dist/index.js"
+        },
+        "./contracts": {
+          "types": "./dist/contracts/index.d.ts",
+          "import": "./dist/contracts/index.js"
+        },
+        "./contracts/*": {
+          "types": "./dist/contracts/*.d.ts",
+          "import": "./dist/contracts/*.js"
+        },
+        "./commands/network": {
+          "types": "./dist/commands/network/index.d.ts",
+          "import": "./dist/commands/network/index.js"
+        },
+        "./commands/metadata": {
+          "types": "./dist/commands/metadata/index.d.ts",
+          "import": "./dist/commands/metadata/index.js"
+        },
+        "./commands/archive": {
+          "types": "./dist/commands/archive/index.d.ts",
+          "import": "./dist/commands/archive/index.js"
+        },
+        "./commands/table-text": {
+          "types": "./dist/commands/table-text/index.d.ts",
+          "import": "./dist/commands/table-text/index.js"
+        },
+        "./commands/stream-inspection": {
+          "types": "./dist/commands/stream-inspection/index.d.ts",
+          "import": "./dist/commands/stream-inspection/index.js"
+        },
+        "./commands/stream-format": {
+          "types": "./dist/commands/stream-format/index.d.ts",
+          "import": "./dist/commands/stream-format/index.js"
+        },
+        "./commands/split": {
+          "types": "./dist/commands/split/index.d.ts",
+          "import": "./dist/commands/split/index.js"
+        },
+        "./commands/time-env": {
+          "types": "./dist/commands/time-env/index.d.ts",
+          "import": "./dist/commands/time-env/index.js"
+        },
+        "./commands/tree": {
+          "types": "./dist/commands/tree/index.d.ts",
+          "import": "./dist/commands/tree/index.js"
+        },
+        "./commands/file": {
+          "types": "./dist/commands/file/index.d.ts",
+          "import": "./dist/commands/file/index.js"
+        },
+        "./commands/grep-aliases": {
+          "types": "./dist/commands/grep-aliases/index.d.ts",
+          "import": "./dist/commands/grep-aliases/index.js"
+        },
+        "./commands/column": {
+          "types": "./dist/commands/column/index.d.ts",
+          "import": "./dist/commands/column/index.js"
+        },
+        "./commands/html-to-markdown": {
+          "types": "./dist/commands/html-to-markdown/index.d.ts",
+          "import": "./dist/commands/html-to-markdown/index.js"
+        },
+        "./commands/du": {
+          "types": "./dist/commands/du/index.d.ts",
+          "import": "./dist/commands/du/index.js"
+        },
+        "./commands/expr": {
+          "types": "./dist/commands/expr/index.d.ts",
+          "import": "./dist/commands/expr/index.js"
+        },
+        "./commands/timeout": {
+          "types": "./dist/commands/timeout/index.d.ts",
+          "import": "./dist/commands/timeout/index.js"
+        },
+        "./commands/git": {
+          "types": "./dist/commands/git/index.d.ts",
+          "import": "./dist/commands/git/index.js"
+        },
+        "./commands/apply-patch": {
+          "types": "./dist/commands/apply-patch/index.d.ts",
+          "import": "./dist/commands/apply-patch/index.js"
+        },
+        "./commands/which": {
+          "types": "./dist/commands/which/index.d.ts",
+          "import": "./dist/commands/which/index.js"
+        },
+        "./fs/s3": {
+          "types": "./dist/fs/s3/index.d.ts",
+          "import": "./dist/fs/s3/index.js"
+        },
+        "./fs/s3/http": {
+          "types": "./dist/fs/s3/http/index.d.ts",
+          "import": "./dist/fs/s3/http/index.js"
+        },
+        "./fs/webdav": {
+          "types": "./dist/fs/webdav/index.d.ts",
+          "import": "./dist/fs/webdav/index.js"
+        },
+        "./fs/readonly": {
+          "types": "./dist/fs/readonly/index.d.ts",
+          "import": "./dist/fs/readonly/index.js"
+        },
+        "./fs/mount": {
+          "types": "./dist/fs/mount/index.d.ts",
+          "import": "./dist/fs/mount/index.js"
+        },
+        "./fs/overlay": {
+          "types": "./dist/fs/overlay/index.d.ts",
+          "import": "./dist/fs/overlay/index.js"
+        }
+      }
+    }
+  ],
+  "public80": {
+    "fixtureCommit": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+    "acceptanceCommit": "9dca6b405f7059bd54848422d27a80afdf80e504",
+    "authenticatedObjects": [
+      {
+        "spec": "2764c0541ebe1a517965bdc73f33b1651cb15935:tests/integration/git-public-20260829/m1a-public-v2.mjs",
+        "oid": "09304fa3810d69aaa4f7f2d7283bbe474bfe7145",
+        "bytes": 33642,
+        "sha256": "7b73d2e7df70a314fabfcea137ee1e25fec7e6dbca38f9f3981df19bf2f12962"
+      },
+      {
+        "spec": "9dca6b405f7059bd54848422d27a80afdf80e504:tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md",
+        "oid": "5c8bccab75eeed7ab336602ff4dcabc254f9543a",
+        "bytes": 4575,
+        "sha256": "21cabd8643a5daf9f9883b81df8d029ac3c9802f9615cbf3ee453d5db4b20b6a"
+      }
+    ],
+    "selectedOldM1aSha256": "53c30aa44ba4d07c1a891a40a6e3f5baba4021da5f6186ab73e503df57ecf116",
+    "singleRowDelta": [
+      {
+        "oldLine": 189,
+        "newLine": 189,
+        "removed": [
+          "await record('PUBLIC-NEGATIVE', 'module is not accidentally default/root exported', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, false); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.equal(packageJson.exports['./commands/git'], undefined); });"
+        ],
+        "added": [
+          "await record('PUBLIC-REGISTERED', 'authorized root export and exact public subpath retain zero dependencies', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, true); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.deepEqual(packageJson.exports['./commands/git'], { types: './dist/commands/git/index.d.ts', import: './dist/commands/git/index.js' }); });"
+        ]
+      }
+    ],
+    "otherLinesIdentical": true,
+    "oldResultPerLayout": "139/140; no rescore",
+    "revisedFixtureOnRedirectionCandidate": "UNRUN"
+  },
+  "terminals": [
+    {
+      "root": "ACTUAL-01",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 499,
+        "startedAt": "2026-08-29T04:32:06.830Z",
+        "pid": 70831,
+        "code": 1,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 11349
+      },
+      "cleanup": {
+        "directChildren": 7,
+        "observedProductWorkers": 0,
+        "implicitLoaderReservations": 4,
+        "boundedOwnedTotal": 11,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 2803434
+    },
+    {
+      "root": "continuation-v2/ACTUAL-01",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 537,
+        "startedAt": "2026-08-29T04:32:06.793Z",
+        "pid": 77281,
+        "code": 1,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 602022
+      },
+      "cleanup": {
+        "directChildren": 40,
+        "observedProductWorkers": 4,
+        "implicitLoaderReservations": 32,
+        "boundedOwnedTotal": 76,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 386463
+    },
+    {
+      "root": "n11-v3/ACTUAL-01",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 516,
+        "startedAt": "2026-08-29T04:32:06.793Z",
+        "pid": 95664,
+        "code": 0,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 1175261
+      },
+      "cleanup": {
+        "directChildren": 4,
+        "observedProductWorkers": 0,
+        "implicitLoaderReservations": 3,
+        "boundedOwnedTotal": 7,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 3317
+    }
+  ],
+  "versionQualifiedPerLayout": {
+    "redirections": "R01–R36/C01–C12:48 committed author-v2",
+    "novel": "N01–N05,N07–N10,N12:10 unchanged; N06:versioned same-exec1; N11-v3:1; total12 identities",
+    "retained": "public45+apply28+arrays12+coherence18=103",
+    "packs": 93,
+    "m1a": "139 pass/1 stale fail; public-v2 not rerun",
+    "types": "2 groups/6 exact negative diagnostics"
+  },
+  "authority": "Original GO expressly permits versioned ordinary helper/assertion corrections in owned scope after full capture/retirement within original budget; no source/permission/guard/cap change. ERR_PACKAGE_PATH_NOT_EXPORTED is a correct package resolution refusal to reviewer wrong import, not package hash/admission integrity failure.",
+  "stops": {
+    "safety": false,
+    "capture": false,
+    "integrity": false,
+    "unknownRetirement": false,
+    "actualDeadlineOrCap": false,
+    "ordinaryStops": [
+      "original coordinator exits1 after missing summary from wrong-import bootstrap",
+      "continuation completes with6 ordinary failures and exits1"
+    ],
+    "obsoletePrepClock": "old preparation-phase helper rejected metadata before spawn; PREP already completed; actual continuation retained original actual clock"
+  },
+  "limitations": [
+    "No independent all-OS-descendant or per-internal-Worker exit census",
+    "39 fixed loader admissions; four app RegexWorkers explicitly exited; natural hosting-process/group retirement known",
+    "Compiled release instrumentation is logical writer release only",
+    "No native Bash/full parity/HEAD/fullgate claim",
+    "Inherited array and Git source-only qualifications retained"
+  ]
+}

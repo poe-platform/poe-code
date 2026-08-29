@@ -1,0 +1,1505 @@
+{
+  "signatureCommit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+  "gitRows": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/PREPARE-STARTUP.json",
+      "mode": "100644",
+      "oid": "b0cf5ae5b98c11c45a91d0d52132c5a7b6bb8b65"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/PRESEAL.md",
+      "mode": "100644",
+      "oid": "2908c6b42ada2b00baa17fab146b075608879d94"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-ADMISSION.json",
+      "mode": "100644",
+      "oid": "40ded2166e22c86abef75218cdd988dfb8832c2c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-STARTUP.json",
+      "mode": "100644",
+      "oid": "eb9fde902a57b8b42508b7763265227ab74add1e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2.md",
+      "mode": "100644",
+      "oid": "96da1e44006e9f3224d5d856c0b0c8ea9abe7a89"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/FAILURE.json",
+      "mode": "100644",
+      "oid": "24f403a533a72e68aff6abae0b3be8ed960fd1ad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/INPUT-ADMISSION.json",
+      "mode": "100644",
+      "oid": "a4c86f667e2515b115f9c1a04473941cc59eeb6e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/RESULT.json",
+      "mode": "100644",
+      "oid": "b6601ac767ce15825046d8205cbe1d87f1dc881a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/STARTUP.json",
+      "mode": "100644",
+      "oid": "6bbc4be55381a102df75fd3cfcd5f51a831db079"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-ADMISSION.json",
+      "mode": "100644",
+      "oid": "d0c2a85a187342cb459f851587082a471c5caafb"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-POSTCHECK.json",
+      "mode": "100644",
+      "oid": "7bd84cfa59133c8626f8e0c6dd33a1fdf9928a96"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING-BINDING.json",
+      "mode": "100644",
+      "oid": "147c10ee2cc1bf529821ef2f5bd4cccbb414dd61"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/ADMISSION.json",
+      "mode": "100644",
+      "oid": "647a72dc5a2391fb6c9075bbcb02b8926147ba1d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/CHILD.json",
+      "mode": "100644",
+      "oid": "2220928ff8dddbcde686096e3c6fc5ce8f92e2d0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "4e3ef0294611f10e99975f34109457098b14e333"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stderr.raw",
+      "mode": "100644",
+      "oid": "994978d4826a860b062bda285f57a293ef9235c5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stdout.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/ADMISSION.json",
+      "mode": "100644",
+      "oid": "51026e608ec357a31eb17a33b051b65db64c6456"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/CHILD.json",
+      "mode": "100644",
+      "oid": "d252534725ca535a04bb6352040e65e17cdc4061"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/OUTCOME.json",
+      "mode": "100644",
+      "oid": "a3e7906677d53a5325cd6d387b066b117599b0d0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stderr.raw",
+      "mode": "100644",
+      "oid": "19f70e87036c57fb5febb740eda301fc5933cf93"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stdout.raw",
+      "mode": "100644",
+      "oid": "19287eee11ef3a8027674760eb7cabe5f66edc77"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/ADMISSION.json",
+      "mode": "100644",
+      "oid": "4c0b32e7e945cdd372509a025c9d9927346067fb"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/CHILD.json",
+      "mode": "100644",
+      "oid": "21ae2f39dc7fbcf19daa4b9a233de432bbc446e2"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/OUTCOME.json",
+      "mode": "100644",
+      "oid": "37a1b17d945bffa3590d44972cd5c8375ba90063"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stderr.raw",
+      "mode": "100644",
+      "oid": "ea14ef37d416a94c1a86fe7eacc1c4987849c9a6"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stdout.raw",
+      "mode": "100644",
+      "oid": "5e1ee2c3ec885fbd54cffacaf6e647de2f151075"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/ADMISSION.json",
+      "mode": "100644",
+      "oid": "29198fae12460feae2dd79bca96e32741468bc67"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/CHILD.json",
+      "mode": "100644",
+      "oid": "93541313bf9338636f2efea69d527d31e2203186"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/OUTCOME.json",
+      "mode": "100644",
+      "oid": "b8f1efce08832cba887bdbe9167e8ee043901d54"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stderr.raw",
+      "mode": "100644",
+      "oid": "6a9bfc979f85dfae39c226016e083c56b4260183"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stdout.raw",
+      "mode": "100644",
+      "oid": "3b272f83a5cfe9733afa99131ce3e8ead4a04d00"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/ADMISSION.json",
+      "mode": "100644",
+      "oid": "292f692a532b9312970e99b74b71f9b3100c70e0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/CHILD.json",
+      "mode": "100644",
+      "oid": "2327fc220c4015ba73c51dba91e6ee901c75450b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c5a7754b0db50f4e503c5e4799ea31bf2a26133d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stderr.raw",
+      "mode": "100644",
+      "oid": "d11586afd636c6bc8c90f5786a52c3ef936f4cf3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stdout.raw",
+      "mode": "100644",
+      "oid": "69cc4843324177b088b9df1a1c99b709ae4adb4c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/ADMISSION.json",
+      "mode": "100644",
+      "oid": "18052523df3faad170cf06f6655defef8bbb2443"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/CHILD.json",
+      "mode": "100644",
+      "oid": "d3a08c9d5f8db24060365d6578850325aaee8f6b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/OUTCOME.json",
+      "mode": "100644",
+      "oid": "85304c3878072281ca30a0d3439f1feb402eb30a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stderr.raw",
+      "mode": "100644",
+      "oid": "c551fffae31f1fd8d878c9e8c3b372e173462783"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stdout.raw",
+      "mode": "100644",
+      "oid": "b31e73999715718f8f866495194b295e643e8311"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/ADMISSION.json",
+      "mode": "100644",
+      "oid": "292ab7f70743a3f0c4d19718592da4181fc6143c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/CHILD.json",
+      "mode": "100644",
+      "oid": "1a65a94ec350ba0de1ef2b8591ebec4576d6c715"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/OUTCOME.json",
+      "mode": "100644",
+      "oid": "f53e98c32e7b60466e2c2767041f7394384d7f57"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stderr.raw",
+      "mode": "100644",
+      "oid": "6ac652d68519471764ab69dbcd7a212b599deec7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stdout.raw",
+      "mode": "100644",
+      "oid": "05f60a2d262753b3483c112d69412e1e83ba4e80"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/ADMISSION.json",
+      "mode": "100644",
+      "oid": "43cb683906f9c9049a4344f000f660d4fcbb9c8b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/CHILD.json",
+      "mode": "100644",
+      "oid": "166131781f633cb9843facad89f488db556620a6"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c8ae9cbce70c29387f9ff33b7c14f6a5256681cf"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stderr.raw",
+      "mode": "100644",
+      "oid": "faafa18ed7882e12912b41765ce33ee006160ffa"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stdout.raw",
+      "mode": "100644",
+      "oid": "d90707e1c3828d0a5bade40b57a103699a3f4518"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/ADMISSION.json",
+      "mode": "100644",
+      "oid": "e0023341bd8bcfe837bced5d8139f4ea4330f33e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/CHILD.json",
+      "mode": "100644",
+      "oid": "56021877e826cfe04e0672eb50b7ded0c53ded16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/OUTCOME.json",
+      "mode": "100644",
+      "oid": "6d96eff7c3eb640fe253f6e43962166fefe6dd07"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stderr.raw",
+      "mode": "100644",
+      "oid": "0f97af7167d8df4d5c755183019dbed29d550c16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stdout.raw",
+      "mode": "100644",
+      "oid": "9e9cbb3a8a30bb9e5aec185c94c3e968e0d8c178"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/ADMISSION.json",
+      "mode": "100644",
+      "oid": "fc62d795af0e62c30c6e3c0a9a681f5847b1d2b9"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/CHILD.json",
+      "mode": "100644",
+      "oid": "57e495573200675fbecdde4fc218b1de753fefc3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/OUTCOME.json",
+      "mode": "100644",
+      "oid": "fb76bf61359427e3aa2903358a7cdc1c276f3c0f"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stderr.raw",
+      "mode": "100644",
+      "oid": "a0eb66e310d950a3b2ff55a0a88e5804db2af5c5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stdout.raw",
+      "mode": "100644",
+      "oid": "e76168983bb5600af8f7b24626c24f3a5a785528"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/ADMISSION.json",
+      "mode": "100644",
+      "oid": "23116d462955ce3ee6cfbd5bac2c949f8d403bad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/CHILD.json",
+      "mode": "100644",
+      "oid": "4c4139f610a1a54278edc8815c25d09a051e6749"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/OUTCOME.json",
+      "mode": "100644",
+      "oid": "f25ab57d3b739f451f9d9334e9bd158ab3576210"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stderr.raw",
+      "mode": "100644",
+      "oid": "53c5e945261aa24dbabb24bf072d5aecbe0289f4"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stdout.raw",
+      "mode": "100644",
+      "oid": "5e284b331c87f55c29c81f0723b6c41d82e5e2bd"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/ADMISSION.json",
+      "mode": "100644",
+      "oid": "95c8624290de35a33b5406366e7f970253aeb650"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/CHILD.json",
+      "mode": "100644",
+      "oid": "c40d1d7aa009f0115aaa96a3a130707383bde24c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/OUTCOME.json",
+      "mode": "100644",
+      "oid": "04a64cba754752a89f13ff34a84e3d74d84c5075"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stderr.raw",
+      "mode": "100644",
+      "oid": "5552ca87df701cbabb904457a005123ec9c2f7b0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stdout.raw",
+      "mode": "100644",
+      "oid": "0c7abf8b7610a86d19bda135bed3839f3dd53bc3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/ADMISSION.json",
+      "mode": "100644",
+      "oid": "44a146cd32a27cd16691ed5fa70ab873f361c26d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/CHILD.json",
+      "mode": "100644",
+      "oid": "c3d7fbc022d211239ca4b5a6ab4034e82ac86d63"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/OUTCOME.json",
+      "mode": "100644",
+      "oid": "2e41c54d31d3ccc9458b6643cb9669de93924bb9"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stderr.raw",
+      "mode": "100644",
+      "oid": "1ce0ebdc9f55b0db4083c3f7784d97ccde2bd371"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stdout.raw",
+      "mode": "100644",
+      "oid": "070577df8d94a05aad64d45c247ac734db540b74"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/ADMISSION.json",
+      "mode": "100644",
+      "oid": "6cd7135af7712598419594851a133f94c96576e3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/CHILD.json",
+      "mode": "100644",
+      "oid": "b0fe3b1da9b390daf80a0fde2c3009aa78adddf7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/OUTCOME.json",
+      "mode": "100644",
+      "oid": "99b27f3759aa1829d5429acb1db0ad43cfb6f333"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stderr.raw",
+      "mode": "100644",
+      "oid": "9092ce32deb40930c41decc93689183e3a19bfa7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stdout.raw",
+      "mode": "100644",
+      "oid": "986ef0bd4fca3ae4590a8d4ff99d6f2786333466"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/ADMISSION.json",
+      "mode": "100644",
+      "oid": "83be384a97748b878d0b41b1d59e0ff55573530a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/CHILD.json",
+      "mode": "100644",
+      "oid": "b8763bb6c25d976e82a6cbafdbaedc6c2933cfba"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/OUTCOME.json",
+      "mode": "100644",
+      "oid": "057b23a4f4e3bd9140d5fb60da101779921f978a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stderr.raw",
+      "mode": "100644",
+      "oid": "26df2eda1253ebc2ddc17e271418010c59b11336"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stdout.raw",
+      "mode": "100644",
+      "oid": "51ffd3e2958a6c0dce914621ce5b197aba96a290"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/ADMISSION.json",
+      "mode": "100644",
+      "oid": "8cc19621a1e31f1efd16872ac4d13ac068b7e407"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/CHILD.json",
+      "mode": "100644",
+      "oid": "2f88a93086b0be90eb91b1ed87f72e2a74f96345"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c034b7fe50c7d442dd54f6a63a9024963256c79a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stderr.raw",
+      "mode": "100644",
+      "oid": "906ae2ab07a41b85f973f56f0454484598041281"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stdout.raw",
+      "mode": "100644",
+      "oid": "7d26a66bc04696e534786ddb2b40ab4492d305d5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/ADMISSION.json",
+      "mode": "100644",
+      "oid": "b27163b576e3e58788f56f9a1c17bfc079747c3a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/CHILD.json",
+      "mode": "100644",
+      "oid": "50ebb87a5e510c59be5cd4f069cf2e4e224bdb09"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/OUTCOME.json",
+      "mode": "100644",
+      "oid": "b9b82ea2eb5fee2ea27f50240df5cc858f26a90e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stderr.raw",
+      "mode": "100644",
+      "oid": "be78a99cc0e549b47f3c236f9a467362cfb191ef"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stdout.raw",
+      "mode": "100644",
+      "oid": "b7fffefd0021ccf55d3864306f7e24f6208c0422"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/RESULT.json",
+      "mode": "100644",
+      "oid": "a3eac9828e2e9a1a864c162ba28acb3094d9047c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/STARTUP.json",
+      "mode": "100644",
+      "oid": "b057a926177fe9a3a524e9fcf8b43557eb1ff2e8"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+      "mode": "100644",
+      "oid": "ecacc630e949abf1334c723e19ca67d4da309761"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition-seal.json.data",
+      "mode": "100644",
+      "oid": "b7017394102390e97ce64516357bc315804003c7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification-seal.json.data",
+      "mode": "100644",
+      "oid": "213e86ad3383ba620e3d79c220ce193054171eb0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan-r2.json",
+      "mode": "100644",
+      "oid": "d5f4459113e7e4dfdb313160783d247ea5facbb0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan.json",
+      "mode": "100644",
+      "oid": "0e3f5f9880dc63da74bdaad40b020ed2c8fc146f"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.mjs",
+      "mode": "100644",
+      "oid": "a591d402d9a6b597cd846b4f75082fa0b16df2ce"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stdout.raw",
+      "mode": "100644",
+      "oid": "74df8bba3d1ba927521d22746f3278608c00a8ad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stdout.raw",
+      "mode": "100644",
+      "oid": "4628e039197678f2df596cd682378b1d83ad7260"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.mjs",
+      "mode": "100644",
+      "oid": "8071e5edea005c5c007d68c2fbaebcba87264b16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stdout.raw",
+      "mode": "100644",
+      "oid": "fbb5a50800e7d6255dc297664ba4adb5bab44002"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.mjs",
+      "mode": "100644",
+      "oid": "e19a7f4abc92390031cb3d19b26f3a53d934b1a5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stdout.raw",
+      "mode": "100644",
+      "oid": "4c5029d068967b82da647b1f342cb359c6ceab3e"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/PREPARE-STARTUP.json",
+      "bytes": 70,
+      "mode": "600",
+      "sha256": "8eef287af5c4aff3258d99ba910c8c3d9ea2222534207fa7fa7c4e37364304ea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/PRESEAL.md",
+      "bytes": 3380,
+      "mode": "644",
+      "sha256": "5ef13139a1b778b58f9b89328757ab780b1cd9f937f6972a7f97b651a9dcab14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-ADMISSION.json",
+      "bytes": 705,
+      "mode": "600",
+      "sha256": "d9253f91b14306b8aad10d86b2a5dab28ab13e1c0adeb2494355ec9ae9ad5b2a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-STARTUP.json",
+      "bytes": 108,
+      "mode": "600",
+      "sha256": "1f5353524eac4d3b25e4aaa972e51105cc4b95c1d3c0089284b159719680ee40"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2.md",
+      "bytes": 821,
+      "mode": "600",
+      "sha256": "306c8a046aa4764d943f7c9e4caa14b5355b3053eb6e57c0f4c74b47da80e31b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/FAILURE.json",
+      "bytes": 258,
+      "mode": "600",
+      "sha256": "bba5aa16c057bdd2fc9c5ed0e8ca8c7230c1bf76645d667c7c16ed96e7c2fd18"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/INPUT-ADMISSION.json",
+      "bytes": 40718,
+      "mode": "600",
+      "sha256": "063087c5c1d0fb4dfa3f1ef658ff5191c1698e737aebf55709fe7d6f6d3c21d3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/RESULT.json",
+      "bytes": 523,
+      "mode": "600",
+      "sha256": "89bef5124474aff8ad706b898428b3266ca5e02aee1e790994c0590f4b302f51"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/STARTUP.json",
+      "bytes": 94,
+      "mode": "600",
+      "sha256": "b647eadd906c9eb35cf249604d398f88d8eff5adb3cc9862aeca1ddc3a12be97"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-ADMISSION.json",
+      "bytes": 40718,
+      "mode": "600",
+      "sha256": "7e439d03f1f01558cd407faf80cfea0937407fc1af0bfe2c649358610b2fa8e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-POSTCHECK.json",
+      "bytes": 87,
+      "mode": "600",
+      "sha256": "6792f3d2527a9de0e3440f539da081e47f47b99e0ee5abc2fdb435487d4fd167"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING-BINDING.json",
+      "bytes": 713,
+      "mode": "600",
+      "sha256": "f0f1669315a188adbf7855c4973ad24ef42b2d4e04505b9f9f9c283e2da30ddb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/ADMISSION.json",
+      "bytes": 1615,
+      "mode": "600",
+      "sha256": "b5e3a0870bb0ad6111e3c664238e762359cf3e6decb895a45432d21e7b5d2db3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/CHILD.json",
+      "bytes": 1302,
+      "mode": "600",
+      "sha256": "d339e4505112f93fe00221207667b2c8d9629c847b893c25e0a72bddc6c945d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/LOADER-HOME.json",
+      "bytes": 117510,
+      "mode": "600",
+      "sha256": "be50ef35ff5e6042eb8c1bbe2469eeaa1fccddc3660b0375c915412876a20977"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stderr.raw",
+      "bytes": 88561,
+      "mode": "600",
+      "sha256": "bea9cc9f45b33c2bd67944d2ed27db0dba15ff19854b83666d71bb8a608571f7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/ADMISSION.json",
+      "bytes": 1553,
+      "mode": "600",
+      "sha256": "8262125db7ee0fde7b8db828e8d85b8970df632ddd6f3a3a00eae07887f3b2a0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/CHILD.json",
+      "bytes": 1243,
+      "mode": "600",
+      "sha256": "471baf984dd10c1f76595dfcb6b53f503b5368636d62fe08d3b96a28d3747289"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/OUTCOME.json",
+      "bytes": 2895,
+      "mode": "600",
+      "sha256": "63c82b32b34fb83b9ff39239bb176e8130b94a402a400bf0549277700310f2f3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "5fe684e51dd9099e10699afaaf880efc72e35cfd384be5fa92038ccc9f7a77a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "81a13de9c9d63ffdf1564dd6a57f2c8e39fca3edeb041191a1e038b2551c0d07"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "1596d3e459c6395afc50dda471954c32d9baab92365fc8c5119a972f023f82a0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/CHILD.json",
+      "bytes": 1235,
+      "mode": "600",
+      "sha256": "a544a29244f12f4ce5e879d56fc48ffcac8313cbc22afce9ea24228887b19268"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "43117167b9e6fe0af417562a950939bd3bbcda104aefdf24ccf49a83ba67e20a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "bf3f61f4a607f71bf8e6e115386282330ecedc3366d2ca55ce60b52a2ce154c5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "af093cf9e2a7010461db5906e763013e7b3d996606f43c0450ef8e659fca3697"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "6bfb56d35666fcceb5c8f36d36ae2f640e369cbcd1c10e69c8edd3ee19fa9aa6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "746092f11cc026d00ecfc1fa8d1e60a9d74d1210c9aef6d34ef2e3b8e7cea7f8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "073613fce8970d3b008f4d4d1f5f22c8b5cf25396b937293c7fc0af684a35f15"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "c556936c45e884037ef84eef31baa9df029bab84cf8765e49870ef70256b5aca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "4eb7a72982167c8f32e918de173ba4d10b702073e8ee60dc7a58446962f29dfa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "bcbe240c5b13480b55543e6cfb72684c3f1f9140fee61aca0cb51553b73ee3d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "8dd3583db12f82a9d5785fe2395dc0cde63d0498ae981729de0378375bf26c9c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "1453d2f47189309f23e85a279faca1554b96ba95a82c8e35540b3e35dc45e616"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "993a69160e24212110bd5adb5a839136480129811ba46ccb31907416e8b3b350"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "a9f1c2bc9c231a14e9fc2357332df49e7efdb9fe43a8467caaf0bf104666c4c9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "49f9b8aaa40ac9984840130dd9799ee4aff1bc4e1af9399c0ff20a5e93fe4216"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "e292cc7899c11f09fa50fb301052eb8d29216b43beb41545f71617f179f1919f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "fabcf7e8e19c207a512fb2eef8573bfd526d3cea89c7884c015aa3c3499a966a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "4b15a987cd48989e84bb829293f169027f7e1bf75dfc72c25c98dc4506c1e4d9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "f67927b39216ae36beacd02255e5ec7b8d9cf998b4756369b49794c632751c71"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "b63d2294e8c4967475e2aed21c9b0513f1cde0c22ea83544b305337130d82d31"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "799289ed6e045ec8112a808b6b46f73593306c6bd749223a8534583e842632cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "1a6c27f9611905d79b8970e7d7df40f4f6323f8d0e7f7d3e2393a875b9b82bea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "b5df45d386b72f64646c2daf73c5386dca345bd069358f249c0c057539ad7571"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "965c2b7df5ca7b49a5639f11ba5ddb123f44e87bb0d61bfcfd33fee33508ef7a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "20ae8002d8a24769d3842e1d603cbe851ccc1923a68a8f937161af8d1c777eca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "c095b515d4aad6ab182b3b5339b0c61c7301675ea1c04a88c86b7bfc8c6e8a7b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "f18e4fc2e94ed0b416f6f269c7fa596d7574665b1076e597b0e5755f70850c56"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "2e733b7c84453bffd0e5861348fb0a69de93286bcf15dbd8d4abc961385184ba"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "7544dc27edb4bb56e45bb3b42d668cb7b3719e4e989ffaf4659114b36d64056b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "a7c834a11ce88e561e83c5216ca98f0938d9f6767e40520b90ae174917b87563"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "6740f663276fdc352983167207c57328e0b0253413571a54b4fd3ef56a132afd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "d86963f67ea0617cd601d37b719e46c9b7133c3dc476d4ae7a7101b66826658a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "94c76fa180784a2776fd6594aa3f78075f366f873d19e9a76b979dfa025cd0b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "ae9af6f85ba84fac06c2aeae62262d1f85ef210c6024fbf8efe066bbdf927293"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "b53766a4dd361840d9ef6808d19355aca0d3bfa1e05871a1158feb3093d84de2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "7c62f9314c17020225dc51879fd72151c787f45347c88ebb666880ea811c5897"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "a78055ddf16d5b3b542a79345257ece71fa06d9e04ecc3e8a2819537c87b3e01"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "c217f5deab821cd816c786b2bd45b30909e1dd7ba850de2c84ccae266417ac8c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "4deb0e11696b60038bdc30d61424beb4a0879a827bcb4e9fd2c21e2bf1cd5ab6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "456fb76cadf63ccb8911ea22c9c95f2bacea3222c12e1271323c768eb9526848"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "3db2451b3f67eab1d4c0588ae6eb62a7b2d55b4ed40f74311017184fe172946e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/OUTCOME.json",
+      "bytes": 2876,
+      "mode": "600",
+      "sha256": "d84d2ca36754aa0966a967fdd932e94cdfb310cbad46e56d86178950c2bb683f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "b2e7db39e3b16ff2d22d6939ccfbb1537b54957cef2b4560e940ca26cb535680"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "0447bac1bcbdf8b37d78dc112b7771b42b07f2b5e212e2cb0332791d514a59a2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "1ce1b298660b8312c5570350c892ddf27a98268d8d40f0c419f310e021c2f40c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "929ee1179fff2821903c547c3ec8235e201f470fb1e274e361a700608ee6768f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "da1d77306bf2489daea93e57b2bd1c23707f7d94fe6d14c1ce78fb74afdde2a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "4fa427e508146780e02072b92f6b6e2dfcd60e7c6bd19da5208126c6773b1825"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "dcea278788c9bb24de923b6ee18192a8cef2f57d3654bf7eeb68f9fc443bdfec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "0a0d69666b1ab890fba6514abeb4e628b997ac12a35739e582dce1e140f7a712"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "92fcf2a9c00d81fce81385961257e5c79eb1b4ff56224bfe21ccfd533c513445"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "16fb57465ff9b33a1ba1d878ddd6ae0fb22c73e630553327eb684335b3ebb521"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "61881e239e031a9869ea208b5037ff280cc217cb57a77924e90ff7c37cd68bc4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "a2137e83371d70fc2b7a8a2fdfb667814351fc7a89ed9ec445760770db3135fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "f56c973356b8fb0d8a5ed52471a2a76b67664db7633233c5885649958f7a35df"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/CHILD.json",
+      "bytes": 1232,
+      "mode": "600",
+      "sha256": "c306e80a3c2b233df47f0b9c4f548d4b6349ac1cc5d2fb8968b659eb58803232"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "ff8b2b740a757e14abd574878cbb14e2aaf9c1cd26a6cea2e48d4d557642d808"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "260fe0e1c0a0824cfe59bfb6e33419979029be2b502140afcd5e88622f7aa95b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "0da359272ff8673d008bbc422ce8119a8d50bdc813068fb3c79aa871c79b1dcc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "9a7c82cc6c892821d9f7e5135b1da3694432d44b7dc64c54f5c5f79ea6164b8e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/CHILD.json",
+      "bytes": 1233,
+      "mode": "600",
+      "sha256": "3de7143be9f937342207e93d09a7db54ba05e984bc66857b6e6c70192f1d0608"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "05592327d2d6350394e1ce6e33f86b5fe4b134cd34a8ff20a1cebaf48659f62a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "62d3cbcefd817ce6b3e693c18524230d051257797b0ca58d64a2b24c59c0e52f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "865ddfdd6ed0d78b47edd70783d55a45abbdc9e87cbfdccb93c670b6510bc83c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "ac5de05c3d64efd9e608a4039127ababb014f7a857b28ed6b2bb69985c9c2351"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/CHILD.json",
+      "bytes": 1235,
+      "mode": "600",
+      "sha256": "48f16f813e7839ea597bd76c49b8f12c33ac8d80c5b86986316d7039eeb1903f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "6cdf11857a1eff640d7242903d0d03b8085c240de512d85afff4dac9dc76b5f3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "d215bbf72fc42094c47e874d97dc0dfea51f6b8e53ef98c078ff84d585ea4b06"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "881e989ab76f98a0ffcaabb586f67db7c4e4acd6d0745e538ca234cfd0c2a7ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/ADMISSION.json",
+      "bytes": 1543,
+      "mode": "600",
+      "sha256": "7cabebfedb4724871fd2f9ad0ffb7552abbdc5950d8ca190090a2d9191b2d844"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/CHILD.json",
+      "bytes": 1234,
+      "mode": "600",
+      "sha256": "eab74caea61a5ff64f85410857a703391d961562b969647126269db8d1beba69"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/LOADER-HOME.json",
+      "bytes": 117336,
+      "mode": "600",
+      "sha256": "ba3d9f07766335860515be5eff7d4f99796694406166f5a49d9d5338544ea972"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/OUTCOME.json",
+      "bytes": 2877,
+      "mode": "600",
+      "sha256": "b7d0649a9a4de9440ecfa93970e56e0f188cf124e1e44bb9e8e65f4c3673e946"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stderr.raw",
+      "bytes": 88889,
+      "mode": "600",
+      "sha256": "a36bb62e403ea8ea3f28ec98aac8a2935b1dd0e0d7a3957b39502af1f479ae5e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stdout.raw",
+      "bytes": 346,
+      "mode": "600",
+      "sha256": "a2250da2dc729161773de5f87a51cc9b76e5c21adc20cca34695f0085bbef192"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/RESULT.json",
+      "bytes": 76902,
+      "mode": "600",
+      "sha256": "e0a768a121944893b71718149be3aa867c54f727586fdbe95fa159e1f6790b38"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/STARTUP.json",
+      "bytes": 94,
+      "mode": "600",
+      "sha256": "2e57b5de32f673e79231c3824d4a8360527d4861a2d078255371659ae614ce6e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+      "bytes": 1507,
+      "mode": "600",
+      "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition-seal.json.data",
+      "bytes": 28322,
+      "mode": "600",
+      "sha256": "d271b6357feffe80163245fb6f0e5ba6d8027d75f662d75822a012c026263ec2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification-seal.json.data",
+      "bytes": 15413,
+      "mode": "600",
+      "sha256": "f1f315a20722ba323ac082106d86fa14b8a94616f95d8c483754031488236f9e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan-r2.json",
+      "bytes": 66871,
+      "mode": "600",
+      "sha256": "ff05daec0baad0f0da57879204de00cf0c0ca74e3c2251332da80b203bbe3e10"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan.json",
+      "bytes": 66368,
+      "mode": "600",
+      "sha256": "a8476a60f1d0633ad6c20fc478c5d9d45a35e2ce31b25b94a527a14268901191"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.mjs",
+      "bytes": 5250,
+      "mode": "644",
+      "sha256": "0286418956911db4fe35b0ff577422423bca369f71901797e1d5e9179b462b74"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stdout.raw",
+      "bytes": 104,
+      "mode": "600",
+      "sha256": "1c91b7e4c98704ffb7fe749ea797723e31251fe702bca0cedf5cc0f912ded820"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stdout.raw",
+      "bytes": 403,
+      "mode": "600",
+      "sha256": "6f6b503fcabb0f08d52afc9825fe26f01391766df969587336f52e2be24c7d59"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.mjs",
+      "bytes": 11491,
+      "mode": "600",
+      "sha256": "e9b71ee922a6bc9a9cd96f2ba182a01baf1c3a5557fe35758d75dfa4badb4d5e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stdout.raw",
+      "bytes": 171,
+      "mode": "600",
+      "sha256": "7a7f91a2ef2b714a56dacf0ddcb5568918b76be3501e6ef634b219561d274af7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.mjs",
+      "bytes": 11480,
+      "mode": "644",
+      "sha256": "401550f31a05aa0d7db73721d93c0a2e4efc373f3215f8bc88c32ed59f4113b0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stdout.raw",
+      "bytes": 148,
+      "mode": "600",
+      "sha256": "69721a07e8f68f15b2456d33eb0ea0c004619b050b4850847dc6e946e0b089a2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/PRESEAL.md",
+      "bytes": 4432,
+      "mode": "644",
+      "sha256": "893b85857d0ccd12e6c470ba59e28d6f8e2fd6fcdc450556906df7083675feed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/TOOLS.json",
+      "bytes": 13221,
+      "mode": "600",
+      "sha256": "2fb761e3a1fabf10a049e747a7009c3ada0241d5d978818684d1c3925a63f656"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/PATCH-PATHS.json",
+      "bytes": 7578,
+      "mode": "600",
+      "sha256": "9d1b6d4df6228ceca353c6493c5a5c47372f1c3bf0d8f66c91ab506628088b62"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/prepare-source.mjs",
+      "bytes": 23146,
+      "mode": "644",
+      "sha256": "e8ce75c66d8c0134a49c43fd8ff177679556271ec3d99ed68f3f5bd915ea9442"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/seal.mjs",
+      "bytes": 3713,
+      "mode": "644",
+      "sha256": "4b5b14bddebda7e594a7e82376a945651acd93c3ab5a1b1ce7696704f88ccdd2"
+    }
+  ],
+  "captureStatus": {
+    "code": 0,
+    "signal": null
+  },
+  "sourceOnly": true
+}

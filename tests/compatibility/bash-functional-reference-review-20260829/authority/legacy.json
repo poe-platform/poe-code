@@ -1,0 +1,21 @@
+{
+  "revision": "9afc9c5a321711fb566817916a281fe4776935fd",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad",
+      "path": "tests/compatibility/bash-surface-independent-20260829/CASES.original.json",
+      "bytes": 5682,
+      "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29",
+      "capture": "legacy-0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "3326af3aa57942dec50fa1a9efeac6b205e5b661",
+      "path": "tests/compatibility/bash-surface-independent-20260829/run.mjs",
+      "bytes": 9040,
+      "sha256": "6913903a37425a4aafdd283173e7b94b0bfcff7ea1310187f91931421dbde5eb",
+      "capture": "legacy-1.data"
+    }
+  ]
+}

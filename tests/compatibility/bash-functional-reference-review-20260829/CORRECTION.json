@@ -1,0 +1,57 @@
+{
+  "id": "C05-v2",
+  "status": "PASS_DATA",
+  "previous": "C05 FAIL B21 retained; reviewer wrongly required command at program start",
+  "rows": [
+    {
+      "id": "B20",
+      "name": "mapfile",
+      "program": "mapfile -t a; printf '<%s>\\n' \"${a[@]}\"",
+      "onlyCandidatePath": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B20/empty-path/mapfile",
+      "runtime": "UNRUN"
+    },
+    {
+      "id": "B21",
+      "name": "readarray",
+      "program": "a=(keep old); readarray -t -O 1 -n 1 a; printf '<%s>\\n' \"${a[@]}\"",
+      "onlyCandidatePath": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B21/empty-path/readarray",
+      "runtime": "UNRUN"
+    },
+    {
+      "id": "B39",
+      "name": "__surface_missing_command__",
+      "program": "__surface_missing_command__; printf 'status:%s\\n' \"$?\"",
+      "onlyCandidatePath": "/private/tmp/safe-bash-surface-functional-v1-20260829-01/B39/empty-path/__surface_missing_command__",
+      "runtime": "UNRUN"
+    }
+  ],
+  "fixtureAuthoritySupplement": [
+    {
+      "path": "a.txt",
+      "bytes": 2,
+      "sha256": "06f961b802bc46ee168555f066d28f4f0e9afdf3f88174c1ee6f9de004fc30a0",
+      "authority": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad"
+    },
+    {
+      "path": "b.txt",
+      "bytes": 2,
+      "sha256": "c0cde77fa8fef97d476c10aad3d2d54fcc2f336140d073651c2dcccf1e379fd6",
+      "authority": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad"
+    },
+    {
+      "path": ".hidden",
+      "bytes": 2,
+      "sha256": "d98c786cff70da9d10a2c49cf9d849025d3669b95dd56cc7c27c1ebf4cbabc2c",
+      "authority": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad"
+    },
+    {
+      "path": "source-fixture",
+      "bytes": 37,
+      "sha256": "263a5f62d435857898f27371525a2b75a31acf4f5d1cc534e92ac10cefd41b17",
+      "authority": "f2ac188a1a92f16197f0fdf08837bce307e5c4ad"
+    }
+  ],
+  "newChildren": 0,
+  "nativeExecutions": 0,
+  "proposalChanged": false
+}

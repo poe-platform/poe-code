@@ -1,0 +1,38 @@
+{
+  "schema": "source-body-audit-v1",
+  "bodies": [
+    {
+      "path": "../harness.mjs",
+      "review": "Input decoding; nativeRequest env/argv; snapshot; old strong provider contract deliberately NOT reused."
+    },
+    {
+      "path": "../run.mjs",
+      "review": "setupCase four regular0600 fixtures; semantics vs qualification paths; qualification forbidden-canary/symlink fixtures NOT selected; package materialization/product imports NOT executed."
+    },
+    {
+      "path": "../virtual-case.mjs",
+      "review": "MemoryFS work/home/tmp/empty-path setup and raw byte sinks; a later independently authorized product comparison only."
+    },
+    {
+      "path": "../virtual-guard.mjs",
+      "review": "Product capability guards, not a host/native OS fence; not loaded."
+    },
+    {
+      "path": "launch.mjs",
+      "review": "New fixed37 host-functional SOURCE candidate only; independent review and actual permission pending."
+    }
+  ],
+  "programsReviewed": 40,
+  "fixtureBodiesReviewed": 4,
+  "executedFixtureBodies": 0,
+  "additionalBodiesReviewed": [
+    "B37 literal eval",
+    "B38 literal EXIT trap",
+    "B09 literal substitution",
+    "B14 function/subshell",
+    "B15 function",
+    "B35 function"
+  ],
+  "nativeRuns": 0,
+  "productRuns": 0
+}

@@ -1,0 +1,22 @@
+{
+  "tool": "functions.exec_command",
+  "status": "PROPOSED_ONLY_DO_NOT_CALL_WITHOUT_FRESH_ROOT_GO",
+  "parameters": {
+    "cmd": "/usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/launch.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v1/GO.json",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow this exact sealed 37-case Bash 3.2.57 test-only functional cohort outside the failed custom Seatbelt profile, with owned fixtures, finite cleanup and no product/native fallback? This does not qualify OS containment.",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "launchEntrySha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147",
+  "requirements": [
+    "root accepts literal/source review and exclusions B26 B27 B28",
+    "root expressly accepts finite empty-PATH failed lookups B20 B21 B39",
+    "root writes fresh GO.json with accepted review receipt and future deadline; no previous reservation",
+    "actual tool approval before this specific invocation",
+    "preexecution authenticate env/Node/Bash and exact PRESEAL/source; drift HOLD no retry"
+  ]
+}

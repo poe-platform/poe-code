@@ -1,0 +1,247 @@
+{
+  "schema": "V7_R3_PREPARATION_STOP_EVIDENCE",
+  "status": "HOLD_REVIEWER_NAMESPACE_ERROR",
+  "hold": {
+    "schema": "V7_R3_PREPARATION_LAYOUT_HOLD",
+    "classification": "REVIEWER_PREPARATION_ERROR_NOT_PRODUCT_OR_RUNTIME_FAILURE",
+    "observedAt": "2026-08-29T02:09:08.677Z",
+    "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+    "expectedRecipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+    "interfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+    "actualUnexpectedTopEntries": [
+      "preparation"
+    ],
+    "expectedExcludedDescendants": [
+      "runs"
+    ],
+    "sourceGuard": "authorization.mjs authenticatePacket: every root entry must appear in namespace.entries before excludedDescendants is considered; unlisted preparation routes to UNSEALED_RECIPE_ENTRY.",
+    "guardActuallyExecuted": false,
+    "cause": "Reviewer selected executor-v7-r3/preparation/admission-20260829-v7r3-01 instead of placing preparation under an already-declared excluded-descendant namespace or outside the sealed executor tree.",
+    "sealedFileBytesModified": false,
+    "newOwnedDirectoryCreated": true,
+    "firstPreparationCommit": "52debe4d",
+    "runtimeAdmissionAttempts": 0,
+    "rootGrantIssued": false,
+    "authIssued": false,
+    "allKnownChildrenClosed": true,
+    "sourceAndArchiveQualificationStopped": true,
+    "unexecuted": [
+      "Full416-input authentication",
+      "Complete offline target/comparator archive and projection authentication",
+      "Physical moved staging/load proof",
+      "Complete actual-process callgraph census",
+      "Inactive exact grant/AUTH generation",
+      "Actual admission14workers/twoC11",
+      "99semantic cohort"
+    ],
+    "archiveAvailability": "UNKNOWN_NOT_INSPECTED; no missing-archive or availability claim",
+    "proposedRootAction": "Authorize relocating only this owned preparation packet to executor-v7-r3/runs/admission-20260829-v7r3-01-preparation (if absent and runs is confirmed excluded), or a new sibling scope outside all sealed namespaces; preserve original preseal/capture/history byte-for-byte, remove only the then-empty owned preparation directories, and authenticate the unchanged seal/census before resuming. Do not add preparation to SEAL or waive UNSEALED_RECIPE_ENTRY."
+  },
+  "preparationFailures": [
+    {
+      "phase": "initial-metadata-helper",
+      "attempts": 2,
+      "error": "fs is not defined",
+      "effects": "Fresh REPL state and stale helper closure; both failed before file writes or child launches; no admission. Helper redeclared with explicit state."
+    }
+  ],
+  "readBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/README.md",
+      "bytes": 10448,
+      "mode": 420,
+      "sha256": "00a2b396ad8d2e243ea41367a89712c3ee2a029cb904ede1f35dc60ef36a7348"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/README.md",
+      "bytes": 10448,
+      "mode": 420,
+      "sha256": "00a2b396ad8d2e243ea41367a89712c3ee2a029cb904ede1f35dc60ef36a7348"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/FUTURE-INTERFACE.json",
+      "bytes": 5293,
+      "mode": 420,
+      "sha256": "ecd72bf2a49ef839f573cd5947657c4c684303c6f69255d219fa468b7b415e85"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/INPUTS.json",
+      "bytes": 134313,
+      "mode": 420,
+      "sha256": "f1985dbd02f9bcbfc6997d4dc4984276bf0caddad7a77dec1aad8322692f5745"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/SEAL.json",
+      "bytes": 105131,
+      "mode": 420,
+      "sha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/INTERFACE.json",
+      "bytes": 10977,
+      "mode": 420,
+      "sha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/coordinator.mjs",
+      "bytes": 1819,
+      "mode": 420,
+      "sha256": "766b6ca082c28e91b8e5c80b0a83775d0d6777572e213ae271de5990c19d371c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/body.mjs",
+      "bytes": 12492,
+      "mode": 420,
+      "sha256": "4bc45f6005a64ff7ae5bd589de9d0c89fdbd7c177283de0f2dde95dc28c0b8ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/production.mjs",
+      "bytes": 4117,
+      "mode": 420,
+      "sha256": "fe1c8d5a475094bc06cac17b7d73dcf7b3e4b12a86126e7ede569b5ff3d00d0d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/outer.mjs",
+      "bytes": 45,
+      "mode": 420,
+      "sha256": "e8c53d79a5862eb46117ba93675ac38331d23ecd9f4ab18dbb3d2fb775972ab5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/supervisor.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "b617a5c0eabcbd8defa592d4001f7448b733294b7294e0eaf2c227660d0904d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/PLAN.json",
+      "bytes": 2903,
+      "mode": 420,
+      "sha256": "6ab2ebf906073fb84c59ba8d07cefe39f4b0831a0dd11ad5f209c6741bb1516c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    }
+  ],
+  "knownMetadataChildren": [
+    {
+      "ordinal": 1,
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-SEAL.json"
+      ],
+      "startedAt": "2026-08-29T02:07:31.247Z",
+      "pid": 69985,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "sizes": {
+        "stdout": 0,
+        "stderr": 0
+      },
+      "finishedAt": "2026-08-29T02:07:31.344Z",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "ordinal": 2,
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "commit",
+        "--only",
+        "-m",
+        "test: preseal inactive V7-r3 runtime admission preparation",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-SEAL.json"
+      ],
+      "startedAt": "2026-08-29T02:07:31.349Z",
+      "pid": 69986,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "sizes": {
+        "stdout": 0,
+        "stderr": 252
+      },
+      "finishedAt": "2026-08-29T02:07:31.573Z",
+      "stdout": "",
+      "stderr": "[main 52debe4d] test: preseal inactive V7-r3 runtime admission preparation\n 1 file changed, 23 insertions(+)\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-SEAL.json\n"
+    }
+  ],
+  "capture": {
+    "path": "PREPARATION-CHILDREN.ndjson",
+    "bytes": 3435,
+    "sha256": "4e2e580d7c8ac71ace0506c2a4d36b71c7da2c21b4066852f6ca0ed237b71b43",
+    "closed": true
+  },
+  "sourceCheck": {
+    "recipeHashMatches": true,
+    "interfaceHashMatches": true,
+    "reviewReceiptHashMatches": true,
+    "full416AuthenticationExecuted": false,
+    "namespaceComparison": {
+      "unexpected": [
+        "preparation"
+      ],
+      "excluded": [
+        "runs"
+      ],
+      "passed": false
+    }
+  },
+  "limits": {
+    "elapsedMilliseconds": 318915,
+    "maxMilliseconds": 1800000,
+    "allProcessLimit": 64,
+    "peakLimit": 3,
+    "knownSupervisedGitChildren": 2,
+    "knownInitialShellCalls": 1,
+    "publicationToolingAdditional": true,
+    "allProcessExactPidCensus": false,
+    "conservativeIncludingPublicationMaximum": 20,
+    "peakConservativeIncludingOwner": 3,
+    "noEngineChildren": true
+  },
+  "cleanup": "Two observed metadata children naturally exited0 and closed; raw preparation capture synced and closed. No worker, fixture staging, network, archive materialization or engine resource was started. Publication tools are separate and observed through tool capture.",
+  "history": "Accepted d27fd914 scoped8+13 controls unchanged; old d5590/8, V6 lost294045 bytes and every consumed grant retained. No new grant/token or actual admission attempt."
+}

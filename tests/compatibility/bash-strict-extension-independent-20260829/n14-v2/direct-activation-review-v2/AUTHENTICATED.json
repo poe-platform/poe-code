@@ -1,0 +1,175 @@
+{
+  "files": [
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/CANDIDATE-CLOSURE.json",
+      "bytes": 1037,
+      "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/COMMAND-PLAN.json",
+      "bytes": 276365,
+      "sha256": "38b71a12a800e1c3ff07a2db33aabeace73b15620ff0fad8032becd13028d38f"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/CONTROL-PRESEAL.json",
+      "bytes": 2057,
+      "sha256": "33c54aca34b42f0700f29cdd5344b2099241d4cad66356ce2082e1bbbe3f3667"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/FRESH-INPUT-AUTH.json",
+      "bytes": 58531,
+      "sha256": "40e2c35a5b546005b87967830fe7d14ccacc6a4153abde26ac699a70dc820f6f"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/LIMITS.json",
+      "bytes": 555,
+      "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/PREPROVISION-RECEIPT.json",
+      "bytes": 335,
+      "sha256": "369ee5a991a6d14d6c4e1bfd9daf5c4d5046d9a1c38f4072f12822e93cee73a8"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/README.md",
+      "bytes": 2250,
+      "sha256": "80949a252d4521fdbc2ddbb5f2c5a72a8cc0be9267fef4513a03b2ef2f9f6d10"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/REPAIR-MANIFEST.json",
+      "bytes": 13235,
+      "sha256": "fb9bd43b598e6cfc9a7fe7a8c37184a922e2ae463127f5b456141daaac7d1bd8"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/SOURCE-CAPSULE.json.gz.base64",
+      "bytes": 1516833,
+      "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/SOURCE-PROVENANCE.json",
+      "bytes": 5575,
+      "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/TOOLS.json",
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/finalization-controls.mjs",
+      "bytes": 3160,
+      "sha256": "4a2ce395c7af58d2eb5d9e588e993e7da394239a4069e375fc00ad676ea36ecf"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/finalization.mjs",
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/outer.mjs",
+      "bytes": 6096,
+      "sha256": "4c836d1bdc703801966a328de7d6090599edf32263094dbbb1275125781f036e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/packet-io.mjs",
+      "bytes": 1869,
+      "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/MATRIX.json",
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/NODE.json",
+      "bytes": 304,
+      "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/PACKAGE-MEMBERS.json",
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/SOURCE-MEMBERS.json",
+      "bytes": 68225,
+      "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/STATIC-EDGES.json",
+      "bytes": 31738,
+      "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/case-adapter.mjs",
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/case-driver.mjs",
+      "bytes": 1504,
+      "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/case-launch.mjs",
+      "bytes": 2722,
+      "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/data.mjs",
+      "bytes": 3196,
+      "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/direct-child.mjs",
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/guard.mjs",
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/mechanism.mjs",
+      "bytes": 2506,
+      "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/package-admission.mjs",
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/parse-manifest.mjs",
+      "bytes": 2860,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/profile.mjs",
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/setup.mjs",
+      "bytes": 4088,
+      "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/publication-admin.mjs",
+      "bytes": 4080,
+      "sha256": "6251514e58edd139751bfa94e38cb1dbbeb3c0055116a5d971eac610d1b7d994"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/supervisor.mjs",
+      "bytes": 11962,
+      "sha256": "2bde7e3d1ac042c562e4987f1f6ff272ff8cf82d4518872f09205b50440c0da2"
+    }
+  ],
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252"
+}

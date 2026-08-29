@@ -1,0 +1,15 @@
+{
+  "at": "2026-08-29T11:06:43.369Z",
+  "pid": 94044,
+  "grant": {
+    "minutes": 15,
+    "knownOS": 32,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  },
+  "source": "83f750e57470546a95782cb9ce54a81d4900127a",
+  "evidence": "8ca64de8e1bf68c949a2c52a58d00cda99165320",
+  "seal": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "scope": "source DATA and <=3 presealed PURE helpers only; no actual111"
+}

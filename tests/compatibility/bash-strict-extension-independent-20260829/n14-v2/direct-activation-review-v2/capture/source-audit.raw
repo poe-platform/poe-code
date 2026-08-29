@@ -1,0 +1,566 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {PROFILE} from './profile/profile.mjs';
+import {runDirect} from './profile/direct-child.mjs';
+import {launchProductCase} from './profile/case-launch.mjs';
+import {readPinned,errorRecord} from './profile/auth.mjs';
+import {installSources,installTools,installTypes,admittedPackage,extractValidatedTar,verifyMembers,writeExclusive} from './profile/setup.mjs';
+import {validateMatrix} from './profile/data.mjs';
+import {preflight,census,checkShipping,retainFile,hash} from './packet-io.mjs';
+import {finalize} from './finalization.mjs';
+const helperNames=['auth.mjs','profile.mjs','guard.mjs','case-driver.mjs','case-adapter.mjs','data.mjs'];
+export async function run({packet,seal,grant,work,started,ownerLog}){
+  const finalDeadline=Math.min(started+1800000,grant.notAfterEpochMs),bodyDeadline=finalDeadline-120000;
+  const ledger={starts:0,maximum:115,active:0,rows:[],stopped:false,captureBytes:0,captureMaximum:134086656};
+  const records=[],layouts=[],commands=[],secondary=[];let primaryPresent=false,primary;
+  const check=()=>{if(Date.now()>=bodyDeadline)throw Error('BODY_DEADLINE');census(work,536870912);};
+  const write=(name,value,terminal=false)=>{if(!terminal)check();return retainFile(path.join(work,'capture',name),Buffer.from(JSON.stringify(value,null,2)+'\n'),terminal?finalDeadline:bodyDeadline);};
+  const freshEnv=()=>({HOME:path.join(work,'home'),TMPDIR:path.join(work,'tmp'),PATH:path.join(work,'empty-path'),LC_ALL:'C',LANG:'C',TZ:'UTC'});
+  let setupElapsed=0,typeElapsed=0;
+  try{
+    const tools=preflight(packet,seal);
+    const commandPlan=JSON.parse(readPinned(path.join(packet,'COMMAND-PLAN.json'),seal.files['COMMAND-PLAN.json']));
+    const matrix=JSON.parse(readPinned(path.join(packet,'profile/MATRIX.json'),seal.files['profile/MATRIX.json']));validateMatrix(matrix);
+    const members=JSON.parse(readPinned(path.join(packet,'profile/PACKAGE-MEMBERS.json'),seal.files['profile/PACKAGE-MEMBERS.json']));
+    const inputs=JSON.parse(readPinned(path.join(packet,'profile/SOURCE-MEMBERS.json'),seal.files['profile/SOURCE-MEMBERS.json']));
+    const staticEdges=JSON.parse(readPinned(path.join(packet,'profile/STATIC-EDGES.json'),seal.files['profile/STATIC-EDGES.json'])).edges;
+    if(matrix.cases.length!==37||matrix.fixtures.length!==4||members.length!==954||inputs.length!==293||inputs.some(row=>row.path.startsWith('dist/')))throw Error('MATRIX_MEMBERSHIP');
+    const compatibilitySeal={...seal,files:{...seal.files,'SOURCE-MEMBERS.json':seal.files['profile/SOURCE-MEMBERS.json']}};
+    writeExclusive(path.join(work,'SOURCE-MEMBERS.json'),readPinned(path.join(packet,'profile/SOURCE-MEMBERS.json'),seal.files['profile/SOURCE-MEMBERS.json']));
+    const sourcePacket=path.join(work,'source-packet');fs.mkdirSync(sourcePacket,{mode:448});
+    for(const [destination,source]of [['SOURCE-MEMBERS.json','profile/SOURCE-MEMBERS.json'],['SOURCE-CAPSULE.json.gz.base64','SOURCE-CAPSULE.json.gz.base64']])writeExclusive(path.join(sourcePacket,destination),readPinned(path.join(packet,source),seal.files[source]));
+    const sourceApp=path.join(work,'source-app'),installedApp=path.join(work,'installed-app'),movedApp=path.join(work,'moved-app');
+    const setupStart=Date.now();
+    installSources(sourcePacket,work,compatibilitySeal);installTools(tools,work);installTypes(tools,work,sourceApp);
+    if(fs.existsSync(path.join(sourceApp,'dist')))throw Error('PREBUILT_SOURCE_DIST_REFUSED');
+    for(const input of inputs)readPinned(path.join(sourceApp,input.path),input);
+    check();
+    const buildArgs=[path.join(work,'tools/typescript/bin/tsc'),'-p',path.join(sourceApp,'tsconfig.build.json')];
+    commands.push({role:'build',executable:tools.node.path,args:buildArgs,cwd:sourceApp,authority:'trusted administration; no case permission claim'});
+    const remainingBuild=180000-(Date.now()-setupStart);if(remainingBuild<=0)throw Error('SETUP_AGGREGATE_DEADLINE');
+    const build=await runDirect({id:'build',node:tools.node,args:buildArgs,cwd:sourceApp,env:freshEnv(),capture:path.join(work,'capture/build'),timeoutMs:remainingBuild,bodyDeadline,finalDeadline},ledger);
+    if(!build.row.qualified||build.row.status!==0)throw Error('BUILD_UNQUALIFIED');
+    checkShipping(sourceApp,members);verifyMembers(path.join(sourceApp,'dist'),members.filter(row=>row.path.startsWith('dist/')).map(row=>({...row,path:row.path.slice(5)})));
+    const archive=await admittedPackage(seal.archive.path,seal.archive,members);
+    write('ARCHIVE-ADMISSION.json',{receipt:archive.receipt,ledger:archive.ledger,events:archive.events});
+    extractValidatedTar(archive.buffer,path.join(installedApp,'node_modules/virtual-bash'));archive.buffer=undefined;
+    verifyMembers(path.join(installedApp,'node_modules/virtual-bash'),members);checkShipping(path.join(installedApp,'node_modules/virtual-bash'),members);installTypes(tools,work,installedApp);
+    setupElapsed=Date.now()-setupStart;if(setupElapsed>=180000)throw Error('SETUP_AGGREGATE_DEADLINE');
+    for(const layout of ['source-built','installed','physically-moved']){
+      check();
+      const app=layout==='source-built'?sourceApp:layout==='installed'?installedApp:movedApp;
+      if(layout==='physically-moved'){fs.renameSync(installedApp,movedApp);if(fs.existsSync(installedApp))throw Error('OLD_INSTALLED_PARENT_PRESENT');}
+      const packageRoot=layout==='source-built'?sourceApp:path.join(app,'node_modules/virtual-bash');
+      checkShipping(packageRoot,members);if(layout!=='source-built')verifyMembers(packageRoot,members);
+      if(layout!=='physically-moved')for(const name of helperNames)writeExclusive(path.join(app,name),readPinned(path.join(packet,'profile',name),seal.files['profile/'+name]));
+      const consumer=Buffer.from('import {Shell,MemoryFileSystem,agentCommands,type ShellResult} from '+JSON.stringify(layout==='source-built'?'./dist/index.js':'virtual-bash')+';\nconst fs=new MemoryFileSystem();const shell=new Shell({fs,env:{LC_ALL:"C"}}).use(agentCommands());const value:Promise<ShellResult>=shell.exec("",{stdin:new Uint8Array(),signal:new AbortController().signal});void value;void shell.dispose;\n');
+      if(layout!=='physically-moved')writeExclusive(path.join(app,'consumer.mts'),consumer);
+      const typeArgs=[path.join(work,'tools/typescript/bin/tsc'),'--noEmit','--strict','--exactOptionalPropertyTypes','--target','ES2023','--module','NodeNext','--moduleResolution','NodeNext','--types','node',path.join(app,'consumer.mts')];
+      const typeRemaining=180000-typeElapsed;if(typeRemaining<=0)throw Error('TYPECHECK_AGGREGATE_DEADLINE');
+      commands.push({role:'type-'+layout,executable:tools.node.path,args:typeArgs,cwd:app,authority:'trusted administration; source consumer is typechecked, not evaluated'});
+      const typeStart=Date.now();const typed=await runDirect({id:'type-'+layout,node:tools.node,args:typeArgs,cwd:app,env:freshEnv(),capture:path.join(work,'capture/type-'+layout),timeoutMs:typeRemaining,bodyDeadline,finalDeadline},ledger);typeElapsed+=Date.now()-typeStart;
+      if(typeElapsed>=180000||!typed.row.qualified||typed.row.status!==0)throw Error('TYPECHECK_UNQUALIFIED');
+      const files={},edges={};for(const pin of members.filter(row=>row.path.endsWith('.js'))){files[path.join(packageRoot,pin.path)]=pin;edges[path.join(packageRoot,pin.path)]=staticEdges[pin.path]??[];}
+      for(const name of helperNames)files[path.join(app,name)]=seal.files['profile/'+name];
+      const productEntry=path.join(packageRoot,'dist/index.js');
+      edges[path.join(app,'case-driver.mjs')]=['node:fs','node:url','./profile.mjs','./case-adapter.mjs','./data.mjs','virtual-bash',pathToFileURL(productEntry).href];
+      edges[path.join(app,'case-adapter.mjs')]=['node:crypto','node:path'];edges[path.join(app,'data.mjs')]=['node:crypto'];
+      edges[path.join(app,'profile.mjs')]=['node:path'];edges[path.join(app,'auth.mjs')]=['node:fs','node:crypto'];
+      layouts.push({layout,app,packageRoot,entry:path.join(app,'case-driver.mjs'),sourceBuilt:layout==='source-built',shippingMembers:954,installedParentAbsent:layout==='physically-moved'?!fs.existsSync(installedApp):undefined});
+      for(const row of matrix.cases){
+        check();const id=layout+'-'+row.id,rolePath=path.join(work,'capture',id+'.role.json'),trace=path.join(work,'capture',id+'.trace');writeExclusive(trace,Buffer.alloc(0));
+        const role={profile:PROFILE,kind:'product-case',id,caseId:row.id,layout,app,entry:path.join(app,'case-driver.mjs'),guard:path.join(app,'guard.mjs'),rolePath,trace,readFiles:[rolePath,trace,path.join(packet,'profile/MATRIX.json')],files,edges,builtins:seal.builtins,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',nodePath:tools.node.path,matrix:path.join(packet,'profile/MATRIX.json'),productEntry};
+        const roleBytes=Buffer.from(JSON.stringify(role)+'\n');writeExclusive(rolePath,roleBytes);
+        const rolePin={bytes:roleBytes.length,sha256:hash(roleBytes)};
+        const expectedRole=commandPlan.layouts.find(value=>value.layout===layout)?.cases.find(value=>value.id===id);
+        if(!expectedRole||expectedRole.roleBytes!==rolePin.bytes||expectedRole.roleSha256!==rolePin.sha256)throw Error('PRESEALED_ROLE_IDENTITY');
+        const before=ledger.starts;
+        let observation,invocationFailed=false,invocationReason;
+        try{observation=await launchProductCase({id,node:tools.node,role,rolePin,rootGrant:grant,closurePath:path.join(packet,'CANDIDATE-CLOSURE.json'),closurePin:seal.files['CANDIDATE-CLOSURE.json'],home:path.join(work,'home'),tmp:path.join(work,'tmp'),emptyPath:path.join(work,'empty-path'),capture:path.join(work,'capture',id),bodyDeadline,finalDeadline},ledger);}
+        catch(reason){invocationFailed=true;invocationReason=reason;}
+        try{write(id+'.lifecycle.json',{id,admitted:ledger.starts>before,rows:ledger.rows.slice(before),groupAbsence:'NOT_CLAIMED'},true);}catch(reason){if(invocationFailed)secondary.push(errorRecord(reason));else throw reason;}
+        if(invocationFailed)throw invocationReason;
+        const traceRows=Buffer.from(observation.loadTrace.base64,'base64').toString().trim().split('\n').map(line=>JSON.parse(line));
+        if(!traceRows.some(event=>event.event==='module-loaded'&&event.url===pathToFileURL(productEntry).href&&event.sha256===files[productEntry].sha256))throw Error('PRODUCT_ENTRY_NOT_WITNESSED');
+        const result={id,layout,caseId:row.id,...observation};records.push(result);write(id+'.json',result);
+      }
+    }
+  }catch(reason){primaryPresent=true;primary=reason;ledger.stopped=true;try{ownerLog({event:'STOP',reason:errorRecord(reason)});}catch(error){secondary.push(errorRecord(error));}}
+  const resultFor=state=>({schema:'direct-functional-111-observations-v1',profile:PROFILE,candidate:seal.candidate,archiveSha256:seal.archive.sha256,completed:records.length,planned:111,unrun:111-records.length,primaryPresent:state.primaryPresent,primary:state.primaryPresent?errorRecord(state.primary):undefined,layouts,commands,ledger,setupAggregateMs:setupElapsed,typecheckAggregateMs:typeElapsed,customLoaderThreads:0,productWorkersPermitted:0,caseSubprocessPermission:0,qualification:'Qualified public observations are not compatibility passes. Direct process/cooperative public cleanup only; no group absence/universal census/OS containment/RSS guarantee.',sampledWorkPresent:state.sampledWorkPresent,sampledWork:state.sampledWork,secondary,finalizationSecondaryPresent:state.secondaryPresent,finalizationSecondary:state.secondary.map(entry=>({phase:entry.phase,present:entry.present,reason:errorRecord(entry.reason)}))});
+  const state=finalize({primaryPresent,primary,census:()=>census(work,536870912),publish:state=>write('TERMINAL.json',resultFor(state),true)});
+  const result=resultFor(state);result.terminalPublicationFailed=!state.publicationSucceeded;
+  return result;
+}
+
+REPAIR
+{
+  "schema": "final-census-versioned-repair-v1",
+  "original": {
+    "sourceCommit": "faebb8dc019a6920f56c47b7d48c2c8036b8f5f6",
+    "evidenceCommit": "b38463b727373e11261f05a43b580f6012112baf",
+    "sealSha256": "254e4d2bf3f12583c625b627b9230829f839745fb490abb8421b47d0fdc73781",
+    "scope": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1"
+  },
+  "rootReportedReviews": {
+    "mechanismAccept": "f690495782aef9b7d354e2612c6768cc2251403a",
+    "wiringHold": "cc84c2f0fa27f74df0af7fa6a21d2416367d2539"
+  },
+  "mapping": [
+    {
+      "path": "CANDIDATE-CLOSURE.json",
+      "original": {
+        "bytes": 1037,
+        "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+      },
+      "successor": {
+        "bytes": 1037,
+        "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "COMMAND-PLAN.json",
+      "original": {
+        "bytes": 276365,
+        "sha256": "a059c018cd445e93f5fec10b7903128006e748bfcb71f552f58bf94654b8394f"
+      },
+      "successor": {
+        "bytes": 276365,
+        "sha256": "38b71a12a800e1c3ff07a2db33aabeace73b15620ff0fad8032becd13028d38f"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "DATA-CHECKS.json",
+      "original": {
+        "bytes": 2320,
+        "sha256": "974d2e139751ecf1967358b213c329f6e5f5fe939b6ce58622c513637ba3f4e0"
+      },
+      "successor": null,
+      "disposition": "historical-only-not-replayed"
+    },
+    {
+      "path": "LIMITS.json",
+      "original": {
+        "bytes": 555,
+        "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+      },
+      "successor": {
+        "bytes": 555,
+        "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "PREPROVISION-RECEIPT.json",
+      "original": {
+        "bytes": 335,
+        "sha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738"
+      },
+      "successor": {
+        "bytes": 335,
+        "sha256": "369ee5a991a6d14d6c4e1bfd9daf5c4d5046d9a1c38f4072f12822e93cee73a8"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "README.md",
+      "original": {
+        "bytes": 2922,
+        "sha256": "ee01c33c485a2e2d8881e43cbfd218eb142c1a3a1f10d82a9295af15b3c24cfc"
+      },
+      "successor": {
+        "bytes": 2250,
+        "sha256": "80949a252d4521fdbc2ddbb5f2c5a72a8cc0be9267fef4513a03b2ef2f9f6d10"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "SOURCE-CAPSULE.json.gz.base64",
+      "original": {
+        "bytes": 1516833,
+        "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+      },
+      "successor": {
+        "bytes": 1516833,
+        "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "SOURCE-PROVENANCE.json",
+      "original": {
+        "bytes": 5575,
+        "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+      },
+      "successor": {
+        "bytes": 5575,
+        "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "TOOLS.json",
+      "original": {
+        "bytes": 51333,
+        "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+      },
+      "successor": {
+        "bytes": 51333,
+        "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "outer.mjs",
+      "original": {
+        "bytes": 6096,
+        "sha256": "a0e523a93301429496b6fe887fb4df803ec5bbb4139244b1400260cc77dfce9e"
+      },
+      "successor": {
+        "bytes": 6096,
+        "sha256": "4c836d1bdc703801966a328de7d6090599edf32263094dbbb1275125781f036e"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "packet-io.mjs",
+      "original": {
+        "bytes": 1869,
+        "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+      },
+      "successor": {
+        "bytes": 1869,
+        "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/MATRIX.json",
+      "original": {
+        "bytes": 201975,
+        "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+      },
+      "successor": {
+        "bytes": 201975,
+        "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/NODE.json",
+      "original": {
+        "bytes": 304,
+        "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+      },
+      "successor": {
+        "bytes": 304,
+        "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/PACKAGE-MEMBERS.json",
+      "original": {
+        "bytes": 166933,
+        "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+      },
+      "successor": {
+        "bytes": 166933,
+        "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/SOURCE-MEMBERS.json",
+      "original": {
+        "bytes": 68225,
+        "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+      },
+      "successor": {
+        "bytes": 68225,
+        "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/STATIC-EDGES.json",
+      "original": {
+        "bytes": 31738,
+        "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+      },
+      "successor": {
+        "bytes": 31738,
+        "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/auth.mjs",
+      "original": {
+        "bytes": 3951,
+        "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+      },
+      "successor": {
+        "bytes": 3951,
+        "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-adapter.mjs",
+      "original": {
+        "bytes": 4448,
+        "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+      },
+      "successor": {
+        "bytes": 4448,
+        "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-driver.mjs",
+      "original": {
+        "bytes": 1504,
+        "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+      },
+      "successor": {
+        "bytes": 1504,
+        "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-launch.mjs",
+      "original": {
+        "bytes": 2722,
+        "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+      },
+      "successor": {
+        "bytes": 2722,
+        "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/data.mjs",
+      "original": {
+        "bytes": 3196,
+        "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+      },
+      "successor": {
+        "bytes": 3196,
+        "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/direct-child.mjs",
+      "original": {
+        "bytes": 4583,
+        "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+      },
+      "successor": {
+        "bytes": 4583,
+        "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/guard.mjs",
+      "original": {
+        "bytes": 2245,
+        "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+      },
+      "successor": {
+        "bytes": 2245,
+        "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/mechanism.mjs",
+      "original": {
+        "bytes": 2506,
+        "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+      },
+      "successor": {
+        "bytes": 2506,
+        "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/package-admission.mjs",
+      "original": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "successor": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/parse-manifest.mjs",
+      "original": {
+        "bytes": 2860,
+        "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+      },
+      "successor": {
+        "bytes": 2860,
+        "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/profile.mjs",
+      "original": {
+        "bytes": 2114,
+        "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+      },
+      "successor": {
+        "bytes": 2114,
+        "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/setup.mjs",
+      "original": {
+        "bytes": 4088,
+        "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+      },
+      "successor": {
+        "bytes": 4088,
+        "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "original": {
+        "bytes": 4027,
+        "sha256": "8b49cc6fc23df835ab3b173062762993b8fde1fb5cbc4b06bd2e2be2db055278"
+      },
+      "successor": {
+        "bytes": 4080,
+        "sha256": "6251514e58edd139751bfa94e38cb1dbbeb3c0055116a5d971eac610d1b7d994"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "supervisor.mjs",
+      "original": {
+        "bytes": 11663,
+        "sha256": "aee84c8dc73dce7182ef6483dc5c757ccb5610b71e5d8cc9e96cf82f94623099"
+      },
+      "successor": {
+        "bytes": 11962,
+        "sha256": "2bde7e3d1ac042c562e4987f1f6ff272ff8cf82d4518872f09205b50440c0da2"
+      },
+      "disposition": "versioned-delta"
+    }
+  ],
+  "permittedBehaviorDelta": "final census and terminal publication independently guarded; raw presence not truthiness; new physical namespace/role hashes only",
+  "casePlanComparison": "Path-normalized and role-hash-excluded plan exactly equals original; all111 program SHA256s unchanged",
+  "rawReasonBoundary": "Pure finalizer preserves Object.is for undefined/null/false/0; errorRecord only at serialized public evidence boundary",
+  "finalizationSecondary": "Explicit presence, phase and serialized reason; existing earlier secondary records retained separately",
+  "unchangedActual": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "archive": {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "bytes": 872281,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+    },
+    "limits": {
+      "inclusiveMs": 1800000,
+      "knownOSMaximum": 144,
+      "knownPeak": 3,
+      "captureBytes": 134217728,
+      "workingBytes": 536870912,
+      "setupAggregateMs": 180000,
+      "typecheckAggregateMs": 180000,
+      "finalizationTailMs": 120000,
+      "caseDriverAbortMs": 3000,
+      "caseProcessMs": 8000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000,
+      "perStreamBytes": 65536,
+      "customLoaderThreads": 0,
+      "productWorkers": 0,
+      "caseSubprocessPermission": 0,
+      "administrativeRoleAllowance": 28,
+      "ownerRoles": 1,
+      "buildRoles": 1,
+      "typecheckRoles": 3,
+      "caseRoles": 111
+    },
+    "productCalls": 111,
+    "status": "UNRUN"
+  },
+  "phase": {
+    "started": 1788000941179,
+    "deadline": 1788001841179,
+    "maximumKnownOS": 32,
+    "knownPeak": 3,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  },
+  "presealControlGroups": 6,
+  "controlStatus": "UNRUN at source freeze",
+  "runtimeAuthority": "NONE; ROOT/review templates PENDING"
+}
+
+GO.template.json
+{
+  "schema": "direct-activation-root-grant-v1",
+  "decision": "PENDING",
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "closureSha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102",
+  "reviewSha256": "ROOT_ACCEPTED_REVIEW_RAW_SHA256",
+  "work": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01",
+  "notBeforeEpochMs": 0,
+  "notAfterEpochMs": 0,
+  "limits": {
+    "inclusiveMs": 1800000,
+    "knownOSMaximum": 144,
+    "knownPeak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "setupAggregateMs": 180000,
+    "typecheckAggregateMs": 180000,
+    "finalizationTailMs": 120000,
+    "caseDriverAbortMs": 3000,
+    "caseProcessMs": 8000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "perStreamBytes": 65536,
+    "customLoaderThreads": 0,
+    "productWorkers": 0,
+    "caseSubprocessPermission": 0,
+    "administrativeRoleAllowance": 28,
+    "ownerRoles": 1,
+    "buildRoles": 1,
+    "typecheckRoles": 3,
+    "caseRoles": 111
+  }
+}
+
+REVIEW.template.json
+{
+  "schema": "direct-activation-independent-review-v1",
+  "decision": "PENDING",
+  "scope": "B-mechanism-and-final-activation-binding",
+  "profileCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "qualification": "Template only; no independent acceptance implied"
+}
+
+COMMAND.template.txt
+exec /usr/bin/env -i HOME=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/home TMPDIR=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/tmp PATH=/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/outer.mjs --seal-sha256 6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252 --grant-sha256 ROOT_GRANTED_RAW_SHA256

@@ -1,0 +1,18 @@
+{
+  "executable": "/bin/zsh",
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+    "d7cdc4e0261c4752b518fdc42c327f2afa2d777c83c33048c8d14ad86b5b0e65",
+    "23784",
+    {
+      "slot": "FRESH_ROOT_AUTHORIZATION_STRING"
+    }
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "env": {
+    "B1_ADMIN_ROOT_GO": "ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION"
+  },
+  "rule": "One invocation only after review and fresh ROOT actual authority. No hand-executed admin commands after owner starts."
+}

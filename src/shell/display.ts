@@ -14,6 +14,7 @@ function commandText(command: Command, indent: string): string {
   switch (command.kind) {
     case "simple": text = command.words.map(spelling).join(" "); break;
     case "arithmetic": text = `(( ${command.source} ))`; break;
+    case "conditional": text = `[[${command.source}]]`; break;
     case "group": text = `{ \n${nested}${scriptText(command.body, nested)}\n${indent}}`; break;
     case "subshell": text = `( ${scriptText(command.body, indent)} )`; break;
     case "function": text = `${command.name} () \n${indent}${commandText(command.body, indent)}`; break;

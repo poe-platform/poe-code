@@ -13,6 +13,7 @@ import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
+import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { executionCommands } from "../commands/execution.js";
 import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
@@ -1481,7 +1482,7 @@ export class Runtime {
   async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
     io[invocationScope].assertOpen();
     const status = await this.executeCommand(command, state, io, fileShortcut);
-    if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic") this.errexit(status, state, io);
+    if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional") this.errexit(status, state, io);
     return status;
   }
 
@@ -1513,6 +1514,37 @@ export class Runtime {
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+      if (command.kind === "conditional") {
+        try {
+          return Number(!await evaluateConditional(command.expression, {
+            fs: this.fs, cwd: state.cwd, signal: this.signal,
+            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
+            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
+            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(""),
+            option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
+            present: name => {
+              const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
+              if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
+              const binding = arrayStore(state)?.get(match[1]!);
+              const selector = match[2];
+              if (selector === "@" || selector === "*") return binding ? binding.values.size > 0 : this.variable(state, match[1]!) !== undefined;
+              const index = selector === undefined ? 0 : numericIndex(selector);
+              if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
+              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
+            },
+          }));
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (error instanceof ConditionalUnsupported) {
+            try { await this.diagnostic(io, error.message); }
+            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
+            return 2;
+          }
+          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+          diagnosticFailure = new NounsetDiagnosticFailure(error);
+          throw diagnosticFailure;
+        }
+      }
       if (command.kind === "arithmetic") {
         try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state)) === 0n); }
         catch (error) { throw new Error(`((: ${message(error)}`); }
@@ -3706,7 +3738,7 @@ export class Runtime {
     return result;
   }
 
-  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false): Promise<string[]> {
+  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
@@ -3722,7 +3754,7 @@ export class Runtime {
       const field = fields.at(-1)!;
       if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });
       field.value += value;
-      field.pattern += glob ? value : value.replace(/[\\*?[\]\-^]/gu, "\\$&");
+      field.pattern += glob ? value : value.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&");
       field.present ||= present;
     };
     const parts = word.parts.map((part) => ({ part, splitText: false }));

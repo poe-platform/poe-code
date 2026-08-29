@@ -3,6 +3,8 @@ import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
 import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
 import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
+import { conditionalBinary, conditionalUnary } from "./conditional.js";
+import type { ConditionalExpression } from "./conditional.js";
 
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean }
@@ -69,6 +71,7 @@ export type Command = (
   | { kind: "for"; name: string; words?: Word[]; body: Script }
   | { kind: "function"; name: string; body: Command }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
+  | { kind: "conditional"; expression: ConditionalExpression; source: string }
 ) & { redirects: Redirect[]; line?: number; sourceName?: string };
 
 export interface Pipeline {
@@ -112,6 +115,8 @@ class Lexer {
   printedNewlineReduction = 0;
   unprintedWords = 0;
   delimiterOperator: string | undefined;
+  conditional = false;
+  conditionalPattern: "pattern" | "regex" | undefined;
   readonly documents: HereDocument[] = [];
 
   constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
@@ -127,7 +132,7 @@ class Lexer {
   next(): Token {
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      if (current === " " || current === "\t") {
+      if (current === " " || current === "\t" || this.conditional && current === "\n") {
         this.position++;
       } else if (current === "\\" && this.source[this.position + 1] === "\n") {
         this.position += 2;
@@ -149,7 +154,7 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
       if (["&", "&>>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
@@ -281,6 +286,8 @@ class Lexer {
     const parts: WordPart[] = [];
     let parentheses = 0;
     let conditionals = 0;
+    let patternParentheses = 0;
+    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
     let plain = true;
     const text = (value: string, quoted: boolean, synthetic = false) => {
       const previous = parts.at(-1);
@@ -295,7 +302,13 @@ class Lexer {
     };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
-      if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
+      if (conditionalPattern) {
+        if (/[ \t\n;]/u.test(current)) break;
+        if (current === "(" && (conditionalPattern === "regex" || patternParentheses > 0 || "?*+@!".includes(this.source[this.position - 1] ?? " "))) {
+          if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
+        } else if (current === ")" && patternParentheses > 0) patternParentheses--;
+        else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
+      } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
         plain = false;
         this.unprintedWords++;
@@ -599,7 +612,49 @@ class Parser {
 
   commandInner(): Command {
     let command: Command;
-    if (this.is("(") && this.lexer.source.startsWith("((", this.current.offset)) {
+    if (this.is("[[")) {
+      const start = this.current.end;
+      this.lexer.conditional = true;
+      this.advance();
+      let nodes = 0;
+      const admit = (): void => { if (nodes >= 4096) this.error("Conditional syntax exceeds 4096 nodes"); nodes++; };
+      const operand = (): Word => {
+        if (this.current.kind !== "word" || this.is("]]")) this.error("Expected conditional operand");
+        return this.advance().word!;
+      };
+      const primary = (depth: number): ConditionalExpression => {
+        if (depth > 64) this.error("Conditional syntax nesting exceeds 64");
+        if (this.is("!")) { admit(); this.advance(); return { kind: "not", operand: primary(depth + 1) }; }
+        if (this.is("(")) { this.advance(); const expression = disjunction(depth + 1); this.expect(")"); return expression; }
+        admit();
+        const first = operand();
+        if (conditionalBinary.has(this.current.value)) {
+          const operator = this.current.value;
+          this.lexer.conditionalPattern = operator === "=~" ? "regex" : ["=", "==", "!="].includes(operator) ? "pattern" : undefined;
+          this.advance();
+          this.lexer.conditionalPattern = undefined;
+          return { kind: "binary", operator, left: first, right: operand() };
+        }
+        if (first.plain !== undefined && conditionalUnary.has(first.plain) && this.current.kind === "word" && !this.is("]]")) return { kind: "unary", operator: first.plain, operand: operand() };
+        return { kind: "nonempty", operand: first };
+      };
+      const conjunction = (depth: number): ConditionalExpression => {
+        let expression = primary(depth);
+        while (this.is("&&")) { admit(); this.advance(); expression = { kind: "and", left: expression, right: primary(depth) }; }
+        return expression;
+      };
+      const disjunction = (depth: number): ConditionalExpression => {
+        let expression = conjunction(depth);
+        while (this.is("||")) { admit(); this.advance(); expression = { kind: "or", left: expression, right: conjunction(depth) }; }
+        return expression;
+      };
+      const expression = disjunction(1);
+      if (!this.is("]]")) this.error("Expected ]]");
+      const source = this.lexer.source.slice(start, this.current.offset);
+      this.lexer.conditional = false;
+      this.advance();
+      command = { kind: "conditional", expression, source, redirects: [] };
+    } else if (this.is("(") && this.lexer.source.startsWith("((", this.current.offset)) {
       const start = this.current.offset + 2;
       const end = arithmeticEnd(this.lexer.source, start);
       const source = this.lexer.source.slice(start, end);
@@ -691,7 +746,7 @@ class Parser {
       this.expect("(");
       this.expect(")");
       this.newlines();
-      if (!["{", "(", "if", "case", "while", "until", "for"].includes(this.current.value)) this.error("Expected function body");
+      if (!["{", "(", "if", "case", "while", "until", "for", "[["].includes(this.current.value)) this.error("Expected function body");
       command = { kind: "function", name, body: this.command(), redirects: [] };
     } else {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);

@@ -1,0 +1,288 @@
+{
+  "schema": "k08-v3-actual-terminal-summary",
+  "scope": "One authorized frozen functional attempt; author evidence requiring independent review",
+  "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "sourceSeal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "archive": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "rootAuthorization": {
+    "finalSlotCommit": "7dad7709c3c8e66a418da1a87d7936733955918e",
+    "receiptSha256": "f23fb8de8b0a4d98e86be4518c671758e91a97bddadce052e06e38a51b2a645a",
+    "preexec": [
+      "5aa383ae63e20ef8df3fa0bd2c2e06871976fe76",
+      "29b6f0d5696e920cf42dbaac120b05e675e6b03f"
+    ],
+    "command": {
+      "bytes": 346,
+      "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d"
+    },
+    "grant": {
+      "bytes": 976,
+      "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+      "mode": 384
+    },
+    "review": {
+      "bytes": 211,
+      "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+      "mode": 384
+    }
+  },
+  "execution": {
+    "tool": "exec_command",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "command": "exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/launch.sh' '200923' 'db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9' '1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641' '80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3'\n",
+    "sessionId": 82149,
+    "firstChunk": "e58f23",
+    "terminalChunk": "202da7",
+    "exitCode": 0,
+    "knownLaunches": 1,
+    "retries": 0,
+    "administrationStart": "2026-08-29T16:20:10.822Z",
+    "administrationDeadline": "2026-08-29T16:45:10.822Z",
+    "collectorStart": "2026-08-29T16:20:17.931Z",
+    "collectorDeadline": "2026-08-29T16:45:17.931Z",
+    "ownerFinished": "2026-08-29T16:21:02.902Z",
+    "qualification": "Initial tool-shell startup trusted host outside child qualification; exec replacements, no additional waiting wrapper claimed"
+  },
+  "terminal": {
+    "collectorStatus": "COLLECTOR_COMPLETED",
+    "collectorPrimaryPresent": false,
+    "collectorSecondary": [],
+    "ownerStatus": "COMPLETED",
+    "ownerPrimaryPresent": false,
+    "ownerSecondary": [],
+    "semanticFailures": 0,
+    "controlFailures": 0,
+    "descendantSettlement": "DECLARED_KNOWN_ROLES_RETIRED",
+    "ownerResultPin": {
+      "bytes": 788791,
+      "sha256": "93e85cf8af7297c0ce2280b1a0be8ef47b7a211d729544b774fe15a0a74d2d08",
+      "qualified": true
+    }
+  },
+  "matrix": {
+    "primaryCalls": 69,
+    "primaryPasses": 69,
+    "identities": 23,
+    "layouts": 3,
+    "helperBatches": [
+      {
+        "id": "helpers-source-built",
+        "rows": 16,
+        "passes": 16,
+        "helperSha256": "9bc23fc6879c735aa46222faa48d2738edaa82785cd3e089e868fc91324601e9"
+      },
+      {
+        "id": "helpers-installed",
+        "rows": 16,
+        "passes": 16,
+        "helperSha256": "9bc23fc6879c735aa46222faa48d2738edaa82785cd3e089e868fc91324601e9"
+      },
+      {
+        "id": "helpers-physically-moved",
+        "rows": 16,
+        "passes": 16,
+        "helperSha256": "9bc23fc6879c735aa46222faa48d2738edaa82785cd3e089e868fc91324601e9"
+      }
+    ],
+    "mutantShellCalls": 2,
+    "mutantHelperBatches": 1,
+    "mutants": [
+      {
+        "id": "M01",
+        "caseId": "P01-keyword",
+        "baselinePassed": true,
+        "detected": true,
+        "helperSha256": "b3f167969a3771def4ebeb4a3e363826f86f2277d5c000313a9743c2a8282256",
+        "mutantPass": false,
+        "observation": {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          }
+        },
+        "keys": [
+          "mutation",
+          "baselinePassed",
+          "detected",
+          "observed"
+        ]
+      },
+      {
+        "id": "M02",
+        "caseId": "P05-precedence",
+        "baselinePassed": true,
+        "detected": true,
+        "helperSha256": "589ebb1a41e7443e664496cc57b1f3e98f357b60837501c3a8b8aaa7c4295475",
+        "mutantPass": false,
+        "observation": {
+          "kind": "resolved",
+          "status": 0,
+          "stdout": {
+            "bytes": 3,
+            "sha256": "03c568d51f3283046e4baed464e10579f0d1db408f034438d52dec012e581a19",
+            "base64": "OTo5"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        },
+        "keys": [
+          "mutation",
+          "baselinePassed",
+          "detected",
+          "observed"
+        ]
+      },
+      {
+        "id": "M03",
+        "caseId": "HELPERS",
+        "baselinePassed": true,
+        "detected": true,
+        "helperSha256": "1f033294567f6d5923bc42c8428058f1b56a85e426217b99d0411643aaaa2f7b",
+        "mutantPass": false,
+        "failedHelperRows": [
+          {
+            "id": "H04",
+            "hasPrimary": false,
+            "failures": [
+              "limit"
+            ]
+          }
+        ],
+        "keys": [
+          "mutation",
+          "baselinePassed",
+          "detected",
+          "observed"
+        ]
+      }
+    ],
+    "bindings": [
+      {
+        "id": "N01",
+        "refusal": "AUTH_HASH",
+        "observed": true
+      },
+      {
+        "id": "N02",
+        "refusal": "EDGE_REFUSED",
+        "observed": true
+      }
+    ],
+    "builds": 0,
+    "typechecks": 0,
+    "restores": 0,
+    "qualification": "No new build/type/restore credit. Three isolated mutant files retained; source-built and moved baseline full shipping sets separately reauthenticated."
+  },
+  "retirement": {
+    "directCaseAndHelperRows": 77,
+    "owner": 1,
+    "collector": 1,
+    "knownRuntimeStarts": 79,
+    "ownerLedgerStartsIncludingOwner": 78,
+    "knownActive": 0,
+    "knownOutstanding": 0,
+    "all77DirectRowsQualified": true,
+    "ownerExitCloseEOFCaptureQualified": true,
+    "forcedRows": 0,
+    "globalProcessCensus": false,
+    "groupAbsenceClaim": false,
+    "privateJobCensus": false,
+    "WorkerAndAsyncLoaderQualification": "No case capability granted; sealed synchronous hooks. No Worker/async-loader role launched; not a universal host census."
+  },
+  "accounting": {
+    "ownerLogicalCapturedBytes": 15218627,
+    "rawFileInventoryBytes": 15816908,
+    "rawFiles": 469,
+    "ownerSampledWork": {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+      "at": 1788020462901,
+      "bytes": 79433140,
+      "entries": 7685,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "publicationBase64PartBytes": 21190005,
+    "maximumPartBytes": 2097152,
+    "parts": 15,
+    "logicalCapsNotRSS": true,
+    "measuredPrepublicationAdministrativeStarts": 1,
+    "administrativeMaximum": 7,
+    "totalKnownMaximum": 86,
+    "publicationCommandsCountedInExternalLedger": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/LEDGER.json"
+  },
+  "postguards": {
+    "sourceAndHelperAndArchiveBindingPins": 29,
+    "baselineShipping": [
+      {
+        "root": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app",
+        "membersVerified": 1006,
+        "fullSealedSet": true,
+        "newPathsNotClaimedAbsent": true
+      },
+      {
+        "root": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved/node_modules/virtual-bash",
+        "membersVerified": 1006,
+        "fullSealedSet": true,
+        "newPathsNotClaimedAbsent": true
+      }
+    ],
+    "isolatedMutants": [
+      {
+        "id": "M01",
+        "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M01/node_modules/virtual-bash/dist/shell/arithmetic-parameters.js",
+        "bytes": 5523,
+        "sha256": "b3f167969a3771def4ebeb4a3e363826f86f2277d5c000313a9743c2a8282256",
+        "restored": false,
+        "qualification": "Isolated mutant retained as sealed recipe; baseline source-built/moved shipping sets separately reauthenticated. No restore execution credit."
+      },
+      {
+        "id": "M02",
+        "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M02/node_modules/virtual-bash/dist/shell/arithmetic-parameters.js",
+        "bytes": 5555,
+        "sha256": "589ebb1a41e7443e664496cc57b1f3e98f357b60837501c3a8b8aaa7c4295475",
+        "restored": false,
+        "qualification": "Isolated mutant retained as sealed recipe; baseline source-built/moved shipping sets separately reauthenticated. No restore execution credit."
+      },
+      {
+        "id": "M03",
+        "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M03/node_modules/virtual-bash/dist/shell/arithmetic-parameters.js",
+        "bytes": 5534,
+        "sha256": "1f033294567f6d5923bc42c8428058f1b56a85e426217b99d0411643aaaa2f7b",
+        "restored": false,
+        "qualification": "Isolated mutant retained as sealed recipe; baseline source-built/moved shipping sets separately reauthenticated. No restore execution credit."
+      }
+    ]
+  },
+  "historical": [
+    "8f95143e 0/71 UNRUN with owner primary/collector UNKNOWN remains consumed and unchanged",
+    "Earlier B35 51/54 +24/24 comparisons and2MiB publication STOP not rescored",
+    "Binding check.stderr one-LF derivative remains non-authoritative; original0B and corrected empty derivative unchanged"
+  ],
+  "qualifications": [
+    "No new native Bash observations or full Bash parity claim",
+    "Public exec/dispose settlement is accepted-contract coverage, not private job census",
+    "Filesystem effects are caseRoot descendants; not complete VFS or host mutation census",
+    "Runtime capture/semantic completion and post-publication administrative completion reported separately",
+    "Finite author result only; independent review still required"
+  ]
+}

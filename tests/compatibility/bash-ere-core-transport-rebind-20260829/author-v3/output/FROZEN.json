@@ -1,0 +1,15 @@
+{
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+    "size": 909885,
+    "mode": 292,
+    "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+  },
+  "receipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/PRE-INFLATE-RECEIPT.json",
+    "size": 821512,
+    "mode": 292,
+    "sha256": "52b75de5a8b9af27effc7d5dcf5ffa64eeb8171383413810709143b144fef54d"
+  },
+  "firstDecodeForbiddenUntilBothCommitted": true
+}

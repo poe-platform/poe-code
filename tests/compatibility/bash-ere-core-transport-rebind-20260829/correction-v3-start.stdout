@@ -1,0 +1,228 @@
+2026-08-29T16:03:05Z
+
+ORIGINAL TYPE SETUP
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:19:const compiler = composition.tools.typescript.find(row => row.path.endsWith('/lib/tsc.js'));
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/producer.mjs:75:    const seal = { schema: 'CORE_ROOT_AUTHOR_BUILD_V2', at: new Date().toISOString(), priorPresealSha256: hash(oldSealRaw), rootDecisionSha256, composition: composition.derivedTree, sourceCommit: SOURCE_COMMIT, sourcePureReview: SOURCE_REVIEW, producerIndependentReview: null, actualIndependentAuditRequiredAfterward: true, files, inputs, tools, commands: { compiler: { executable: composition.tools.node.path, args: [compiler.path, '-p', path.join(output, 'source/tsconfig.build.json'), '--typeRoots', path.join(output, 'empty-types')] }, pack: { executable: composition.tools.node.path, args: [path.join(composition.tools.npmRoot, 'bin/npm-cli.js'), 'pack', '--offline', '--ignore-scripts', '--json', '--userconfig=' + userConfig, '--globalconfig=' + globalConfig, '--pack-destination=' + path.join(output, 'package')] } }, env, output, caps: { globalDeadline: new Date(DEADLINE).toISOString(), knownOsMaximum: 56, peak: 3, captureBytes: 100663296, logicalWorkBytes: 536870912, perDataFileBytes: DATA_MAX, builds: 1, packs: 1 }, actualCoreAuthority: false };
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:2906:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3590:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3656:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/LICENSE",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3662:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/README.md",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3668:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert/strict.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3674:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3680:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/async_hooks.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3686:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.buffer.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3692:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3698:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/child_process.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3704:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/cluster.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3710:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/disposable.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3716:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/index.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3722:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/indexable.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3728:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/iterators.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3734:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/console.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3740:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/constants.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3746:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/crypto.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3752:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dgram.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3758:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/diagnostics_channel.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3764:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns/promises.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3770:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3776:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/domain.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3782:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/events.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3788:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs/promises.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3794:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3800:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3806:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.typedarray.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3812:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3818:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http2.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3824:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/https.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3830:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/index.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3836:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3842:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.generated.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3848:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/module.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3854:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/net.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3860:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/os.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3866:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/package.json",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3872:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/path.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3878:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/perf_hooks.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3884:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/process.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3890:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/punycode.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3896:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/querystring.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3902:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline/promises.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3908:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3914:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/repl.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3920:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sea.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3926:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sqlite.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3932:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/consumers.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3938:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/promises.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3944:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/web.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3950:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3956:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/string_decoder.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3962:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/test.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3968:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers/promises.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3974:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3980:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tls.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3986:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/trace_events.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3992:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/buffer.buffer.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:3998:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/globals.typedarray.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4004:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/index.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4010:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tty.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4016:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/url.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4022:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/util.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4028:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/v8.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4034:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/vm.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4040:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/wasi.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4046:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/abortcontroller.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4052:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/domexception.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4058:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/events.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4064:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/fetch.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4070:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/navigator.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4076:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/storage.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4082:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/streams.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4088:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/worker_threads.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:4094:        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/zlib.d.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:18767:    "fixtures": [
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/publish.mjs:83:  for (const row of seal.fixtures) verify(row);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:234:    if (!authority[3].bytes.equals(fs.readFileSync(path.join(own, 'negative.mts')))) throw new Error('negative fixture changed');
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:278:    const fixtureNames = ['positive.mts', 'negative.mts', 'CASEMAP.json', 'runner.mjs', 'PRESEAL.md', 'ROLE-PLAN.json', 'SOURCE.json', 'TOOLS.json'];
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:279:    const seal = { ...source, node: oldSeal.node, typescript: oldSeal.tools, npm, flags: oldSeal.flags, inputInventory: inventory(candidate), fixtures: fixtureNames.map(name => binding(path.join(own, name))), authority: authority.map((row, index) => ({ spec: authorityNames[index], blob: row.blob, size: row.bytes.length, sha256: hash(row.bytes) })), intendedCompilerChildren: 3, intendedPackProducers: 1, runtimeImports: 0 };
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:281:    const files = [...fixtureNames, 'SEAL.json'].map(name => path.join(own, name));
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:289:    for (const row of seal.fixtures) verify(row);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:293:    const compiler = path.join(own, 'node_modules/typescript/lib/tsc.js');
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:295:    const build = await child('A15', seal.node.path, [compiler, '-p', path.join(candidate, 'tsconfig.build.json'), '--typeRoots', roots], own, { timeout: 120000 });
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:300:      const positive = await child('A16', seal.node.path, [compiler, ...seal.flags, '--noEmit', '--typeRoots', roots, path.join(own, 'positive.mts')], own);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:301:      const negative = await child('A17', seal.node.path, [compiler, ...seal.flags, '--noEmit', '--typeRoots', roots, path.join(own, 'negative.mts')], own);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs:357:      for (const row of seal.fixtures) verify(row);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:10:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:694:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:760:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/LICENSE",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:766:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/README.md",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:772:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert/strict.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:778:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:784:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/async_hooks.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:790:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.buffer.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:796:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:802:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/child_process.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:808:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/cluster.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:814:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/disposable.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:820:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/index.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:826:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/indexable.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:832:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/iterators.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:838:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/console.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:844:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/constants.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:850:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/crypto.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:856:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dgram.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:862:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/diagnostics_channel.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:868:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns/promises.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:874:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:880:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/domain.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:886:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/events.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:892:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs/promises.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:898:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:904:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:910:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.typedarray.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:916:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:922:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http2.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:928:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/https.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:934:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/index.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:940:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:946:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.generated.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:952:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/module.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:958:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/net.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:964:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/os.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:970:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/package.json",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:976:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/path.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:982:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/perf_hooks.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:988:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/process.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:994:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/punycode.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1000:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/querystring.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1006:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline/promises.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1012:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1018:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/repl.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1024:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sea.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1030:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sqlite.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1036:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/consumers.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1042:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/promises.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1048:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/web.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1054:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1060:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/string_decoder.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1066:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/test.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1072:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers/promises.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1078:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1084:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tls.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1090:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/trace_events.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1096:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/buffer.buffer.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1102:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/globals.typedarray.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1108:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/ts5.6/index.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1114:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tty.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1120:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/url.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1126:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/util.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1132:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/v8.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1138:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/vm.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1144:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/wasi.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1150:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/abortcontroller.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1156:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/domexception.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1162:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/events.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1168:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/fetch.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1174:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/navigator.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1180:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/storage.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1186:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/streams.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1192:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/worker_threads.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json:1198:      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/zlib.d.ts",
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs:187:    save('SEAL.json', { sourceTree: input.seal.selectedTree, sourceInputs: 305, compiledMembers: 1305, privateAssets: 48, authority: binding(path.join(own, 'A06.stdout')), oldSeal: binding(path.join(parent, 'SEAL.json')), compiled: input.authority.completeCompiledManifest, tools: input.authority.toolManifest, node: input.tools.node, configs, env, argv, cwd: candidate, fixtures: files.map(name => binding(path.join(own, name))), compressedMaximum: 16777216, decodedMaximum: 67108864, plannedProducerStarts: 1, runtimeStarts: 0 });
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs:191:    for (const row of [...seal.fixtures, seal.oldSeal, seal.compiled, seal.tools, seal.node]) verify(row);
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs:241:    for (const row of seal.fixtures) verify(row);
+
+OWNED DIRECTORY GUIDANCE
+
+VERSIONED PRODUCER FILES
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A01-startup-preserved.jsonl
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A02-inspection.jsonl
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A03-index-before.raw
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A03-index-before.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A04-edit.log
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A07.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A07.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A08.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A08.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A09.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A09.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A10.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A10.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A11.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A11.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A12.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A12.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A13.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A13.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A15.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A15.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A16.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A16.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A17.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A17.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A18.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A18.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A19-outcome-inspection.jsonl
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A20-edit.log
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A22-final.jsonl
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A23-add.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A23-add.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A24-commit.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A24-commit.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A25-index-after.stderr
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/A25-index-after.stdout
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/CASEMAP.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/COMPILED.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/HANDOFF.md
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/PRESEAL.md
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/ROLE-PLAN.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SOURCE-REPORT.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SOURCE.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/empty.npmrc
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/negative.mts
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/positive.mts
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/produce.outer.jsonl
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/publish.mjs
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs
+tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/seal.outer.jsonl

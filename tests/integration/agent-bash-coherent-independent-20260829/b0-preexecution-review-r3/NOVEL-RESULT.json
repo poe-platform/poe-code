@@ -1,0 +1,52 @@
+{
+  "role": "WHOLE_OWNER_PURE_SYNTHETIC_DEPENDENCIES",
+  "groups": [
+    {
+      "id": "N01-invalid-progress-domain",
+      "status": "PASS",
+      "detail": {
+        "variants": 5
+      }
+    },
+    {
+      "id": "N02-partial-then-undefined-with-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "N03-first-acquisition-and-event-open-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "N04-close-failure-retains-primary-and-forbids-next",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-observer-failure-after-spawn-teardown",
+      "status": "PASS",
+      "detail": {
+        "nativeSignals": 0,
+        "syntheticSignals": 2
+      }
+    },
+    {
+      "id": "N06-publication-overdue-after-persist-not-success",
+      "status": "PASS",
+      "detail": {
+        "artifactMayExist": true,
+        "publishReturnedSuccess": false
+      }
+    },
+    {
+      "id": "N07-finish-failure-cannot-readmit",
+      "status": "PASS"
+    },
+    {
+      "id": "N08-overlap-and-exact-shared-boundaries",
+      "status": "PASS"
+    }
+  ],
+  "realChildSpawns": 0,
+  "nativeFdInjection": 0,
+  "nativeSignals": 0,
+  "productImports": 0
+}

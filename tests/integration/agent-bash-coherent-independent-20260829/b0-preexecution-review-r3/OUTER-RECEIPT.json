@@ -1,0 +1,11 @@
+{
+  "pid": 36162,
+  "started": "2026-08-29T11:39:00.482Z",
+  "finished": "2026-08-29T11:39:00.712Z",
+  "status": 0,
+  "signal": null,
+  "exited": true,
+  "closed": true,
+  "groupAbsent": false,
+  "violation": null
+}

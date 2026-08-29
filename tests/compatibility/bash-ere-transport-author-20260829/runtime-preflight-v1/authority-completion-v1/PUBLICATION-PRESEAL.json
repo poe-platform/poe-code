@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "phase": "FINAL_DATA_PUBLICATION_NO_ADDITIONAL_CONTROL",
+  "helper": {
+    "path": "publication.mjs",
+    "size": 2314,
+    "sha256": "758a054364b4ce68095b215c77d367eb8be7f7557dbd60cbd96ba9360c32a2a1",
+    "imports": [
+      "node:fs",
+      "node:crypto",
+      "node:path"
+    ]
+  },
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1"
+  ],
+  "capture": [
+    "capture/publication.stdout",
+    "capture/publication.stderr"
+  ],
+  "sameTool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "authenticatedAt": "2026-08-29T14:10:45.635Z",
+    "streamChunkBytes": 65536
+  },
+  "pureHelpersCumulative": 2,
+  "controlsUnchanged": 6,
+  "capUnchanged": true,
+  "bindings": [
+    {
+      "path": "AUTHORITY-CLOSURE.json",
+      "size": 4876,
+      "sha256": "1ebcca468acfbc46c2db16f53a020bde04d417e6aee31a8e20fe15e23373d08f"
+    },
+    {
+      "path": "SLOT.json",
+      "size": 3575,
+      "sha256": "d42b31a9e03a53ecd9f201a8ad54cf12f7ea2c0b9c8c1c1805f24a3020887ee5"
+    },
+    {
+      "path": "PRESEAL.json",
+      "size": 1698,
+      "sha256": "470c4097f1829abda5c6d822a3f4722de7cf35a713aaee661957706c5863d1dc"
+    },
+    {
+      "path": "RESULT.json",
+      "size": 723,
+      "sha256": "f4c265d7064139d32fb28606c7ca6f52c775699b264ba987b4eb048bd3d53507"
+    },
+    {
+      "path": "closure-check.mjs",
+      "size": 4504,
+      "sha256": "4d6a4b5ed6ccd4a0ea0de17a167dcad1d2a4ead34e1f124c5bcead0cc86e390b"
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+{
+  "cases": [
+    {
+      "id": "R16",
+      "script": "f(){ local PIPESTATUS; false | true; printf 'local=<%s>\\n' \"$PIPESTATUS\"; }; false; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "local=<>\nouter=<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R17",
+      "script": "f(){ local -a PIPESTATUS; false | true; printf 'local=<%s>\\n' \"${PIPESTATUS[*]}\"; }; f; printf 'outer=<%s>\\n' \"${PIPESTATUS[*]}\"",
+      "stdout": "local=<1 0>\nouter=<0>\n",
+      "exitCode": 0
+    },
+    {
+      "id": "R18",
+      "script": "PIPESTATUS=; false | true; printf '<%s>\\n' \"$PIPESTATUS\"",
+      "stdout": "<>\n",
+      "exitCode": 0
+    }
+  ],
+  "sourceExcerpts": [
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/runtime.ts",
+      "line": 3543,
+      "text": "        if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === \"local\")) {\n          await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;\n        }\n        if (arrayStore(state)?.get(name) && command === \"export\") {\n          await this.diagnostic(context, \"indexed array: indexed binding cannot be exported\"); status = 1; continue;\n        }\n        if (command === \"local\" && !locals!.has(name)) {\n          const saved = assignments.get(name) ?? saveVariable(state, name);\n          if (name === \"PIPESTATUS\" && arrayStore(state)?.get(name)) {\n            await this.prepareVariable(state, name, saved);\n            const store = requireArrays(state);\n            const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n            const holding = store.owner.hold();\n            try {\n              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n              const value = match[2] ?? \"\";\n              await textToken(operation, value, this.signal);\n              this.signal.throwIfAborted();\n              if (state.readonlyVariables?.has(name)) throw new ArrayFailure(\"readonly binding\");\n              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure(\"stale binding\");\n              let released: Promise<void> | undefined;\n              stateMonitor(state)!.publish(tickets, name, () => {\n                locals!.set(name, saved);\n                released = store.remove(name, tickets);\n                state.variables[name] = value;\n              });"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/runtime.ts",
+      "line": 3596,
+      "text": "              await released;\n            } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }\n            assignments.delete(name);\n            continue;\n          }\n          if (arrayStore(state)) await this.prepareVariable(state, name, saved);\n          locals!.set(name, saved);\n          if (!assignments.has(name) && match[2] === undefined) {\n            if (name === \"PIPESTATUS\") state.variables[name] = \"\";\n            else delete state.variables[name];\n          }\n          if (name === \"OPTIND\") {\n            state.getopts ??= cloneGetoptsBinding(state);\n            state.getopts.integer = false;\n          }\n        }\n        if (match[2] !== undefined && arrayStore(state)?.get(name)) {\n          await this.arrayZero(state, name, async () => match[2]!, false, command === \"readonly\");\n          assignments.delete(name);\n          continue;\n        }\n        if (match[2] !== undefined) this.writeVariable(state, name, match[2]);\n        else if (command === \"local\" && name === \"OPTIND\") this.syncGetopts(state);\n        if (command === \"export\") state.exported.add(name);\n        if (command === \"readonly\") { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }\n        assignments.delete(name);"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/pipestatus.ts",
+      "line": 1,
+      "text": "import type { State } from \"./runtime.js\";\nimport type { InvocationScope } from \"./cleanup.js\";\nimport { ArrayFailure, ArrayOwner } from \"./arrays/ledger.js\";\nimport { IndexedBinding, textToken } from \"./arrays/bindings.js\";\nimport { arrayStore, requireArrays, stateMonitor } from \"./arrays/state.js\";\n\nconst name = \"PIPESTATUS\";\n\nexport type PipelineStatusTarget = \"indexed\" | \"scalar\" | \"readonly-absent\" | \"local-tombstone\" | \"exported-absent\" | \"absent\";\n\nexport function pipelineStatusTarget(state: State): PipelineStatusTarget {\n  if (arrayStore(state)?.get(name)) return \"indexed\";\n  if (Object.hasOwn(state.variables, name)) return \"scalar\";\n  if (state.readonlyVariables?.has(name)) return \"readonly-absent\";\n  for (let index = state.locals.length - 1; index >= 0; index--) {\n    if (state.locals[index]!.has(name)) return \"local-tombstone\";\n  }\n  if (state.exported.has(name)) return \"exported-absent\";\n  return \"absent\";\n}\n\nexport async function publishPipelineStatus(\n  state: State,\n  statuses: readonly number[],\n  signal: AbortSignal,\n  scope: InvocationScope,\n): Promise<void> {\n  signal.throwIfAborted();\n  scope.assertOpen();\n  const target = pipelineStatusTarget(state);\n  if (target !== \"absent\" && target !== \"indexed\") return;\n  const store = requireArrays(state);\n  const monitor = stateMonitor(state)!;\n  const epoch = monitor.epoch;\n  const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n  const holding = store.owner.hold();\n  let staged: IndexedBinding | undefined;\n  let primary = false;\n  try {\n    const watch = await store.watch(name, operation, signal);\n    const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, signal);\n    const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n    const prepared = await store.prepareName(name, operation, signal);\n    staged = IndexedBinding.create(store.owner);\n    for (let index = 0; index < statuses.length; index++) {\n      operation.reserve({ work: 2 });\n      const status = statuses[index]!;\n      if (!Number.isSafeInteger(status) || status < 0 || status > 255) throw new TypeError(\"Invalid PIPESTATUS completion\");\n      const token = await textToken(staged.owner, String(status), signal);\n      try { staged.insert(index, token); } catch (error) { token.release(); throw error; }\n      await operation.ledger.checkpoint(signal, 2);\n    }\n    signal.throwIfAborted();\n    scope.assertOpen();\n    if (pipelineStatusTarget(state) !== target || monitor.epoch !== epoch || !watch.valid()) throw new ArrayFailure(\"stale PIPESTATUS binding\");\n    let released: Promise<void> | undefined;\n    stateMonitor(state)!.publish(tickets, name, () => {\n      supersede();\n      released = store.publish(name, staged!, tickets, prepared);\n    });\n    staged = undefined;\n    watch.close();\n    await released;\n  } catch (error) {\n    primary = true;\n    signal.throwIfAborted();\n    throw error;\n  } finally {\n    try { await staged?.release(); await operation.close(); }\n    catch (error) { if (primary) scope.failures.push(error); else throw error; }\n    finally { holding.release(); }\n  }\n}\n"
+    }
+  ],
+  "native": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/HANDOFF.md",
+      "matches": [
+        {
+          "line": 46,
+          "text": "| P19 | `declare -p PIPESTATUS` | status1, stdout empty, not-found stderr |\n| P20 | `readonly PIPESTATUS; false; declare -p PIPESTATUS` | status1, stdout empty, not-found stderr |\n| P21 | `false; readonly PIPESTATUS; true; declare -p PIPESTATUS` | readonly indexed `[0]=\"0\"` |\n| P22 | `f() { local PIPESTATUS; false \\| true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS` | local scalar empty, outer indexed0 |\n| P23 | `f() { local -a PIPESTATUS; false \\| true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS` | local indexed1,0, outer indexed0 |\n| P24 | `PIPESTATUS=seed; false; declare -p PIPESTATUS` | scalar seed preserved |\n\nThe backslashes before table pipes are Markdown escaping, not program bytes;\nactual exact bytes remain COHORT.json and the literal strings in audit.mjs.\nP19 is exactly the first command with no script prologue. REQUESTS uses\n`--noprofile --norc -c PROGRAM pipestatus-typed-case`, empty stdin, per-case\nowned cwd/HOME/TMP/empty PATH, LC_ALL=C/LANG=C/TZ=UTC. No new native observation\nwas made. Only local Bash3.2.57 is claimed by the author, never GNU5.3/full Bash.\nThe exact not-found stderr claim is\n`pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\\n`.\n\nAuthor61913871d5851b466e6dfba10ec173987a0a44fb reports25569 raw bytes, six case"
+        },
+        {
+          "line": 47,
+          "text": "| P20 | `readonly PIPESTATUS; false; declare -p PIPESTATUS` | status1, stdout empty, not-found stderr |\n| P21 | `false; readonly PIPESTATUS; true; declare -p PIPESTATUS` | readonly indexed `[0]=\"0\"` |\n| P22 | `f() { local PIPESTATUS; false \\| true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS` | local scalar empty, outer indexed0 |\n| P23 | `f() { local -a PIPESTATUS; false \\| true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS` | local indexed1,0, outer indexed0 |\n| P24 | `PIPESTATUS=seed; false; declare -p PIPESTATUS` | scalar seed preserved |\n\nThe backslashes before table pipes are Markdown escaping, not program bytes;\nactual exact bytes remain COHORT.json and the literal strings in audit.mjs.\nP19 is exactly the first command with no script prologue. REQUESTS uses\n`--noprofile --norc -c PROGRAM pipestatus-typed-case`, empty stdin, per-case\nowned cwd/HOME/TMP/empty PATH, LC_ALL=C/LANG=C/TZ=UTC. No new native observation\nwas made. Only local Bash3.2.57 is claimed by the author, never GNU5.3/full Bash.\nThe exact not-found stderr claim is\n`pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\\n`.\n\nAuthor61913871d5851b466e6dfba10ec173987a0a44fb reports25569 raw bytes, six case\nretirements, seven managed starts and18 administrative starts. Four source-fork"
+        },
+        {
+          "line": 80,
+          "text": "| Initially absent, not readonly | No eager initial `[0]`; prepare creation only at the first eligible completed command. P19 distinguishes visible absence, not hidden storage. |\n| Absent but readonly name | Do NOT force-create. Preserve the readonly marker and absent visible binding. P20 does not authorize bypassing this distinction. |\n| Existing indexed binding, readonly or writable | Atomically replace the complete admitted status vector; a narrowly internal readonly-index exemption only, not a general assignment bypass. P21 is the dedicated typed evidence pending audit. |\n| Existing scalar, including empty | Preserve scalar value/type rather than coercing into an indexed array. P22/P24 distinguish this from ordinary absent state. |\n| Current local indexed binding | Publish into that visible local binding; preserve full saved outer binding/flags and existing local restoration. P23 does not justify global hidden storage. |\n| Current local scalar/tombstone | Respect the local scalar/absence distinction, never fall through to the outer indexed binding. |\n| Unset completion | Keep native26 P17's visible0 observation; recreation rules must still distinguish ordinary absence from readonly absence. No unseen-binding theorem. |\n\nThe source representation is not a single scalar-or-array tagged class:\n`arrays/bindings.ts:176` BindingStore stores named indexed bindings and\n`get` returns IndexedBinding or undefined. Scalar values, readonly names and\nexports remain in shell State maps/sets; `arrays/state.ts:170` monitors those\nseparately. Therefore `store.get(name) === undefined` alone cannot distinguish\nabsent, scalar, local tombstone or readonly-absent. That is the key implementation\nhazard; the updater must inspect the existing visible state and local bookkeeping.\n\nThe successful read-only excerpts came from the retained accepted e013/da4e"
+        },
+        {
+          "line": 81,
+          "text": "| Absent but readonly name | Do NOT force-create. Preserve the readonly marker and absent visible binding. P20 does not authorize bypassing this distinction. |\n| Existing indexed binding, readonly or writable | Atomically replace the complete admitted status vector; a narrowly internal readonly-index exemption only, not a general assignment bypass. P21 is the dedicated typed evidence pending audit. |\n| Existing scalar, including empty | Preserve scalar value/type rather than coercing into an indexed array. P22/P24 distinguish this from ordinary absent state. |\n| Current local indexed binding | Publish into that visible local binding; preserve full saved outer binding/flags and existing local restoration. P23 does not justify global hidden storage. |\n| Current local scalar/tombstone | Respect the local scalar/absence distinction, never fall through to the outer indexed binding. |\n| Unset completion | Keep native26 P17's visible0 observation; recreation rules must still distinguish ordinary absence from readonly absence. No unseen-binding theorem. |\n\nThe source representation is not a single scalar-or-array tagged class:\n`arrays/bindings.ts:176` BindingStore stores named indexed bindings and\n`get` returns IndexedBinding or undefined. Scalar values, readonly names and\nexports remain in shell State maps/sets; `arrays/state.ts:170` monitors those\nseparately. Therefore `store.get(name) === undefined` alone cannot distinguish\nabsent, scalar, local tombstone or readonly-absent. That is the key implementation\nhazard; the updater must inspect the existing visible state and local bookkeeping.\n\nThe successful read-only excerpts came from the retained accepted e013/da4e\nsource directory, not live HEAD. Relevant inherited blob identities from"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/AUDIT.json",
+      "matches": [
+        {
+          "line": 101,
+          "text": "      \"receiptPublishedAtSerialization\": false\n    },\n    {\n      \"id\": \"P22\",\n      \"program\": \"f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n      \"status\": 0,\n      \"stdout\": \"declare -- PIPESTATUS=\\\"\\\"\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\",\n      \"stderr\": \"\",\n      \"effects\": [\n        {\n          \"path\": \"empty-path\",\n          \"type\": \"directory\",\n          \"mode\": 448\n        },\n        {\n          \"path\": \"home\",\n          \"type\": \"directory\","
+        },
+        {
+          "line": 133,
+          "text": "      \"receiptPublishedAtSerialization\": false\n    },\n    {\n      \"id\": \"P23\",\n      \"program\": \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n      \"status\": 0,\n      \"stdout\": \"declare -a PIPESTATUS='([0]=\\\"1\\\" [1]=\\\"0\\\")'\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\",\n      \"stderr\": \"\",\n      \"effects\": [\n        {\n          \"path\": \"empty-path\",\n          \"type\": \"directory\",\n          \"mode\": 448\n        },\n        {\n          \"path\": \"home\",\n          \"type\": \"directory\","
+        },
+        {
+          "line": 244,
+          "text": "    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P19.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P20.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P21.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/raw/exact-receipt-tree.nul\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/APPROVAL-PROPOSAL.template.json\"\n  ],\n  \"toolRecordCount\": 0,\n  \"tools\": [\n    {\n      \"path\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"bytes\": 112989184,"
+        },
+        {
+          "line": 245,
+          "text": "    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P20.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P21.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/raw/exact-receipt-tree.nul\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json\",\n    \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/APPROVAL-PROPOSAL.template.json\"\n  ],\n  \"toolRecordCount\": 0,\n  \"tools\": [\n    {\n      \"path\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"bytes\": 112989184,\n      \"sha256\": \"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011\","
+        },
+        {
+          "line": 355,
+          "text": "      \"extraProcessReservation\": 0\n    },\n    {\n      \"id\": \"P22\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n        \"pipestatus-typed-case\"\n      ],\n      \"stdinBase64\": \"\",\n      \"cwd\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work\",\n      \"environment\": {\n        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\","
+        },
+        {
+          "line": 365,
+          "text": "        \"pipestatus-typed-case\"\n      ],\n      \"stdinBase64\": \"\",\n      \"cwd\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work\",\n      \"environment\": {\n        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\","
+        },
+        {
+          "line": 370,
+          "text": "        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\","
+        },
+        {
+          "line": 371,
+          "text": "        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n        \"pipestatus-typed-case\""
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/HANDOFF.md",
+      "matches": [
+        {
+          "line": 61,
+          "text": "| P19 | 1 | `\"\"` | `\"pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\\n\"` |\n| P20 | 1 | `\"\"` | `\"pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\\n\"` |\n| P21 | 0 | `\"declare -ar PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P22 | 0 | `\"declare -- PIPESTATUS=\\\"\\\"\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P23 | 0 | `\"declare -a PIPESTATUS='([0]=\\\"1\\\" [1]=\\\"0\\\")'\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P24 | 0 | `\"declare -- PIPESTATUS=\\\"seed\\\"\\n\"` | `\"\"` |\n\nExact programs, without prologue or normalization:\n\n```text\nP19: declare -p PIPESTATUS\nP20: readonly PIPESTATUS; false; declare -p PIPESTATUS\nP21: false; readonly PIPESTATUS; true; declare -p PIPESTATUS\nP22: f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP23: f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP24: PIPESTATUS=seed; false; declare -p PIPESTATUS\n```"
+        },
+        {
+          "line": 62,
+          "text": "| P20 | 1 | `\"\"` | `\"pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\\n\"` |\n| P21 | 0 | `\"declare -ar PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P22 | 0 | `\"declare -- PIPESTATUS=\\\"\\\"\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P23 | 0 | `\"declare -a PIPESTATUS='([0]=\\\"1\\\" [1]=\\\"0\\\")'\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"` | `\"\"` |\n| P24 | 0 | `\"declare -- PIPESTATUS=\\\"seed\\\"\\n\"` | `\"\"` |\n\nExact programs, without prologue or normalization:\n\n```text\nP19: declare -p PIPESTATUS\nP20: readonly PIPESTATUS; false; declare -p PIPESTATUS\nP21: false; readonly PIPESTATUS; true; declare -p PIPESTATUS\nP22: f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP23: f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP24: PIPESTATUS=seed; false; declare -p PIPESTATUS\n```\n"
+        },
+        {
+          "line": 71,
+          "text": "P19: declare -p PIPESTATUS\nP20: readonly PIPESTATUS; false; declare -p PIPESTATUS\nP21: false; readonly PIPESTATUS; true; declare -p PIPESTATUS\nP22: f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP23: f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP24: PIPESTATUS=seed; false; declare -p PIPESTATUS\n```\n\n## Retirement, authority and native qualifications\n\nAll six case records show spawn/exit/close, null stop/signal, no errors, qualified\nclosed captures and absent-group observations. They agree with journal terminal\nrecords and final results. The journal has exactly one enrollment, terminal and\ncredit event per ID after its owner start. Per-case `receiptPublished:false`\nis the preserved pre-credit serialization state; later credit/final-results\nare checked separately. No retrospective mutation of that field occurred.\n"
+        },
+        {
+          "line": 72,
+          "text": "P20: readonly PIPESTATUS; false; declare -p PIPESTATUS\nP21: false; readonly PIPESTATUS; true; declare -p PIPESTATUS\nP22: f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP23: f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\nP24: PIPESTATUS=seed; false; declare -p PIPESTATUS\n```\n\n## Retirement, authority and native qualifications\n\nAll six case records show spawn/exit/close, null stop/signal, no errors, qualified\nclosed captures and absent-group observations. They agree with journal terminal\nrecords and final results. The journal has exactly one enrollment, terminal and\ncredit event per ID after its owner start. Per-case `receiptPublished:false`\nis the preserved pre-credit serialization state; later credit/final-results\nare checked separately. No retrospective mutation of that field occurred.\n\nThe persisted ledger records **seven managed starts, peak2, active1** because"
+        },
+        {
+          "line": 111,
+          "text": "| Absent with readonly marker | Preserve absence and marker; **do not force-create** | P20 does not authorize bypassing a readonly unset name |\n| Existing indexed, writable | Atomically replace the complete admitted vector | Preserve genuine stage codes and existing command-result rules |\n| Existing indexed, readonly | Recommend a narrowly internal updater exemption; retain readonly for ordinary writes | P21 proves final readonly indexed0 only, not every later transition or mutation timing |\n| Present scalar, including empty/exported scalar | Preserve value/type; no implicit scalar→array conversion | P22/P24 show local-empty and seed cases; exported behavior is a project choice |\n| Current local indexed | Update the visible local; restore the full saved outer binding/flags | P23's local1,0 then outer0 is finite evidence, not universal restoration proof |\n| Local scalar/tombstone | Honor local visibility; never fall through and update an outer hidden array | Distinguish actual absence from an existing empty scalar |\n\nNative26's P02 initial-empty display is now complemented by P19's absent\ndeclaration. Its P16 readonly-empty display is complemented by P20/P21's\ndifferent setups, not merged into one rule. P18's inner-empty/outer0 now has\ntyped local scalar/indexed counterparts. P17's post-unset visible0 remains\nfinite evidence, not an instruction to recreate every readonly absent name.\n\nThe representation supports this distinction without a new public API:\n`src/shell/arrays/bindings.ts:176` stores indexed bindings; `get():undefined`\ndoes not mean there is no scalar or readonly marker. State scalar maps,\nreadonly/exported sets and local saved/tombstone state must be consulted too."
+        },
+        {
+          "line": 112,
+          "text": "| Existing indexed, writable | Atomically replace the complete admitted vector | Preserve genuine stage codes and existing command-result rules |\n| Existing indexed, readonly | Recommend a narrowly internal updater exemption; retain readonly for ordinary writes | P21 proves final readonly indexed0 only, not every later transition or mutation timing |\n| Present scalar, including empty/exported scalar | Preserve value/type; no implicit scalar→array conversion | P22/P24 show local-empty and seed cases; exported behavior is a project choice |\n| Current local indexed | Update the visible local; restore the full saved outer binding/flags | P23's local1,0 then outer0 is finite evidence, not universal restoration proof |\n| Local scalar/tombstone | Honor local visibility; never fall through and update an outer hidden array | Distinguish actual absence from an existing empty scalar |\n\nNative26's P02 initial-empty display is now complemented by P19's absent\ndeclaration. Its P16 readonly-empty display is complemented by P20/P21's\ndifferent setups, not merged into one rule. P18's inner-empty/outer0 now has\ntyped local scalar/indexed counterparts. P17's post-unset visible0 remains\nfinite evidence, not an instruction to recreate every readonly absent name.\n\nThe representation supports this distinction without a new public API:\n`src/shell/arrays/bindings.ts:176` stores indexed bindings; `get():undefined`\ndoes not mean there is no scalar or readonly marker. State scalar maps,\nreadonly/exported sets and local saved/tombstone state must be consulted too.\nFresh SOURCE-only hashing of retained accepted files matches:"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/INSPECTION.json",
+      "matches": [
+        {
+          "line": 101,
+          "text": "      \"mode\": 384\n    },\n    {\n      \"path\": \"programs/P22.bash.data\",\n      \"bytes\": 95,\n      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\",\n      \"mode\": 384\n    },\n    {\n      \"path\": \"programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\",\n      \"mode\": 384\n    },\n    {\n      \"path\": \"programs/P24.bash.data\",\n      \"bytes\": 45,"
+        },
+        {
+          "line": 107,
+          "text": "      \"mode\": 384\n    },\n    {\n      \"path\": \"programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\",\n      \"mode\": 384\n    },\n    {\n      \"path\": \"programs/P24.bash.data\",\n      \"bytes\": 45,\n      \"sha256\": \"4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801\",\n      \"mode\": 384\n    }\n  ],\n  \"sourceRows\": [\n    {"
+        },
+        {
+          "line": 229,
+          "text": "      \"sha256\": \"e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n      \"bytes\": 95,\n      \"mode\": 384,\n      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,"
+        },
+        {
+          "line": 235,
+          "text": "      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,\n      \"mode\": 384,\n      \"sha256\": \"4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/raw/exact-receipt-tree.nul\",\n      \"bytes\": 168,"
+        },
+        {
+          "line": 345,
+          "text": "      \"extraProcessReservation\": 0\n    },\n    {\n      \"id\": \"P22\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n        \"pipestatus-typed-case\"\n      ],\n      \"stdinBase64\": \"\",\n      \"cwd\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work\",\n      \"environment\": {\n        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\","
+        },
+        {
+          "line": 355,
+          "text": "        \"pipestatus-typed-case\"\n      ],\n      \"stdinBase64\": \"\",\n      \"cwd\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work\",\n      \"environment\": {\n        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\","
+        },
+        {
+          "line": 360,
+          "text": "        \"LC_ALL\": \"C\",\n        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\","
+        },
+        {
+          "line": 361,
+          "text": "        \"LANG\": \"C\",\n        \"TZ\": \"UTC\",\n        \"HOME\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home\",\n        \"TMPDIR\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp\",\n        \"PATH\": \"/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path\"\n      },\n      \"extraProcessReservation\": 2\n    },\n    {\n      \"id\": \"P23\",\n      \"executable\": \"/bin/bash\",\n      \"argv\": [\n        \"--noprofile\",\n        \"--norc\",\n        \"-c\",\n        \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n        \"pipestatus-typed-case\""
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/RECEIPT.json",
+      "matches": [
+        {
+          "line": 92,
+          "text": "      \"expectedNative\": null\n    },\n    {\n      \"id\": \"P22\",\n      \"program\": \"f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n      \"expectedNative\": null\n    },\n    {\n      \"id\": \"P23\",\n      \"program\": \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n      \"expectedNative\": null\n    },\n    {\n      \"id\": \"P24\",\n      \"program\": \"PIPESTATUS=seed; false; declare -p PIPESTATUS\",\n      \"expectedNative\": null\n    }"
+        },
+        {
+          "line": 97,
+          "text": "      \"expectedNative\": null\n    },\n    {\n      \"id\": \"P23\",\n      \"program\": \"f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS\",\n      \"expectedNative\": null\n    },\n    {\n      \"id\": \"P24\",\n      \"program\": \"PIPESTATUS=seed; false; declare -p PIPESTATUS\",\n      \"expectedNative\": null\n    }\n  ],\n  \"nativeAuthority\": false,\n  \"nativeObservations\": 0,\n  \"expectedOutputs\": \"NONE\",\n  \"PUREHelpers\": 1,"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/REPORT.md",
+      "matches": [
+        {
+          "line": 11,
+          "text": "- P19: `declare -p PIPESTATUS`\n- P20: `readonly PIPESTATUS; false; declare -p PIPESTATUS`\n- P21: `false; readonly PIPESTATUS; true; declare -p PIPESTATUS`\n- P22: `f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P23: `f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P24: `PIPESTATUS=seed; false; declare -p PIPESTATUS`\n\nP19 has no prologue. Only fixed f invocations, shell builtins/declarations/assignments and two finite pipelines occur; no source/eval/variable-command/slash or failed lookup allowed. Empty stdin, zero fixtures, all file effects refused including old F05. No output/type/readonly policy inferred.\n\n## Source and lifetime scope\nThree modules changed: admission/entry/observation; six capture/lifecycle/group-observer/observer-state/state/storage bodies retain parent bytes. Parent SHA256 plus Git-blob identities authenticated against native26 source. Entry catch/finally tail unchanged; limits, FD validation and authenticated-start guards precede case launch. No fresh lifecycle fixture was needed for byte-identical ownership machinery; no old groups probed.\n\n## Pending actual authority\nFresh typed runtime review, ROOT GO and preprovision must be committed/pinned. UTC issued/expiry/latest-full600s-start remain PENDING. Fresh owned parents/empty journal and initially absent bootstrap captures required; actual descriptor/inode/read validation deferred. Resolve only ROOT_APPROVED_GRANT_SHA256 in command template d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e, obtain separate DATA slot review and exact require_escalated/login:false/no-prefix approval. No automatic activation.\n\nActual proposal600s inclusive/setup60/tail60/case3/TERM2/KILL1;29slots=7managed+4UNOBSERVEDstage reservations+18admin, peak5 proposal,32MiBcapture/128MiBwork/64KiBstreams. Not OS quota/universal census. Initial tool-shell startup trusted outside child fresh-env/capture qualification; no GNU5.3/fullBash claim. Older observations/source gaps/historical holds remain unchanged.\n"
+        },
+        {
+          "line": 12,
+          "text": "- P20: `readonly PIPESTATUS; false; declare -p PIPESTATUS`\n- P21: `false; readonly PIPESTATUS; true; declare -p PIPESTATUS`\n- P22: `f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P23: `f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P24: `PIPESTATUS=seed; false; declare -p PIPESTATUS`\n\nP19 has no prologue. Only fixed f invocations, shell builtins/declarations/assignments and two finite pipelines occur; no source/eval/variable-command/slash or failed lookup allowed. Empty stdin, zero fixtures, all file effects refused including old F05. No output/type/readonly policy inferred.\n\n## Source and lifetime scope\nThree modules changed: admission/entry/observation; six capture/lifecycle/group-observer/observer-state/state/storage bodies retain parent bytes. Parent SHA256 plus Git-blob identities authenticated against native26 source. Entry catch/finally tail unchanged; limits, FD validation and authenticated-start guards precede case launch. No fresh lifecycle fixture was needed for byte-identical ownership machinery; no old groups probed.\n\n## Pending actual authority\nFresh typed runtime review, ROOT GO and preprovision must be committed/pinned. UTC issued/expiry/latest-full600s-start remain PENDING. Fresh owned parents/empty journal and initially absent bootstrap captures required; actual descriptor/inode/read validation deferred. Resolve only ROOT_APPROVED_GRANT_SHA256 in command template d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e, obtain separate DATA slot review and exact require_escalated/login:false/no-prefix approval. No automatic activation.\n\nActual proposal600s inclusive/setup60/tail60/case3/TERM2/KILL1;29slots=7managed+4UNOBSERVEDstage reservations+18admin, peak5 proposal,32MiBcapture/128MiBwork/64KiBstreams. Not OS quota/universal census. Initial tool-shell startup trusted outside child fresh-env/capture qualification; no GNU5.3/fullBash claim. Older observations/source gaps/historical holds remain unchanged.\n"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json",
+      "matches": [
+        {
+          "line": 247,
+          "text": "      \"sha256\": \"e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n      \"bytes\": 95,\n      \"mode\": 384,\n      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,"
+        },
+        {
+          "line": 253,
+          "text": "      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,\n      \"mode\": 384,\n      \"sha256\": \"4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/state.mjs\",\n      \"bytes\": 1824,"
+        },
+        {
+          "line": 559,
+          "text": "      \"sha256\": \"e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n      \"bytes\": 95,\n      \"mode\": 384,\n      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,"
+        },
+        {
+          "line": 565,
+          "text": "      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,\n      \"mode\": 384,\n      \"sha256\": \"4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REVIEW-ACCEPTANCE.json\",\n      \"bytes\": 460,"
+        },
+        {
+          "line": 727,
+          "text": "      \"sha256\": \"e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data\",\n      \"bytes\": 95,\n      \"mode\": 384,\n      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,"
+        },
+        {
+          "line": 733,
+          "text": "      \"sha256\": \"9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data\",\n      \"bytes\": 98,\n      \"mode\": 384,\n      \"sha256\": \"281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data\",\n      \"bytes\": 45,\n      \"mode\": 384,\n      \"sha256\": \"4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801\"\n    }\n  ]\n}\n"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/HANDOFF.md",
+      "matches": [
+        {
+          "line": 13,
+          "text": "\nExecutable preseal SHA256 ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e; control result 72198874fe7144bbdbe45d75bd02311f0a4ba5869f46679a3d5995d13fdad7cc; exact prospective command string d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e. New runtime review/GO templates have strict finite fields and reject PENDING/non-numeric/old-profile authority. issued/expiry/latest-start UTC remain PENDING. Future preprovision must create fresh owned parents and empty journal; bootstrap captures remain absent until the exact noclobber/read-write wrapper. No actual root or runtime slot file is created here.\n\nProspective actual:600s inclusive/setup60s/tail60s, case3s/TERM2/KILL1;7 managed(owner1+Bash6)+4 UNOBSERVED stage reservations(P22/P23 two each)+18 admin=29 proposed slots. Managed peak2+2 unobserved stage allowance+margin1=peak5. Not observed census or OS quota.64KiB/stream,32MiB capture,128MiB work. Exact six-key child environment, owned empty PATH, no BASH_ENV/ENV/exported functions, --noprofile --norc. Initial tool/zsh startup remains trusted host outside child clean-env/raw-capture qualification; no containment or GNU5.3 claim.\n\nActual recipe: DIFFERENT preexec ACCEPT, fresh committed runtime ROOT review/GO/preprovision and fixed UTC window, separate resolved sole-slot DATA review, then EXACT exec_command require_escalated/login:false/no prefix with sealed APPROVAL-PROPOSAL.template.json parameters. No automatic follow-on, old grant reuse or actual request.\n\nOld26/12/37 observations, accounting holds and ambiguities remain unchanged. These six unrun type probes are intended to distinguish startup/readonly indexed versus nonarray/local bindings; preparation alone resolves none. F05 timing and ordinary command-substitution source limits are not rescored.\n"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/HANDOFF.md",
+      "matches": [
+        {
+          "line": 19,
+          "text": "declare -ar PIPESTATUS='([0]=\"0\")'\n```\n\nP22 has status 0, empty stderr, and stdout:\n\n```text\ndeclare -- PIPESTATUS=\"\"\ndeclare -a PIPESTATUS='([0]=\"0\")'\n```\n\nP23 has status 0, empty stderr, and stdout:\n\n```text\ndeclare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n```\n"
+        },
+        {
+          "line": 26,
+          "text": "declare -a PIPESTATUS='([0]=\"0\")'\n```\n\nP23 has status 0, empty stderr, and stdout:\n\n```text\ndeclare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n```\n\nP24 has status 0, empty stderr, and stdout:\n\n```text\ndeclare -- PIPESTATUS=\"seed\"\n```\n\nP19 retained `declare` as the first command with no prologue. These are printed-variable observations at the exact scripted points: no hidden-state, other-version/platform, or general initialization theorem is asserted. P20's absent declaration is not the same setup as P21's already-indexed binding. P22 and P23 distinguish the printed local scalar and local indexed states; P24 prints the scalar value. ROOT policy adjudication and different artifact review remain pending."
+        },
+        {
+          "line": 39,
+          "text": "declare -- PIPESTATUS=\"seed\"\n```\n\nP19 retained `declare` as the first command with no prologue. These are printed-variable observations at the exact scripted points: no hidden-state, other-version/platform, or general initialization theorem is asserted. P20's absent declaration is not the same setup as P21's already-indexed binding. P22 and P23 distinguish the printed local scalar and local indexed states; P24 prints the scalar value. ROOT policy adjudication and different artifact review remain pending.\n\n## Binding and minimal correction\n\nThe v2 coordinator uses exactly the absolute `activation-slot-v1/RECEIPT.json` path, stored blob `d6e04329ee5ced7ebf61c7e6da3e65b4bd923072`, size from the frozen `e0f1dc4b4228ef346d752bd82346b1d8b1902e4e` tree, and SHA `fd1a6b994c79a0f9346d1458d5fa29ee1f44808cca76d0e87abf0d63bf7d40a2`. One PURE fixture accepted this receipt and rejected a modified hash. No locator heuristic remains. Original source and all six owner programs were unchanged.\n\nFresh preflight passed at `2026-08-29T14:30:57.620Z`. The exact approved `exec_command` request retained command SHA `fdc96c5fb856284fa79287a1ff30869fa82c2d90e96f0ce34426acfac430a464`, `require_escalated`, `login:false`, no prefix, and the frozen approval question. Its tool result `75018f` completed exit 0; no session remained to poll or stop. This tool transcript is the owner-retirement observation, separate from the owner's pre-exit ledger.\n\n## Raw capture and retirement\n\nRaw native files total 25,569 bytes, copied and SHA-bound before typed-output extraction in `OBSERVATIONS.json`. The original temporary files remain intact. Each case row records `retired:true`, `stop:null`, regular capture completion, and its detailed exit/close/group observations. All six cases were credited; `halted:false`. The persisted ledger has seven confirmed managed starts, peak two, active one because the owner had not yet exited when it wrote the ledger. The subsequent tool exit 0 closes that owner; this is not an inferred leak or a fabricated post-exit ledger mutation.\n\nThe phase starts at the retained startup capture and ends no later than epoch milliseconds `1788014344559.4192` (600 seconds inclusive); this is earlier than the fixed grant expiry. Collection was at `2026-08-29T14:31:18.328Z`. Publication and post-admission guards use that same phase deadline, not a renewed clock.\n"
+        }
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/OBSERVATIONS.json",
+      "matches": [
+        {
+          "line": 519,
+          "text": "      }\n    },\n    {\n      \"id\": \"P22\",\n      \"status\": 0,\n      \"retired\": true,\n      \"stop\": null,\n      \"regularCaptureCompletion\": true,\n      \"channels\": {\n        \"stdout\": [\n          {\n            \"path\": \"captures/P22/stdout\",\n            \"bytes\": 59,\n            \"sha256\": \"6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387\",\n            \"base64\": \"ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=\",\n            \"text\": \"declare -- PIPESTATUS=\\\"\\\"\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"\n          }"
+        },
+        {
+          "line": 527,
+          "text": "      \"channels\": {\n        \"stdout\": [\n          {\n            \"path\": \"captures/P22/stdout\",\n            \"bytes\": 59,\n            \"sha256\": \"6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387\",\n            \"base64\": \"ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=\",\n            \"text\": \"declare -- PIPESTATUS=\\\"\\\"\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"\n          }\n        ],\n        \"stderr\": [\n          {\n            \"path\": \"captures/P22/stderr\",\n            \"bytes\": 0,\n            \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n            \"base64\": \"\",\n            \"text\": \"\""
+        },
+        {
+          "line": 536,
+          "text": "        ],\n        \"stderr\": [\n          {\n            \"path\": \"captures/P22/stderr\",\n            \"bytes\": 0,\n            \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n            \"base64\": \"\",\n            \"text\": \"\"\n          }\n        ]\n      },\n      \"lifecycle\": {\n        \"id\": \"P22\",\n        \"started\": 1788013872682,\n        \"exit\": true,\n        \"close\": true,\n        \"status\": 0,"
+        },
+        {
+          "line": 545,
+          "text": "        ]\n      },\n      \"lifecycle\": {\n        \"id\": \"P22\",\n        \"started\": 1788013872682,\n        \"exit\": true,\n        \"close\": true,\n        \"status\": 0,\n        \"signal\": null,\n        \"stop\": null,\n        \"errors\": [],\n        \"signals\": [],\n        \"groupObservations\": [\n          {\n            \"state\": \"absent\",\n            \"error\": {\n              \"thrownType\": \"object\","
+        },
+        {
+          "line": 689,
+          "text": "      }\n    },\n    {\n      \"id\": \"P23\",\n      \"status\": 0,\n      \"retired\": true,\n      \"stop\": null,\n      \"regularCaptureCompletion\": true,\n      \"channels\": {\n        \"stdout\": [\n          {\n            \"path\": \"captures/P23/stdout\",\n            \"bytes\": 76,\n            \"sha256\": \"c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d\",\n            \"base64\": \"ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg==\",\n            \"text\": \"declare -a PIPESTATUS='([0]=\\\"1\\\" [1]=\\\"0\\\")'\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"\n          }"
+        },
+        {
+          "line": 697,
+          "text": "      \"channels\": {\n        \"stdout\": [\n          {\n            \"path\": \"captures/P23/stdout\",\n            \"bytes\": 76,\n            \"sha256\": \"c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d\",\n            \"base64\": \"ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg==\",\n            \"text\": \"declare -a PIPESTATUS='([0]=\\\"1\\\" [1]=\\\"0\\\")'\\ndeclare -a PIPESTATUS='([0]=\\\"0\\\")'\\n\"\n          }\n        ],\n        \"stderr\": [\n          {\n            \"path\": \"captures/P23/stderr\",\n            \"bytes\": 0,\n            \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n            \"base64\": \"\",\n            \"text\": \"\""
+        },
+        {
+          "line": 706,
+          "text": "        ],\n        \"stderr\": [\n          {\n            \"path\": \"captures/P23/stderr\",\n            \"bytes\": 0,\n            \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n            \"base64\": \"\",\n            \"text\": \"\"\n          }\n        ]\n      },\n      \"lifecycle\": {\n        \"id\": \"P23\",\n        \"started\": 1788013872755,\n        \"exit\": true,\n        \"close\": true,\n        \"status\": 0,"
+        },
+        {
+          "line": 715,
+          "text": "        ]\n      },\n      \"lifecycle\": {\n        \"id\": \"P23\",\n        \"started\": 1788013872755,\n        \"exit\": true,\n        \"close\": true,\n        \"status\": 0,\n        \"signal\": null,\n        \"stop\": null,\n        \"errors\": [],\n        \"signals\": [],\n        \"groupObservations\": [\n          {\n            \"state\": \"absent\",\n            \"error\": {\n              \"thrownType\": \"object\","
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL-v2.json",
+      "bytes": 795793,
+      "sha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/runtime.ts",
+      "bytes": 214992,
+      "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/pipestatus.ts",
+      "bytes": 3145,
+      "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/arrays/bindings.ts",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/HANDOFF.md",
+      "bytes": 9607,
+      "sha256": "7b1ebfed92a3c2af02f87d45c0ded91bda20ffed92186d81325e97e84cc9095c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/AUDIT-PRESEAL.md",
+      "bytes": 1199,
+      "sha256": "a1f991f784c680be72ebbf9cc4a7142748f33cf825aed2004eaaf1bb780287ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/AUDIT.json",
+      "bytes": 36578,
+      "sha256": "7e469fa3bbd188858b951cdf5a694855189918b8ded8270b7abb7f88bab22512"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/HANDOFF.md",
+      "bytes": 10298,
+      "sha256": "01c20728939b1bde122878929b681b4a675cfb300931ee63fc611823e51b8568"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/INSPECTION.json",
+      "bytes": 20742,
+      "sha256": "145675ab1f1d543e17d357914420920830a81842a472c696b539d78085f270b3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/RECEIPT.json",
+      "bytes": 1160,
+      "sha256": "d4e25b11396a4eda67e710ba89bdf7ca27bbd16cb2ffb2a7ad70bfaa724a0e59"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/RECEIPT.json",
+      "bytes": 5747,
+      "sha256": "0460fca591217940e54b8a15e1c4eb19d50288b070f2714ea5ae2cde715c413c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/REPORT.md",
+      "bytes": 2706,
+      "sha256": "85eaaf6f572420b66a857e9ed412f0798960dc933142e6ff8e43b63295434a86"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/RESULT.json",
+      "bytes": 2186,
+      "sha256": "d8ccbce285d3cea4139051003edd7b15821403322558d729c6bbdbe3d759abec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json",
+      "bytes": 34022,
+      "sha256": "fd1a6b994c79a0f9346d1458d5fa29ee1f44808cca76d0e87abf0d63bf7d40a2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/REPORT.md",
+      "bytes": 835,
+      "sha256": "46ef63900efe0cb541948a1fbb2226a5e0b9a4960e0984ea1d26173dd3901fe2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/CONTROL-RESULT.json",
+      "bytes": 1471,
+      "sha256": "72198874fe7144bbdbe45d75bd02311f0a4ba5869f46679a3d5995d13fdad7cc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/HANDOFF.md",
+      "bytes": 3360,
+      "sha256": "3e547b4b0fbb53d6ee024006e2b13ca1e8e7c72d06126df7ee6562086c646678"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/SYNTAX-RESULT.json",
+      "bytes": 511,
+      "sha256": "d64e57af57c243392068577e92a475d33b8f80410b876c7f5c55383bdacbeb0e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/HANDOFF.md",
+      "bytes": 2732,
+      "sha256": "132b81c64214c1c488b5ae30df43dec582448c020d4eeb863113ba2bcfa1ae52"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v1/HANDOFF.md",
+      "bytes": 3921,
+      "sha256": "a2ce62b79787c0e0b04fc1a1f10e19c1027aa961690d8c0f242c6c732f5a9dd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/HANDOFF.md",
+      "bytes": 4605,
+      "sha256": "f0b8d802a3589e314916427f8f63a974303210e5566fe21abee2ffa41637f1e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/OBSERVATIONS.json",
+      "bytes": 40249,
+      "sha256": "7ef6baa6ae3d53d1fa64fe42e0b0d610fb2bf458a8de3ca2acf46b1c5543be04"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/HANDOFF.md",
+      "bytes": 5200,
+      "sha256": "1c9b4daa262cfc9de21506c072779b59cac2afc7cf799b98c244271df4f1b544"
+    }
+  ],
+  "bytesRead": 1211048,
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "qualification": "SOURCE/DATA only; existing accepted P22/P23 observations, no new oracle or product execution."
+}

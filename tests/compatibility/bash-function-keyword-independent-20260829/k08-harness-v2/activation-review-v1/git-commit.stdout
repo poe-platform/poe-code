@@ -1,0 +1,16 @@
+[main 57fe781bdf54816df08098fd3852ff891299b4d1] review: accept K08 exact final activation slots without runtime GO
+ 14 files changed, 305 insertions(+)
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/LOCATOR.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/PUBLICATION.jsonl
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/RECEIPT.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/REPORT.md
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/RESULT.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/START.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/check.mjs
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/check.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/check.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/git-add.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/git-add.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/locator.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/locator.stdout

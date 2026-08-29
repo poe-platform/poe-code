@@ -1,0 +1,50 @@
+{
+  "schema": "ere-transport-choice-recommendations-v2",
+  "date": "2026-08-29",
+  "baseDesign": "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+  "baseManifest": "7248149673c9f7ae6e0972d449380698560754de128e7ad82cddbd6fdf957e35",
+  "inputs": [
+    {
+      "path": "README.md",
+      "bytes": 7487,
+      "sha256": "808ad039898d5521a99cc75665f86678d0dd3b4f787b45283493efa02235445a"
+    },
+    {
+      "path": "INTERFACE.md",
+      "bytes": 14516,
+      "sha256": "faf0681156c44df34d8bde6f2b91a39c37a9a9693cb7ec6893ad89f3d478d431"
+    },
+    {
+      "path": "WRITE-SET.md",
+      "bytes": 5873,
+      "sha256": "86d401a60b77775cc9ce6ce0e34d0d3e0a95ea66d556d72c6b5a5e7f49fe2433"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "bytes": 13277,
+      "sha256": "bf9d45e9cc4268b6b4f56ea387cdbaf949a2f52b91e249421063eeaa29e8c669"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 10692,
+      "sha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5"
+    }
+  ],
+  "engine": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "engineAccepted": false,
+  "validation": {
+    "families": 32,
+    "variants": 60,
+    "status": "ALL_UNRUN"
+  },
+  "newThresholdsRatified": false,
+  "scope": "SOURCE-only recommendations; no implementation/compiler/Worker/engine/product",
+  "budget": {
+    "minutes": 10,
+    "knownOS": 20,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "recommendationSha256": "7827c12eea1e6a4292be5f260b1ccc8f28458aa82df1ab46dae3d360c6ee3e17"
+}

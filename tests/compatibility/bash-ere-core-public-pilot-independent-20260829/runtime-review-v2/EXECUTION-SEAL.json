@@ -1,0 +1,52 @@
+{
+  "utc": "2026-08-29T16:58:22.877Z",
+  "profileSha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "sourceHashes": {
+    "core.mjs": {
+      "bytes": 8220,
+      "sha256": "c3db649d63db084de500809ed10e0094b2df3a1ce9b3ed7369eda0a09f248bbf"
+    },
+    "data.mjs": {
+      "bytes": 2694,
+      "sha256": "a3c5fdb910cc153106acbb164dfde05b67f1498d706f442c170dbb7ad5443cd0"
+    },
+    "observer.mjs": {
+      "bytes": 2280,
+      "sha256": "1985b97e75701f3ed2fd1229f895e7f994a9057b2e9bad2b1690ef2f2efb8c74"
+    },
+    "process-owner.mjs": {
+      "bytes": 3407,
+      "sha256": "08bc29937289b98918dfdc2203e2d5a919833382c414a824f89388e550deb8b2"
+    },
+    "coordinator.mjs": {
+      "bytes": 10531,
+      "sha256": "26987efc84b6ebb2ffb2e05c33e75a5c2970c585059c879bc935afc1d398bf12"
+    },
+    "cell.mjs": {
+      "bytes": 2411,
+      "sha256": "df23733cd243bd54eaaedfec9eb4fe0a86306f2832d4c293b6edde3404854196"
+    },
+    "controls.mjs": {
+      "bytes": 9866,
+      "sha256": "e6a0c3811682637f7d18d61cb3be037a4add0a6423096f0f153cfd61bf79c49c"
+    },
+    "prepare.mjs": {
+      "bytes": 8400,
+      "sha256": "787d661d44fe2411117ef3d7c75336811f61b9426bfb02313229046c777e6d7d"
+    }
+  },
+  "helperSha256": "8ab5e3dd2b82e903c0c03493539c520aa911f3d195f171fca0014b51b8b7fd01",
+  "originalControlsSha256": "e6a0c3811682637f7d18d61cb3be037a4add0a6423096f0f153cfd61bf79c49c",
+  "executedControlsSha256": "a21f6c9014b603927e9e53589652bd9395df352807524d78556f8a0a6af17243",
+  "exactFinally": "finally { for (const descriptor of descriptors) fs.closeSync(descriptor); if (ownership.every(row => row.receipt.retired)) retainedInvocations.delete(ownerRoot); }",
+  "controlGroups": 15,
+  "actualWorkers": 0,
+  "actualChildren": 0,
+  "toolRecords": 2028,
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+    "size": 909885,
+    "mode": 292,
+    "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+  }
+}

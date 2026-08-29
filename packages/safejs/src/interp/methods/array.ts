@@ -11,6 +11,8 @@ import {
 } from "../values.js";
 import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
 
+const activeArrayCallbacks = new WeakMap<SandboxArray, { depth: number; leave: () => void }>();
+
 export type ArrayMethodName =
   | "map"
   | "filter"
@@ -150,11 +152,20 @@ export async function callArrayMethod(
   }
 
   if (isCallbackArrayMethod(methodName)) {
-    const leaveCallback = enterCollectionCallback(value);
+    let callbackState = activeArrayCallbacks.get(value);
+    if (callbackState === undefined) {
+      callbackState = { depth: 0, leave: enterCollectionCallback(value) };
+      activeArrayCallbacks.set(value, callbackState);
+    }
+    callbackState.depth += 1;
     try {
       return await callArrayMethodUnlocked(value, methodName, args, options, stack);
     } finally {
-      leaveCallback();
+      callbackState.depth -= 1;
+      if (callbackState.depth === 0) {
+        activeArrayCallbacks.delete(value);
+        callbackState.leave();
+      }
     }
   }
 

@@ -1,0 +1,370 @@
+{
+  "at": "2026-08-29T17:19:23.106Z",
+  "verdict": "HOLD_TRANSITIVE_PREPARATION_ADMISSION",
+  "sourceCommit": "faff3d1b56b841594768e476700209e1d2bca734",
+  "evidenceCommit": "2e79988a91dcff82515771f5be4932b19429dad2",
+  "authenticated": [
+    {
+      "reference": "faff3d1b56b841594768e476700209e1d2bca734:src/shell/runtime.ts",
+      "blob": "bafff8aa901ba29ce49570af775268f030469edf",
+      "bytes": 219776,
+      "sha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b"
+    },
+    {
+      "reference": "ec74e14df6bb7caf6b1be59fd44b027d7240101e:src/shell/runtime.ts",
+      "blob": "393a5735313da7b4c6fe10ff24da3521d21da003",
+      "bytes": 218626,
+      "sha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670"
+    },
+    {
+      "reference": "2e79988a91dcff82515771f5be4932b19429dad2:tests/shell/local-a-cleanup-v2/review.mjs",
+      "blob": "3b561e3fe5624af167d14720a52117d18e191436",
+      "bytes": 11300,
+      "sha256": "bb77ae99283638a6278da6d7a5d2192db37dbe79b2cf6387db7fb3a1aa02a81e"
+    },
+    {
+      "reference": "2e79988a91dcff82515771f5be4932b19429dad2:tests/shell/local-a-cleanup-v2/SOURCE-SEAL.json",
+      "blob": "7573cc4b67e3c68dfdb42be004310e9961d44695",
+      "bytes": 4670,
+      "sha256": "ce02d8326b5cd72ab6ef27441ba020fea7b87bf59e9c8484fccb73138a82da89"
+    },
+    {
+      "reference": "2e79988a91dcff82515771f5be4932b19429dad2:tests/shell/local-a-cleanup-v2/RESULT.json",
+      "blob": "755aa92e7d5f64197a1293c3a62308079482b16e",
+      "bytes": 1300,
+      "sha256": "ef27af0f552995fcf4d70320d20fcc6bf6a6dee115e76d96b3d2c464fb534379"
+    },
+    {
+      "reference": "2e79988a91dcff82515771f5be4932b19429dad2:tests/shell/local-a-cleanup-v2/HANDOFF.md",
+      "blob": "6b16530cfdfaa5c2b1273d8962f9a1d73acf7845",
+      "bytes": 3477,
+      "sha256": "b29e0b7592bfdd1e1a8b349c3bd954a959bcec0820f959b7b59f47261e86125e"
+    },
+    {
+      "reference": "faff3d1b56b841594768e476700209e1d2bca734:src/shell/arrays/ledger.ts",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45"
+    }
+  ],
+  "authorReplay": {
+    "pass": 11,
+    "total": 12,
+    "rows": [
+      {
+        "id": "C01-success",
+        "pass": true
+      },
+      {
+        "id": "C02-prepare-cut",
+        "pass": true
+      },
+      {
+        "id": "C03-create-cut",
+        "pass": true
+      },
+      {
+        "id": "C04-hold-cut",
+        "pass": true
+      },
+      {
+        "id": "C05-later-cuts",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n"
+      },
+      {
+        "id": "C06-independent-cleanups-falsy-primary",
+        "pass": true
+      },
+      {
+        "id": "C07-cleanup-only-first-error",
+        "pass": true
+      },
+      {
+        "id": "C08-existing-new-typed-preparation",
+        "pass": true
+      },
+      {
+        "id": "C09-existing-typed-borrowed",
+        "pass": true
+      },
+      {
+        "id": "C10-assignment-typed-borrowed",
+        "pass": true
+      },
+      {
+        "id": "C11-published-release-rejection",
+        "pass": true
+      },
+      {
+        "id": "C12-foreign-source-and-ledger-rules",
+        "pass": true
+      }
+    ],
+    "originalReportedPass": 11
+  },
+  "novel": {
+    "pass": 3,
+    "total": 4,
+    "rows": [
+      {
+        "id": "N01-C05-named-publication-boundary",
+        "pass": true,
+        "observations": {
+          "conclusion": "C05 blanket discarded=1 is a fixture expectation defect at publish; retaining attached typed restoration is correct for this boundary, not whole publication atomicity proof",
+          "cuts": [
+            {
+              "stage": "store",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "watch",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "reserve",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "name",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "shadow",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "text",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "insert",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "signal",
+              "savedAttached": false,
+              "typedSavedRetained": false,
+              "discard": 1,
+              "variablePresent": true
+            },
+            {
+              "stage": "publish",
+              "savedAttached": true,
+              "typedSavedRetained": true,
+              "discard": 0,
+              "variablePresent": false
+            }
+          ]
+        }
+      },
+      {
+        "id": "N02-borrowed-publication-failure",
+        "pass": true,
+        "observations": [
+          {
+            "existing": false,
+            "retainedOriginalTyped": true,
+            "discard": 0,
+            "prepare": 0
+          },
+          {
+            "existing": true,
+            "retainedOriginalTyped": true,
+            "discard": 0,
+            "prepare": 0
+          }
+        ]
+      },
+      {
+        "id": "N03-raw-secondaries-order-and-bound",
+        "pass": true,
+        "observations": [
+          {
+            "primaryKind": "undefined",
+            "rawPrimaryPreserved": true,
+            "exactSecondaries": 4,
+            "allCleanupAttempts": true
+          },
+          {
+            "primaryKind": "null",
+            "rawPrimaryPreserved": true,
+            "exactSecondaries": 4,
+            "allCleanupAttempts": true
+          },
+          {
+            "primaryKind": "false",
+            "rawPrimaryPreserved": true,
+            "exactSecondaries": 4,
+            "allCleanupAttempts": true
+          },
+          {
+            "primaryKind": "0",
+            "rawPrimaryPreserved": true,
+            "exactSecondaries": 4,
+            "allCleanupAttempts": true
+          }
+        ]
+      },
+      {
+        "id": "N04-internal-prepare-owner-invisible-on-hold-refusal",
+        "pass": false,
+        "error": "Error: New local-a branch directly calls unchanged prepareVariable: owner header admission succeeds, internal hold refuses before helper try/typed registration; caller discard cannot reach that owner",
+        "observations": {
+          "metadataHeadroomAtEntry": 64,
+          "actualSourceCreateCharge": 64,
+          "actualSourceHoldCharge": 64,
+          "prepareCalls": 1,
+          "createdOwners": 1,
+          "closedOwners": 0,
+          "discardCalls": 1,
+          "savedRegistered": false,
+          "localsAttached": false,
+          "rawBudgetReasonPreserved": true,
+          "ownershipQualification": "Exact new branch + exact unchanged prepare/discard fragments; finite reservation doubles, no real ArrayOwner instance or permanent leak claim",
+          "dependency": "preexisting helper defect, newly required by generic local-a entry; not introduced by v2 cleanup diff"
+        }
+      }
+    ]
+  },
+  "c05OriginalFailurePreserved": true,
+  "c05IndependentAttribution": "Saved already attached to locals at injected publish failure; discard would invalidate restoration",
+  "priorThreeBranchFindingsResolved": true,
+  "remainingFindingPreexistedHelperButNewCallerDependsOnIt": true,
+  "sourceReadiness": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/local-a-cleanup-v2-independent-20260829/SOURCE-READINESS.json",
+    "bytes": 1060,
+    "sha256": "db08e07c9f95e0f219df68396cf209bd59b658afc36385f4ba70cf8e97fc4a37"
+  },
+  "controlsQualification": "SOURCE plus exact isolated branch/prepare/discard fragments and doubles; no actual binding atomicity/restore/budget proof",
+  "counts": {
+    "pureHelperInvocations": 1,
+    "helperGitChildren": 1,
+    "knownRolesThroughHelper": 11,
+    "maximumKnownRoles": 24,
+    "conservativePeak": 3,
+    "maximumPeak": 3,
+    "gitExit": 0,
+    "gitSignal": null
+  },
+  "retainedLogicalBytes": 526529,
+  "captureBytes": 502968,
+  "publicationReserveBytes": 16777216,
+  "captureMaximum": 25165824,
+  "workMaximum": 134217728,
+  "deadline": "2026-08-29T17:23:21Z",
+  "product": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "npm": 0,
+  "sourceEdits": 0,
+  "priorHOLD": "42530f2839dccd98a63e6d14d32354ad1022462f",
+  "retained": [
+    {
+      "path": "FRAGMENT-BINDINGS.json",
+      "bytes": 6744,
+      "sha256": "dc7bb17a37657e6e2f69639a4938c294cecb96d24a4d445f14979633afd27aa8"
+    },
+    {
+      "path": "SOURCE-READINESS.json",
+      "bytes": 1060,
+      "sha256": "db08e07c9f95e0f219df68396cf209bd59b658afc36385f4ba70cf8e97fc4a37"
+    },
+    {
+      "path": "author-controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "author-controls.stdout",
+      "bytes": 16477,
+      "sha256": "08c6ad6c8a65acfbb0020a943f4405fcacb171cd827c859aef9b86dfbcb1a2fc"
+    },
+    {
+      "path": "git-data.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "git-data.stdout",
+      "bytes": 468623,
+      "sha256": "a8e897a4b5147fa896ad9145e2bea41cf6b32fa9d7b4bd97e8ea1c57ec380521"
+    },
+    {
+      "path": "helper-authoring.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "helper-authoring.stdout",
+      "bytes": 137,
+      "sha256": "a85f94118a920349ec27038be709a23f23bc3c1a8a60ede0bb1d14429e55ac24"
+    },
+    {
+      "path": "index-before.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "index-before.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-definition.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe-definition.stdout",
+      "bytes": 10256,
+      "sha256": "7489cf380050b31e59abd518c67d20d64f85ae060992e0bf6a8ddb165f423778"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 15757,
+      "sha256": "0bd2b296bf9b7f8b9a951ebd4f9d21b46b72d4ea5348764215c412c9e91d6b63"
+    },
+    {
+      "path": "review.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "start.stdout",
+      "bytes": 7475,
+      "sha256": "89868fd6be6a2cfdc24b6aaa115fa6f187b84d34ef84c0eefd5d9821954cdd49"
+    }
+  ]
+}

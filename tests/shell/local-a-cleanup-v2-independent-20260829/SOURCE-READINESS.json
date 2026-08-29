@@ -1,0 +1,17 @@
+{
+  "verdict": "HOLD_TRANSITIVE_PREPARATION_ADMISSION",
+  "cleanupDeltaVerdict": "SOURCE_PURE_ACCEPT_FOR_THREE_PRIOR_BRANCH_FINDINGS",
+  "fullLocalAFeatureAcceptance": false,
+  "c05": "Fixture assertion defect independently isolated; original 11/12 remains",
+  "requiredSmallestFix": "In prepareVariable, place fallible store.owner.hold acquisition under the existing owner cleanup try; make holding optional in finally so successfully created owner is closed when hold refuses. ROOT approval needed for this narrowly implicated helper scope.",
+  "sourceCommit": "faff3d1b56b841594768e476700209e1d2bca734",
+  "runtimeSha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b",
+  "candidate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+    "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd",
+    "sourceCount": 323
+  },
+  "compositionUpdated": false,
+  "all323FeaturesRemainSelected": true,
+  "noBuildGO": true
+}

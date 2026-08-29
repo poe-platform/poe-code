@@ -1,0 +1,125 @@
+{
+  "candidate": "501ad98748e639c909f717007dac4f1da19c67dc",
+  "sourceCommit": "6fde455bcc103117a6424b95156b152721f5735f",
+  "sourceInputs": 293,
+  "pack": {
+    "sha256": "4df8658746a881fd1316e403a234fd941baccfdead7a9518bc39fa7f6df2bb6e",
+    "bytes": 871054,
+    "members": 954
+  },
+  "cohortPass": 753,
+  "cohortCases": 756,
+  "mainProfile": "750/753 plus3/3 restored controls, not all-pass",
+  "authorConditional": "49/50 per layout; H02 unchanged failure",
+  "native": 0,
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    }
+  ],
+  "controls": [
+    {
+      "name": "lose-quoted-pattern",
+      "detected": true,
+      "originalSha256": "bfb013a37eaa7262292bb7fa09d71ef36f81580703f06f98984771628c3510d4",
+      "mutantSha256": "c3e959a5ac825275016fce2c039324eeb94fd7c8a5b19f5da0d5d7f2271ae49f"
+    },
+    {
+      "name": "eager-and-or",
+      "detected": true,
+      "originalSha256": "29a8742156b0b12d54de296a5066205ad1b7637459afe16b31e3527a93be11b3",
+      "mutantSha256": "15ae531f7dc0e5400e68f5b529ec154091213e63bfc0ad5d855674ebd0ac956f"
+    },
+    {
+      "name": "erase-node-cap",
+      "detected": true,
+      "originalSha256": "cda3165f93a8eb460f66c5f5a10668028ec4f24071418a0c86aac1c2d95f3c0f",
+      "mutantSha256": "6ae29227be026d8a10df57bfcab3b3e1708c8001b6a8836e42e4d7b0cf38cbd7"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    }
+  ],
+  "cleanup": {
+    "directChildren": 39,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 29,
+    "boundedOwnedTotal": 68,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "roots": [
+    [
+      "prep",
+      "/tmp/bash-conditional-author-prep-43EJhK"
+    ],
+    [
+      "v1-outer",
+      "/tmp/bash-conditional-launch-HtdX7b"
+    ],
+    [
+      "v1-run",
+      "/tmp/conditional-author-CnHXwl"
+    ],
+    [
+      "v2-outer",
+      "/tmp/bash-conditional-launch-TNHiRC"
+    ],
+    [
+      "v2-run",
+      "/tmp/conditional-author-yLl1MG"
+    ],
+    [
+      "v3-outer",
+      "/tmp/bash-conditional-launch-0WtGxc"
+    ],
+    [
+      "v3-run",
+      "/tmp/conditional-author-fhvyDt"
+    ]
+  ],
+  "captureRecords": 263,
+  "rawBytes": 19668773,
+  "archiveBytes": 8751739,
+  "archiveSha256": "ef94123b74862739885da552e5d348b64c194f0a444a391394b3f55d615bd21e",
+  "qualification": "Unenrolled metadata-finalizer settlement assertion remains failed; no resource-leak inference or hard cleanup guarantee. V1 compiler/V2 import and obsolete assertion retained. Source/install/move only; not native/global acceptance."
+}

@@ -21,7 +21,7 @@ try {
     log.raw = {};
     for (const extension of ['stdout', 'stderr']) { const artifact = path.join(root, process.argv[3] + '.' + extension); if (fs.statSync(artifact).size > 1024 * 1024) throw Error('bound'); log.raw[extension] = fs.readFileSync(artifact, 'utf8'); }
   }
-  Object.assign(log, { root, error: result.error, status: result.status, failures: result.failures, package: result.package?.sha256, cleanup: result.cleanup, types: result.types.map(row => ({ label: row.label, pass: row.pass, errors: row.errors })), cohorts: result.cohorts.map(row => ({ label: row.label, pass: row.pass, fail: row.fail, cases: row.cases?.length })), children: result.children.map(row => ({ label: row.label, code: row.code, closed: row.closed, signal: row.signal })), scratch: result.actualScratchBytes });
+  Object.assign(log, { root, error: result.error, status: result.status, failures: result.failures, package: result.package?.sha256, packageBytes: result.package?.bytes, members: result.package?.members?.length, cleanup: result.cleanup, controls: result.controls, types: result.types.map(row => ({ label: row.label, pass: row.pass, errors: row.errors })), cohorts: result.cohorts.map(row => ({ label: row.label, pass: row.pass, fail: row.fail, cases: row.cases?.length })), children: result.children.map(row => ({ label: row.label, code: row.code, closed: row.closed, signal: row.signal })), scratch: result.actualScratchBytes });
 } catch (error) { log.error = String(error?.stack ?? error); process.exitCode = 1; }
 finally { fs.writeSync(descriptor, JSON.stringify(log, null, 2)); fs.closeSync(descriptor); }
-console.log(JSON.stringify(log));
+console.log(JSON.stringify({ ...log, exports: undefined, rootIndex: undefined, types: log.types?.map(row => ({ label: row.label, pass: row.pass, diagnostics: row.errors.length })) }));

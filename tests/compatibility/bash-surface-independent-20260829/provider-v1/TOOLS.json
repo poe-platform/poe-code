@@ -1,0 +1,146 @@
+{
+  "schema": "provider-tools-v1",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "release": "25.4.0",
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "execution": "author-fixture-role"
+    },
+    {
+      "role": "sandbox",
+      "path": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "execution": "author-fixture-role"
+    },
+    {
+      "role": "bash",
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "execution": "NOT_AUTHORIZED"
+    }
+  ],
+  "dependencyFiles": [
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+      "bytes": 573440,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01",
+      "bytes": 1702723584,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata",
+      "bytes": 233996288,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly",
+      "bytes": 126664704,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit",
+      "bytes": 601358336,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05",
+      "bytes": 1825177600,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata",
+      "bytes": 237207552,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly",
+      "bytes": 7290880,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit",
+      "bytes": 616185856,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09",
+      "bytes": 165773312,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata",
+      "bytes": 21872640,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11",
+      "bytes": 32768,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit",
+      "bytes": 249774080,
+      "mode": 493,
+      "mtimeMs": 1775463057000,
+      "qualification": "METADATA_NOT_LOADED_IMAGE_OR_HASH"
+    }
+  ],
+  "systemImageLiteralPaths": [
+    "/usr/lib/dyld",
+    "/usr/lib/libSystem.B.dylib",
+    "/usr/lib/libc++.1.dylib",
+    "/usr/lib/libobjc.A.dylib",
+    "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+    "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+  ],
+  "dependencyQualification": "Exact allowed path and current cache metadata binding; NO complete loaded-image/hash qualification; no broad dependency read roots.",
+  "sysctlReadNames": [
+    "hw.ncpu",
+    "hw.activecpu",
+    "hw.physicalcpu",
+    "hw.logicalcpu",
+    "hw.memsize",
+    "hw.pagesize",
+    "hw.optional.arm64",
+    "kern.osrelease",
+    "kern.osversion"
+  ],
+  "nativeVersion": "UNKNOWN"
+}

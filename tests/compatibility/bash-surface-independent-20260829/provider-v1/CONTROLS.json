@@ -1,0 +1,175 @@
+{
+  "schema": "macos-provider-author-preseal-v1",
+  "authority": "ROOT test-provider implementation only; NO native Bash/product execution",
+  "root": "/private/tmp/safe-bash-surface-provider-author-v1",
+  "cases": [
+    {
+      "id": "F01",
+      "mode": "owned",
+      "purpose": "owned read/write, binary stdout/stderr",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F02",
+      "mode": "error",
+      "purpose": "ordinary exit7 preserved",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F03",
+      "mode": "outside-read",
+      "purpose": "owned canary read denied",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F04",
+      "mode": "outside-write",
+      "purpose": "owned canary write denied",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F05",
+      "mode": "symlink-read",
+      "purpose": "owned symlink-to-canary read denied",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F06",
+      "mode": "exec-denied",
+      "purpose": "unlisted /usr/bin/true exec attempt denied",
+      "extraChildReservation": 1,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F07",
+      "mode": "term",
+      "purpose": "cooperative TERM exit/EOF/close",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F08",
+      "mode": "kill",
+      "purpose": "TERM ignored, KILL exit/EOF/close",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F09",
+      "mode": "descendant",
+      "purpose": "one same-group sealed Node child, cooperative receipts",
+      "extraChildReservation": 1,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F10",
+      "mode": "drain",
+      "purpose": "65536 bytes per stream drained",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F11",
+      "mode": "abort-zero",
+      "purpose": "exact caller reason0 preserved",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F12",
+      "mode": "abort-false",
+      "purpose": "exact caller reasonfalse preserved",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F13",
+      "mode": "abort-empty",
+      "purpose": "exact caller emptystring reason preserved",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F14",
+      "mode": "abort-default",
+      "purpose": "actual AbortController default reason identity",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F15",
+      "mode": "stdin",
+      "purpose": "binary stdin to EOF, no inherited input",
+      "extraChildReservation": 0,
+      "status": "UNRUN"
+    },
+    {
+      "id": "F16",
+      "mode": "descendant-term",
+      "purpose": "one cooperative child drains before parent TERM completion",
+      "extraChildReservation": 1,
+      "status": "UNRUN"
+    }
+  ],
+  "sequence": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15",
+    "F16"
+  ],
+  "limits": {
+    "caseMs": 5000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "perStreamBytes": 262144,
+    "eventBytes": 65536,
+    "fixtureChildReservations": 19,
+    "maxFixtureChildren": 24,
+    "peakAllProcessesIncludingOuter": 4,
+    "cohortMs": 150000,
+    "captureBytes": 16777216,
+    "workBytes": 67108864
+  },
+  "dataControls": [
+    "changed-case",
+    "changed-argv",
+    "changed-env",
+    "unexpected-exec",
+    "injected-profile-string",
+    "path-traversal",
+    "readonly-capture",
+    "missing-exit",
+    "missing-stdout-eof",
+    "missing-stderr-eof",
+    "missing-close",
+    "unknown-descendant",
+    "group-still-present",
+    "duplicate-child-identity",
+    "zero-reason",
+    "false-reason",
+    "empty-reason",
+    "cleanup-singleflight",
+    "cleanup-failure-identity",
+    "network-default-deny-source"
+  ],
+  "networkQualification": "SOURCE ONLY. No socket/listener/connect/DNS execution permitted.",
+  "stop": "Any actual safety/capture/integrity/unknown retirement/cap event halts further actual targets; ordinary helper assertion failures may aggregate only after known cleanup.",
+  "futureNative": "No runtime grant; old provider interface losslessDescendants remains unresolved; never forge it."
+}

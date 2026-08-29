@@ -1,0 +1,42 @@
+{
+  "schema": "d03-startup-fields-preseal-v3",
+  "authority": "ROOT20min32ALLpeak2; once-only existing exact record, additional startup whitelist only",
+  "phaseStarted": 1787982091127,
+  "deadline": 1787983291127,
+  "limits": {
+    "allProcesses": 32,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "record": {
+    "path": "/Users/kjopek/Library/Logs/DiagnosticReports/node-2026-08-29-000637.ips",
+    "bytes": 6779,
+    "sha256": "4c9a28200253d2364fa094f6331efd37bb7a4fc02df49ae1a81e32962910c69e",
+    "pid": 17408
+  },
+  "singleReadRule": "Exactly one bounded stream read; validate SHA/size/fd identity BEFORE parsing the same in-memory bytes; no second hash-read/reopen, no locator inventory.",
+  "whitelist": {
+    "applicationSpecific": "Only bounded startup-diagnostic strings from asi; no arbitrary userdata; path redaction retained",
+    "termination": [
+      "namespace",
+      "code",
+      "indicator",
+      "flags"
+    ],
+    "thread": "Only report.faultingThread index; no triggered-thread fallback or other-thread scan",
+    "frames": "First up to8 of faulting thread: imageIndex,symbol,imageOffset,symbolLocation",
+    "images": "Only corresponding up to8 imageIndex/name/path/UUID/arch; no registers/base addresses/full image list"
+  },
+  "selectedEventsMaxBytes": 32768,
+  "selectedResultMaxBytes": 32768,
+  "forbidden": [
+    "target/native/Bash/engine/Worker launches",
+    "profile changes",
+    "unified logs",
+    "other diagnostic records",
+    "other threads/registers/env",
+    "raw record publication"
+  ],
+  "originalReceipt": "46fc4ff0257d98409408dbf97681bf9a8a8a4615"
+}

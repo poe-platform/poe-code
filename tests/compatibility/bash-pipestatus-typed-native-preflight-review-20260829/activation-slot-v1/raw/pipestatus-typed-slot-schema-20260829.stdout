@@ -1,0 +1,557 @@
+{
+  "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/SOURCE-TOOL-AUTH.json",
+  "value": {
+    "rows": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PRESEAL.json",
+        "bytes": 3283,
+        "mode": 384,
+        "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/admission.mjs",
+        "bytes": 9767,
+        "mode": 384,
+        "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs",
+        "bytes": 7137,
+        "mode": 384,
+        "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observation.mjs",
+        "bytes": 1499,
+        "mode": 384,
+        "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/capture.mjs",
+        "bytes": 1888,
+        "mode": 384,
+        "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/lifecycle.mjs",
+        "bytes": 5280,
+        "mode": 384,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/group-observer.mjs",
+        "bytes": 759,
+        "mode": 384,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observer-state.mjs",
+        "bytes": 1240,
+        "mode": 384,
+        "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/state.mjs",
+        "bytes": 1824,
+        "mode": 384,
+        "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/storage.mjs",
+        "bytes": 3583,
+        "mode": 384,
+        "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+        "bytes": 1723,
+        "mode": 384,
+        "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REQUESTS.json",
+        "bytes": 4572,
+        "mode": 384,
+        "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PROTOCOL.json",
+        "bytes": 1676,
+        "mode": 384,
+        "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json",
+        "bytes": 3067,
+        "mode": 384,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P19.bash.data",
+        "bytes": 21,
+        "mode": 384,
+        "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P20.bash.data",
+        "bytes": 49,
+        "mode": 384,
+        "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P21.bash.data",
+        "bytes": 55,
+        "mode": 384,
+        "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data",
+        "bytes": 95,
+        "mode": 384,
+        "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data",
+        "bytes": 98,
+        "mode": 384,
+        "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data",
+        "bytes": 45,
+        "mode": 384,
+        "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/READY-SEAL.json",
+        "bytes": 11288,
+        "mode": 384,
+        "sha256": "798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json",
+        "bytes": 3067,
+        "mode": 384,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+      },
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "operation": "fresh streaming metadata/hash; no tool execution"
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "operation": "fresh streaming metadata/hash; no tool execution"
+      },
+      {
+        "path": "/usr/bin/env",
+        "bytes": 102368,
+        "mode": 493,
+        "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+        "phase": "metadata-read-only-not-executed",
+        "operation": "fresh streaming metadata/hash; no tool execution"
+      },
+      {
+        "schema": "functional-wrapper-tool-metadata-v2",
+        "path": "/bin/zsh",
+        "bytes": 1361216,
+        "mode": 493,
+        "regular": true,
+        "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+        "version": "NOT_PROBED",
+        "execution": "NONE_THIS_PHASE",
+        "scope": "platform tool wrapper only; not Bash reference",
+        "preexecutionRequired": true,
+        "operation": "fresh streaming metadata/hash; no tool execution"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/RECEIPT.json",
+        "bytes": 5747,
+        "mode": 384,
+        "sha256": "0460fca591217940e54b8a15e1c4eb19d50288b070f2714ea5ae2cde715c413c"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/APPROVAL-PROPOSAL.template.json",
+        "bytes": 2861,
+        "mode": 384,
+        "sha256": "8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/GO.template.json",
+        "bytes": 1760,
+        "mode": 384,
+        "sha256": "75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/REVIEW-ACCEPTANCE.template.json",
+        "bytes": 361,
+        "mode": 384,
+        "sha256": "8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PROTOCOL.json",
+        "bytes": 1676,
+        "mode": 384,
+        "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+        "bytes": 1723,
+        "mode": 384,
+        "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/admission.mjs",
+        "bytes": 9767,
+        "mode": 384,
+        "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs",
+        "bytes": 7137,
+        "mode": 384,
+        "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observation.mjs",
+        "bytes": 1499,
+        "mode": 384,
+        "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/capture.mjs",
+        "bytes": 1888,
+        "mode": 384,
+        "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/lifecycle.mjs",
+        "bytes": 5280,
+        "mode": 384,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/group-observer.mjs",
+        "bytes": 759,
+        "mode": 384,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observer-state.mjs",
+        "bytes": 1240,
+        "mode": 384,
+        "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/state.mjs",
+        "bytes": 1824,
+        "mode": 384,
+        "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/storage.mjs",
+        "bytes": 3583,
+        "mode": 384,
+        "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+        "bytes": 1723,
+        "mode": 384,
+        "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REQUESTS.json",
+        "bytes": 4572,
+        "mode": 384,
+        "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PROTOCOL.json",
+        "bytes": 1676,
+        "mode": 384,
+        "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json",
+        "bytes": 3067,
+        "mode": 384,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P19.bash.data",
+        "bytes": 21,
+        "mode": 384,
+        "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P20.bash.data",
+        "bytes": 49,
+        "mode": 384,
+        "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P21.bash.data",
+        "bytes": 55,
+        "mode": 384,
+        "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data",
+        "bytes": 95,
+        "mode": 384,
+        "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data",
+        "bytes": 98,
+        "mode": 384,
+        "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data",
+        "bytes": 45,
+        "mode": 384,
+        "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801"
+      }
+    ]
+  }
+}
+{
+  "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/preseal.json",
+  "value": {
+    "schema": "pipestatus-typed-executable-preseal-v1",
+    "files": [
+      {
+        "path": "admission.mjs",
+        "bytes": 9767,
+        "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+        "mode": 384
+      },
+      {
+        "path": "entry.mjs",
+        "bytes": 7137,
+        "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+        "mode": 384
+      },
+      {
+        "path": "observation.mjs",
+        "bytes": 1499,
+        "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+        "mode": 384
+      },
+      {
+        "path": "capture.mjs",
+        "bytes": 1888,
+        "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+        "mode": 384
+      },
+      {
+        "path": "lifecycle.mjs",
+        "bytes": 5280,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+        "mode": 384
+      },
+      {
+        "path": "group-observer.mjs",
+        "bytes": 759,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+        "mode": 384
+      },
+      {
+        "path": "observer-state.mjs",
+        "bytes": 1240,
+        "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+        "mode": 384
+      },
+      {
+        "path": "state.mjs",
+        "bytes": 1824,
+        "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+        "mode": 384
+      },
+      {
+        "path": "storage.mjs",
+        "bytes": 3583,
+        "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+        "mode": 384
+      },
+      {
+        "path": "COHORT.json",
+        "bytes": 1723,
+        "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a",
+        "mode": 384
+      },
+      {
+        "path": "REQUESTS.json",
+        "bytes": 4572,
+        "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d",
+        "mode": 384
+      },
+      {
+        "path": "PROTOCOL.json",
+        "bytes": 1676,
+        "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf",
+        "mode": 384
+      },
+      {
+        "path": "TOOLS.json",
+        "bytes": 3067,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+        "mode": 384
+      },
+      {
+        "path": "programs/P19.bash.data",
+        "bytes": 21,
+        "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583",
+        "mode": 384
+      },
+      {
+        "path": "programs/P20.bash.data",
+        "bytes": 49,
+        "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990",
+        "mode": 384
+      },
+      {
+        "path": "programs/P21.bash.data",
+        "bytes": 55,
+        "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857",
+        "mode": 384
+      },
+      {
+        "path": "programs/P22.bash.data",
+        "bytes": 95,
+        "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93",
+        "mode": 384
+      },
+      {
+        "path": "programs/P23.bash.data",
+        "bytes": 98,
+        "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8",
+        "mode": 384
+      },
+      {
+        "path": "programs/P24.bash.data",
+        "bytes": 45,
+        "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801",
+        "mode": 384
+      }
+    ]
+  }
+}
+{
+  "file": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REVIEW-ACCEPTANCE.json",
+  "value": {
+    "schema": "pipestatus-typed-independent-acceptance-v1",
+    "decision": "ACCEPT",
+    "profile": "pipestatus-typed-reference-v1",
+    "presealSha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+    "requestsSha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d",
+    "reviewer": "ROOT-ratified independent preexec 987886897c2d013fcb31e1f2db0d073439d558db",
+    "reviewCommit": "987886897c2d013fcb31e1f2db0d073439d558db"
+  }
+}
+{
+  "file": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PREPROVISION.json",
+  "value": {
+    "parents": [
+      {
+        "path": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1",
+        "device": "16777232",
+        "inode": "189441446",
+        "mode": 448
+      },
+      {
+        "path": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer",
+        "device": "16777232",
+        "inode": "189441447",
+        "mode": 448
+      },
+      {
+        "path": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases",
+        "device": "16777232",
+        "inode": "189441448",
+        "mode": 448
+      },
+      {
+        "path": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/captures",
+        "device": "16777232",
+        "inode": "189441449",
+        "mode": 448
+      }
+    ]
+  }
+}
+{
+  "file": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json",
+  "value": {
+    "schema": "pipestatus-typed-root-grant-v1",
+    "decision": "GO",
+    "profile": "pipestatus-typed-reference-v1",
+    "issuedEpochMs": 1788013120912,
+    "deadlineEpochMs": 1788015820912,
+    "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "preseal": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PRESEAL.json",
+      "mode": 384,
+      "bytes": 3283,
+      "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e"
+    },
+    "independentReviewReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REVIEW-ACCEPTANCE.json",
+      "mode": 384,
+      "bytes": 460,
+      "sha256": "f5fe14c176e1c276a370cd0a2aec61c16669c4eaecd6f679cecf54c16497fc0f"
+    },
+    "preprovision": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PREPROVISION.json",
+      "mode": 384,
+      "bytes": 719,
+      "sha256": "6531c303526c676f0a6a696c7d78349e95d767e45f569227a685f028bd5a8f4f"
+    },
+    "limits": {
+      "totalMs": 600000,
+      "setupMs": 60000,
+      "finalizationTailMs": 60000,
+      "perCaseMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000,
+      "knownManagedProcessCeiling": 7,
+      "knownPeakCeiling": 2,
+      "allKnownProcessProposalCeiling": 29,
+      "allKnownPeakProposalCeiling": 5,
+      "ownerStarts": 1,
+      "nativeStarts": 6,
+      "administrativeChildStarts": 0,
+      "sourceInternalForkReservations": 4,
+      "perStreamBytes": 65536,
+      "aggregateCaptureBytes": 33554432,
+      "workingBytes": 134217728,
+      "emergencyReserveBytes": 65536,
+      "ownerWriteBytes": 262144,
+      "snapshotEntries": 32,
+      "snapshotFileBytes": 65536,
+      "snapshotBytes": 262144
+    },
+    "failedLookupNames": []
+  }
+}
+{
+  "file": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/APPROVAL-REQUEST.json",
+  "value": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json --grant-sha256 9d971fe4c4546fa9a90d1184af9d05c573fb6e343f6dcea6546cfef762383772 >/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only six freshly reviewed literal P19–P24 local Bash3.2.57 typed PIPESTATUS observations, builtins only with zero input fixtures or effects, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  }
+}
+["COHORT.json","GO.json","PREPROVISION.json","PRESEAL.json","PROTOCOL.json","REQUESTS.json","REVIEW-ACCEPTANCE.json","TOOLS.json","admission.mjs","capture.mjs","entry.mjs","group-observer.mjs","lifecycle.mjs","observation.mjs","observer-state.mjs","programs","state.mjs","storage.mjs"]

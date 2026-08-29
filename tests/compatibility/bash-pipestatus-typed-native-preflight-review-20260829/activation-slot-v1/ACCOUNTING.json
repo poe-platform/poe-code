@@ -1,0 +1,143 @@
+{
+  "at": "2026-08-29T14:24:12.722Z",
+  "domain": "recursive current owned regular files, UTF-8 byte full-path order; excludes this later snapshot and active publication captures/Git storage",
+  "rows": [
+    {
+      "path": "PRESEAL.md",
+      "bytes": 1333,
+      "sha256": "306efca9ea1e1040cc880f16ed02d3c02872c5e74f5e8272fa29643fe5cf1dbc",
+      "mode": 420
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 34022,
+      "sha256": "fd1a6b994c79a0f9346d1458d5fa29ee1f44808cca76d0e87abf0d63bf7d40a2",
+      "mode": 384
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 835,
+      "sha256": "46ef63900efe0cb541948a1fbb2226a5e0b9a4960e0984ea1d26173dd3901fe2",
+      "mode": 384
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 5219,
+      "sha256": "96bb24057fa91296c7f8b0beda7d99c0bd56e576ed002a29320f295a05cf7a19",
+      "mode": 420
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-bootstrap-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-bootstrap-20260829.stdout",
+      "bytes": 3071,
+      "sha256": "f1bb12e3833431eeb5fae70646fd943407935861eb773eec34392f327332cff3",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-committed-handoff-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-committed-handoff-20260829.stdout",
+      "bytes": 2732,
+      "sha256": "132b81c64214c1c488b5ae30df43dec582448c020d4eeb863113ba2bcfa1ae52",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-edit-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-edit-20260829.stdout",
+      "bytes": 320,
+      "sha256": "84771623125cd6753f9b6e5215f7b12a236f0d8fd352c9aaf4cfda7740f13cad",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-inspect-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-inspect-20260829.stdout",
+      "bytes": 30948,
+      "sha256": "6f109beb5d6eda9f7c04c3a542da85bc8f25171ad9293e39ccad96ba99ccc7aa",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-review-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-review-20260829.stdout",
+      "bytes": 403,
+      "sha256": "ac1ed4973c45c7e5cac9d8c76d02363164608e6cf688399c81e3ae3c69728f70",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-schema-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-schema-20260829.stdout",
+      "bytes": 24535,
+      "sha256": "fd2166db10e61671b164f9a827fc38b5846d8613f5a496a4310c28e2bb164bf6",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-shapes-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-shapes-20260829.stdout",
+      "bytes": 9897,
+      "sha256": "32244b2c6fed27d2798696f8180a434c64fa20a744bb95c93130806879ed1ece",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-syntax-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "raw/pipestatus-typed-slot-syntax-20260829.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 9405,
+      "sha256": "8a81e9a5c3b994b83941f7510bd4c553df240d6db1e6cd07025e9a9cfdc28cc1",
+      "mode": 420
+    }
+  ],
+  "bytes": 122720,
+  "captureBytes": 71906,
+  "knownBeforePublication": 11,
+  "publicationRoles": "owner plus three sequential Git children; all must actually exit/close before final success",
+  "knownFinalOnSuccess": 15,
+  "knownPeak": 2,
+  "native": 0,
+  "Workers": 0,
+  "onePUREHelper": true,
+  "noTransitiveCensus": true,
+  "noFinalOrPeakDiskClaim": true
+}

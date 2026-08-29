@@ -1,0 +1,278 @@
+
+--- src/shell/arrays/ledger.ts ---
+140:  return left + right;
+141:}
+142:
+143:export class ArrayOwner {
+144:  #head: Admission | undefined;
+145:  #firstChild: ArrayOwner | undefined;
+146:  #nextSibling: ArrayOwner | undefined;
+147:  #previousSibling: ArrayOwner | undefined;
+148:  #closed = false;
+149:  #started = false;
+150:  #resolve!: () => void;
+151:  #reject!: (error: unknown) => void;
+152:  #holds = 0;
+153:  #resolveIdle!: () => void;
+154:  readonly #idle: Promise<void>;
+155:  #releasing = false;
+156:  readonly completion: Promise<void>;
+157:
+158:  private constructor(readonly ledger: ArrayLedger, readonly parent: ArrayOwner | undefined, readonly header: Admission) {
+159:    this.completion = new Promise<void>((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
+160:    this.#idle = new Promise<void>(resolve => { this.#resolveIdle = resolve; });
+161:    void this.completion.catch(() => undefined);
+162:  }
+163:
+164:  static create(ledger: ArrayLedger, parent?: ArrayOwner): ArrayOwner {
+165:    parent?.assertOpen();
+166:    const header = ledger.reserve({ metadata: 64, work: 9 });
+167:    const owner = new ArrayOwner(ledger, parent, header);
+168:    if (parent) {
+169:      owner.#nextSibling = parent.#firstChild;
+170:      if (parent.#firstChild) parent.#firstChild.#previousSibling = owner;
+171:      parent.#firstChild = owner;
+172:    }
+173:    return owner;
+174:  }
+175:
+176:  assertOpen(): void {
+177:    if (this.#closed) throw new ArrayFailure("ownership admission is closed");
+178:    this.parent?.assertOpen();
+179:  }
+180:
+181:  reserve(charge: Charge): Admission {
+182:    this.assertOpen();
+183:    return this.adopt(this.ledger.reserve(charge));
+184:  }
+185:
+186:  adopt(admission: Admission, prepaid = false): Admission {
+187:    const root = this.root();
+188:    if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();
+189:    if (admission.released || admission.ledger !== this.ledger) throw new Error("Invalid indexed-array ownership transfer");
+190:    admission.owner?.detach(admission);
+191:    admission.owner = this;
+192:    admission.previous = undefined;
+193:    admission.next = this.#head;
+194:    if (this.#head) this.#head.previous = admission;
+195:    this.#head = admission;
+196:    return admission;
+197:  }
+198:
+199:  private root(): ArrayOwner {
+200:    let root: ArrayOwner = this;
+201:    while (root.parent) root = root.parent;
+202:    return root;
+203:  }
+204:
+205:  hold(): Admission {
+206:    this.assertOpen();
+207:    const root = this.root();
+208:    if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
+209:    const admission = this.reserve({ metadata: 64, work: 5 });
+210:    root.#holds++;
+211:    admission.cleanup = () => {
+212:      root.#holds--;
+213:      if (!root.#holds && root.#closed) root.#resolveIdle();
+214:    };
+215:    return admission;
+216:  }
+217:
+218:  detach(admission: Admission): void {
+219:    if (admission.previous) admission.previous.next = admission.next;
+220:    else this.#head = admission.next;
+221:    if (admission.next) admission.next.previous = admission.previous;
+222:    admission.owner = undefined;
+223:    admission.previous = undefined;
+224:    admission.next = undefined;
+225:  }
+226:
+227:  close(): Promise<void> {
+228:    if (!this.#started) {
+229:      this.#started = true;
+230:      this.#closed = true;
+231:      void this.drain().then(this.#resolve, this.#reject);
+232:    }
+233:    return this.completion;
+234:  }
+235:
+236:  private async drain(): Promise<void> {
+237:    if (!this.parent) {
+238:      if (this.#holds) await this.#idle;
+239:      this.#releasing = true;
+240:    }
+241:    while (this.#firstChild) {
+242:      await this.#firstChild.close();
+243:      const checkpoint = this.ledger.checkpoint();
+244:      if (checkpoint) await checkpoint;
+245:    }
+246:    while (this.#head) {
+247:      this.#head.release();
+248:      const checkpoint = this.ledger.checkpoint();
+249:      if (checkpoint) await checkpoint;
+250:    }
+251:    if (this.parent) {
+252:      if (this.#previousSibling) this.#previousSibling.#nextSibling = this.#nextSibling;
+253:      else this.parent.#firstChild = this.#nextSibling;
+254:      if (this.#nextSibling) this.#nextSibling.#previousSibling = this.#previousSibling;
+255:    }
+256:    this.header.release();
+257:  }
+258:}
+
+--- src/shell/arrays/bindings.ts ---
+1:import { Admission, ArrayFailure, ArrayLedger, ArrayOwner, exactSum } from "./ledger.js";
+2:import type { Tickets } from "./ledger.js";
+3:
+4:export const controlNames: ReadonlySet<string> = new Set([
+5:  "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE",
+6:]);
+7:
+8:export class OwnedText {
+9:  references = 1;
+10:
+11:  constructor(readonly value: string, readonly bytes: number, readonly admission: Admission) {}
+12:
+13:  retain(): this {
+14:    if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
+15:    this.references++;
+16:    return this;
+17:  }
+18:
+19:  release(): void {
+20:    if (--this.references === 0) this.admission.release();
+21:  }
+22:}
+23:
+24:export async function textToken(owner: ArrayOwner, value: string, signal: AbortSignal): Promise<OwnedText> {
+25:  let bytes = 0;
+26:  for (let offset = 0; offset < value.length;) {
+27:    const end = Math.min(value.length, offset + 64);
+28:    owner.reserve({ work: end - offset }).release();
+29:    while (offset < end) {
+30:      const code = value.codePointAt(offset)!;
+31:      bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
+32:      offset += code > 0xffff ? 2 : 1;
+33:    }
+34:    await owner.ledger.checkpoint(signal, 64);
+35:  }
+36:  const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
+37:  return new OwnedText(value, bytes, admission);
+38:}
+39:
+40:export interface Element {
+41:  readonly text: OwnedText;
+42:  readonly slot: Admission;
+43:}
+44:
+45:export class IndexedBinding {
+46:  readonly values = new Map<number, Element>();
+47:  maximum = -1;
+48:  generation = 0;
+49:  version = 0;
+50:  references = 1;
+51:
+52:  private constructor(readonly owner: ArrayOwner) {}
+53:
+54:  static create(parent: ArrayOwner): IndexedBinding {
+55:    const owner = ArrayOwner.create(parent.ledger, parent);
+56:    try {
+57:      owner.reserve({ wrappers: 1, metadata: 128, work: 7 });
+58:      return new IndexedBinding(owner);
+59:    } catch (error) {
+60:      void owner.close();
+61:      throw error;
+62:    }
+63:  }
+64:
+65:  get(index: number): string | undefined { return this.values.get(index)?.text.value; }
+66:
+67:  retain(): this {
+68:    if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
+69:    this.references++;
+70:    return this;
+71:  }
+72:
+73:  release(): Promise<void> | undefined {
+74:    if (--this.references === 0) return this.owner.close();
+75:    return undefined;
+76:  }
+77:
+78:  insert(index: number, text: OwnedText): void {
+79:    const slot = this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+80:    const previous = this.values.get(index);
+81:    const element = { text, slot };
+82:    slot.cleanup = () => {
+83:      if (this.values.get(index) === element) this.values.delete(index);
+84:      text.release();
+85:    };
+86:    this.values.set(index, element);
+87:    if (index > this.maximum) this.maximum = index;
+88:    previous?.slot.release();
+89:  }
+90:
+91:  async copy(signal: AbortSignal): Promise<IndexedBinding> {
+92:    const copy = IndexedBinding.create(this.owner.parent!);
+93:    this.retain();
+94:    try {
+95:      for (const [index, element] of this.values) {
+96:        copy.owner.reserve({ work: 2 }).release();
+97:        const slot = copy.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+98:        const text = element.text.retain();
+99:        const cloned = { text, slot };
+100:        slot.cleanup = () => { if (copy.values.get(index) === cloned) copy.values.delete(index); text.release(); };
+101:        copy.values.set(index, cloned);
+102:        if (index > copy.maximum) copy.maximum = index;
+103:        await copy.owner.ledger.checkpoint(signal, 2);
+104:      }
+105:      return copy;
+106:    } catch (error) { await copy.release(); throw error; }
+107:    finally { await this.release(); }
+108:  }
+109:
+110:  async indices(owner: ArrayOwner, signal: AbortSignal): Promise<number[]> {
+111:    const size = this.values.size;
+112:    owner.reserve({ metadata: exactSum(128, size * 64), allocatedSlots: size * 2, work: size * 4 + 6 });
+113:    let indices: number[] = [];
+114:    let scratch: number[] = [];
+115:    for (const index of this.values.keys()) {
+116:      indices.push(index);
+117:      await owner.ledger.checkpoint(signal);
+118:    }
+119:    for (let width = 1; width < size; width *= 2) {
+120:      for (let start = 0; start < size; start += width * 2) {
+121:        let left = start;
+122:        let right = Math.min(size, start + width);
+123:        const leftEnd = right;
+124:        const rightEnd = Math.min(size, start + width * 2);
+125:        for (let destination = start; destination < rightEnd; destination++) {
+126:          owner.reserve({ work: 2 }).release();
+127:          scratch[destination] = left < leftEnd && (right >= rightEnd || indices[left]! <= indices[right]!) ? indices[left++]! : indices[right++]!;
+128:          await owner.ledger.checkpoint(signal, 2);
+129:        }
+130:      }
+131:      const temporary = indices;
+132:      indices = scratch;
+133:      scratch = temporary;
+134:    }
+135:    return indices;
+136:  }
+137:}
+138:
+139:interface Watch {
+140:  generation: number;
+141:  version: number;
+142:  observers: number;
+143:  typedVersion: number;
+144:  readonly admission: Admission;
+145:  readonly name: OwnedText;
+146:}
+147:
+148:export class BindingWatch {
+149:  #closed = false;
+150:  readonly generation: number;
+151:  readonly version: number;
+152:  readonly typedVersion: number;
+153:
+154:  constructor(readonly store: BindingStore, readonly name: string, readonly watch: Watch, readonly admission: Admission) {
+155:    this.generation = watch.generation;

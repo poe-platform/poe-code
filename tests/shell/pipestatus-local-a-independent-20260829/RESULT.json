@@ -1,0 +1,408 @@
+{
+  "at": "2026-08-29T17:05:28.519Z",
+  "verdict": "HOLD_SOURCE_PURE",
+  "sourceCommit": "ec74e14df6bb7caf6b1be59fd44b027d7240101e",
+  "evidenceCommit": "cddf1786440ed284987b375f43315f2163f37db6",
+  "authenticated": [
+    {
+      "reference": "ec74e14df6bb7caf6b1be59fd44b027d7240101e:src/shell/runtime.ts",
+      "blob": "393a5735313da7b4c6fe10ff24da3521d21da003",
+      "bytes": 218626,
+      "sha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670"
+    },
+    {
+      "reference": "ec74e14df6bb7caf6b1be59fd44b027d7240101e:tests/shell/pipestatus-author-20260829/local-a-v1/SEAL.json",
+      "blob": "733661bb37e8b3e3e5302ca6ecd932045df738d1",
+      "bytes": 1490,
+      "sha256": "87497c1638ca7a3ab97c2dfe662f1b888d868cd218d764169606806bdaf6d7fb"
+    },
+    {
+      "reference": "ec74e14df6bb7caf6b1be59fd44b027d7240101e:tests/shell/pipestatus-author-20260829/local-a-v1/runtime-base.data",
+      "blob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+      "bytes": 214992,
+      "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+    },
+    {
+      "reference": "ec74e14df6bb7caf6b1be59fd44b027d7240101e:tests/shell/pipestatus-author-20260829/local-a-v1/pure.mjs",
+      "blob": "f65b98b77d5c5c6dd091ec6ad122da2c5d900b54",
+      "bytes": 4184,
+      "sha256": "ee4ea72dfeb7d8e14ebcc306a887d38ab4d234330513d22b844850dd2e2e51d2"
+    },
+    {
+      "reference": "cddf1786440ed284987b375f43315f2163f37db6:tests/shell/pipestatus-author-20260829/local-a-v1/HANDOFF.md",
+      "blob": "46d6c053ad7e6e881530246f4227207960db9c71",
+      "bytes": 5482,
+      "sha256": "b1644b5a727a5f6bc4110139d3edc1f56c084a05e3bebdd41e908079bf36e7f2"
+    },
+    {
+      "reference": "cddf1786440ed284987b375f43315f2163f37db6:tests/shell/pipestatus-author-20260829/local-a-v1/PURE-RESULT.json",
+      "blob": "81e94ae03f130425313d0183478a466a369ef19b",
+      "bytes": 2197,
+      "sha256": "660c02fdff2af62e99887933aec1f19237abc0de8725768173af95918e529700"
+    },
+    {
+      "reference": "64185637eb56ba807d60b06ab893f4430b3ce991:AGENTS.md",
+      "blob": "e56511037706f20a859a362f06903541b4a7e443",
+      "bytes": 17342,
+      "sha256": "f80b22fbcc9fc10c63b4bb2a31d38b845b440ff9f85abca752df698a89c8f2ed"
+    }
+  ],
+  "sourceHash": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670",
+  "authorReplay": {
+    "pass": 20,
+    "total": 20,
+    "parser": 17,
+    "sourceOnly": 3
+  },
+  "novel": {
+    "pass": 2,
+    "total": 5
+  },
+  "rows": [
+    {
+      "id": "P01",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P02",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P03",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P04",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P05",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P06",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P07",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P08",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P09",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P10",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P11",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P12",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P13",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P14",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P15",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P16",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P17",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P18",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P19",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P20",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "N01",
+      "kind": "PURE_EXACT_SETUP_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "error": "Error: Fallible create/hold occur after saved preparation but before cleanup try; no local discard/close is reached",
+      "detail": [
+        {
+          "where": "create",
+          "prepared": 1,
+          "discarded": 0,
+          "operationClosed": 0,
+          "rawReasonPreserved": true
+        },
+        {
+          "where": "hold",
+          "prepared": 1,
+          "discarded": 0,
+          "operationClosed": 0,
+          "rawReasonPreserved": true
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "kind": "PURE_EXACT_FINALLY_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "error": "Error: Rejecting shadow release replaces raw primary and skips operation.close",
+      "detail": [
+        {
+          "primary": false,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        },
+        {
+          "primary": 0,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        },
+        {
+          "primary": null,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "kind": "PURE_EXACT_CATCH_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "error": "Error: Rejecting discardVariable replaces raw primary before throw error",
+      "detail": [
+        {
+          "primary": false,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": false
+        },
+        {
+          "primary": 0,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": false
+        },
+        {
+          "primary": null,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": false
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "kind": "SOURCE_ONLY_READONLY_AND_TYPED_RESTORATION",
+      "pass": true,
+      "observation": "SOURCE structure only; not actual restoration/atomicity"
+    },
+    {
+      "id": "N05",
+      "kind": "PURE_EXACT_FINALLY_SUCCESS_WITH_DOUBLES",
+      "pass": true,
+      "observation": null
+    }
+  ],
+  "sourceReadiness": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-local-a-independent-20260829/SOURCE-READINESS.json",
+    "bytes": 1180,
+    "sha256": "aca570be17c8c5cd12e87d4d499b9445f1ff3baf9be3d718238cb8ae58e73e91"
+  },
+  "limitations": [
+    "Injected cleanup failures demonstrate exact fragment control flow, not actual private cleanup fault reachability",
+    "Owner create and hold source paths contain finite ledger reservations; branch-local retirement gap established, not a permanent process-wide leak claim",
+    "No whole binding atomicity/runtime/restore execution",
+    "Original 75 PASS/3 R17 FAIL unchanged"
+  ],
+  "roles": {
+    "knownThroughHelper": 17,
+    "remainingPublicationReservation": 7,
+    "maximum": 24,
+    "peak": 3,
+    "pureHelpers": 1,
+    "dataGitChildren": 1,
+    "gitExit": 0,
+    "gitSignal": null
+  },
+  "retainedLogicalBytes": 619241,
+  "captureBytes": 600915,
+  "publicationReserveBytes": 16777216,
+  "captureMaximum": 25165824,
+  "workMaximum": 134217728,
+  "deadline": "2026-08-29T17:09:16Z",
+  "product": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "npm": 0,
+  "sourceEdits": 0,
+  "retained": [
+    {
+      "path": "FRAGMENTS.json",
+      "bytes": 1812,
+      "sha256": "bb24d02b5839c33791ef9cbc213e2c903b335602e5a54de6277f03fbea1a508d"
+    },
+    {
+      "path": "SOURCE-READINESS.json",
+      "bytes": 1180,
+      "sha256": "aca570be17c8c5cd12e87d4d499b9445f1ff3baf9be3d718238cb8ae58e73e91"
+    },
+    {
+      "path": "authentication.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "authentication.stdout",
+      "bytes": 464682,
+      "sha256": "66e0c5a3c0282dff139b51da3b48f25f2f571852716acdea96d6c0ca73215a9e"
+    },
+    {
+      "path": "focused-review.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "focused-review.stdout",
+      "bytes": 43370,
+      "sha256": "cdba95a1961010a686508373e6ece4ab1d892d0e5cfbdcf73349c8877d1e1f8a"
+    },
+    {
+      "path": "helper-authoring.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "helper-authoring.stdout",
+      "bytes": 137,
+      "sha256": "18e06dd9492e31be435467629be315140f66b6c7208c5a87980f07d226a0233e"
+    },
+    {
+      "path": "index-before.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "index-before.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ledger-setup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ledger-setup.stdout",
+      "bytes": 10198,
+      "sha256": "7ece22bae79b73ad95b7fc524d57c0f9b1a04cfdfe23ffcec4a4e13c742c63c6"
+    },
+    {
+      "path": "ownership.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ownership.stdout",
+      "bytes": 11764,
+      "sha256": "781d9e186fa904d022c148cf278ce3aac3b0d42389e39aaa502da0e7946cb122"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 15334,
+      "sha256": "170df7a0b687b660186f8ce7a49dbf16ddd64eb03f7d6b183fcf8447e83856b2"
+    },
+    {
+      "path": "review.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "source-inspection.stdout",
+      "bytes": 46954,
+      "sha256": "337f6005398fe10a0b0c48d5300d666dd0f457d68dd916cafdd7eff618b83edb"
+    },
+    {
+      "path": "start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "start.stdout",
+      "bytes": 23810,
+      "sha256": "8e91b8847aa98f815ff8d23817a6eef886bc68af7082d6bd5a4bfa88c232633c"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "parser": "function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {\n  signal.throwIfAborted();\n  let indexed = false;\n  let offset = 0;\n  while (args[offset]?.startsWith(\"-\")) {\n    signal.throwIfAborted();\n    const option = args[offset++]!;\n    if (option === \"--\") break;\n    if (option !== \"-a\") return { indexed, offset, error: option };\n    indexed = true;\n  }\n  return { indexed, offset, error: undefined };\n}\n",
+  "setup": "          const existingLocal = locals.get(name);\n          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);\n          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);\n          if (saved) await this.prepareVariable(state, name, saved);\n          const store = requireArrays(state);\n          const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n          const holding = store.owner.hold();\n          let shadow;\n",
+  "finallyText": "finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }",
+  "catchText": "catch (error) {\n            if (saved && !locals.has(name)) await this.discardVariable(saved);\n            throw error;\n          }",
+  "typeErasure": [
+    "exact parser signature",
+    "parser non-null postfix",
+    "locals non-null postfix in isolated fragments",
+    "shadow type annotation"
+  ],
+  "qualification": "Only parser and isolated control-flow fragments with ordinary doubles execute; no Runtime/Shell/BindingStore/ArrayOwner class is imported or executed; no actual budget/atomic publication/restoration result inferred"
+}

@@ -1,0 +1,151 @@
+[
+  {
+    "id": "N01",
+    "pattern": "(a(b)?)+",
+    "subject": "aba",
+    "status": 0,
+    "cardinality": 3,
+    "values": [
+      "aba",
+      "a",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N02",
+    "pattern": "((a)|(b))+",
+    "subject": "ab",
+    "status": 0,
+    "cardinality": 4,
+    "values": [
+      "ab",
+      "b",
+      "",
+      "b"
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N03",
+    "pattern": "((a(b)?)c)+",
+    "subject": "abcac",
+    "status": 0,
+    "cardinality": 4,
+    "values": [
+      "abcac",
+      "ac",
+      "a",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N04",
+    "pattern": "(ba(na)*s )*",
+    "subject": "bananas bas ",
+    "status": 0,
+    "cardinality": 3,
+    "values": [
+      "bananas bas ",
+      "bas ",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N05",
+    "pattern": "(a(b)?){2}",
+    "subject": "aba",
+    "status": 0,
+    "cardinality": 3,
+    "values": [
+      "aba",
+      "a",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N06",
+    "pattern": "((a)?b){2}",
+    "subject": "abb",
+    "status": 0,
+    "cardinality": 3,
+    "values": [
+      "abb",
+      "b",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N07",
+    "pattern": "((a)|(b))+",
+    "subject": "ba",
+    "status": 0,
+    "cardinality": 4,
+    "values": [
+      "ba",
+      "a",
+      "a",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N08",
+    "pattern": "(a(b)?)+",
+    "subject": "ab",
+    "status": 0,
+    "cardinality": 3,
+    "values": [
+      "ab",
+      "ab",
+      "b"
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N09",
+    "pattern": "(a)?b",
+    "subject": "b",
+    "status": 0,
+    "cardinality": 2,
+    "values": [
+      "b",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N10",
+    "pattern": "(a*)b",
+    "subject": "b",
+    "status": 0,
+    "cardinality": 2,
+    "values": [
+      "b",
+      ""
+    ],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N11",
+    "pattern": "(a)",
+    "subject": "b",
+    "status": 1,
+    "cardinality": 0,
+    "values": [],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  },
+  {
+    "id": "N12",
+    "pattern": "(",
+    "subject": "a",
+    "status": 2,
+    "cardinality": 0,
+    "values": [],
+    "qualification": "accepted local Bash3.2 visible values only; no offsets/native execution"
+  }
+]

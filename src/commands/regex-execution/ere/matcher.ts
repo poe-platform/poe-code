@@ -61,6 +61,34 @@ async function preferred(candidate: State, incumbent: State, ledger: EreLedger, 
   return false;
 }
 
+async function resetDescendants(node: EreNode, previous: readonly (EreSpan | null)[], ledger: EreLedger, signal?: AbortSignal): Promise<readonly (EreSpan | null)[]> {
+  ledger.charge("allocationUnits", previous.length + 3, signal);
+  const captures = previous.slice();
+  const pending: EreNode[] = [node];
+  while (pending.length > 0) {
+    ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
+    const current = pending.pop()!;
+    if (current.kind === "group") captures[current.index] = null;
+    if (current.kind === "group" || current.kind === "repeat") {
+      if (current.child.captured) {
+        ledger.charge("allocationUnits", 1, signal);
+        pending.push(current.child);
+      }
+    } else if (current.kind === "sequence" || current.kind === "alternative") {
+      for (const child of current.children) {
+        ledger.charge("work", 1, signal);
+        await ledger.checkpoint(signal);
+        if (child.captured) {
+          ledger.charge("allocationUnits", 1, signal);
+          pending.push(child);
+        }
+      }
+    }
+  }
+  return captures;
+}
+
 export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
   ledger.check(signal);
   const root = resolveEreProgram(program, ledger);
@@ -146,8 +174,9 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
           }
           break;
         case "group": {
+          const captures = node.child.captured ? await resetDescendants(node.child, state.captures, ledger, signal) : state.captures;
           const close = task(() => ({ kind: "close", group: node.index, start: state.position, next: current.next }));
-          push(state.position, task(() => ({ kind: "node", node: node.child, next: close })), state.captures, state.histories);
+          push(state.position, task(() => ({ kind: "node", node: node.child, next: close })), captures, state.histories);
           break;
         }
         case "repeat":

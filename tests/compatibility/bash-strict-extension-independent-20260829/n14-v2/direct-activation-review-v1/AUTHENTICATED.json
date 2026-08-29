@@ -1,0 +1,175 @@
+{
+  "files": [
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/CANDIDATE-CLOSURE.json",
+      "bytes": 1037,
+      "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/COMMAND-PLAN.json",
+      "bytes": 276365,
+      "sha256": "a059c018cd445e93f5fec10b7903128006e748bfcb71f552f58bf94654b8394f"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/DATA-CHECKS.json",
+      "bytes": 2320,
+      "sha256": "974d2e139751ecf1967358b213c329f6e5f5fe939b6ce58622c513637ba3f4e0"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/LIMITS.json",
+      "bytes": 555,
+      "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/PREPROVISION-RECEIPT.json",
+      "bytes": 335,
+      "sha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/README.md",
+      "bytes": 2922,
+      "sha256": "ee01c33c485a2e2d8881e43cbfd218eb142c1a3a1f10d82a9295af15b3c24cfc"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/SOURCE-CAPSULE.json.gz.base64",
+      "bytes": 1516833,
+      "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/SOURCE-PROVENANCE.json",
+      "bytes": 5575,
+      "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/TOOLS.json",
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/outer.mjs",
+      "bytes": 6096,
+      "sha256": "a0e523a93301429496b6fe887fb4df803ec5bbb4139244b1400260cc77dfce9e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/packet-io.mjs",
+      "bytes": 1869,
+      "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/MATRIX.json",
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/NODE.json",
+      "bytes": 304,
+      "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/PACKAGE-MEMBERS.json",
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/SOURCE-MEMBERS.json",
+      "bytes": 68225,
+      "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/STATIC-EDGES.json",
+      "bytes": 31738,
+      "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/case-adapter.mjs",
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/case-driver.mjs",
+      "bytes": 1504,
+      "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/case-launch.mjs",
+      "bytes": 2722,
+      "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/data.mjs",
+      "bytes": 3196,
+      "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/direct-child.mjs",
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/guard.mjs",
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/mechanism.mjs",
+      "bytes": 2506,
+      "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/package-admission.mjs",
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/parse-manifest.mjs",
+      "bytes": 2860,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/profile.mjs",
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/profile/setup.mjs",
+      "bytes": 4088,
+      "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/publication-admin.mjs",
+      "bytes": 4027,
+      "sha256": "8b49cc6fc23df835ab3b173062762993b8fde1fb5cbc4b06bd2e2be2db055278"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1/supervisor.mjs",
+      "bytes": 11663,
+      "sha256": "aee84c8dc73dce7182ef6483dc5c757ccb5610b71e5d8cc9e96cf82f94623099"
+    }
+  ],
+  "copies": [
+    "profile/MATRIX.json",
+    "profile/NODE.json",
+    "profile/PACKAGE-MEMBERS.json",
+    "profile/SOURCE-MEMBERS.json",
+    "profile/STATIC-EDGES.json",
+    "profile/auth.mjs",
+    "profile/case-adapter.mjs",
+    "profile/case-driver.mjs",
+    "profile/case-launch.mjs",
+    "profile/data.mjs",
+    "profile/direct-child.mjs",
+    "profile/guard.mjs",
+    "profile/mechanism.mjs",
+    "profile/package-admission.mjs",
+    "profile/parse-manifest.mjs",
+    "profile/profile.mjs",
+    "profile/setup.mjs"
+  ],
+  "copiedCount": 17,
+  "rawCapsuleHashedNotDecoded": true
+}

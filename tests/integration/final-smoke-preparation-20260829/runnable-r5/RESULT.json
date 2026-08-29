@@ -1,0 +1,63 @@
+{
+  "status": "RUNNABLE_SOURCE_PURE_READY_REVIEW_PENDING",
+  "outcomes": [
+    {
+      "id": "fixed1200activation",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "latest-refusal",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "invalid-clock-refusal",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "pending-review-refusal",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "wrong-packet-refusal",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "accessor-refusal",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "consumer-closure-complete",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    },
+    {
+      "id": "mode-and-layout-source-routing",
+      "status": "PASS",
+      "role": "PURE_SOURCE_NO_PRODUCT"
+    }
+  ],
+  "packetSha256": "4b8c9b8c8c937cb14e2978a0a123824ed066072839d5ea4a2101c2e847edd3db",
+  "packetBytes": 9149,
+  "files": 16,
+  "consumerFiles": 10,
+  "actualCells": 0,
+  "productExecutions": 0,
+  "loaderExecutions": 0,
+  "childSpawns": 0,
+  "startedUTC": "2026-08-29T17:55:02.597Z",
+  "endedUTC": "2026-08-29T17:55:02.630Z",
+  "qualifications": [
+    "Four future supervised children; not executed",
+    "Known exit/close/stream endpoints plus explicit layout result/disposal required; processclose alone not semantic retirement",
+    "Current source owner timers use90s execution plus30s teardown; timer scheduling/hardkernel drain not guaranteed",
+    "Whole fixed1200 activation starts before packet admission; latest18:10 absoluteexpiry18:30",
+    "Publication writes bounded DATA evidence only; no automatic Git commit, remaining known roles reserved not observed",
+    "No real setup/npm/permission/loader execution; independent executable review still mandatory"
+  ]
+}

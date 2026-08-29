@@ -1,0 +1,8 @@
+{
+  "schema": "FINAL_SMOKE_FIXED_ACTIVATION_R4",
+  "action": "ROOT_FINAL_COHERENT_SMOKE24",
+  "packetSha256": "4b8c9b8c8c937cb14e2978a0a123824ed066072839d5ea4a2101c2e847edd3db",
+  "authorization": "PENDING",
+  "producerReview": "PENDING",
+  "preexecReview": "PENDING"
+}

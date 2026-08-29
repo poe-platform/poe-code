@@ -1,0 +1,132 @@
+{
+  "schema": "ACTUAL_V7_R3_UNSAFE_STOP_EVIDENCE",
+  "runId": "admission-20260829-v7r3-01",
+  "grantCommit": "9c380f67a708508a359798b85ae5839bcb5e7f0c",
+  "grantSha256": "e44e3eb38c338bbc2ff64aca9755f4d9876b6f844ef0fb8d7897cf9710f0be0e",
+  "authCommit": "79531d7aec9580d3a3f40fd19dad3dcb99aa7e88",
+  "authRawSha256": "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38",
+  "files": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/ADMIN-CAPTURE.ndjson",
+      "bytes": 15819,
+      "mode": 384,
+      "sha256": "aee92a649b1e4f856ccaf3cf7a13ef48fd1f943823e9b0f9dbeee15813a4abf7"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+      "bytes": 555,
+      "mode": 420,
+      "sha256": "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/LAUNCH-INTENT.json",
+      "bytes": 1880,
+      "mode": 420,
+      "sha256": "76ad1b78c774d72a9fc80e36832e73d4e24de5640699b4a4d0aad86a9a44a12b"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/LAUNCH-RECEIPT.json",
+      "bytes": 9150,
+      "mode": 420,
+      "sha256": "d7ca9a8ee71912a4ec5579fe8eb8759b6e69d005fe5646f50b69d804a3337219"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/OWNER.pid",
+      "bytes": 4,
+      "mode": 384,
+      "sha256": "fcdd0e8838b4b1f894b35e46a0c168d64b6221c88d07ca5c0d0faec04fedceaa"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/OWNER.stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/OWNER.stdout.raw",
+      "bytes": 1788,
+      "mode": 384,
+      "sha256": "3cc91c7f8bfd719988b15470d887efd68f118f40cb0fc4ef9bb4ab69051e9294"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/PREFLIGHT.json",
+      "bytes": 1967,
+      "mode": 420,
+      "sha256": "208562ed4b743a76f9f4796310e18e4a877341dbc5790edb21edfbb438a5c69f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/RESULT.json",
+      "bytes": 8081,
+      "mode": 420,
+      "sha256": "890ee62f1d6487b3afc6b587699639ac23c65b5c562f859a1749ba7b9cf359a6"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/ROOT-AUTHORITY.json",
+      "bytes": 6423,
+      "mode": 420,
+      "sha256": "104c5f631e82b536d2d81e212373750c6d6a6b45ca30333bc63ec34150b6a8c9"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/ROOT-GRANT.json",
+      "bytes": 975,
+      "mode": 420,
+      "sha256": "e44e3eb38c338bbc2ff64aca9755f4d9876b6f844ef0fb8d7897cf9710f0be0e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/RECEIPT.json",
+      "bytes": 1757,
+      "mode": 384,
+      "sha256": "c7c5905417003d8ee2a9dba1121e3613ab6be2fc269ede226b10077ee0da13e2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/events.ndjson",
+      "bytes": 80,
+      "mode": 384,
+      "sha256": "fe0f05425cefb09b01286643aa9b24bf5ab9600bdb4292b5749d38252189a852"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/intent.ndjson",
+      "bytes": 327,
+      "mode": 384,
+      "sha256": "b9e31eb2cff09220585089b2cd7460e14d289817ca831afa9f71e2ee39d5aae7"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/stdout.raw",
+      "bytes": 212,
+      "mode": 384,
+      "sha256": "124345393984f2c9aa4e05360a8c4226e1b2a1bf4d009a3acc755f3dad32f562"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json",
+      "bytes": 941,
+      "mode": 384,
+      "sha256": "2fcbdba35668aa9bb4d7d939d5a067ce2e5eaaf1a4770a560e22ca6b1b70ad4a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/OUTER.json",
+      "bytes": 4513,
+      "mode": 384,
+      "sha256": "212e91a147d184fececc391ff0eb08743b6bccda06a39452e9a0f61f96c43cac"
+    }
+  ],
+  "selfExcluded": true,
+  "rawFilesUnchanged": true,
+  "currentCaptureLostBytes": 0,
+  "innerEvidenceModeFailurePreserved": true,
+  "actualOperations": 0,
+  "unrunOperations": 14,
+  "publication": "Final atomic --only commit emits its full40-character ID directly; no moving-HEAD or extra rev-parse process. Final commit closure is separately retained in tool receipt.",
+  "modeQualification": "Rows retain actual0600/0644 modes. Git only preserves the executable bit; no chmod repair is applied."
+}

@@ -37,7 +37,27 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
-## ROOT-qualified priority workflows and current status — 2026-08-28
+## Apply-patch public integration candidate
+
+ROOT-qualified module acceptance is now bound to
+`753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d`, full882 package
+`f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95`, and
+adjudication `c1fc3ee8a010289145959a05e8b088e51f21780a`. L07's original7/9,
+two cleanup-count assertion failures, legacy11 failures and21 uncredited
+observations remain unchanged. Two separate cleanup owners fulfilled in the
+successful L07 cases; this is not a rescore or universal backend/resource proof.
+
+Current root wiring adds `apply_patch` as default79 onto the accepted coherent78
+plus arrays composition, with independent public review still required. Root and
+`virtual-bash/commands/apply-patch` provide the three factories/plugin and typed
+limits; aggregate `applyPatch` forwards limits with top-level replacement authority.
+This is bounded literal UTF-8 VFS patching, not a host subprocess or generic native
+patch compatibility. Git remains module-only (M1B correction under review); Node
+provider/contract remains unqualified. No YQ/XAN/npm/npx commands are added, and
+curl remains optional. The original user table and historical audit below are
+unchanged. Evidence: `tests/integration/apply-patch-public-20260829/`.
+
+## Historical ROOT-qualified priority workflows and status — 2026-08-28
 
 ROOT accepts scoped evidence `0a942ed29897a1993ab45e0b374c5d9edd829682` and
 finalization `4cb1745d381a98f83c030f3e7cad0072179e43ad` on exact selected

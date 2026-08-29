@@ -86,6 +86,10 @@
       "types": "./dist/commands/timeout/index.d.ts",
       "import": "./dist/commands/timeout/index.js"
     },
+    "./commands/apply-patch": {
+      "types": "./dist/commands/apply-patch/index.d.ts",
+      "import": "./dist/commands/apply-patch/index.js"
+    },
     "./commands/which": {
       "types": "./dist/commands/which/index.d.ts",
       "import": "./dist/commands/which/index.js"

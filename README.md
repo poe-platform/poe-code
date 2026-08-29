@@ -138,7 +138,8 @@ stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
 grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
 (`html-to-markdown`), usage accounting (`du`), expressions (`expr`), virtual
-executable lookup (`which`) and cooperative deadlines (`timeout`), totaling 78 unique registered
+executable lookup (`which`), cooperative deadlines (`timeout`) and VFS editing
+(`apply_patch`), totaling 79 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -576,7 +577,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 78 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 79 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -586,6 +587,51 @@ remain zero.
 The older frozen package audit at `b98e239` retains its 15-export evidence in
 `benchmarks/reports/PACKAGE_AUDIT.json`; it is not rescored here. Exact flags,
 bounds and unsupported features remain in `src/commands/network/README.md`.
+
+## Apply Patch
+
+The current aggregate includes `apply_patch`. Root and
+`virtual-bash/commands/apply-patch` export `createApplyPatchCommand`,
+`createApplyPatchCommands`, `applyPatchCommands`, `ApplyPatchCommandsOptions`
+and `ApplyPatchLimits`. Standalone registration is also available; do not install
+it twice without intentional replacement. Aggregate `applyPatch` accepts limits
+only, with top-level `replace` authoritative, including untyped nested overrides.
+
+`apply_patch` accepts one literal patch argument or UTF-8 stdin. This is the
+`*** Begin Patch` / `*** End Patch` Add/Update/Delete/Move format, not a native
+`patch` subprocess or general GNU/unified-diff compatibility. Matching is literal
+and bounded. Parent traversal, symlink targets and binary/NUL input are refused;
+paths are VFS paths, never implicit host paths. Limits may be lowered, not raised
+past the module maxima. Validation/staging does not promise multi-file rollback
+or atomic publication across providers; filesystem or output failures can follow
+completed writes. Required diagnostics use the caller's stderr, and cooperative
+cleanup is awaited before public settlement.
+
+```ts
+import { Shell, MemoryFileSystem, agentCommands } from "virtual-bash";
+
+const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands({
+  applyPatch: { limits: { maxPatchBytes: 65536, maxFiles: 8 } },
+}));
+try {
+  const patch = "*** Begin Patch\n*** Add File: note.txt\n+hello\n*** End Patch\n";
+  const changed = await shell.exec("apply_patch", { stdin: patch });
+  if (changed.exitCode !== 0) throw new Error(changed.stderr);
+  const content = await shell.exec("cat note.txt");
+} finally {
+  await shell.dispose();
+}
+```
+
+The module at `753f33d2` has ROOT-qualified acceptance; the new coherent78+arrays
+public/default79 composition requires its own independent integration review.
+Historical L07's7/9 includes two unchanged cleanup-count assertion failures: two
+distinct registered owners fulfilled, not the fixture's expected one. Legacy11
+failures and21 uncredited observations retain their original qualifications. See
+[the module adjudication](tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/ACCEPTANCE-ADJUDICATION.md)
+and [the public integration evidence](tests/integration/apply-patch-public-20260829/).
+Git is not yet registered; curl/SafeJS stay explicit opt-ins. No whole-product or
+full native-utility parity follows from this integration.
 
 ## Grep Aliases and Column
 

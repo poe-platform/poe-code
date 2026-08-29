@@ -22,9 +22,11 @@ import { createDuCommands, type DuCommandsOptions } from "../commands/du/index.j
 import { createExprCommands, type ExprCommandsOptions } from "../commands/expr/index.js";
 import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
 import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
+import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex">;
@@ -63,6 +65,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   const exprLimits = options.expr?.limits;
   const whichLimits = options.which?.limits;
   const timeoutOptions = options.timeout;
+  const applyPatchLimits = options.applyPatch?.limits;
   commands.push(
     ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createTextProgramCommands({ ...options.text }),
@@ -90,6 +93,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
       scheduler: timeoutOptions.scheduler,
       maxTimerMilliseconds: timeoutOptions.maxTimerMilliseconds,
     }),
+    ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
   );
   return new CommandRegistry(commands).list();
 }

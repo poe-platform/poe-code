@@ -1,0 +1,75 @@
+{
+  "kind": "DOCS_ONLY_VALIDATION",
+  "checkedAt": "2026-08-29T17:49:29.193Z",
+  "edited": "docs/COMMAND_PRIORITIES.md",
+  "sha256": "403029fff9c355959c5a3b4853f923e9680ec899b95249fc236a8be3c9738744",
+  "bytes": 38070,
+  "snapshotDate": "2026-08-29 UTC",
+  "assertions": 19,
+  "localReportLinksChecked": 14,
+  "declaredRuntimeDependencies": 0,
+  "runtimeExecutions": 0,
+  "compilerExecutions": 0,
+  "workerExecutions": 0,
+  "npmExecutions": 0,
+  "scopeBefore": {
+    "paths": [
+      "src/shell/runtime.ts",
+      "tsconfig.build.json",
+      "package.json",
+      "src/index.ts",
+      "AGENTS.md",
+      "docs/COMMAND_PRIORITIES.md"
+    ],
+    "worktreeStatus": [],
+    "stagedDiff": []
+  },
+  "scopeAfterBeforeCommit": [
+    " M docs/COMMAND_PRIORITIES.md"
+  ],
+  "ownedProductEditsThisTask": [],
+  "foreignPreexistingDirtyRequestedPaths": [],
+  "productHistory": "Earlier owned work is committed; all five requested non-document paths were clean before and after this docs edit. No ownership of other agents commits is claimed.",
+  "history": "Metadata lookup of ROOT label23361e50 as a Git revision failed128 and is retained; label preserved as ROOT-reported binding without claiming it is a resolvable commit. Corrected lookup of resolvable source references exited0.",
+  "qualification": "No held content reads, no XAN admission, no tests or future acceptance inferred. Original audits/source-only/history qualifiers preserved.",
+  "instructionChanges": "None; durable priority/provider/build exclusion rules already present. No AGENTS edit.",
+  "rawCaptureRoot": "/private/tmp/safe-bash-priorities-snapshot-20260829",
+  "validationRoles": [
+    {
+      "role": "status-after",
+      "pid": 9935,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "role": "diff-check",
+      "pid": 9936,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "role": "doc-diff",
+      "pid": 9937,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ]
+}

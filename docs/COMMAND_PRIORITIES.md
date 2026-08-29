@@ -33,11 +33,13 @@ ambient host authority or native fallback. See the existing
 | Workstream | Current, scope-qualified status |
 | --- | --- |
 | K08 arithmetic positional parameter | Accepted finite69/69, with independent `cb5f9280`; not general arithmetic/Bash parity. [Independent evidence](../tests/compatibility/bash-function-keyword-k08-actual-independent-20260829/REPORT.md). |
-| PIPESTATUS | Old frozen artifact retains **75 PASS /3 FAIL**, all three R17 (`local -a`), in actual commit `5009e090`. Generic indexed-local source `ec74e14` now exists, but independent review/build/runtime validation is pending; it does not rescore the old artifact. [Actual findings](../tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/inspection-v1/HANDOFF.md); [new SOURCE/PURE scope](../tests/shell/pipestatus-author-20260829/local-a-v1/HANDOFF.md). |
-| B1 | Author15/15 reported; publication remains **HOLD**, DATA recovery pending. Not independently accepted runtime proof. |
-| B2 | r7 records224 source cases;448 installed/moved cells remain **UNRUN**, with r8 pending. Do not sum them into a completed three-layout result. |
-| CORE / ERE integration | Limited pilot evidence only; remaining private/integration gates are pending. [Pilot review](../tests/compatibility/bash-ere-core-public-pilot-independent-20260829/runtime-review-v2/REPORT.md). |
-| Final composition | The proposed323-input composition plus the independently reviewed local-declaration delta still needs its final bound build/smoke. Separate accepted artifacts do not certify that composition or moving HEAD. |
+| PIPESTATUS | Old frozen artifact retains **75 PASS /3 FAIL**, all three R17 (`local -a` unsupported in that artifact), in actual commit `5009e090`. The new generic indexed-local source/cleanup preparation is SOURCE/PURE-accepted at `42c5df0d`; that does not rescore the old runtime artifact. [Old findings](../tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/inspection-v1/HANDOFF.md); [accepted source/cleanup and producer scope](../tests/compatibility/final-coherent-producer-20260829/REPORT.md). |
+| B1 | Historical **15/15** has qualified independent DATA recovery (`e751906c`/`23361e50`, ROOT-reported bindings). The **original publisher HOLD remains**; recovered observations are not a retroactive successful publication or new execution. [DATA handoff](../tests/integration/agent-bash-coherent-b1-data-independent-20260829/HANDOFF-v3.md). |
+| B2 | New r9 **AUTHOR** evidence `1a4c02b9`: a fresh **672/672** across source/installed/moved, six type processes/24 exact negative diagnostics, seven mutant kills/seven restores, two binding refusals. **Independent DATA audit pending.** This is not old224 plus new448; prior r7/r8 224/448 STOPs and late unlaunched admission remain unchanged. [Actual r9 evidence](../tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/actual-v2/HANDOFF.md). |
+| L02 transport evidence | Qualified DATA records `dc3333e2d` + `0a0f4b859`: **12 PASS /1 UNKNOWN**, final observed exits zero, **no cleanup credit**. This is not full transport acceptance. [Preservation review](../tests/compatibility/bash-ere-l02-preservation-independent-20260829/preservation-v1/REPORT.md); [authority completion](../tests/compatibility/bash-ere-l02-preservation-independent-20260829/authority-completion-v1/REPORT.md). |
+| CORE / ERE integration | The current **CORE24 pilot is pending actual execution**, not an accepted full CORE/T1 gate. Earlier limited evidence and remaining integration obligations stay separate. [Earlier pilot review](../tests/compatibility/bash-ere-core-public-pilot-independent-20260829/runtime-review-v2/REPORT.md). |
+| Final composition | Selected **323 source inputs /1070 package members**, archive974493 bytes (SHA prefix `de8741c1`): strict compiler and offline packaging exited0; producer DATA record `937f1d93`. **Independent producer review pending; current24 smoke workflows UNRUN.** This is build/package evidence, not runtime acceptance or moving-HEAD qualification. [Producer report and exact inventories](../tests/compatibility/final-coherent-producer-20260829/REPORT.md). |
+| Default build configuration | `f9c0828c` excludes exactly16 unaccepted production paths; the resulting267 source roots match the supported projection. One normal-config `--noEmit` compiler invocation exited0. The frozen archive is unchanged: **no default npm emitter run is claimed**. All16 files and all40 excluded tracked extras remain preserved; **XAN stays on absolute HOLD**, with no held-content reads authorized here. [Alignment evidence](../tests/compatibility/default-build-alignment-20260829/REPORT.md). |
 | Comparison | The comparator is paused. No current overall “better than just-bash” result is established; historical scoped measurements remain scoped. |
 
 Known restrictions remain those of the existing contracts, not newly invented
@@ -49,8 +51,11 @@ Node's restricted provider/Worker profile is not full Node or universal
 all-jobs-settled/RSS proof. See the detailed profile sections below rather than
 assuming one command name means all Bash/GNU forms work.
 
-This is a documentation/coordination snapshot, not a new test run. B1/B2 pending
-states are ROOT-reported, not independently remeasured here. Original failures,
+This August 29, 2026 UTC documentation/coordination snapshot records the latest
+ROOT-reported statuses, not a new test run or independent remeasurement. B2's new
+author result, the final producer, and their pending reviews remain distinguished.
+No performance, overall superiority, full Bash/Git, or sandbox claim follows.
+Original failures,
 source-only/mixed proofs, native-profile differences and resource qualifications
 remain intact. README (including the selected PUBLIC309 README), product source
 and historical fixtures are unchanged by this update.

@@ -1,0 +1,14 @@
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/CAPSULE.json
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/HANDOFF.md
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/L01-DISPATCH.json
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/L02-DISPATCH.json
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/RESOURCES.txt
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/RESULT.json
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/L01.stderr
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/L01.stdout
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/L02.stderr
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/L02.stdout
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/precommit.stdout
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/probe.events.jsonl
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/probe.stderr
+tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/probe.stdout

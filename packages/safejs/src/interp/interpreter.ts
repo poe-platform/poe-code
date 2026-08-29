@@ -1132,19 +1132,35 @@ async function evaluateVariableDeclaration(
   };
 }
 
-function isRestorableBindingValue(value: InterpreterValue): boolean {
-  if (Array.isArray(value)) {
-    return value.every(isRestorableBindingValue);
-  }
+function isRestorableBindingValue(value: InterpreterValue, seen = new WeakSet<object>()): boolean {
   if (typeof value !== "object" || value === null) {
     return true;
+  }
+  if (seen.has(value)) return true;
+  seen.add(value);
+  if (isSandboxMap(value)) {
+    for (const [key, entry] of value.entries) {
+      if (!isRestorableBindingValue(key, seen) || !isRestorableBindingValue(entry, seen)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (isSandboxSet(value)) {
+    for (const entry of value.values) {
+      if (!isRestorableBindingValue(entry, seen)) return false;
+    }
+    return true;
+  }
+  if (Array.isArray(value)) {
+    return value.every((entry) => isRestorableBindingValue(entry, seen));
   }
   if (Object.hasOwn(value, "kind")) {
     return !["fn", "generator", "map", "promise", "regex", "set"].includes(
       String((value as { kind?: unknown }).kind)
     );
   }
-  return Object.values(value).every(isRestorableBindingValue);
+  return Object.values(value).every((entry) => isRestorableBindingValue(entry, seen));
 }
 
 function predeclareDeclarationBindings(node: VariableDeclaration, scope: Scope): void {
@@ -1446,6 +1462,17 @@ async function evaluateForOfStatement(
   node: ForOfStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const restoredIteration = context.restoredLoopIterations.get(node.nodeId ?? -1);
+  let restoredEntry: IteratorResult<SandboxValue> | undefined;
+  if (typeof restoredIteration === "object" && typeof restoredIteration.values[0] === "string") {
+    const restored = context.scope.consumeRestoredBinding(restoredIteration.values[0]);
+    if (restored.found && Array.isArray(restored.value)) {
+      restoredEntry = { done: false, value: restored.value[1] };
+      if (isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0])) {
+        return evaluateForOfIterator(node, restored.value[0], context, restoredEntry);
+      }
+    }
+  }
   const iterable = await evaluateNode(node.right, context);
   if (iterable.kind !== "normal") {
     return iterable;
@@ -1453,7 +1480,7 @@ async function evaluateForOfStatement(
 
   const values = snapshotableIterationValues(iterable.value);
   if (values === undefined) {
-    return evaluateForOfIterator(node, iterable.value, context);
+    return evaluateForOfIterator(node, iterable.value, context, restoredEntry);
   }
 
   const restoredIndex = consumeRestoredLoopIterationIndex(node, context);
@@ -1501,7 +1528,8 @@ async function evaluateForOfStatement(
 async function evaluateForOfIterator(
   node: ForOfStatement,
   value: SandboxValue,
-  context: EvaluationContext
+  context: EvaluationContext,
+  restoredEntry?: IteratorResult<SandboxValue>
 ): Promise<EvaluationResult> {
   const iterator = getSandboxIterator(value);
   if (iterator === undefined) {
@@ -1521,7 +1549,8 @@ async function evaluateForOfIterator(
   }
 
   while (true) {
-    const iteration = await iterator.next();
+    const iteration = restoredEntry ?? (await iterator.next());
+    restoredEntry = undefined;
     if (typeof iteration !== "object" || iteration === null) {
       throw new TypeError("Iterator result must be an object.");
     }
@@ -1530,7 +1559,17 @@ async function evaluateForOfIterator(
       return normalEmptyResult();
     }
 
-    context.activeLoopIterations.set(nodeId, index);
+    context.activeLoopIterations.set(
+      nodeId,
+      iterator.snapshotIndex === undefined
+        ? index
+        : {
+            get index() {
+              return iterator.snapshotIndex!();
+            },
+            values: [value, iteration.value]
+          }
+    );
     const scope = context.scope.child();
     const binding = await bindForOfLoopVariable(node.left, iteration.value, scope, context);
     if (!binding.ok) {
@@ -1835,12 +1874,24 @@ function createLoopIterationContext(context: EvaluationContext, scope: Scope): E
   return {
     ...context,
     scope,
-    snapshot: (currentScope: Scope) => ({
-      ...currentScope.snapshot(),
-      ...(context.activeLoopIterations.size === 0
-        ? {}
-        : { loopIterations: Object.fromEntries(context.activeLoopIterations) })
-    })
+    snapshot: (currentScope: Scope) => {
+      const snapshot = currentScope.snapshot();
+      if (context.activeLoopIterations.size === 0) return snapshot;
+      snapshot.loopIterations = {};
+      for (const [nodeId, iteration] of context.activeLoopIterations) {
+        if (
+          typeof iteration !== "number" &&
+          (isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]))
+        ) {
+          const bindingName = `#for-of:${nodeId}`;
+          snapshot.bindings[bindingName] = iteration.values;
+          snapshot.loopIterations[nodeId] = { index: iteration.index, values: [bindingName] };
+        } else {
+          snapshot.loopIterations[nodeId] = iteration;
+        }
+      }
+      return snapshot;
+    }
   };
 }
 
@@ -1868,12 +1919,6 @@ function snapshotableIterationValues(value: SandboxValue): SandboxValue[] | unde
   }
   if (Array.isArray(value)) {
     return value;
-  }
-  if (isSandboxMap(value)) {
-    return Array.from(value.entries, ([key, entry]) => [key, entry] as SandboxValue[]);
-  }
-  if (isSandboxSet(value)) {
-    return Array.from(value.values);
   }
   return undefined;
 }

@@ -1,0 +1,16 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createApplyPatchCommand, createApplyPatchCommands, applyPatchCommands, type AgentCommandsOptions, type ApplyPatchCommandsOptions, type ApplyPatchLimits } from "virtual-bash";
+import { createApplyPatchCommand as subpath, type ApplyPatchCommandsOptions as SubpathOptions } from "virtual-bash/commands/apply-patch";
+const limits: Partial<ApplyPatchLimits> = { maxPatchBytes: 65536, maxFiles: 8, maxWork: 8192 };
+const options: ApplyPatchCommandsOptions = { replace: true, limits };
+const sub: SubpathOptions = options;
+const aggregate: AgentCommandsOptions = { applyPatch: { limits }, replace: true };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+createAgentCommands(aggregate); createApplyPatchCommand(options); createApplyPatchCommands(sub); applyPatchCommands(options); subpath(options);
+// @ts-expect-error aggregate replacement belongs only to the top-level policy
+agentCommands({ applyPatch: { replace: true } });
+// @ts-expect-error native fallback is not an API
+applyPatchCommands({ spawn: true });
+// @ts-expect-error limits require numbers
+createApplyPatchCommand({ limits: { maxFiles: "8" } });
+// @ts-expect-error unknown bounds are rejected
+createApplyPatchCommands({ limits: { unlimited: true } });

@@ -1,0 +1,67 @@
+{
+  "schema": "d03-record-v2-selected-evidence-binding",
+  "sourceCommit": "4f1fe5b2af261815ae68aae9abd55d801fcb3574",
+  "presealSha256": "c9eecd88403171a13c6e36e234b971ad1a4bac7cbe588f69c91ccd661f2e15b5",
+  "oldSourceCommit": "33860b2b88f6e1b5492bfe3fb60d9ea41b70fa69",
+  "oldStopUnchanged": "e8f4c1784bc1a7f95b1a065c0971fda935499d71",
+  "files": [
+    {
+      "path": "SELECTED-RESULT.json",
+      "bytes": 2425,
+      "sha256": "6ee1da48ba776dad464ae6bdffd01779c806df1c0c8b31c42f78b690fb433ea9"
+    },
+    {
+      "path": "SELECTED-EVENTS.jsonl",
+      "bytes": 2068,
+      "sha256": "1f76d6f97fd057761b1ebc7f9e6e8d6d8ab8b82853dd389d838c32a3f6da4c34"
+    },
+    {
+      "path": "CAPTURE-CLOSED.json",
+      "bytes": 139,
+      "sha256": "6c69f763e69c8540bcc475df90836598c682e066384f8fde9d9772982de12643"
+    },
+    {
+      "path": "ATTRIBUTION.json",
+      "bytes": 2016,
+      "sha256": "469586efc44af6f9fd81664cf928227631798efa661376b2ad71ef9c67a16707"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 4943,
+      "sha256": "2a2a3310d6f6baddf922d6c0650d63384ebcc62bdd01fd3b3493149e18a9f273"
+    }
+  ],
+  "at": 1787981994048,
+  "knownAdminChildrenAtCutoff": 10,
+  "knownRetiredAtCutoff": 10,
+  "activeAdminChildren": 0,
+  "adminCapturedBytesAtCutoff": 13686,
+  "selectedEventBytes": 2068,
+  "sampledOwnedWorkingBytes": 136546,
+  "headerReads": 1,
+  "headerBytes": 6779,
+  "matchedRecordReads": 1,
+  "matchedRecordBytes": 6779,
+  "recordSha256": "4c9a28200253d2364fa094f6331efd37bb7a4fc02df49ae1a81e32962910c69e",
+  "rawRecordPublished": false,
+  "closedReportHandles": 1,
+  "activeReportHandles": 0,
+  "targetChildren": 0,
+  "additionalAcquisitionAuthorized": false,
+  "phaseLimits": {
+    "allProcesses": 28,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "phaseStarted": 1787981626329,
+  "phaseDeadline": 1787982526329,
+  "remainingPublication": [
+    "apply binding",
+    "git add exact evidence",
+    "git commit --only evidence",
+    "git status exact owned scope"
+  ],
+  "captureLocator": "/tmp/bash-surface-d03-record-v2-SRcRFZ",
+  "qualification": "Observed direct metadata/editing child lifecycle and selected OS fields only; no kernel census, target readiness, native semantics, RSS or hard preemption claim"
+}

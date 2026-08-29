@@ -209,7 +209,7 @@
     "root": "runtimeRoot/cache",
     "reservationBytes": 134217728,
     "sourceDerivedBound": false,
-    "rootDecision": "ROOT_ACCEPTED_BEST_EFFORT_NATIVE_TOOL_BOUNDARY",
+    "rootDecision": "PENDING_BEST_EFFORT_NATIVE_TOOL_BOUNDARY",
     "requiredAuthority": "ROOT_ACCEPTS_BEST_EFFORT_MUTABLE_CACHE_R8"
   }
 }

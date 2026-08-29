@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const filename = path.join(import.meta.dirname, 'CONTROL-PRESEAL.json');
+const stat = fs.lstatSync(filename);
+assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 8192);
+const bytes = fs.readFileSync(filename);
+assert.equal(bytes.length, stat.size);
+const receipt = { path: filename, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), qualification: 'Generated preseal output identity recorded without parsing it; no product imports', utc: new Date().toISOString(), pid: process.pid };
+fs.writeFileSync(path.join(import.meta.dirname, 'CONTROL-RECEIPT.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(receipt));

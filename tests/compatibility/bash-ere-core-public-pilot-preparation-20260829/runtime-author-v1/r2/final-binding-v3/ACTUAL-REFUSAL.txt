@@ -1,0 +1,12 @@
+REFUSED: NO_V3_BOUND_OUTER_OWNER
+Primary presence: true.
+The available final-binding-v2/actual-owner.mjs hard-codes its v2 directory,
+grant/command hashes and outerStarted267531292. The v3 binding packet does not
+provide an owner bound to grant883163ea821761819c476ff197d8c9577a1ad30d6d2188f8da10feaa04c49289,
+commandd4cdceff508fc3a63da339397bb3b499c36e475fe9429134f92d887d56dd13a2,
+and outerStarted268456542.
+Running that owner unchanged would target the consumed prior attempt. Rebinding
+its source is not authorized by this GO's no-newsource restriction. Directly
+launching without the documented qualified outer capture/ownership checks would
+silently drop required protections. Neither action was taken.
+This refusal consumes the one newly authorized attempt. No runtime launch or retry.

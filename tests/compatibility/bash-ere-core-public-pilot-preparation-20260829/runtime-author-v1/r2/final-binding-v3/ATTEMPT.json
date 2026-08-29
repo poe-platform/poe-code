@@ -1,0 +1,22 @@
+{
+  "status": "REFUSED",
+  "attemptConsumed": true,
+  "primaryPresent": true,
+  "primary": "NO_V3_BOUND_OUTER_OWNER",
+  "phase": "outer-owner-availability-before-admission",
+  "grantSha256": "883163ea821761819c476ff197d8c9577a1ad30d6d2188f8da10feaa04c49289",
+  "commandSha256": "d4cdceff508fc3a63da339397bb3b499c36e475fe9429134f92d887d56dd13a2",
+  "outerStarted": 268456542,
+  "outerStartedReset": false,
+  "commandExecuted": false,
+  "coordinatorLaunches": 0,
+  "nativeInstallLaunches": 0,
+  "cellLaunches": 0,
+  "workerStarts": 0,
+  "publicCalls": 0,
+  "cells": { "total": 24, "pass": 0, "fail": 0, "unrun": 24 },
+  "activationPathsCreatedByThisAttempt": false,
+  "freshClockAndSourceAdmission": "NOT_RUN: refused before executable owner admission",
+  "unknownRuntimeReferences": "none acquired",
+  "retry": false
+}

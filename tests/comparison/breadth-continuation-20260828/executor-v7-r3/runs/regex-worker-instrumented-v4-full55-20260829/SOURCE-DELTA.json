@@ -1,0 +1,33 @@
+{
+  "predecessor": "81443d3d9eabcf17040d77eb34c60106fc543ccc",
+  "unchangedFiles": [
+    "observer.mjs",
+    "preload.mjs",
+    "policy.mjs",
+    "mutation.mjs",
+    "controls.json",
+    "fixtures.json",
+    "package.json",
+    "INSTRUMENTATION.json"
+  ],
+  "changed": {
+    "owned-writer.mjs": "remove in-child fsync; declare deferred durability and stable binding; deferred-stage fault names",
+    "common.mjs": "writer receipt schema V2 only",
+    "guarded-operation.mjs": "publish raw outcome before assessment; distinguish result presence",
+    "case.mjs": "early raw publication, missing-row/load prerequisites, retained judgment failure, exact witness commitments",
+    "supervisor.mjs": "campaign held; postretirement exact-owned parent collection and raw-final reconciliation",
+    "writer-controls.mjs": "two fsync fault slots now deferred-stage faults; not dynamically run",
+    "capture.mjs": "supervisor entry literal replaced with fixture-parent only"
+  },
+  "newModules": [
+    "early-record.mjs",
+    "deferred-collector.mjs",
+    "fixture-parent.mjs",
+    "fixture-child.mjs"
+  ],
+  "permissionDelta": "NONE",
+  "WorkerOptionsDelta": "NONE",
+  "parentAuthority": "existing exact owned case paths; fsync postretirement only",
+  "full55Actual": "HELD",
+  "smallFixtureStarts": 4
+}

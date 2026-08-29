@@ -1,0 +1,35 @@
+{
+  "schema": "V4_HARMLESS55_ACTIVATION_DELTA",
+  "predecessorSeal": "95d3707e7117e6101fd96549e823e7299ba0c058ea179eaf7336160d53a903ec",
+  "sourceCommit": "131a898c3edb25edc34e2d26dfdcd28b74e7c015",
+  "changedExecutable": [
+    {
+      "path": "capture.mjs",
+      "old": "path.join(home,'fixture-parent.mjs')",
+      "new": "path.join(home,'supervisor.mjs')",
+      "role": "entry activation literal only"
+    }
+  ],
+  "changedData": [
+    "PLAN.json"
+  ],
+  "newNamespace": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829",
+  "unchanged55Sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e",
+  "unchangedFixturesSha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1",
+  "ownerDeadlineGuardUnchanged": "remaining<=30*60000",
+  "guardsUnchanged": true,
+  "channel": {
+    "key": "safe-bash-breadth-regex-sticky-v1",
+    "data": "token + exactly 4-byte SharedArrayBuffer",
+    "synchronousInstallConstructorFinallyRestore": true,
+    "requestedExecArgv": [],
+    "effectiveExecArgv": "--import exact bound preload/config",
+    "workerDataDelta": false,
+    "processEnvDelta": false,
+    "workerEnvDelta": false,
+    "transferListDelta": false
+  },
+  "durability": "Parent authentication/fsync/close after retirement only; no pre-acquisition crash durability",
+  "counterQualification": "published known counts distinct from absent UNKNOWN",
+  "parentFaultEvidence": "Retained Arch N07-N10, not repeated or relabeled among original55; G10.4 retains reviewed deferred-stage amendments."
+}

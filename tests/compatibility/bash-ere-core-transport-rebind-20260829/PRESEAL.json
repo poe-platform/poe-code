@@ -1,0 +1,122 @@
+{
+  "schema": "core-overlay-producer-preparation-v1",
+  "at": "2026-08-29T15:31:45.328Z",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "files": [
+    {
+      "path": "COMPOSITION.json",
+      "size": 678053,
+      "sha256": "f8004c83c2316ce33e5e93719961b56847c87b6c47b79566b2810c92e8ef72f9"
+    },
+    {
+      "path": "BASELINE-DATA.json",
+      "size": 521625,
+      "sha256": "0de74e74a7ffa198e331b9ee816b23308dec4263f450b5488ed953672340138b"
+    },
+    {
+      "path": "recipe.mjs",
+      "size": 2957,
+      "sha256": "82c2453b227073470fbaaff9b328c060744563c183e9b24ac40e0d324ed163a3"
+    },
+    {
+      "path": "core-guard-v8.mjs",
+      "size": 2897,
+      "sha256": "189e080d6566cf9884e9d72c13f173e8d48373d1353495c3c9ecb49e1e041957"
+    },
+    {
+      "path": "producer.mjs",
+      "size": 12589,
+      "sha256": "5ac14d21fe89d2142da78527cb22f55600bb095b82020815237348aecfcd5b3f"
+    },
+    {
+      "path": "controls.mjs",
+      "size": 8316,
+      "sha256": "3fdae2623edc4ab0da4cf1007f5f65556500c29ece5330b9b8829dd995c27943"
+    },
+    {
+      "path": "CONTROL-RESULT.json",
+      "size": 689,
+      "sha256": "ede4b8634438c849c1bb990ffdcddcf664e34b11342ccd3939cd506aaba0c3a7"
+    },
+    {
+      "path": "LAYOUT-RECIPE.json",
+      "size": 9649,
+      "sha256": "8436a1ad34501eb3c0910680eac7362937a5977c03b944a15a896747932fbc63"
+    },
+    {
+      "path": "user.npmrc",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "global.npmrc",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "preparationOnly": true,
+  "sourceReview": "Hooke ongoing; no transport acceptance",
+  "independentProducerReview": "REQUIRED",
+  "proposedProducer": {
+    "milliseconds": 900000,
+    "publicationMilliseconds": 120000,
+    "knownOsMaximum": 20,
+    "peakKnownOsMaximum": 3,
+    "captureBytes": 33554432,
+    "logicalWorkingBytes": 201326592,
+    "compilerCalls": 1,
+    "packCalls": 1,
+    "installationCalls": 0,
+    "productCalls": 0
+  },
+  "futureCore": {
+    "milliseconds": 1800000,
+    "publicationMilliseconds": 180000,
+    "knownOsMaximum": 242,
+    "peakKnownOsMaximum": 4,
+    "workerStartsMaximum": 309,
+    "workerLiveMaximum": 1,
+    "captureBytes": 134217728,
+    "logicalWorkingBytes": 536870912,
+    "baselineConditionalLogicalBytes": 332129069,
+    "definitions": 70,
+    "layoutCells": 210,
+    "noCompletionGuarantee": true,
+    "authority": false
+  },
+  "controls": {
+    "results": [
+      {
+        "id": "P01-exact-two-source-shape",
+        "status": "PASS"
+      },
+      {
+        "id": "P02-global-clock-fit-and-UNRUN",
+        "status": "PASS"
+      },
+      {
+        "id": "P03-clock-regression-and-invalid-reservations",
+        "status": "PASS"
+      },
+      {
+        "id": "P04-full-emit-diff-includes-maps-declarations",
+        "status": "PASS"
+      },
+      {
+        "id": "P05-publication-reservation-and-remainder",
+        "status": "PASS"
+      },
+      {
+        "id": "P06-bound-recompute-and-source-syntax",
+        "status": "PASS"
+      }
+    ],
+    "pass": 6,
+    "fail": 0,
+    "producerExecuted": false,
+    "compiled": false,
+    "packed": false,
+    "product": false,
+    "Workers": 0
+  }
+}

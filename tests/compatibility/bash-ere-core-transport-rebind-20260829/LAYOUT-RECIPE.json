@@ -1,0 +1,206 @@
+{
+  "schema": "core-transport-v8-layout-preparation-only",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "producerReceiptRequired": "future exact frozen receipt SHA256 + independent producer/emit-diff review",
+  "archiveRequired": "future exact newly produced archive SHA256, never historical package relabel",
+  "writer": {
+    "source": "e33b99af9fbec345b4f5a76d50f627c3d4d9f73a",
+    "sealSha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2",
+    "files": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/event-writer.mjs",
+        "bytes": 3516,
+        "mode": 420,
+        "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/finalize-cell.mjs",
+        "bytes": 1147,
+        "mode": 420,
+        "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/cell.mjs",
+        "bytes": 7621,
+        "mode": 420,
+        "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/dispatch.mjs",
+        "bytes": 7890,
+        "mode": 420,
+        "sha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/controls.mjs",
+        "bytes": 8255,
+        "mode": 420,
+        "sha256": "7406169ef39fa177968889c86f1b4dbe3d57fc9c74496db6808ad0dde3116929"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/admin.mjs",
+        "bytes": 7565,
+        "mode": 420,
+        "sha256": "93b9175a7a42ee8578d461279b1a530574a80adc8236a372a7db469900ef8be3"
+      }
+    ],
+    "acceptance": "e7b90371e8fc338d3a5faae10fcb7e36b3d36f44",
+    "acceptanceReceiptSha256": "fbc5797d8ee2c49a81ada006620f19a4f7ee6e3ec9cc8574b0f2f7da4a44fbcf",
+    "recipe": {
+      "status": "SOURCE_REPAIR_NOT_MATERIALIZED_RUNTIME",
+      "frozenExecutionSealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+      "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+      "archive": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+        "size": 908381,
+        "mode": 420,
+        "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+      },
+      "definitions": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CASES-v4.json",
+        "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb",
+        "count": 70,
+        "layoutCells": 210
+      },
+      "priorCellSha256": "d08db63b92ee90dc043d34b20038530997aa18896ffa29c8257b67da7ee414ee",
+      "newCellSha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b",
+      "priorDispatchSha256": "656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80",
+      "newDispatchSha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02",
+      "unchangedBody": {
+        "bytes": 5865,
+        "sha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+        "startAnchor": "  const cell = JSON.parse(",
+        "endAnchor": "} catch (error) { primaryFailed = true;"
+      },
+      "newModules": [
+        "event-writer.mjs",
+        "finalize-cell.mjs"
+      ],
+      "requiredNextBinding": "copy exact new harness modules into newly owned layout copies and regenerate only paths/manifests/controller seals; never mutate v4/v6 roots; reauthenticate same product files before imports",
+      "layouts": [
+        {
+          "name": "source-built",
+          "manifest": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+            "size": 302100,
+            "mode": 384,
+            "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+          },
+          "files": 1390,
+          "bytes": 8923286,
+          "cells": 70,
+          "privateAssets": 48
+        },
+        {
+          "name": "installed",
+          "manifest": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+            "size": 254534,
+            "mode": 384,
+            "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+          },
+          "files": 1087,
+          "bytes": 6261263,
+          "cells": 70,
+          "privateAssets": 48
+        },
+        {
+          "name": "moved",
+          "manifest": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+            "size": 254534,
+            "mode": 384,
+            "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+          },
+          "files": 1087,
+          "bytes": 6246595,
+          "cells": 70,
+          "privateAssets": 48
+        }
+      ],
+      "productExecuted": false,
+      "Workers": 0
+    }
+  },
+  "guard": {
+    "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/core-guard-v8.mjs",
+    "sha256": "189e080d6566cf9884e9d72c13f173e8d48373d1353495c3c9ecb49e1e041957",
+    "globalMilliseconds": 1800000,
+    "publicationMilliseconds": 180000,
+    "startOrigin": "outermost runtime capture/admission owner monotonic start, never reset per dispatcher/layout/case",
+    "callbackContract": "enrolled owner enforces caseDeadline/cleanupDeadline; failed or uncertain retirement stops admission; outer supervisor enforces global deadline; arbitrary uncooperative promises are not bounded by this library alone",
+    "remainder": "UNRUN",
+    "completionGuarantee": false
+  },
+  "layouts": [
+    {
+      "name": "source-built",
+      "oldManifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+        "size": 302100,
+        "mode": 384,
+        "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+      },
+      "oldRootImmutable": true,
+      "target": "tests/compatibility/bash-ere-core-transport-rebind-20260829/future-layouts/source-built",
+      "cells": 70,
+      "oldPrivateAssets": 48,
+      "materialized": false
+    },
+    {
+      "name": "installed",
+      "oldManifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+      },
+      "oldRootImmutable": true,
+      "target": "tests/compatibility/bash-ere-core-transport-rebind-20260829/future-layouts/installed",
+      "cells": 70,
+      "oldPrivateAssets": 48,
+      "materialized": false
+    },
+    {
+      "name": "moved",
+      "oldManifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+      },
+      "oldRootImmutable": true,
+      "target": "tests/compatibility/bash-ere-core-transport-rebind-20260829/future-layouts/moved",
+      "cells": 70,
+      "oldPrivateAssets": 48,
+      "materialized": false
+    }
+  ],
+  "definitions": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CASES-v4.json",
+    "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb",
+    "count": 70,
+    "layoutCells": 210
+  },
+  "unchangedBody": {
+    "bytes": 5865,
+    "sha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+    "startAnchor": "  const cell = JSON.parse(",
+    "endAnchor": "} catch (error) { primaryFailed = true;"
+  },
+  "bindingSteps": [
+    "Authenticate newly frozen producer receipt/archive/complete actual emit delta without treating derived tree as a stored Git object.",
+    "Admit full sizes before fresh source-built/installed/moved materialization; never edit or reuse old roots as new authority.",
+    "Copy exact e33 v7 cell, dispatcher, event writer and finalizer plus the entire old authenticated static instrumentation closure; replace the dispatcher clock integration only in a new version.",
+    "Regenerate every cell binding, source map/declaration inventory and private-asset identity; count rather than assuming old asset or emitted-file cardinalities.",
+    "Require exactly 70 unchanged definitions and 210 declared cells, startup/final-audit continuity and per-layout product/private-module identities.",
+    "Recompute retained+fresh logical layout/archive/metadata/capture/publication bound from actual new byte sizes; baseline 332129069 is conditional.",
+    "Obtain independent copied-cell/dispatcher/outer-budget/private-source reviews and fresh ROOT runtime grant before any product import."
+  ],
+  "historicalGuard": {
+    "milliseconds": 7500000,
+    "modified": false,
+    "authority": false
+  },
+  "noActualCoreAuthority": true
+}

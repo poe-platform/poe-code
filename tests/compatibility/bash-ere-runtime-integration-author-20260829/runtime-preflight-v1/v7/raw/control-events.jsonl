@@ -1,0 +1,5 @@
+{"at":"2026-08-29T14:47:21.807Z","event":"owner-start","pid":30681,"mode":"control"}
+{"at":"2026-08-29T14:47:21.819Z","event":"start","label":"controls","pid":30683,"exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--permission","--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7","--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/cell-v4.mjs","--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/CONTROL-RESULT.json","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/controls.mjs"]}
+{"at":"2026-08-29T14:47:21.870Z","event":"exit","label":"controls","pid":30683,"code":0,"signal":null}
+{"at":"2026-08-29T14:47:21.874Z","event":"close","label":"controls","pid":30683,"exited":true,"code":0,"signal":null}
+{"at":"2026-08-29T14:47:21.884Z","event":"owner-complete","pid":30681,"mode":"control"}

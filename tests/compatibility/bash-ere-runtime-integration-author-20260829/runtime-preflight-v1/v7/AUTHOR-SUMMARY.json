@@ -1,0 +1,62 @@
+{
+  "at": "2026-08-29T14:51:14.459Z",
+  "status": "AUTHOR_CONTROL_PASS_REQUIRES_DIFFERENT_REVIEW",
+  "sourceCommit": "e33b99af9fbec345b4f5a76d50f627c3d4d9f73a",
+  "sealSha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2",
+  "evidenceSha256": "ec4ad7d3dde5e530fafa23c4b393a995f9fbbcfc2f8caf4edfedd0f8eddc9aaf",
+  "writerSha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb",
+  "finalizerSha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76",
+  "cellSha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b",
+  "dispatchSha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02",
+  "unchangedBody": {
+    "bytes": 5865,
+    "sha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+    "startAnchor": "  const cell = JSON.parse(",
+    "endAnchor": "} catch (error) { primaryFailed = true;"
+  },
+  "controls": 12,
+  "product": 0,
+  "Workers": 0,
+  "native": 0,
+  "knownRolesThroughThisHelper": 15,
+  "publicationRolesReserved": 4,
+  "knownFinalOnSuccess": 19,
+  "knownPeak": 2,
+  "execution": {
+    "code": 0,
+    "signal": null,
+    "pid": 30683,
+    "stdout": "/tmp/core70-v7-control-wcIq12/controls.stdout",
+    "stderr": "/tmp/core70-v7-control-wcIq12/controls.stderr"
+  },
+  "recipeStatus": "SOURCE_REPAIR_NOT_MATERIALIZED_RUNTIME",
+  "workingBound": {
+    "domain": "prospective logical regular-file bytes, not allocated blocks/RSS/Git internal storage",
+    "components": {
+      "retainedAndFreshLayoutCopies": 43910864,
+      "uniqueCellEvents": 55050240,
+      "uniqueCellPipesIncludingFinalAudits": 55050240,
+      "coordinatorCapture": 8388608,
+      "administrativeToolCaptures": 8388608,
+      "publicationTails": 4194304,
+      "generatedBindingsManifestsMetadata": 16777216,
+      "onePublicationCopyOfAllCaptures": 131072000,
+      "archivedPackage": 908381,
+      "extraMetadataReserve": 8388608
+    },
+    "logicalMaximum": 332129069,
+    "limit": 536870912,
+    "captureMaximum": 131072000,
+    "captureLimit": 134217728,
+    "sourceBasis": "all frozen layout row sizes; twice for old/new copies; exact per-cell event and combined pipe reservations; fixed metadata/tool/publication ceilings; immutable inventory must admit copied bytes before materialization",
+    "conditions": [
+      "No arbitrary additional files or duplicate evidence copies",
+      "Only declared bounded write roles",
+      "Git object/index/internal storage explicitly outside this logical budget",
+      "No raw whole executable copies; stream tool hashes",
+      "Existing old roots remain immutable"
+    ],
+    "runtimeAuthority": false
+  },
+  "runtimeAuthority": false
+}

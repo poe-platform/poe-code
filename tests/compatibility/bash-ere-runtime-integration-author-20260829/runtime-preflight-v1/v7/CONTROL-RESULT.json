@@ -1,0 +1,59 @@
+{
+  "phase": "AUTHOR_ONLY_PURE_WRITER_CONTROLS",
+  "rows": [
+    {
+      "id": "C01-short-exact-UTF8",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-invalid-write-counts",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-partial-then-raw0-sticky",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-cumulative-exact-cap",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-UTF8-not-code-unit-cap",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-serializer-raw-false",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-body-primary-close-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "C08-close-first-undefined",
+      "status": "PASS"
+    },
+    {
+      "id": "C09-every-cleanup-attempted",
+      "status": "PASS"
+    },
+    {
+      "id": "C10-audit-failure-not-green",
+      "status": "PASS"
+    },
+    {
+      "id": "C11-bounded-identity-ledger-and-close-once",
+      "status": "PASS"
+    },
+    {
+      "id": "C12-versioned-source-newline-and-old-writer-control",
+      "status": "PASS"
+    }
+  ],
+  "pass": 12,
+  "fail": 0,
+  "product": 0,
+  "Workers": 0,
+  "native": 0,
+  "priorNovelNotRescored": true
+}

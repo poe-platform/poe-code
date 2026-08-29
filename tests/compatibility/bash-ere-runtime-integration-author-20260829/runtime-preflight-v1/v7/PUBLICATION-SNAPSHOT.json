@@ -1,0 +1,289 @@
+{
+  "at": "2026-08-29T14:51:21.253Z",
+  "domain": "current v7 regular files, before this snapshot and active publication tail; Git internal storage excluded",
+  "bytes": 111850,
+  "rows": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/AUTHOR-SUMMARY.json",
+      "bytes": 2689,
+      "mode": 384,
+      "sha256": "b0b74590ae9f9f32e02a9d3565a52943606b0701106d538fe970e04fa038db03"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/BINDING-RECIPE.json",
+      "bytes": 2881,
+      "mode": 384,
+      "sha256": "db1b3881f68c18dded62dfc5bf8818f8404b06ecbddbef69ee52ab52ef5bfbca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/CONTROL-EVIDENCE.json",
+      "bytes": 1726,
+      "mode": 384,
+      "sha256": "ec4ad7d3dde5e530fafa23c4b393a995f9fbbcfc2f8caf4edfedd0f8eddc9aaf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/CONTROL-EXECUTION.json",
+      "bytes": 172,
+      "mode": 384,
+      "sha256": "16738acd5a842d85f80e9ce78cba5dc00d57e3547c3073636e0690e36d68669b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/CONTROL-RESULT.json",
+      "bytes": 1147,
+      "mode": 384,
+      "sha256": "986f8002f7b82c1f3e9aa89cd8a60820c1c3597cb3e29cf4dc12212ff700d3d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/EXECUTION-SEAL.json",
+      "bytes": 3206,
+      "mode": 384,
+      "sha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/HANDOFF.md",
+      "bytes": 5247,
+      "mode": 420,
+      "sha256": "b322c7266b21e123871d2bd1683a0b5b906a77b0ae1150d292f56f13f42cd03f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/INTEGRATION.patch",
+      "bytes": 16020,
+      "mode": 384,
+      "sha256": "7dab4402f3e6e8be1326a64cbd647318fd9ef74b804d0708a59816d1c7b17739"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/PRESEAL.md",
+      "bytes": 2296,
+      "mode": 420,
+      "sha256": "7f82ab637b02765e4a29260f99d607be3b759c0adb81275b24ffccea852bbaf1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/RESOURCE-PROPOSAL.md",
+      "bytes": 5138,
+      "mode": 420,
+      "sha256": "3e18e17065b307b4375bb187669f1c460863b6e4c67465f5fc63dc9ef09781a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/SOURCE-PREPARATION.json",
+      "bytes": 360,
+      "mode": 384,
+      "sha256": "7df6e0901a4d716f771390b82b8350a1a03301b7564265fe61b702725601c019"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/WORKING-BOUND.json",
+      "bytes": 1229,
+      "mode": 384,
+      "sha256": "c92b0d0694eb189b81b4631fa2399d6bb607ae844f26a2a85f251e34373a8f47"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/admin.mjs",
+      "bytes": 7565,
+      "mode": 420,
+      "sha256": "93b9175a7a42ee8578d461279b1a530574a80adc8236a372a7db469900ef8be3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/cell.mjs",
+      "bytes": 7621,
+      "mode": 420,
+      "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/controls.mjs",
+      "bytes": 8255,
+      "mode": 420,
+      "sha256": "7406169ef39fa177968889c86f1b4dbe3d57fc9c74496db6808ad0dde3116929"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/dispatch.mjs",
+      "bytes": 7890,
+      "mode": 420,
+      "sha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/event-writer.mjs",
+      "bytes": 3516,
+      "mode": 420,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/final-data.mjs",
+      "bytes": 2380,
+      "mode": 420,
+      "sha256": "b5092c6c82feb49e39cea8021a9e0b7bd7eff00d4b39a8604b4c34eabe1ba717"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/finalize-cell.mjs",
+      "bytes": 1147,
+      "mode": 420,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/prepare.mjs",
+      "bytes": 8157,
+      "mode": 420,
+      "sha256": "2dc87121253bf6b1249a6e9f39f2390d5f467dc28a662f4d348eae2cf295eeb6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/control-events.jsonl",
+      "bytes": 1152,
+      "mode": 420,
+      "sha256": "6abb689571ffe6b1d7988f2b18253d35d6bcf6e365ce01508e70c1a0071765d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/controls.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/controls.stdout",
+      "bytes": 799,
+      "mode": 420,
+      "sha256": "8c16829c9a7b028fd0986ab10fe1eadb48f9ae7fb91625a869a1c656ef1e004f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-admin-source-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-admin-source-20260829.stdout",
+      "bytes": 173,
+      "mode": 420,
+      "sha256": "3936bd427cbf1cd1ccf855f5afe9f833e67cf320a7d38c2dd2c02f6c28eedf0a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-bootstrap-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-bootstrap-20260829.stdout",
+      "bytes": 12354,
+      "mode": 420,
+      "sha256": "652d0f47db7decbe8773a26826a7b1143876f4bf595cc5498b34e1ffa23ada6b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-bound-review-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-bound-review-20260829.stdout",
+      "bytes": 5728,
+      "mode": 420,
+      "sha256": "7b96ae70feb0a39764adea8b53789ac25e3c3aa8ca28e32dbacc962252e96a95"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-close-state-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-close-state-20260829.stdout",
+      "bytes": 180,
+      "mode": 420,
+      "sha256": "a1ebd20be1179b409bf5c7ca73cd0135c3c4744f452bf4cd8f34469a82c50c47"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-code-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-code-20260829.stdout",
+      "bytes": 597,
+      "mode": 420,
+      "sha256": "8e0ff7e07e5161ebdedd9c23409e653524787060e3560c3bb544b2e6dc3ff00d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-controls-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-controls-20260829.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-final-data-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-final-data-20260829.stdout",
+      "bytes": 540,
+      "mode": 420,
+      "sha256": "d2b17c5ae2759706ef871992a0721bb203324b7665a7d94c803d42b5fd2a2433"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-handoff-source-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-handoff-source-20260829.stdout",
+      "bytes": 460,
+      "mode": 420,
+      "sha256": "fa57a678a5144025b94e08989f209bf12191b06d6781219de537e679fe093cb9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-integration-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-integration-20260829.stdout",
+      "bytes": 310,
+      "mode": 420,
+      "sha256": "bdef156c54b1c1534a999e07617243164d6838e5c95e205f11d1c1dfa0663cb3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-prepare-20260829.stderr",
+      "bytes": 173,
+      "mode": 420,
+      "sha256": "6f32b69cb0ebf7fd5f600dab0133c353a9873b799c12157e66c5c0a07ce109d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-prepare-20260829.stdout",
+      "bytes": 394,
+      "mode": 420,
+      "sha256": "37ff58a8b7bdea72cc8739d52ec4f9be2df29292ab1d06c8789dd233595107c3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-prepare-source-20260829.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-prepare-source-20260829.stdout",
+      "bytes": 175,
+      "mode": 420,
+      "sha256": "6cdbc8f6cad79c2141b7a8a4e3f3b5b561296dac59f9296de6da07cd95943d64"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-seal-20260829.stderr",
+      "bytes": 173,
+      "mode": 420,
+      "sha256": "bcb63b85405685d1784670c3f8e109e498cb4c3bb28cd0c03a97d8f5d31ec484"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/raw/core70-v7-author-seal-20260829.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

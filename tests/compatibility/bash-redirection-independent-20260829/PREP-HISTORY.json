@@ -1,0 +1,9 @@
+{
+  "initialHelperFailure": "ReferenceError: sha is not defined after one completed/closed metadata child; tool transcript preserved; no candidate execution",
+  "correction": "Declare local pure hashing/diff functions explicitly; no policy/fixture changes",
+  "secondHelperFailure": {
+    "reason": "Reviewer treated optional overlay revision as mandatory and queried undefined:src/shell/display.ts; actual overlay rows deliberately have no revision",
+    "effect": "260 base rows decoded before refusal; completed metadata child/raw retained; no product run",
+    "correction": "Authenticate the three overlay paths against explicitly authorized production commit1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e; retain row blob/hash/mode checks"
+  }
+}

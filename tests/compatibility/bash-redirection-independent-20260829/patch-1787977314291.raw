@@ -1,0 +1,10 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/hash-regular-file.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/internal-loader-arguments.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/resources.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/worker-policy.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/loader.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/redirections-v2.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/CASES.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/close-observer.mjs

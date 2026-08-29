@@ -1,0 +1,38 @@
+{
+  "id": "novel",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/novel-controls.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2",
+  "captureOpenedBeforeSpawn": true,
+  "pid": 61151,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "errors": [],
+  "signals": [],
+  "observed": {
+    "stdout": 36,
+    "stderr": 0,
+    "records": 0
+  },
+  "retained": {
+    "stdout": 36,
+    "stderr": 0,
+    "records": 0
+  },
+  "globalAbsenceClaim": false,
+  "hashes": {
+    "stdout": "5c715550f66b6cc2db816518b7ed1bf7ca92dcdc5c71609345ff732fafe4c0a4",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "records": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

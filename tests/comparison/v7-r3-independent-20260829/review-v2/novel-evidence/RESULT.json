@@ -1,0 +1,398 @@
+{
+  "rows": [
+    {
+      "id": "Q-invalid-string-node:module",
+      "pass": true,
+      "detail": {
+        "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+        "opened": true,
+        "revoked": true,
+        "consumed": 0,
+        "nativeDelegations": 0,
+        "violations": [
+          {
+            "code": "BOOTSTRAP_QUERY",
+            "consumed": 0
+          }
+        ],
+        "callerAuthenticated": false,
+        "stockNodeCapabilities": false
+      }
+    },
+    {
+      "id": "Q-invalid-object-module",
+      "pass": true,
+      "detail": {
+        "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+        "opened": true,
+        "revoked": true,
+        "consumed": 0,
+        "nativeDelegations": 0,
+        "violations": [
+          {
+            "code": "BOOTSTRAP_QUERY",
+            "consumed": 0
+          }
+        ],
+        "callerAuthenticated": false,
+        "stockNodeCapabilities": false
+      }
+    },
+    {
+      "id": "Q-invalid-object-null",
+      "pass": true,
+      "detail": {
+        "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+        "opened": true,
+        "revoked": true,
+        "consumed": 0,
+        "nativeDelegations": 0,
+        "violations": [
+          {
+            "code": "BOOTSTRAP_QUERY",
+            "consumed": 0
+          }
+        ],
+        "callerAuthenticated": false,
+        "stockNodeCapabilities": false
+      }
+    },
+    {
+      "id": "Q-primary-undefined",
+      "pass": true,
+      "detail": {
+        "primarySelected": true,
+        "primaryUndefined": true,
+        "restored": true
+      }
+    },
+    {
+      "id": "Q-primary-null",
+      "pass": true,
+      "detail": {
+        "primarySelected": true,
+        "primaryUndefined": false,
+        "restored": true
+      }
+    },
+    {
+      "id": "Q-primary-0",
+      "pass": true,
+      "detail": {
+        "primarySelected": true,
+        "primaryUndefined": false,
+        "restored": true
+      }
+    },
+    {
+      "id": "Q-success-revoked-before-afterRevoke",
+      "pass": true,
+      "detail": {
+        "result": 71,
+        "restoredBeforeCallback": true,
+        "capturedAliasRevoked": true
+      }
+    },
+    {
+      "id": "B-authentication-before-file-access",
+      "pass": true,
+      "detail": {
+        "wrongParentAndMissingConsumerRejected": true
+      }
+    },
+    {
+      "id": "X01",
+      "pass": true,
+      "detail": {
+        "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+        "loaded": 44,
+        "guardedLoads": 4,
+        "kinds": [
+          "authority-observed",
+          "authority-observed",
+          "worker-operation-authorized",
+          "bootstrap-authentication-start",
+          "bootstrap-authenticated",
+          "worker-loader-installed",
+          "worker-offline-installed",
+          "consumer-entry-attempt",
+          "consumer-entry-observed",
+          "consumer-entry-resolution",
+          "asset-read",
+          "nextLoad",
+          "consumer-resolution-observed",
+          "consumer-resolution",
+          "asset-read",
+          "nextLoad",
+          "asset-read",
+          "nextLoad",
+          "asset-read",
+          "nextLoad",
+          "bootstrap-unavailable",
+          "bootstrap-unavailable",
+          "bootstrap-denied",
+          "final"
+        ],
+        "authority": [
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 1,
+            "reference": {
+              "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x01/REVIEW.json",
+              "sha256": "08362a134828fed2c75e8dc804f3f5325208dbdc3dfa6482140d92df28623fe1"
+            },
+            "pid": 61158,
+            "group": -61158,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 159,
+            "stdoutSha256": "08362a134828fed2c75e8dc804f3f5325208dbdc3dfa6482140d92df28623fe1",
+            "stderrBase64": "",
+            "reaped": true
+          },
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 2,
+            "reference": {
+              "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x01/GRANT.json",
+              "sha256": "72c1e5b2969a70aeda60e5274bd3323d8b2f926258229c806fe0fd5f5fc2d038"
+            },
+            "pid": 61161,
+            "group": -61161,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 966,
+            "stdoutSha256": "72c1e5b2969a70aeda60e5274bd3323d8b2f926258229c806fe0fd5f5fc2d038",
+            "stderrBase64": "",
+            "reaped": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "X02",
+      "pass": true,
+      "detail": {
+        "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+        "loaded": 44,
+        "guardedLoads": 4,
+        "kinds": [
+          "authority-observed",
+          "authority-observed",
+          "worker-operation-authorized",
+          "bootstrap-authentication-start",
+          "bootstrap-authenticated",
+          "worker-loader-installed",
+          "worker-offline-installed",
+          "consumer-entry-attempt",
+          "consumer-entry-observed",
+          "consumer-entry-resolution",
+          "asset-read",
+          "nextLoad",
+          "consumer-resolution-observed",
+          "consumer-resolution",
+          "asset-read",
+          "nextLoad",
+          "asset-read",
+          "nextLoad",
+          "asset-read",
+          "nextLoad",
+          "bootstrap-unavailable",
+          "bootstrap-unavailable",
+          "consumer-evaluated",
+          "bootstrap-denied",
+          "final"
+        ],
+        "authority": [
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 1,
+            "reference": {
+              "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x02/REVIEW.json",
+              "sha256": "6c14517bee0497a141eda007fc7f15d5690188435f7a98ac8b539006929fc14a"
+            },
+            "pid": 61164,
+            "group": -61164,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 159,
+            "stdoutSha256": "6c14517bee0497a141eda007fc7f15d5690188435f7a98ac8b539006929fc14a",
+            "stderrBase64": "",
+            "reaped": true
+          },
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 2,
+            "reference": {
+              "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x02/GRANT.json",
+              "sha256": "9672d19ed5480b42f9d6960597e8bffa592580e3bcac2c616301ba11d0c18395"
+            },
+            "pid": 61166,
+            "group": -61166,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 966,
+            "stdoutSha256": "9672d19ed5480b42f9d6960597e8bffa592580e3bcac2c616301ba11d0c18395",
+            "stderrBase64": "",
+            "reaped": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "X03",
+      "pass": true,
+      "detail": {
+        "bodySha256": "aebd922ed4118a396b1645462fef897016c43892931d253c7b3c390f934edd46",
+        "loaded": 44,
+        "guardedLoads": 4,
+        "kinds": [
+          "authority-observed",
+          "authority-observed",
+          "worker-operation-authorized",
+          "bootstrap-authentication-start",
+          "bootstrap-authenticated",
+          "worker-loader-installed",
+          "consumer-entry-attempt",
+          "consumer-entry-observed",
+          "consumer-entry-resolution",
+          "nextLoad",
+          "consumer-resolution-observed",
+          "consumer-resolution",
+          "nextLoad",
+          "nextLoad",
+          "nextLoad",
+          "bootstrap-unavailable",
+          "bootstrap-unavailable",
+          "final"
+        ],
+        "authority": [
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 1,
+            "reference": {
+              "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x03/REVIEW.json",
+              "sha256": "d4a50ef1dacb5107a46af3cc94c107f556e52fab167ff18c3deab95d3dd597eb"
+            },
+            "pid": 61171,
+            "group": -61171,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 159,
+            "stdoutSha256": "d4a50ef1dacb5107a46af3cc94c107f556e52fab167ff18c3deab95d3dd597eb",
+            "stderrBase64": "",
+            "reaped": true
+          },
+          {
+            "role": "git-authority-metadata",
+            "ordinal": 2,
+            "reference": {
+              "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "path": "tests/comparison/breadth/executor-v7-r3/runs/x03/GRANT.json",
+              "sha256": "350b57851cd4d70241dc1a8130b86b4991b90f945c180ed314ac91a9fe37d0c0"
+            },
+            "pid": 61174,
+            "group": -61174,
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "stdoutBytes": 966,
+            "stdoutSha256": "350b57851cd4d70241dc1a8130b86b4991b90f945c180ed314ac91a9fe37d0c0",
+            "stderrBase64": "",
+            "reaped": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "T-65536",
+      "pass": true,
+      "detail": {
+        "innerObserved": {
+          "stdout": 65536,
+          "stderr": 0,
+          "records": 46
+        },
+        "innerRetained": 65536,
+        "outerRetained": {
+          "stdout": 65536,
+          "stderr": 0,
+          "records": 46
+        },
+        "exactChildClosed": true,
+        "resultNotQualifiedByTruncation": false
+      }
+    },
+    {
+      "id": "T-65537",
+      "pass": true,
+      "detail": {
+        "innerObserved": {
+          "stdout": 65537,
+          "stderr": 0,
+          "records": 46
+        },
+        "innerRetained": 65536,
+        "outerRetained": {
+          "stdout": 65537,
+          "stderr": 0,
+          "records": 46
+        },
+        "exactChildClosed": true,
+        "resultNotQualifiedByTruncation": true
+      }
+    }
+  ],
+  "workers": [
+    {
+      "pid": 61156,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true
+    },
+    {
+      "pid": 61163,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true
+    },
+    {
+      "pid": 61167,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true
+    }
+  ],
+  "pass": 13,
+  "fail": 0,
+  "unsafe": false,
+  "sourceOnlyBudgetClaimsRemainQualified": true
+}

@@ -1,0 +1,4226 @@
+{
+  "schema": "INDEPENDENT_R3_STUBS_PRELOAD_V2",
+  "adapters": [
+    {
+      "name": "prepare-controls.mjs",
+      "bytes": 2319,
+      "sha256": "5a9c8afd62b3e5b551bb86f82d795673adcfe0376382ec5c2c66c4007f1fa43d"
+    },
+    {
+      "name": "test.mjs",
+      "bytes": 12831,
+      "sha256": "8ef21152b71bd47848e8678fe95d07e47e57280c1f4406788a35d70fd9438c2e"
+    },
+    {
+      "name": "fixture-adapter.mjs",
+      "bytes": 11991,
+      "sha256": "9f4c87208f6d7889cc557bfccdbbc52e2b8db3e0b7ec9dca92b25275cfe828f1"
+    }
+  ],
+  "files": [
+    {
+      "path": "ADAPTERS.json",
+      "bytes": 427,
+      "mode": 420,
+      "sha256": "4b24fb030a00b2413ea376049348c6eee5cefb8ed8254691a0933e21422caac7"
+    },
+    {
+      "path": "EXTRAS.json",
+      "bytes": 105167,
+      "mode": 420,
+      "sha256": "4a73bffb06a1bd412e24dc34eb927b371408fff7c00998184b9b62590324cfd8"
+    },
+    {
+      "path": "X01/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1694,
+      "mode": 420,
+      "sha256": "f7826de98e50221f2ce62235c2856cadfb3198c4ec8181848526c1cf32b097b2"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "7661eca00d52959793a9ffd2b8d1ccd92aa466469f5748d744c5a99553e2f034"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "8097d757e92e61c83983ecb9b48f63fbda90d4cdffd63c1354da25623e2b54e2"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "ccc4975867f524b09a572c4ea8c6857c07d687e7aad33d39f41ad474ddf41859"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/CONTROL.json",
+      "bytes": 19232,
+      "mode": 420,
+      "sha256": "72cfb1f5d975a87340809506812be6dc89b1b0c075295e24481dde4322c8b967"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/GRANT.json",
+      "bytes": 966,
+      "mode": 420,
+      "sha256": "72c1e5b2969a70aeda60e5274bd3323d8b2f926258229c806fe0fd5f5fc2d038"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "08362a134828fed2c75e8dc804f3f5325208dbdc3dfa6482140d92df28623fe1"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/child-003.json",
+      "bytes": 3058,
+      "mode": 420,
+      "sha256": "1d9f11e940af6dea9e8ec9c513c3d8c9d8b0a760d7ee10f0f4be1cea6653527e"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 865,
+      "mode": 292,
+      "sha256": "911d22599447eac825357b2ccbea79202ffd59dd19887d1b1ba1ead0c7c99b1b"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x01/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "X01/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "X02/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1694,
+      "mode": 420,
+      "sha256": "444ded90059af564986779dd0c72dfde5c1f36dea186b9bbfdcecd30ea08e7c1"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "704d3da84924b0ed8891014e9db62a3100ab89f3c8280305f639894775bdb0eb"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "185e04a793c3866a5d65d45025f973433e6879837bd3e1eb912d7ece49e791c6"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "fc0bdeedf3b9f6c3cf99c967e01250a5078ec6ad835dd58effd959d21983a670"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/CONTROL.json",
+      "bytes": 19224,
+      "mode": 420,
+      "sha256": "e4688ea3a8ffcc3434929792ba46d51b4d2146c9805b9f03ae0b110b5121f7d6"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/GRANT.json",
+      "bytes": 966,
+      "mode": 420,
+      "sha256": "9672d19ed5480b42f9d6960597e8bffa592580e3bcac2c616301ba11d0c18395"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "6c14517bee0497a141eda007fc7f15d5690188435f7a98ac8b539006929fc14a"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/child-003.json",
+      "bytes": 3058,
+      "mode": 420,
+      "sha256": "912fbea53b935d7d9fe1c1f228d75740a7ed6115955a954cfebb793ec95d40bb"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 857,
+      "mode": 292,
+      "sha256": "52b7d7474bfde9cce0d53a5dcff8339f2e65b020d712715f86c98ef59d540a80"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x02/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "X02/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "X03/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1694,
+      "mode": 420,
+      "sha256": "2fb0e422d0e028fcada6f9ffaf45e4d93dd5ea5eb794c445ae21b9aecf583bd0"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "76a27205446d3c75b25ddf534ead3f5cc531868d3bae77f18d7d4ea6ece190be"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "c8a0f72068aa7784dbc90255cd0ab772174f24cff9b9d6b603cc86b9e618c284"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "83a796811a0a29db62d40c4a109b3cdef6a8fcdf1f74039c3ef6d46c25d7964e"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/CONTROL.json",
+      "bytes": 19230,
+      "mode": 420,
+      "sha256": "5164938b4f6f085544bd1a7dd81c00c4f0cee922b09e369fd1df87ceae5caab5"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/GRANT.json",
+      "bytes": 966,
+      "mode": 420,
+      "sha256": "350b57851cd4d70241dc1a8130b86b4991b90f945c180ed314ac91a9fe37d0c0"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "d4a50ef1dacb5107a46af3cc94c107f556e52fab167ff18c3deab95d3dd597eb"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/child-003.json",
+      "bytes": 3058,
+      "mode": 420,
+      "sha256": "55b0976354e8cee3886661c3c8d3304a09bae5b9853014d399519df07edacef5"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 863,
+      "mode": 292,
+      "sha256": "98fa6360dddf98c7508c673d3b738a11404b1aed3283279c01de805983f47835"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/x03/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "X03/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "aebd922ed4118a396b1645462fef897016c43892931d253c7b3c390f934edd46"
+    },
+    {
+      "path": "eight/FIXTURES.json",
+      "bytes": 229059,
+      "mode": 420,
+      "sha256": "9c9906f11067d17813177a4b813406ed4fd1f458916cbe032791733a2f7cf011"
+    },
+    {
+      "path": "eight/PREPARATION.json",
+      "bytes": 6683,
+      "mode": 420,
+      "sha256": "2009666c5c42f86689f58c6292dafc47c0deca61a32013afdb5abc8af9bef83d"
+    },
+    {
+      "path": "eight/S01/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "e83ac635c497194d6776fdc53f5f924e42afafb87cb30cad0ebbe1e7e24ec5e5"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "68acf0374ead0b74c9294688f7720a8df0f024795000b9c1a7fdd83cf2e2134f"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "bfa72ed341fae4279ae6aeebfcfc9feacc4673a31731c55ec579ef550c738f88"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "399c642876f85ab9cfa7b81fed90f7be37c82b441f36b678757d7b02b5caa079"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/CONTROL.json",
+      "bytes": 19528,
+      "mode": 420,
+      "sha256": "11dff406c9c064ef6336f264bbf30891274665270e7bc6635229a754e3dae0dd"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "66ecd9801cf6dd22e78f619f598caf4d9add7e322fd12b8d8668d455aa137170"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "1fea3339234c83ba2a981cceaac067467f95d47994018a49f37d1db03de0eb01"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "bc0960bfc42ad3440828f5172577ace8274990470b80c526c9a0a7c106e7b090"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 712,
+      "mode": 292,
+      "sha256": "eeeec63c6b5663cc885f76b6da615567481420a39729758d3ed51d19de65ff5c"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s01/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S01/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S02/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "3ac749c68ceb295456d16b414709a12b4549bf8a5f05ad2dc82d72f1bc9deb33"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "3bcd284b5a4d3a5d0a6795ea2b4a48adca5b3608e254d8fa4839d81401aa6b56"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "26874a81e0a1f521dde91a9f902e6d4e2616de00292443538f2f9ce738600a8b"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "32a1aa89315f2e7a5906b8a108014332d4a722d07049908668a6cd156676a9ed"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/CONTROL.json",
+      "bytes": 19529,
+      "mode": 420,
+      "sha256": "4b7ee2974004bb426ac5936df50dae3f29c78e9642d10ab1e721eafaefa6944e"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "57c4738d237e5013b306497d79b0bf94a15d4f42c3308d247dba7a6b193ef3f8"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "66a636fb171a9529ec95eb19a761b36265eb8ea64b00d7e06895260283aff0c1"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "c59b6030ce3a568020b06acf4a082d8bbba977fd2bd202213593df51c8430f98"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 713,
+      "mode": 292,
+      "sha256": "8590d06105d336a7bbd467f723d394126a3511605786cfa54501663d73505719"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s02/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S02/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 10994,
+      "mode": 420,
+      "sha256": "5ed04fba1c4507329a53f3da1633d296774d9ff14e81f3497169d27c208a08d8"
+    },
+    {
+      "path": "eight/S03/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "0a09ee205501388cada2eeadaeff404f556f79a8331c46deff943f954e346d54"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "58acf2656db218cd50844adfc2c913a38612599ecc020217bcacf088e4962eb0"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "d1c2d271ee6ff0131871ee5313d35c6234686b1869261961dfa088e5088aae7f"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "e5ed56904acb45b93f189ddd343bc934f21d0bef29b569d19f90736236b0328b"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/CONTROL.json",
+      "bytes": 19525,
+      "mode": 420,
+      "sha256": "7b441721d5e00415a862c2b159cf2887bf9afed73a4ff4969fdf3a9dd90b7a47"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "690605eef369477ebf1549d379feb7d61d3b2437ae94d0c34a9412da4d0814b2"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "d91a6ecd629e3533fd7321336aba0f93a5da12b9b24e4bb3abdce6b744896dae"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "aa0fe797c0a36bacac612b70ef3df82063b65515be59035247a4511508bb6f0f"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 709,
+      "mode": 292,
+      "sha256": "c2cbe4e54bcf9f53394b676315cca375f6a21223a813aaf642ffdff22b4e2a13"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s03/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S03/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S04/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "95bfcc1922330bc98ddef3ea2b5a27856ad6ecd0c12f02e490859f4173123055"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "43c8dbdca713519ebc73b89dcf1058dce1022a6505ac0944ae42f4c3b1bfd634"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "3ec7e3ac4aef9ec5895e00b0bb289f8822db0e276372935c505f06a4a46f33cb"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "b3f011322888e082da3738f69ba3d61ae8e68f6c774aec3eb01c3057d7760c7c"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "dc1e5845f1e9eab922274738bb1443e1f85047ccc42f942f2b5d7c0785e23f32"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "340df0932fb269ab7fde390fd131430ea1fcb231fd654becf448796178e29979"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/CONTROL.json",
+      "bytes": 19533,
+      "mode": 420,
+      "sha256": "91416282772d27da3992f0f6c82356403f4eb9dcf040dddc389dbe7ec22e34b4"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "d10e4c3bebb2fae9eaa6e862bae70baf724f0f3b078c9a0e55dbf995ca7a2e66"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "38e30ff4f8049d9c7721b577fc595e37ce0b4df64fe2a0f44c30abf355d58fd6"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "e847f687bc238d37e9adf8992d038c16199bf3cd97a81a5280aa9bb3da00d58f"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "3ec7e3ac4aef9ec5895e00b0bb289f8822db0e276372935c505f06a4a46f33cb"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 717,
+      "mode": 292,
+      "sha256": "cf9083cd92aa4e6ce5ce66392dda9cfdba4e2468f0d3550fbc9d8e4c7d0f77dc"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s04/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S04/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S05/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "d946f9941fcef1091d7ba7b23470f1d9041d8fe4f1703db76016ba6e9c2c6ebc"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "55d520189eae7ddd265dcb265fa89ca3564ac28d5af739315753d50020fba59c"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 292,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "5b192d153fc57371590f8654a101ace7cb16533a3525b89aa27c98b51466db78"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "fa9743c908b86aa1b90b36d467f4491882ef51866d73d480408109637ad46d4b"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "fb6d2b03dc20f8dd63886f8609b35f6c88ae7b5432a60ae5577e313ef4646707"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/CONTROL.json",
+      "bytes": 19530,
+      "mode": 420,
+      "sha256": "0761d0b526014f443ef602f207a1a634086d6bc321910e27cfb9701b492d3530"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "545a4cf453af92a65063c7b662fbeb3f6d7ce3e6e44cf9f756a7c0bb9854be82"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "4de4692e30f0a2b00e5f89a1ba0a658096bd7cea38000eb13f484d19443ef2cf"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "e285603c6105e9ccf909d8c3f7288aac8acbb8302f6d7d2ace55588d697cd097"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 292,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 714,
+      "mode": 292,
+      "sha256": "7702448b234c82652f1c6791b2337f226faa48535a149605688377803452a392"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s05/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S05/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S06/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "42d25826a0534ffd673170a69396953deee6ee609c6b3be325c460d9c6c2a662"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "eec66687f003cce93049931b9f30b21d2c0c49aa5c1da68e4d7a51465012e7c6"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "1b92eed5c3e813b7e380f48bd1c7c9abbdfc94f19ff6f60bb96a873341b2a2b0"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "882163ca6155fec4c44fdf4cbb565e91c32963f836b0a4a6e23c43db378a2536"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/CONTROL.json",
+      "bytes": 19529,
+      "mode": 420,
+      "sha256": "4dc67788529d89f2b7ebadca75a7bd9d2aaa01bc016908bab6915d1d4f9c885d"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/GRANT.json",
+      "bytes": 976,
+      "mode": 420,
+      "sha256": "73124135fd992b0308d925a77e64fb2190cd5df0808e87835755a729bc2d3f58"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "d6cfeac122fa6cc72aff48176815d553642b5a88a8fadc96bfd52eb002d6c66f"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "4804f6fdadaa5c64f2e82236a06c3994b7b6056ee9003d316bcd043d0eace6ed"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 713,
+      "mode": 292,
+      "sha256": "70b94bb5fca739fb6af1da845bc18e679d56e1153fd3df6127b1376e330c5a6e"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s06/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S06/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S07/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "85af1cc8245e579653306842b5a83e8396b1cd07cecda2a6c8d97cc072d79079"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "ef50b4ec4da331b7e701fc341956000590c94e3c348a924da8ad70b3b58ae5b3"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "e7441de62131b75b7956ad3af476b1b0c5fa4cd3733d7e64a5be6c62e0a1aadf"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "e0b1ce6b452fa2a78e0a9b07d2924c41bb24730217b9d1ccb8cec9da508e6724"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/CONTROL.json",
+      "bytes": 19536,
+      "mode": 420,
+      "sha256": "14c98cfe170819070cd260cc83f227babf1205abb3d48cae40a4fde1e0c90a7b"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "d2572b584e790c0b98e93e06a149a45daa85c31473e18aea1528cbcc42f395e0"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "e1d7df7881307dab96cd385077ab8121dafb5d48e6a7f172e0799fb0f084f355"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "c75cd2cabc3610e94691a31fc083ef39204a9ae73c04cb5d84eb6459f8c871c7"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 720,
+      "mode": 292,
+      "sha256": "19e4911fb3d05d34ddbd8b14bc21c36e05d8c8d17c23b068a814361bec30cead"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s07/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S07/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "eight/S08/fixture-repository/package.json",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "338dcf12aaec2a9b4f926ce4d5302009c801dde9c89ba4bc0d2df7e625a770ba"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "mode": 420,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/PROJECTION.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "c248225cfb876ad067feef776c9b099e1688befd41f5c602143a15c1af52ca8c"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v3/w07.mjs",
+      "bytes": 2447,
+      "mode": 420,
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/comparator/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/consumer.mjs",
+      "bytes": 61,
+      "mode": 420,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v5/wrappers/target/package.json",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/evidence.mjs",
+      "bytes": 5855,
+      "mode": 420,
+      "sha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/records.mjs",
+      "bytes": 8609,
+      "mode": 420,
+      "sha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7/transport.mjs",
+      "bytes": 1366,
+      "mode": 420,
+      "sha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5204,
+      "mode": 420,
+      "sha256": "8510934c30a5b32f53a71660c9617d3e03170f90e816cd1edd1c12b8890ae828"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r2/transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/SEAL.json",
+      "bytes": 15734,
+      "mode": 420,
+      "sha256": "9018562ce882069524fc32c9cdf470c148f2a134c7753de03722358cde8ea155"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/bootstrap.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "a7d7b10b25e3b166531bb68d53df73ae6ae903d4c56bf1fe13cb33498b7fd747"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/contracts.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "c9a30e77ef28dc261b104140b2dc4b0f4638ee0e8fc56e01503827e31e41771f"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/evidence.mjs",
+      "bytes": 48,
+      "mode": 420,
+      "sha256": "f045050c70b3cb25c479cebc895f476b83d9ebbe875347591a266875fed0cbf6"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/loader.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "7d7dc79449539ed434e0eefb76ea36c9242492e61d01a792e41253fc889f0699"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/metadata-stub.mjs",
+      "bytes": 1117,
+      "mode": 493,
+      "sha256": "d6f3ac37e5c75519ef93fa6e46580804862aee1d95eb7248020a6099f2b31872"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/projection.mjs",
+      "bytes": 50,
+      "mode": 420,
+      "sha256": "c5ab69e94b80c9714cf08d8693ee8a465c65edc3fba7d8fead8eac25b3e32957"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/records.mjs",
+      "bytes": 47,
+      "mode": 420,
+      "sha256": "61cf0780d918c664678b2e8348b485c1f6e88391e5f152e1b9e8d52ba458a121"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/METADATA.json",
+      "bytes": 499,
+      "mode": 420,
+      "sha256": "d4dbe807b50b8c1c1404643d84422f4e0dda921bc5add995aec8bdfd3af5fad5"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/CONTROL.json",
+      "bytes": 19535,
+      "mode": 420,
+      "sha256": "23f96c900e34d9e94488c91421dc5986255ec2ba4ca65f6c104381441100727c"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/GRANT.json",
+      "bytes": 972,
+      "mode": 420,
+      "sha256": "273acb9bce05ddbdf8f065b350cbe86e9417333acab62c7467663efadc144c08"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/REVIEW.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "43db629c35f918772278d9bdb5deca7d91b1173b4ecb58f08e8f200376438da7"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/child-003.json",
+      "bytes": 3082,
+      "mode": 420,
+      "sha256": "0f697b4ecdc7bb857cf863e2106375bfe357d1de61e1d8b219645798083e76b9"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/consumer-v5/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 175,
+      "mode": 292,
+      "sha256": "f68045c96d26f5a5f1a495991b75aa305dd0cdab80455c4e6ca37262d49be4ee"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 185,
+      "mode": 292,
+      "sha256": "1fbe24cb33cacb94aa178facf2dac526536938d9a9b6161ff61942f54a924549"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 719,
+      "mode": 292,
+      "sha256": "a19e313cc1448445687c09f9310b9bdf83279ad3247b1d70567334ed4bf095b3"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/runs/s08/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 121,
+      "mode": 292,
+      "sha256": "f6361fac84484e989b76cd4429e30d23ef68e418642cad2ab195f3180f26a98e"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/schema.mjs",
+      "bytes": 46,
+      "mode": 420,
+      "sha256": "3e7f46254e5342194ec91da8e28fd646d616fffc1fbac05062996ef9c44217ec"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/transport.mjs",
+      "bytes": 49,
+      "mode": 420,
+      "sha256": "76b55cbc601e2e82699b84d261e1afacebc24dac6e49df4d73e0a87aac59345c"
+    },
+    {
+      "path": "eight/S08/fixture-repository/tests/comparison/breadth/executor-v7-r3/worker.mjs",
+      "bytes": 11608,
+      "mode": 420,
+      "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+    },
+    {
+      "path": "fixture-adapter.mjs",
+      "bytes": 11991,
+      "mode": 420,
+      "sha256": "9f4c87208f6d7889cc557bfccdbbc52e2b8db3e0b7ec9dca92b25275cfe828f1"
+    },
+    {
+      "path": "prepare-controls.mjs",
+      "bytes": 2319,
+      "mode": 420,
+      "sha256": "5a9c8afd62b3e5b551bb86f82d795673adcfe0376382ec5c2c66c4007f1fa43d"
+    },
+    {
+      "path": "test.mjs",
+      "bytes": 12831,
+      "mode": 420,
+      "sha256": "8ef21152b71bd47848e8678fe95d07e47e57280c1f4406788a35d70fd9438c2e"
+    }
+  ],
+  "totalBytes": 3245768,
+  "originalFamilies": 8,
+  "novelWholeWorkers": 3,
+  "fixtureAuthorityNotProduction": true
+}

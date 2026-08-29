@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "status": "BOUND_FOR_DIFFERENT_SLOT_REVIEW_NOT_ACTUAL_GO",
+  "at": "2026-08-29T14:19:37.434Z",
+  "elapsedMilliseconds": 164708,
+  "grantKeyCount": 10,
+  "timestampKeysInGrant": 0,
+  "coordinatedWindowFitsNow": true,
+  "absoluteWindowRuntimeEnforced": false,
+  "rootGrantInstalled": false,
+  "artifactBindings": [
+    {
+      "path": "ACTIVATION-BINDING.json",
+      "size": 3986,
+      "sha256": "8819b11b65c33ab02b5cbf40329f7d86aba8becc22c7b9a01735e7a1f06e015d"
+    },
+    {
+      "path": "ROOT-GRANT.json.data",
+      "size": 304,
+      "sha256": "72ef43c2659d4fc33f4d12721e34e523c2704075b1d72035a1d809a2351b0bef"
+    },
+    {
+      "path": "COMMAND.json",
+      "size": 2507,
+      "sha256": "faa59fc03cf8811cdecfc30e1eba2fc23d2ce6cbcea7d6d7d8300f7e50cf7ec3"
+    },
+    {
+      "path": "AUTHORITY.json",
+      "size": 4182,
+      "sha256": "ceb6f3571dfd5fe93e5928083c74b6714cc11f84beba589995a956ec54569101"
+    },
+    {
+      "path": "HANDOFF.md",
+      "size": 4026,
+      "sha256": "a90e86edd4d0fc30ead300296e58da795bd5f33d20d621eb48492576c46d00a4"
+    }
+  ],
+  "declaredArtifactBytes": 15005,
+  "verification": "Finite JSON/hash/path DATA checks only; frozen validator/module not imported or rerun.",
+  "knownRoles": {
+    "completedDirectExecutions": 2,
+    "reservedFinalGitExecutions": 4,
+    "patchWrapperAdditionalConservativeAllowance": 1,
+    "existingReplControllerRole": 1,
+    "totalRoleEnvelope": 8,
+    "peakConservative": 3
+  },
+  "activationCounts": {
+    "Workers": 0,
+    "compiler": 0,
+    "productImports": 0,
+    "helpers": 0,
+    "realCohort": 0
+  },
+  "pending": "Quick different final-slot review and fresh ROOT actual GO repeating absolute constraints; reauthenticate all tools/input trees and unused paths before dispatch.",
+  "trailingCapture": "Final Git commit/identity/status capture files remain separate trailing receipts, not self-included in commit.",
+  "historyUnchanged": true
+}

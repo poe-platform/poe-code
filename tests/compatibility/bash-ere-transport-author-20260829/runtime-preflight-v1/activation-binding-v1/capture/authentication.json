@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "at": "2026-08-29T14:17:34.010Z",
+  "authorityCommit": "776797f2de751d511230860a9afe0909aeab0ace",
+  "reviewCommit": "6f9632cc2e51987f3fdfdb9eae2718e1977dc2d6",
+  "authoritySha256": "1ebcca468acfbc46c2db16f53a020bde04d417e6aee31a8e20fe15e23373d08f",
+  "profileSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+  "actualRunParent": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ACTUAL-01",
+    "realpath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ACTUAL-01",
+    "empty": true
+  },
+  "absent": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ROOT-GRANT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/capture/actual-outer.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/capture/actual-outer.stderr"
+  ],
+  "rootGrantInstalled": false,
+  "sourceBindings": [
+    {
+      "name": "supervisor.mjs",
+      "size": 7784,
+      "sha256": "9a7a8e7a1e6591e93c5db2c1b4421dae3de51837d77c1c2fe21e7fb5614c3f6f"
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 13611,
+      "sha256": "2395b583165d3be99675ff4398dc2c5baaaff4b026abdb4a38ddf0e4d5a89afe"
+    }
+  ],
+  "nodeBinding": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "scope": "DATA bytes and path metadata only; no module import/tool probe/Worker/launch; repeat freshness at actual admission"
+}

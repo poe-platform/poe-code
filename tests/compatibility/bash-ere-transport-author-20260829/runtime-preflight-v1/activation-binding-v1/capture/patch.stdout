@@ -1,0 +1,7 @@
+Success. Updated the following files:
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/ROOT-GRANT.json.data
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/COMMAND.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/AUTHORITY.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/ACTIVATION-BINDING.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/HANDOFF.md
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/activation-binding-v1/.gitignore

@@ -3579,13 +3579,26 @@ export class Runtime {
           if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
           const existingLocal = locals!.get(name);
           const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
-          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);
-          if (saved) await this.prepareVariable(state, name, saved);
-          const store = requireArrays(state);
-          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
-          const holding = store.owner.hold();
+          let operation: ArrayOwner | undefined;
+          let holding: ReturnType<ArrayOwner["hold"]> | undefined;
           let shadow: IndexedBinding | undefined;
+          let preparedExisting = false;
+          let preparedSaved = false;
+          let published = false;
+          let primaryPresent = false;
+          let primary: unknown;
           try {
+            if (existingLocal && !typedSavedVariables.has(existingLocal)) {
+              preparedExisting = true;
+              await this.prepareVariable(state, name, existingLocal, true);
+            }
+            if (saved && !typedSavedVariables.has(saved)) {
+              preparedSaved = true;
+              await this.prepareVariable(state, name, saved);
+            }
+            const store = requireArrays(state);
+            operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            holding = store.owner.hold();
             const watch = await store.watch(name, operation, this.signal);
             const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
             const prepared = await store.prepareName(name, operation, this.signal);
@@ -3606,13 +3619,28 @@ export class Runtime {
               released = store.publish(name, shadow!, tickets, prepared);
             });
             shadow = undefined;
+            published = true;
             watch.close();
             await released;
             assignments.delete(name);
           } catch (error) {
-            if (saved && !locals!.has(name)) await this.discardVariable(saved);
-            throw error;
-          } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
+            primaryPresent = true;
+            primary = error;
+          } finally {
+            const cleanup = async (action: () => void | Promise<void>): Promise<void> => {
+              try { await action(); }
+              catch (error) {
+                if (primaryPresent) context[invocationScope].failures.push(error);
+                else { primaryPresent = true; primary = error; }
+              }
+            };
+            if (preparedSaved && saved && !locals!.has(name)) await cleanup(() => this.discardVariable(saved));
+            if (preparedExisting && existingLocal && !published) await cleanup(() => this.discardVariable(existingLocal));
+            await cleanup(() => shadow?.release());
+            await cleanup(() => operation?.close());
+            await cleanup(() => holding?.release());
+          }
+          if (primaryPresent) throw primary;
           continue;
         }
         if (command === "local" && !locals!.has(name)) {

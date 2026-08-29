@@ -1,0 +1,107 @@
+{
+  "schema": "startup-fields-v3-acquisition-closed-publication-checkpoint",
+  "at": 1787982630887,
+  "started": 1787982091127,
+  "deadline": 1787983291127,
+  "limits": {
+    "allProcesses": 32,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "actualDiagnosticReads": 1,
+  "actualReadBytes": 6779,
+  "actualTargetLaunches": 0,
+  "recordHandlesOpen": 0,
+  "captureHandleClosed": true,
+  "registeredAdminChildrenThroughCheckpoint": 10,
+  "registeredActiveThroughCheckpoint": 0,
+  "registeredPeak": 1,
+  "retired": [
+    {
+      "pid": 94125,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 94128,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 97143,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 98473,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 98474,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 98475,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 5572,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 5826,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 5829,
+      "exit": true,
+      "close": true,
+      "status": 0
+    },
+    {
+      "pid": 9398,
+      "exit": true,
+      "close": true,
+      "status": 0
+    }
+  ],
+  "captureAccounting": {
+    "administrativeStdoutStderr": 3038,
+    "selectedEventsBytes": 2217,
+    "selectedResultBytes": 2561,
+    "note": "Distinct selected artifacts duplicate data; sums are logical retained bytes, not raw record capture or RSS. Tool/UI/web-response buffering is not measured by this harness."
+  },
+  "ownedWorkBeforePublication": {
+    "capture": {
+      "bytes": 58213,
+      "files": 35
+    },
+    "repositoryScope": {
+      "bytes": 32662,
+      "files": 13
+    }
+  },
+  "publicationTail": "Only this closure write plus git add, explicit-only commit and scoped status remain admitted. Actual completed tail and final counts must be written to the external captured STATE/FINAL-CLOSED receipt, not asserted in advance here.",
+  "rawCaptureRoot": "/tmp/bash-surface-d03-startup-fields-pRlumP",
+  "limitations": [
+    "No kernel-level descendant census or global/RSS guarantee",
+    "No source/binary UUID match for Apple references",
+    "Only selected authorized crash fields; raw record not published"
+  ],
+  "native9": "UNRUN",
+  "semantic40": "UNRUN"
+}

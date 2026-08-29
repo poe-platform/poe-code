@@ -121,7 +121,7 @@ try {
   if (fs.existsSync(evidence) || fs.existsSync(output)) throw Error('Publication outputs must be absent');
   let runtimeCapture = 0;
   const before = await inventory(binding.outputs.work, 805306368, entry => {
-    if (/(?:stdout|stderr|events|capture|supervisor|retirement|RESULT|STOP)/i.test(entry.path) && !entry.path.includes('/node_modules/') && !entry.path.includes('/dist/') && !entry.path.includes('/engine/')) runtimeCapture += entry.bytes;
+    if (/(?:stdout|stderr|events|capture|supervisor|retirement|RESULT|STOP|\.jsonl?$)/i.test(entry.path) && !entry.path.includes('/node_modules/') && !entry.path.includes('/dist/') && !entry.path.includes('/engine/')) runtimeCapture += entry.bytes;
   });
   const closedCaptures = [];
   for (const file of binding.outputs.launchCaptures) {
@@ -130,7 +130,14 @@ try {
     closedCaptures.push({ path: file, bytes: stat.size, sha256: await streamHash(file) });
   }
   const outerBytes = closedCaptures.reduce((sum, item) => sum + item.bytes, 0);
-  ledger = new Ledger({ capture: runtimeCapture + outerBytes + Number(authoritySize), work: before.total + outerBytes + Number(authoritySize) });
+  let startupBytes = 0;
+  for (const file of binding.outputs.startupCaptures) {
+    const stat = fs.lstatSync(file);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) throw Error('Startup capture admission');
+    startupBytes += stat.size;
+  }
+  ledger = new Ledger({ capture: runtimeCapture + outerBytes + Number(authoritySize) + startupBytes, work: before.total + outerBytes + Number(authoritySize) + startupBytes });
+  ledger.charge(8192 - startupBytes);
   fs.mkdirSync(evidence); fs.mkdirSync(output);
   terminal.accountingRoots = binding.outputs;
   try {
@@ -179,11 +186,16 @@ if (ledger && evidence && output) {
     terminal.commit = await git('git-receipt', ['rev-parse', 'HEAD']);
   } catch (error) { state.add(error); }
   try {
-    const measured = { evidence: await inventory(evidence, 805306368), publication: await inventory(output, 805306368) };
+    const startup = binding.outputs.startupCaptures.map(file => {
+      const stat = fs.lstatSync(file);
+      if (!stat.isFile() || stat.size > 4096) throw Error('Startup reserved tail exceeded');
+      return { path: file, bytes: stat.size, prechargedCeiling: 4096, liveAfterCensus: true };
+    });
+    const measured = { evidence: await inventory(evidence, 805306368), publication: await inventory(output, 805306368), startup };
     const value = { schema: 'b1-publication-final-v2', atUTC: new Date().toISOString(), terminal, faults: { primaryPresent: state.primaryPresent, primary: state.primary, secondary: state.secondary }, knownStartsThroughReceipt: auth.knownStartsBeforePublication + 2 + gitAttempts, knownChildRetirement: unknownChild ? 'UNKNOWN' : terminal.children.every(child => child.exitObserved && child.closeObserved) ? 'OBSERVED_FOR_RECORDED_CHILDREN_ONLY' : 'UNKNOWN', accounting: ledger.snapshot(), measuredBeforeFinalWrite: measured, reservedAfterCensusBytes: 1048576, noFullCensus: true, noGuaranteedDurableCapture: true, commitMayBeAbsent: true };
     const bytes = Buffer.from(JSON.stringify(value, null, 2) + '\n');
     if (bytes.length > 1048576) throw Error('Final receipt tail cap');
     write(path.join(output, 'FINAL.json'), bytes);
   } catch (error) { state.add(error); }
 }
-process.exitCode = state.primaryPresent || !terminal.result.complete || unknownChild ? 78 : 0;
+process.exitCode = state.primaryPresent || !terminal.result.complete || unknownChild ? 78 : terminal.result.reportedStatus === 'PASS' ? 0 : 1;

@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 const scope = 'tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2';
 const [sealHash, sealSize] = process.argv.slice(2);
-const stat = fs.lstatSync(`${scope}/PRESEAL.json`);
+const stat = fs.lstatSync(`${scope}/PRESEAL-v2.json`);
 assert(stat.isFile() && stat.size === Number(sealSize));
-const bytes = fs.readFileSync(`${scope}/PRESEAL.json`);
+const bytes = fs.readFileSync(`${scope}/PRESEAL-v2.json`);
 assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), sealHash);
 const seal = JSON.parse(bytes);
 for (const file of seal.files) {

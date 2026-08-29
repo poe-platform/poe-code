@@ -1,0 +1,242 @@
+{
+  "status": "AUTHOR_ACTUAL_B2_R9_COMPLETED_AWAITING_DIFFERENT_AUDIT",
+  "recordedAt": "2026-08-29T17:41:29.974Z",
+  "source": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "actualStageAEmits": 1012,
+  "package": {
+    "members": 1014,
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "candidateSource": "57c6809ee64ead4b2f98532b1b8e9f6b5a1756f5",
+  "preexecReview": "8c88c15553488aacee8eb469fbd012fd00f8fb27",
+  "reviewReceiptSha256": "c65013b32f58e6335d1f4a232d97691c8e11dc5dddf08ca7a333ddc72e3db48c",
+  "binding": "f65e4115f82222f41371ef83af43c5b4911f5b07",
+  "packet": {
+    "bytes": 7320,
+    "sha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d"
+  },
+  "grant": {
+    "bytes": 1081,
+    "sha256": "26aa0d1c7c6a34d576fae7b326dc08c600fc5ae7bae4753609ea78b9224d3e30",
+    "path": "/private/tmp/B2-R9-ROOT-GO.json"
+  },
+  "commandSha256": "b7f8a9ce325e90c7c1ac371e2cb0a71834942ad3f465a500b843c0fc5a62a5a4",
+  "singleRuntimeAttempt": true,
+  "toolSession": 29532,
+  "exitCode": 0,
+  "rootActualGo": "User message authorizing this exact new grant; no artifact proves unobserved tool state",
+  "window": {
+    "notBefore": "2026-08-29T17:30:00.000Z",
+    "externalLatest": "2026-08-29T17:40:00.000Z",
+    "activeEnd": "2026-08-29T17:57:00.000Z",
+    "expiry": "2026-08-29T18:00:00.000Z",
+    "admission": "2026-08-29T17:35:17.407Z",
+    "installed": "2026-08-29T17:35:17.416Z",
+    "terminalObserved": "2026-08-29T17:36:06.192Z",
+    "ownerElapsedFromAnchorMs": 351004.032916,
+    "elapsedQualification": "Anchored elapsed since17:30, NOT runtime wall duration; dispatch followed installed admission and terminal preceded observation."
+  },
+  "outcomes": {
+    "retained": 672,
+    "unrun": 0,
+    "typeProcesses": 6,
+    "exactNegativeDiagnostics": 24,
+    "mutantKills": 7,
+    "restores": 7,
+    "bindingRefusals": 2,
+    "offlineInstallExitCode": 0
+  },
+  "roleRetirement": {
+    "supervisedChildren": 41,
+    "allExitAndClose": true,
+    "signals": 0,
+    "unknownKnownRoles": 0,
+    "exitCodeHistogram": {
+      "0": 29,
+      "1": 9,
+      "2": 3
+    },
+    "ownerFailures": [],
+    "childAttemptedBytes": 344330,
+    "childStoredBytes": 344330,
+    "outerBytes": 0
+  },
+  "loaders": {
+    "admissions": 34,
+    "traceFiles": 34,
+    "traceRecords": 8025,
+    "traceKinds": {
+      "authenticated-source-prepared": 8023,
+      "binding-refusal": 2
+    },
+    "traceBytes": 2254280,
+    "afterParentExitAndClose": true,
+    "crashDurability": false,
+    "individualLoaderExitObserved": false,
+    "traceMeaning": "authenticated source prepared/returned; evaluation credit additionally requires matching exact case outcome",
+    "regexWorkers": "0 in declared static functional profile, not new independent Worker-constructor instrumentation",
+    "guestEngines": "0 in authorized engine-free cohort"
+  },
+  "modes": {
+    "sourceBuilt": "0644 exact",
+    "installedThenMoved": "0600 exact=0644&~0077",
+    "mutantCopyRestored": "0644 exact",
+    "movedIdentity": {
+      "before": {
+        "ino": 190100127,
+        "dev": 16777232
+      },
+      "after": {
+        "ino": 190100127,
+        "dev": 16777232
+      }
+    },
+    "userVfsPermissionsChanged": false
+  },
+  "cache": {
+    "phase": "quiescent",
+    "totalSnapshotRaces": 17,
+    "finalRaceCount": 0,
+    "quiescentBytes": 932606,
+    "reservationBytes": 134217728,
+    "sourceBoundProved": false,
+    "atomic": false,
+    "peakProof": false,
+    "qualifiedNativeToolBoundary": true
+  },
+  "resourceProfile": {
+    "maximumKnownOS": 64,
+    "peakBound": 3,
+    "plannedSupervised": 41,
+    "administrationAllowance": 22,
+    "conservativeKnownRolesAfterPlannedPublication": 49,
+    "universalCensus": false,
+    "captureCap": 100663296,
+    "logicalWorkCap": 536870912,
+    "payloadBytes": 10155453,
+    "publicationSnapshotBytes": 39431906,
+    "logicalWritesNotKernelQuota": true,
+    "gitInternalGrowth": "trusted tool boundary, not physical storage accounting"
+  },
+  "manifest": {
+    "path": "RAW-MANIFEST.json",
+    "sha256": "138b6b2f81551506220d82a46d82210ca09782499ba7faf876e8f2b9512538b3",
+    "payloads": 196,
+    "identityReceipts": 196
+  },
+  "dataReaderHistory": "First DATA reader passed text instead of parsed JSONL; preserved DATA-READER-FAILURE.json. Corrected reader uses frozen signatures and original raw data; no runtime rerun.",
+  "history": [
+    "r8 8433c2e0 224PASS/448UNRUN mode guard STOP unchanged",
+    "r7 0b13a5b8 224PASS/448UNRUN cache race STOP unchanged",
+    "r6 permission fsync and scheduler histories unchanged",
+    "17:30:12.164 late admission STOP/unlaunched unchanged"
+  ],
+  "scope": "B2 finite full672 successor, not combined B0/B1 acceptance, native parity, current HEAD, universal process/worker containment, arbitrary provider quiescence or global typecheck"
+}
+{
+  "schema": "B2_R9_ACTUAL_RAW_MANIFEST",
+  "publishedAt": "2026-08-29T17:40:13.752Z",
+  "files": [
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/RESULT.json",
+      "path": "evidence/payload/runtime/RESULT.json",
+      "bytes": 1175476,
+      "sha256": "50a5641818f30b3f02078ec7b0a3893bf9cb7f99661e1bb52acbf2743b474f0b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/CACHE-RECONCILIATION.json",
+      "path": "evidence/payload/runtime/CACHE-RECONCILIATION.json",
+      "bytes": 338419,
+      "sha256": "ea225edbe708571f5fa726f4f2f66c678376502933a2e762444c2dd0c6aa6f38"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/00-retained-source-built-redirections-v3.stderr",
+      "path": "evidence/payload/runtime/children/00-retained-source-built-redirections-v3.stderr",
+      "bytes": 807,
+      "sha256": "b529fc616adb4a3b4bcde48d6db8c1529cc7660182fb814f9a87b6c376be276c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/00-retained-source-built-redirections-v3.stdout",
+      "path": "evidence/payload/runtime/children/00-retained-source-built-redirections-v3.stdout",
+      "bytes": 3854,
+      "sha256": "8c8eae6a4c7e5cfea91063538102251b9161010a7a3d074e3ae64f15bdab7fd9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/01-retained-source-built-strict.stderr",
+      "path": "evidence/payload/runtime/children/01-retained-source-built-strict.stderr",
+      "bytes": 807,
+      "sha256": "62289cd0ddbaf72d4dfd883c95ac91a9e1f9d6c5ab967bd70c8d88cca1f75ffc"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/01-retained-source-built-strict.stdout",
+      "path": "evidence/payload/runtime/children/01-retained-source-built-strict.stdout",
+      "bytes": 8809,
+      "sha256": "34cd5fee3bd6630cc397d67d657f4b32f9d2e87815e2d1223d5d18443121f638"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/02-retained-source-built-conditional.stderr",
+      "path": "evidence/payload/runtime/children/02-retained-source-built-conditional.stderr",
+      "bytes": 807,
+      "sha256": "a91a2677b8fdb8d1a5423f26f4ad168fa7548db9a93ae0ed4e4d1018eb8aab76"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/02-retained-source-built-conditional.stdout",
+      "path": "evidence/payload/runtime/children/02-retained-source-built-conditional.stdout",
+      "bytes": 11346,
+      "sha256": "f6e00c5e99f4156b1b180588c6178ad74da9f41820d007cc6b761f163de59fc0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/03-retained-source-built-extension.stderr",
+      "path": "evidence/payload/runtime/children/03-retained-source-built-extension.stderr",
+      "bytes": 1405,
+      "sha256": "14122aec99c7318b527abaf0018efcb3416f71b7d5730b065b47125de710d7db"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/03-retained-source-built-extension.stdout",
+      "path": "evidence/payload/runtime/children/03-retained-source-built-extension.stdout",
+      "bytes": 20384,
+      "sha256": "469ee9ee007cfd8d705ad3f0e4822bd4f66bee3313732d036f98e82a8677433e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/04-retained-source-built-arrays.stderr",
+      "path": "evidence/payload/runtime/children/04-retained-source-built-arrays.stderr",
+      "bytes": 807,
+      "sha256": "2f6773e0154214c4f247acfff95d5c46e410304b399acf7df50abeb984ae10f2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/04-retained-source-built-arrays.stdout",
+      "path": "evidence/payload/runtime/children/04-retained-source-built-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/05-retained-source-built-n14.stderr",
+      "path": "evidence/payload/runtime/children/05-retained-source-built-n14.stderr",
+      "bytes": 3647,
+      "sha256": "197c61eb11b1d2b023299d41e1cc2ea832e806777e3920770339c5eaf6b70ac3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/05-retained-source-built-n14.stdout",
+      "path": "evidence/payload/runtime/children/05-retained-source-built-n14.stdout",
+      "bytes": 3526,
+      "sha256": "40e5efc76a1a545a866157058058a7f7db76d14109e7cf189e6a14166939c501"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/06-types-source-built-positive.stderr",
+      "path": "evidence/payload/runtime/children/06-types-source-built-positive.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/06-types-source-built-positive.stdout",
+      "path": "evidence/payload/runtime/children/06-types-source-built-positive.stdout",
+      "bytes": 22208,
+      "sha256": "1c8f5b2077ee3900a58b27ff22ceb7176009d877f402f4e5d258df3bcbace989"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/07-types-source-built-negative.stderr",
+      "path": "evidence/payload/runtime/children/07-types-source-built-negative.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"

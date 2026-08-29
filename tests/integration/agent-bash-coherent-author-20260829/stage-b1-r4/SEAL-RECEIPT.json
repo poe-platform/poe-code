@@ -1,0 +1,18 @@
+{
+  "sourceCommit": "14be114b99bd4df2e275ee5d1f59db45bb2085d9",
+  "preseal": {
+    "bytes": 20804,
+    "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+  },
+  "publication": {
+    "bytes": 3872,
+    "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+  },
+  "controls": {
+    "bytes": 2602,
+    "sha256": "460c90fa20414c2f12e837194cd19ca04d01e895efc9daef82fc0ae728d37ec5"
+  },
+  "utc": "2026-08-29T14:44:58.139Z",
+  "pid": 26527,
+  "actualCalls": 0
+}

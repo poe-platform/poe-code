@@ -1,0 +1,85 @@
+{
+  "schema": "B1-r4-DATA-preseal-v1",
+  "sourceCommit": "14be114b99bd4df2e275ee5d1f59db45bb2085d9",
+  "groups": [
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06",
+    "D07",
+    "D08"
+  ],
+  "controllerCount": 1,
+  "productCalls": 0,
+  "Workers": 0,
+  "seconds": 30,
+  "files": [
+    {
+      "path": "failure.mjs",
+      "bytes": 1449,
+      "sha256": "cd1f0aef3345669d1176d32a9637f6b94ff2748615289fb3ab7001a282005cb3"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 5584,
+      "sha256": "564f6bc93a488c59fb9555a2facc314ddf5b406c07a4deb9728d87a5690fac20"
+    },
+    {
+      "path": "workflows.mjs",
+      "bytes": 16736,
+      "sha256": "9f391d19046fa4817c9d425c263d4ee4a8611909f89a59cf9f752de56ae08f8d"
+    },
+    {
+      "path": "consumer.mjs",
+      "bytes": 3933,
+      "sha256": "6063918e5ac63db02389283796f8196598f7833868769c2c7617ea08b1f4204d"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 12890,
+      "sha256": "725de3f5fc2a9822e62d68cd5d305d08cfe1c80356cc1475f9b40874fd5aa193"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 13280,
+      "sha256": "380900151ecc5fa2b05cbba157d9fe3eb65401d88b62a26e7824b8a8742d1281"
+    },
+    {
+      "path": "policy.mjs",
+      "bytes": 4556,
+      "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+    },
+    {
+      "path": "PUBLICATION-BINDING.json",
+      "bytes": 3872,
+      "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+    },
+    {
+      "path": "FIXTURE-DELTA.json",
+      "bytes": 567,
+      "sha256": "69c58f8cc6029965dbf9bf8ae50337e8bbe0d01b0bb919dad804ffbfc011f414"
+    }
+  ],
+  "oldFixture": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+    "bytes": 15763,
+    "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+    "source": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+    "target": "workflows.mjs",
+    "origin": {
+      "kind": "AUTHENTICATED_INHERITED_SOURCE",
+      "repositoryPath": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "blob": "05eee3df033e442f7549bc632342d0be5d7badae",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+      "authority": "B0 8ab0b287 stageFiles, v4 immutable fixture"
+    }
+  },
+  "oldPublication": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/BINDING-v2.json",
+    "bytes": 3923,
+    "sha256": "022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56"
+  }
+}

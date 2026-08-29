@@ -646,7 +646,6 @@ Git limit overrides; unknown module options are refused.
 import { Shell, MemoryFileSystem, agentCommands } from "virtual-bash";
 
 const fs = new MemoryFileSystem();
-// Populate /repo with genuine Git files through the VFS before querying it.
 const shell = new Shell({ fs, cwd: "/repo" }).use(agentCommands({
   git: { discoveryBoundary: "/repo" },
 }));
@@ -670,10 +669,13 @@ read/inflate/work budgets can refuse otherwise valid repositories far below the
 individual pack-size cap; this is not general packed-repository readiness.
 Logical resident accounting is not a hard RSS bound or opaque-provider preemption.
 
-ROOT-qualified M1B module `fca6f81d` retains S02/H09/private-writer source gaps and
-six unrun native workflows. The new80 composition and its79 apply-patch baseline
-still require their distinct public reviews; module acceptance alone does not
-accept this composition. Author evidence is in
+Populate `/repo` with genuine Git files through the VFS before running the example.
+ROOT-qualified M1B module `fca6f81d`, consolidated in `db8b818d`, retains
+S02/H09/private-writer source gaps, nonexhaustive resource mappings and six unrun
+native workflows. The79 apply-patch baseline has bounded public acceptance
+`bd772916`; its four RegexWorker-denied reviewer regressions remain unqualified,
+not proven product failures or passes. The new80 composition still requires its
+own public review; module acceptance alone does not accept it. Author evidence is in
 `tests/integration/git-public-20260829/`. No full Git/GNU or whole-product claim.
 
 ## Grep Aliases and Column

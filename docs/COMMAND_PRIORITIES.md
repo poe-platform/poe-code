@@ -43,10 +43,13 @@ ROOT-qualified M1B module `fca6f81d2d96db2bbceabf3247cd57ffe240bde6` is now
 being wired as default80 on the fixed apply79 candidate
 `7fde32264d757ef856acf3ae92c8581b4a294341`. The selected module/full910 package
 `cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a` has
-274 finite versioned review identities, not universal resource/native coverage.
+274 finite versioned review identities (208 stock,32 mechanical,10 types,24 loaded),
+consolidated in `db8b818db983f32c9522ebe4c9589ca8766a5454`, not universal resource/native coverage.
 S02/H09/private-writer source qualifications, old bare-OID/deadline failures and
-six unrun native workflows remain. Both the79 baseline public review and this80
-public composition require separate acceptance. This is genuine bounded read-only
+six unrun native workflows remain. The79 baseline now has bounded public acceptance
+`bd772916c26dc87c54bafdaa784d18f058efa275`; its79/83 maintained reviewer result
+retains four RegexWorker-denied unqualified regressions. This80 public composition
+still needs independent acceptance. This is genuine bounded read-only
 VFS object/index/pack parsing, not development Git or a native fallback. All24
 fixed limits remain unchanged; only discoveryBoundary/replacement are options.
 Node remains unqualified and absent, not a stub. Curl stays optional; YQ/XAN,
@@ -63,7 +66,7 @@ observations remain unchanged. Two separate cleanup owners fulfilled in the
 successful L07 cases; this is not a rescore or universal backend/resource proof.
 
 The preceding root wiring adds `apply_patch` as default79 onto the accepted coherent78
-plus arrays composition, with independent public review still required. Root and
+plus arrays composition, now with bounded public acceptance `bd772916`. Root and
 `virtual-bash/commands/apply-patch` provide the three factories/plugin and typed
 limits; aggregate `applyPatch` forwards limits with top-level replacement authority.
 This is bounded literal UTF-8 VFS patching, not a host subprocess or generic native

@@ -1,0 +1,11 @@
+{
+  "label": "admin-04-patch-stage",
+  "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+  "args": [],
+  "closed": true,
+  "signals": [],
+  "bytes": 335,
+  "pid": 45504,
+  "code": 0,
+  "signal": null
+}

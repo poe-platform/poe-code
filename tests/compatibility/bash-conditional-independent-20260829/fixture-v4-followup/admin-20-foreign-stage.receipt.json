@@ -1,0 +1,30 @@
+{
+  "label": "admin-20-foreign-stage",
+  "executable": "/usr/bin/git",
+  "args": [
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "ls-files",
+    "--stage",
+    "-z",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/publication/EVIDENCE-COMMIT-RECEIPT.json",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/publication/PUBLICATION-CLOSURE.json",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/publication/evidence-commit.stderr",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/publication/evidence-commit.stdout"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 840,
+  "pid": 68090,
+  "code": 0,
+  "signal": null
+}

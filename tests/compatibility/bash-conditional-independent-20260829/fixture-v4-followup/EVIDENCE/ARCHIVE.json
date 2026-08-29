@@ -1,0 +1,15 @@
+{
+  "role": "SOURCE_DATA_ARCHIVAL_NOT_NEW_PRODUCT_RUN",
+  "pid": 60013,
+  "rawRecords": 65,
+  "rawBytes": 5440340,
+  "archiveBytes": 2326060,
+  "archiveSha256": "b2cf9723fe0e044e72283f1629b209e5aceb132451f48db70e0d384bd19969c0",
+  "base64Sha256": "d93afb82005997bdf8c788445d5a7db8ed57476efe4a9665369d36641de1a0dd",
+  "physicalFiles": 5819,
+  "physicalBytes": 37311221,
+  "captureBytes": 16106,
+  "outerCaptureBytes": 547,
+  "elapsedMs": 878259,
+  "deleted": 0
+}

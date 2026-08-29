@@ -1,0 +1,26 @@
+{
+  "label": "admin-18-status",
+  "executable": "/usr/bin/git",
+  "args": [
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=no"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 652,
+  "pid": 67192,
+  "code": 0,
+  "signal": null
+}

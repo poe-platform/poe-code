@@ -1,0 +1,11 @@
+{
+  "label": "admin-10-patch-executor",
+  "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+  "args": [],
+  "closed": true,
+  "signals": [],
+  "bytes": 132,
+  "pid": 54385,
+  "code": 0,
+  "signal": null
+}

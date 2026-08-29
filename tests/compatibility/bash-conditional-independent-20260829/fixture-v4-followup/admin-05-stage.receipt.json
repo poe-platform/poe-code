@@ -1,0 +1,14 @@
+{
+  "label": "admin-05-stage",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/stage-inputs.mjs",
+    "--source-data-only"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 71,
+  "pid": 45505,
+  "code": 0,
+  "signal": null
+}

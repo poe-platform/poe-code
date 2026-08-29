@@ -1,0 +1,26 @@
+{
+  "label": "admin-02-index",
+  "executable": "/usr/bin/git",
+  "args": [
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "diff",
+    "--cached",
+    "--name-only",
+    "-z"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 0,
+  "pid": 37677,
+  "code": 0,
+  "signal": null
+}

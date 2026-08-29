@@ -1,0 +1,10 @@
+{
+  "role": "SOURCE_DATA_TOOL_TRANSCRIPT",
+  "error": "[1:1548-1:1549]: Unexpected token: ')'",
+  "childStarts": 0,
+  "productImports": 0,
+  "correction": "remove one extra closing parenthesis before retrying the DATA statement",
+  "nativeStderr": false,
+  "previousAdminStartsAtFailure": 2
+}
+

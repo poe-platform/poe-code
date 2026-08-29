@@ -1,0 +1,386 @@
+[
+  {
+    "operation": "probe-1",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-1",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-1",
+    "channel": "records",
+    "observed": 140441,
+    "retained": 140441,
+    "sha256": "a788d2ff84bf2a3e95f9defe2991ebb8fc401be964e7a3ee73176f652003cb17",
+    "max": 262144
+  },
+  {
+    "operation": "probe-2",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-2",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-2",
+    "channel": "records",
+    "observed": 140353,
+    "retained": 140353,
+    "sha256": "66b17405f29c3e1ae12bbacb51ee74f27318f6abc9522c8933fbfaf43865b1d5",
+    "max": 262144
+  },
+  {
+    "operation": "probe-3",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-3",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "probe-3",
+    "channel": "records",
+    "observed": 25284,
+    "retained": 25284,
+    "sha256": "e76f8a9b4a8613db99d3d2f83fde22dde6796fc24fe40a858f3a4172e22c0035",
+    "max": 262144
+  },
+  {
+    "operation": "C03-esm",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-esm",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-esm",
+    "channel": "records",
+    "observed": 2565,
+    "retained": 2565,
+    "sha256": "ccb12612109b362de811e94dd6cdee129e527362cb30293f6d2a9bcd22c68287",
+    "max": 262144
+  },
+  {
+    "operation": "C03-cjs",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-cjs",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-cjs",
+    "channel": "records",
+    "observed": 2554,
+    "retained": 2554,
+    "sha256": "ccd09814e5ec31d70d8cf2e3df5b0e21c0b264b56d2904056869e9fa6a05278b",
+    "max": 262144
+  },
+  {
+    "operation": "C03-require",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-require",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-require",
+    "channel": "records",
+    "observed": 3243,
+    "retained": 3243,
+    "sha256": "5977b11c909d074ac1dcfc6ec201a3ec6e1d8d4eb9b3c2b59f0026d7d5e31a70",
+    "max": 262144
+  },
+  {
+    "operation": "C03-wrong-hash",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-wrong-hash",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C03-wrong-hash",
+    "channel": "records",
+    "observed": 3772,
+    "retained": 3772,
+    "sha256": "2a1883c1335731483937ab30443aa34d6f2efeaca7ae650dabfb9dec165b5eb0",
+    "max": 262144
+  },
+  {
+    "operation": "C04-unbound",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C04-unbound",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C04-unbound",
+    "channel": "records",
+    "observed": 4430,
+    "retained": 4430,
+    "sha256": "e84f82778ce3d15a7439189e58f3cfec81768487f778dbe09b181d305a69df97",
+    "max": 262144
+  },
+  {
+    "operation": "C04-offline",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C04-offline",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C04-offline",
+    "channel": "records",
+    "observed": 4325,
+    "retained": 4325,
+    "sha256": "a24297a82224a82685faf23a4cd7eebc2d8f1afdde93e5323a6177ed8e7717a3",
+    "max": 262144
+  },
+  {
+    "operation": "C09-status",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C09-status",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C09-status",
+    "channel": "records",
+    "observed": 2221,
+    "retained": 2221,
+    "sha256": "1a2c35e74c7db240014fb0655a12f0eee4ca2d5156562d592415620a3505532d",
+    "max": 262144
+  },
+  {
+    "operation": "C09-deadline",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C09-deadline",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C09-deadline",
+    "channel": "records",
+    "observed": 2241,
+    "retained": 2241,
+    "sha256": "250f3eb9cd3e0736df52ab9ab495be609b70092a8a0eb49e1e123a1fdfd58115",
+    "max": 262144
+  },
+  {
+    "operation": "C11-positive",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C11-positive",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C11-positive",
+    "channel": "records",
+    "observed": 141415,
+    "retained": 141415,
+    "sha256": "5a61d302f75c26b37ce3091118b636095b6ebdbf88a09c89302df53cec693b5b",
+    "max": 262144
+  },
+  {
+    "operation": "C11-rejected",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C11-rejected",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C11-rejected",
+    "channel": "records",
+    "observed": 140740,
+    "retained": 140740,
+    "sha256": "b04a3474a464b3781f0b664222a3dd1fe052aa714b7bf5b9af663acd1bf210b3",
+    "max": 262144
+  },
+  {
+    "operation": "C12-loaded-noop",
+    "channel": "stdout",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C12-loaded-noop",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "C12-loaded-noop",
+    "channel": "records",
+    "observed": 2565,
+    "retained": 2565,
+    "sha256": "eba06d8e2883af65ba0534e942117a33596103e5529a30a272eaaf940aa6a194",
+    "max": 262144
+  },
+  {
+    "operation": "coordinator",
+    "channel": "stdout",
+    "observed": 2454,
+    "retained": 2454,
+    "sha256": "f7a8177a50f878fd13b3cc739640f4db7c1f4c91f7dd91e0d2b54309999d99cb",
+    "max": 65536
+  },
+  {
+    "operation": "coordinator",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "coordinator",
+    "channel": "records",
+    "observed": 1423,
+    "retained": 1423,
+    "sha256": "2b9f2e6b39ae32e0bec8f48756898ba9a09f2f78a99bb70941483e6ae618c68a",
+    "max": 262144
+  },
+  {
+    "operation": "launcher",
+    "channel": "stdout",
+    "observed": 501,
+    "retained": 501,
+    "sha256": "41fe6390c1c17f7c3c21e44f66b8b2a8191f29811181e48374555d4cf580596a",
+    "max": 65536
+  },
+  {
+    "operation": "launcher",
+    "channel": "stderr",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 65536
+  },
+  {
+    "operation": "launcher",
+    "channel": "fd3",
+    "observed": 0,
+    "retained": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "max": 262144
+  }
+]

@@ -1,0 +1,1 @@
+{"operation":{"id":"C03-wrong-hash","worker":"control","kind":"control","family":"C03","mode":"load","entry":"loaded.mjs","files":[{"path":"loaded.mjs","mode":420,"bytes":65,"sha256":"0000000000000000000000000000000000000000000000000000000000000000"}],"ordinal":7},"recipe":"bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c"}

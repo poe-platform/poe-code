@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "role": "post-source finite pure controls; not Worker replay",
+  "cases": [
+    [
+      "P01",
+      "inherited array traps and fragment ownership"
+    ],
+    [
+      "P02",
+      "reply span traps/empty capture snapshot"
+    ],
+    [
+      "P03",
+      "falsy/hole/accessor/extra refusal"
+    ],
+    [
+      "P04",
+      "bounded Proxy refusal without traps"
+    ],
+    [
+      "P05",
+      "already-aborted false before work"
+    ],
+    [
+      "P06",
+      "scalar bootstrap and storage preadmission"
+    ],
+    [
+      "P07",
+      "descriptor scratch cap before enumeration"
+    ],
+    [
+      "P08",
+      "cumulative grant commit/highwater/overgrant"
+    ],
+    [
+      "P09",
+      "unsent release versus unknown sent consumption"
+    ],
+    [
+      "P10",
+      "storage spent/reserved/live retirement"
+    ],
+    [
+      "P11",
+      "finite integer/overflow/work ceilings"
+    ],
+    [
+      "P12",
+      "canonical nonmatch/cardinality/aliases"
+    ]
+  ],
+  "workerFamilies": 32,
+  "workerVariants": 60,
+  "workerStatus": "UNRUN"
+}

@@ -6,12 +6,37 @@ import { add, integer, multiply, TransportAccounting } from "./accounting.js";
 import { EreTransportError, EreTransportProfileLimitError, operation, profile, resources } from "./protocol.js";
 import type { EreTransportInput, EreTransportReply, EreTransportRequest, EreTransportResult } from "./protocol.js";
 
+const inputKeys = Object.freeze(["pattern", "subject"]);
+const fragmentKeys = Object.freeze(["text", "literal"]);
+const resultKeys = Object.freeze(["matched", "groupCount", "spans", "steps", "allocatedUnits"]);
+const spanKeys = Object.freeze(["start", "end"]);
+const replyKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "result", "usage"]);
+const failureKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "category", "resource", "offset", "usage"]);
+
 function fail(): never { throw new EreTransportError("PROTOCOL", "invalid ERE transport frame"); }
 
-export function record(value: unknown, keys: readonly string[], visit: (units: number) => void): Record<string, unknown> {
+function data(value: unknown, key: string, transport?: TransportAccounting): unknown {
+  const scratch = transport?.owned(5);
+  try {
+    if (value === null || typeof value !== "object" || utilTypes.isProxy(value)) return fail();
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+  return descriptor.value;
+  } finally { scratch?.retire(); }
+}
+
+function indexed(value: readonly unknown[], index: number, transport?: TransportAccounting): unknown {
+  const scratch = transport?.owned(16);
+  try { return data(value, String(index), transport); }
+  finally { scratch?.retire(); }
+}
+
+export function record(value: unknown, keys: readonly string[], visit: (units: number) => void, transport?: TransportAccounting): Record<string, unknown> {
   visit(1 + keys.length);
   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || Array.isArray(value)) return fail();
-  const actual = Reflect.ownKeys(value);
+  const scratch = transport?.owned(add(1, multiply(keys.length, 6)));
+  try {
+    const actual = Reflect.ownKeys(value);
   if (actual.length !== keys.length) return fail();
   for (let index = 0; index < keys.length; index++) {
     if (actual[index] !== keys[index]) return fail();
@@ -19,24 +44,28 @@ export function record(value: unknown, keys: readonly string[], visit: (units: n
     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
   }
   return value as Record<string, unknown>;
+  } finally { scratch?.retire(); }
 }
 
-function array(value: unknown, maximum: number, visit: (units: number) => void, overLimit: () => never = fail): readonly unknown[] {
+function array(value: unknown, maximum: number, visit: (units: number) => void, overLimit: () => never = fail, transport?: TransportAccounting): readonly unknown[] {
   visit(1);
   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || !Array.isArray(value)) return fail();
-  const length = Object.getOwnPropertyDescriptor(value, "length");
-  if (!length || !Object.hasOwn(length, "value")) return fail();
-  integer(length.value);
-  if (length.value > maximum) return overLimit();
-  visit(length.value);
-  const keys = Reflect.ownKeys(value);
-  if (keys.length !== length.value + 1 || keys[keys.length - 1] !== "length") return fail();
-  for (let index = 0; index < length.value; index++) {
-    if (keys[index] !== String(index)) return fail();
-    const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+  const lengthValue = data(value, "length", transport);
+  integer(lengthValue);
+  if (lengthValue > maximum) return overLimit();
+  visit(lengthValue);
+  const scratch = transport?.owned(add(2, multiply(lengthValue, 22)));
+  try {
+    const keys = Reflect.ownKeys(value);
+  if (keys.length !== lengthValue + 1 || keys[keys.length - 1] !== "length") return fail();
+  for (let index = 0; index < lengthValue; index++) {
+    const key = String(index);
+    if (keys[index] !== key) return fail();
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
   }
   return value;
+  } finally { scratch?.retire(); }
 }
 
 function ascii(value: unknown, cap: number, visit: (units: number) => void): string {
@@ -48,8 +77,8 @@ function ascii(value: unknown, cap: number, visit: (units: number) => void): str
   return value;
 }
 
-export function usage(value: unknown, allowance: EreLimits, visit: (units: number) => void): EreUsage {
-  const fields = record(value, resources, visit);
+export function usage(value: unknown, allowance: EreLimits, visit: (units: number) => void, transport?: TransportAccounting): EreUsage {
+  const fields = record(value, resources, visit, transport);
   for (const key of resources) { integer(fields[key]); if ((fields[key] as number) > allowance[key]) return fail(); }
   return fields as unknown as EreUsage;
 }
@@ -62,14 +91,15 @@ export interface InspectedInput {
 
 export function inspectInput(value: EreTransportInput, limits: EreLimits, transport: TransportAccounting, signal?: AbortSignal): InspectedInput {
   const visit = (amount: number): void => { if (signal?.aborted) throw signal.reason; transport.visit(amount); };
-  const input = record(value, ["pattern", "subject"], visit);
+  const input = record(value, inputKeys, visit, transport);
   if (typeof input.subject !== "string") return fail();
   if (input.subject.length > limits.subjectBytes) throw new EreProfileLimitError("subjectBytes", limits.subjectBytes);
   const maximum = Math.max(0, Math.floor((Math.floor(transport.available / 2) - 47 - input.subject.length) / 4));
-  const fragments = array(input.pattern, maximum, visit, () => { throw new EreTransportProfileLimitError("transportStorage", transport.storageLimit); });
+  const fragments = array(input.pattern, maximum, visit, () => { throw new EreTransportProfileLimitError("transportStorage", transport.storageLimit); }, transport);
   let bytes = 0;
-  for (const item of fragments) {
-    const fragment = record(item, ["text", "literal"], visit);
+  for (let index = 0; index < fragments.length; index++) {
+    const item = indexed(fragments, index, transport);
+    const fragment = record(item, fragmentKeys, visit, transport);
     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") return fail();
     if (fragment.text.length > limits.patternBytes - bytes) throw new EreProfileLimitError("patternBytes", limits.patternBytes);
     for (let offset = 0; offset < fragment.text.length; offset++) {
@@ -89,7 +119,14 @@ export function inspectInput(value: EreTransportInput, limits: EreLimits, transp
 
 export function copyInput(inspected: InspectedInput, transport: TransportAccounting): EreTransportInput {
   transport.visit(inspected.units);
-  const pattern = inspected.input.pattern.map(fragment => Object.freeze({ text: fragment.text, literal: fragment.literal }));
+  const pattern: EreFragment[] = [];
+  for (let index = 0; index < inspected.input.pattern.length; index++) {
+    const fragment = indexed(inspected.input.pattern, index, transport) as EreFragment;
+    const text = data(fragment, "text", transport);
+    const literal = data(fragment, "literal", transport);
+    if (typeof text !== "string" || typeof literal !== "boolean") return fail();
+    pattern.push(Object.freeze({ text, literal }));
+  }
   return Object.freeze({ pattern: Object.freeze(pattern), subject: inspected.input.subject });
 }
 
@@ -105,7 +142,8 @@ export function validateRequest(value: unknown): EreTransportRequest {
   usage(frame.allowance, limits, visit);
   const fragments = array(frame.pattern, Math.floor(limits.allocationUnits / 8), visit);
   let bytes = 0;
-  for (const item of fragments) {
+  for (let index = 0; index < fragments.length; index++) {
+    const item = indexed(fragments, index);
     const fragment = record(item, ["text", "literal"], visit);
     const text = ascii(fragment.text, limits.patternBytes - bytes, visit);
     if (typeof fragment.literal !== "boolean") return fail(); bytes += text.length;
@@ -115,14 +153,13 @@ export function validateRequest(value: unknown): EreTransportRequest {
   return value as EreTransportRequest;
 }
 
-export function validateReply(value: unknown, request: EreTransportRequest, visit: (units: number) => void): { reply: EreTransportReply; replyUnits: number; resultUnits: number } {
+export function validateReply(value: unknown, request: EreTransportRequest, visit: (units: number) => void, transport?: TransportAccounting): { reply: EreTransportReply; replyUnits: number; resultUnits: number } {
   if (value === null || typeof value !== "object" || utilTypes.isProxy(value)) return fail();
-  const kind = Object.getOwnPropertyDescriptor(value, "kind");
-  if (!kind || !Object.hasOwn(kind, "value")) return fail();
-  const keys = kind.value === "result" ? ["version", "operation", "id", "grantId", "kind", "result", "usage"] : ["version", "operation", "id", "grantId", "kind", "category", "resource", "offset", "usage"];
-  const frame = record(value, keys, visit);
+  const kind = data(value, "kind", transport);
+  const keys = kind === "result" ? replyKeys : failureKeys;
+  const frame = record(value, keys, visit, transport);
   if (frame.version !== 1 || frame.operation !== operation || frame.id !== request.id || frame.grantId !== request.grantId) return fail();
-  const spent = usage(frame.usage, request.allowance, visit);
+  const spent = usage(frame.usage, request.allowance, visit, transport);
   visit(operation.length);
   if (frame.kind === "failure") {
     if (frame.category !== "syntax" && frame.category !== "unsupported" && frame.category !== "profile-limit") return fail();
@@ -137,18 +174,18 @@ export function validateReply(value: unknown, request: EreTransportRequest, visi
     return { reply: value as EreTransportReply, replyUnits: units, resultUnits: 0 };
   }
   if (frame.kind !== "result") return fail();
-  const result = record(frame.result, ["matched", "groupCount", "spans", "steps", "allocatedUnits"], visit);
+  const result = record(frame.result, resultKeys, visit, transport);
   if (typeof result.matched !== "boolean") return fail();
   integer(result.groupCount); integer(result.steps); integer(result.allocatedUnits);
   if (result.groupCount > 32 || result.steps !== spent.work || result.allocatedUnits !== spent.allocationUnits) return fail();
-  const spans = array(result.spans, 33, visit);
+  const spans = array(result.spans, 33, visit, fail, transport);
   if (spans.length !== result.groupCount + 1) return fail();
   let participating = 0; let captureBytes = 0; let overall: { start: number; end: number } | null = null;
   for (let index = 0; index < spans.length; index++) {
-    const item = spans[index];
+    const item = indexed(spans, index, transport);
     if (item === null) { if (index === 0 && result.matched) return fail(); continue; }
     if (!result.matched) return fail();
-    const span = record(item, ["start", "end"], visit); integer(span.start); integer(span.end);
+    const span = record(item, spanKeys, visit, transport); integer(span.start); integer(span.end);
     if (span.start > span.end || span.end > request.subject.length) return fail();
     if (index === 0) overall = span as unknown as { start: number; end: number };
     else if (!overall || span.start < overall.start || span.end > overall.end) return fail();
@@ -160,7 +197,18 @@ export function validateReply(value: unknown, request: EreTransportRequest, visi
   return { reply: value as EreTransportReply, replyUnits: 31 + resultUnits, resultUnits };
 }
 
-export function copyReplyResult(reply: Extract<EreTransportReply, { kind: "result" }>): EreTransportResult {
+export function copyReplyResult(reply: Extract<EreTransportReply, { kind: "result" }>, transport?: TransportAccounting): EreTransportResult {
   const value = reply.result;
-  return Object.freeze({ matched: value.matched, groupCount: value.groupCount, spans: Object.freeze(value.spans.map(span => span === null ? null : Object.freeze({ start: span.start, end: span.end }))), steps: value.steps, allocatedUnits: value.allocatedUnits });
+  const spans: ({ readonly start: number; readonly end: number } | null)[] = [];
+  for (let index = 0; index < value.spans.length; index++) {
+    const span = indexed(value.spans, index, transport);
+    if (span === null) spans.push(null);
+    else {
+      const start = data(span, "start", transport);
+      const end = data(span, "end", transport);
+      integer(start); integer(end);
+      spans.push(Object.freeze({ start, end }));
+    }
+  }
+  return Object.freeze({ matched: value.matched, groupCount: value.groupCount, spans: Object.freeze(spans), steps: value.steps, allocatedUnits: value.allocatedUnits });
 }

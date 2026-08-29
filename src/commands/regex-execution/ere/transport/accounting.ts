@@ -18,6 +18,24 @@ export function multiply(value: number, factor: number): number {
   return value * factor;
 }
 
+export const metadataUnits = Object.freeze({
+  root: 18 + 5 + 7 + 3 + 8 + 8 + 2 + 10,
+  session: 3 + 2,
+  ticket: 16 + 1 + 4 + 3 + 2 + 4 + 4,
+  worker: 21 + 15 + 4 + 28,
+  usage: 3 + 8 + 5,
+});
+
+export function assertBootstrapStorage(bounds: EreExpansionBounds, units: number): void {
+  integer(bounds.maxExpansionBytes); integer(bounds.maxExpansionFields); integer(units);
+  const byteUnits = bounds.maxExpansionBytes > 500_000 ? 4_000_000 : bounds.maxExpansionBytes * 8;
+  const fieldUnits = bounds.maxExpansionFields > 31_250 ? 4_000_000 : bounds.maxExpansionFields * 128;
+  const limit = Math.min(4_000_000, byteUnits + fieldUnits);
+  if (add(units, 5) > limit) throw new EreTransportProfileLimitError("transportStorage", limit);
+  const work = bounds.maxExpansionBytes > 1_562_500 ? 50_000_000 : bounds.maxExpansionBytes * 32;
+  if (add(units, 5) > work) throw new EreTransportProfileLimitError("transportWork", work);
+}
+
 function zero(): Record<EreResource, number> {
   return { patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0 };
 }
@@ -100,8 +118,9 @@ export class TransportAccounting {
     if (units > this.workLimit - this.#work) throw new EreTransportProfileLimitError("transportWork", this.workLimit);
     this.#work += units;
   }
-  metadata(fields: number): StorageReservation {
-    const units = add(1, fields);
+  metadata(fields: number): StorageReservation { return this.owned(add(1, fields)); }
+  owned(units: number): StorageReservation {
+    this.visit(units);
     const reservation = this.reserve(units);
     reservation.consume(units);
     reservation.releaseUnused();
@@ -111,6 +130,7 @@ export class TransportAccounting {
     integer(units);
     const tokenUnits = 5;
     if (add(units, tokenUnits) > this.available) throw new EreTransportProfileLimitError("transportStorage", this.storageLimit);
+    this.visit(tokenUnits);
     this.#spent += tokenUnits;
     this.#live += tokenUnits;
     this.#reserved += units;

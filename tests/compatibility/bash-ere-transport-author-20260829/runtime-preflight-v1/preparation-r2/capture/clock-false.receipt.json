@@ -1,0 +1,17 @@
+{
+  "name": "clock-false",
+  "pid": 43940,
+  "spawned": true,
+  "closed": true,
+  "code": null,
+  "signal": "SIGTERM",
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "termRequested": true,
+  "killRequested": false,
+  "stdoutClosed": true,
+  "stderrClosed": true,
+  "primaryPresent": true,
+  "primaryFalse": true,
+  "secondary": 0
+}

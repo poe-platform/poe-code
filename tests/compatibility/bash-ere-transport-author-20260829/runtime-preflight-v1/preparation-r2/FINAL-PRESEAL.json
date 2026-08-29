@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "role": "H6 final source/DATA, no product/Worker and no subchildren",
+  "inputs": [
+    {
+      "name": "CASE-INVENTORY.json",
+      "size": 1002071,
+      "sha256": "88d2cd3b6b6e75e7290c43c2b0e2b8ab39f1d8a8a951ec51044471e66ac3d815"
+    },
+    {
+      "name": "CONTROL-RESULT.json",
+      "size": 2387,
+      "sha256": "d51462bab4d362de934c605ce4cfb5802bcb66fc59f8e9acb6310ea319f252ea"
+    },
+    {
+      "name": "DATA-RESULT.json",
+      "size": 1057,
+      "sha256": "f4dfe3a733d2a484209160d8c90850040cd6f0ee41705b8729d4fd87e7fd0f73"
+    },
+    {
+      "name": "LAUNCH-TOOLS.json",
+      "size": 454,
+      "sha256": "b34dd1dae87c1c7997a958a41170087476ba941cb663271dfd465bd344a89f38"
+    },
+    {
+      "name": "OWNER-CONTROL-RESULT.json",
+      "size": 899,
+      "sha256": "58cabb928b2b1b3a0f06bccb9463051ac339f2e08d7f8aeb0ffcbd286a29e1b9"
+    },
+    {
+      "name": "bridge-state.mjs.data",
+      "size": 990,
+      "sha256": "a056de25d26cf735939a17b38ff7a06bb313e3d2bffb2df068bcda24640264b7"
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "size": 13252,
+      "sha256": "99528907e852afdfd82490dfe4f0482571179000cce6e71b6d1e74e2153aabf6"
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "size": 2033,
+      "sha256": "133080e5c3872651169848cbd269af7adb531884a63ce15359a7bf3a1b628971"
+    },
+    {
+      "name": "control-suite.mjs",
+      "size": 6023,
+      "sha256": "e1678793fbdd8a30ce38c9caaae87ff9ba40694e531560cd1cb957e1867a5b3e"
+    },
+    {
+      "name": "data-controls-r2.mjs",
+      "size": 3756,
+      "sha256": "bf2e806b29c79aab864fe91b89a4b361740a60b4eb7395f0b785509f89590e96"
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "finalize-data.mjs",
+      "size": 5919,
+      "sha256": "f16236fe8d0b04736a936ee1d65b2243ef4e66e1f8acaeccbe64534bba92c01d"
+    },
+    {
+      "name": "materializer.mjs",
+      "size": 5385,
+      "sha256": "08a8f7d2a0f0e5d54ba8cd441918d4ff2aebc8e8d4873422a3a0c16a4161f9e9"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 3219,
+      "sha256": "e0558f92c09e8e9f582ad19bcb14efba9a913237d0832e5fbfe4c18c4ac651fe"
+    },
+    {
+      "name": "owner-controls.mjs",
+      "size": 2420,
+      "sha256": "d59dbac0ab89478bcc11bf71e4c2ead1293183a09ca7668302a3b04499e084b5"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 5691,
+      "sha256": "d34a21c2d962616ae002460b0559535a60310c728ee54d17a2ad8847e94a399d"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    },
+    {
+      "name": "stub.mjs.data",
+      "size": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    },
+    {
+      "name": "supervisor.mjs",
+      "size": 6889,
+      "sha256": "57f374ff53492a142feb86230af140523585d1804cb54a830054b387908b7f4f"
+    },
+    {
+      "name": "syntax-diagnosis.mjs",
+      "size": 3216,
+      "sha256": "56bea316e523b3a59f2d0bf3320358f5849a89ce58dced04f69e245ef009c154"
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "size": 287,
+      "sha256": "6d17eb806c3adccec39841e36a912692810ecfd09c3b010d3a586f4325cb6280"
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "size": 2505,
+      "sha256": "1b68ad6fe9e77924496ced8bb28ead252a8d562c57049d96d37eeec27be0c742"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "read": "stream65536",
+      "actual": "2026-08-29T12:39:23.366Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "size": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "role": "future sanitized exec transition, not a child census expansion"
+    },
+    {
+      "path": "/bin/zsh",
+      "size": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "role": "outer tool shell exec transition, no login/startup"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/BUILD/work/node_modules/typescript/lib/typescript.js",
+      "size": 9112572,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    }
+  ],
+  "typescript": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/BUILD/work/node_modules/typescript/lib/typescript.js",
+    "size": 9112572,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "limits": {
+    "milliseconds": 120000,
+    "captureBytes": 4194304,
+    "workingBytes": 134217728,
+    "helpers": 1,
+    "children": 0,
+    "Workers": 0,
+    "productImports": 0
+  },
+  "sourceBinding": {
+    "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+    "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+    "modules": 12
+  },
+  "archiveReuse": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674"
+}

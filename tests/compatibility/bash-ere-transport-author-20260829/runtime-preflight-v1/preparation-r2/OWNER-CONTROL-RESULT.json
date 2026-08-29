@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "pass": true,
+  "results": [
+    {
+      "name": "normal",
+      "pid": 43939,
+      "spawned": true,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "stdoutBytes": 13,
+      "stderrBytes": 0,
+      "termRequested": false,
+      "killRequested": false,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "primaryPresent": false,
+      "primaryFalse": false,
+      "secondary": 0
+    },
+    {
+      "name": "clock-false",
+      "pid": 43940,
+      "spawned": true,
+      "closed": true,
+      "code": null,
+      "signal": "SIGTERM",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "termRequested": true,
+      "killRequested": false,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "primaryPresent": true,
+      "primaryFalse": true,
+      "secondary": 0
+    }
+  ],
+  "children": 2,
+  "closed": 2,
+  "rescue": 0,
+  "Workers": 0
+}

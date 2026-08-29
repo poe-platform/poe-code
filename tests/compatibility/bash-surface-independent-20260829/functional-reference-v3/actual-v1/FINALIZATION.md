@@ -1,0 +1,11 @@
+# Qualified actual publication checkpoint
+
+Observation commit eaa9889d98eaa6d15acc31f4e39a33d000b67d2c.37 native observations (33status0, statuses1/2/2/7 retained), not37passes;3withheld; no virtual-product run. Exact native source and capture/effect identities are sealed in SEAL.json.
+
+At this publication checkpoint,38 owner/case starts are confirmed by the sealed entry, with37 case exit/close/group-absence records and a separate tool-reported owner exit0. 8 directly enrolled administrative commands have retired with exit/close/both stream EOF. Existing coordinator1 is a separate role; source-derived13 fork reservations are not observed starts. Native inner peak2 plus existing coordinator gives known observed-role peak3; administrative commands ran serially outside native execution. No complete transitive dev-tool/kernel census or initial tool-startup qualification.
+
+The raw administrative archive includes all preflight, exact approval outcome, date-label correction and command captures through the observation commit. Decoded gzip bytes85823, SHA256 1e4b932cc408ed31fa3ebf012597012640acfcf89e8243747c8f15199d679d05. Native run raw storage146676 bytes; administrative retained bytes at this checkpoint165580. These logical samples are not RSS/hard filesystem guarantees. All actual publication is constrained by the earlier conservative preflight-start deadline 2026-08-29T08:37:11.051Z, earlier than the entry's own deadline 2026-08-29T08:37:53.370Z.
+
+Final publication Git/status commands necessarily occur after this snapshot. Their actual exit/capture/counts and closed no-reuse attempt record are retained in /tmp/bash-functional-v3-actual-m4s8qE/CLOSED.json and FINAL-CAPTURE.json.gz; this checkpoint does not invent their completion. No further native attempt, cleanup of original fixtures, grant renewal or old reservation reuse is permitted.
+
+No safety/capture/integrity/unknown-retirement/cap STOP observed. Raw regular-file completion is not stream EOF, READY_FOR_CREDIT is not by itself credit, raw receiptPublished:false and owner-active1 are preserved timing snapshots, and ESRCH is retained as the group-absence witness. No false primary is normalized away. All proof is Bash3.2.57 functional-only with trusted initial tool-shell scope, not OS-containment/GNU5.3/current-product parity.

@@ -1,0 +1,643 @@
+{
+  "schema": "node-author-v4-complete-nonpass",
+  "date": "2026-08-29",
+  "verdict": "HOLD: completed bounded author execution, not product/provider/public acceptance",
+  "source": {
+    "commit": "19b806ee8125be6df3fd5f7f0d25eeaad3546721",
+    "predecessor": "d6e0dc7d62a64b33869be79068d13b8d96fa735a",
+    "manifestSha256": "36558e45f86c0b7c6c55e914a052e4f0d445ac618047c22770ce975125858864",
+    "baseline": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "baselineInputs": 278,
+    "moduleInputs": 16,
+    "rootExportsChanged": false,
+    "baselinePackEntries": 898,
+    "baselinePackSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+  },
+  "preseal": {
+    "original": "5858bc6336687e1e33df6e32b0fe9e5b4f1131b9c405af7c60a731084f21f431",
+    "repair": "f055ff17371337d9434e86054646ec4b02d6ad0bbc23f1beea5f50c6fd88a961",
+    "repairCommit": "6e49492c",
+    "sourceAlreadyExisted": true
+  },
+  "startup": {
+    "preparationProcesses": 12,
+    "versioned": {
+      "role": "node-startup-controls-v4",
+      "pass": true,
+      "count": 2,
+      "children": 1,
+      "rows": [
+        {
+          "id": "S05-v2",
+          "pass": true,
+          "spawned": true,
+          "pid": 76417,
+          "closed": true,
+          "code": 0,
+          "signal": null,
+          "bytes": 221,
+          "timedOut": false,
+          "primary": null,
+          "cleanup": [],
+          "events": [
+            "captureOwned",
+            "authenticated",
+            "spawned",
+            "closed"
+          ],
+          "clean": true,
+          "exactWarning": true,
+          "onlySubstitution": "observed child PID",
+          "historical": "c24c48876debbdb0bf5219f71ba53b9cc44d2586"
+        },
+        {
+          "id": "S06",
+          "pass": true,
+          "spawned": false,
+          "pid": null,
+          "closed": false,
+          "code": null,
+          "signal": null,
+          "bytes": 0,
+          "timedOut": false,
+          "primary": {
+            "present": true,
+            "isUndefined": false,
+            "name": null,
+            "message": null,
+            "code": null
+          },
+          "cleanup": [
+            {
+              "present": true,
+              "isUndefined": true,
+              "name": null,
+              "message": null,
+              "code": null
+            },
+            {
+              "present": true,
+              "isUndefined": false,
+              "name": null,
+              "message": null,
+              "code": null
+            }
+          ],
+          "events": [
+            "captureOwned"
+          ],
+          "clean": false,
+          "bothActuallyClosed": true,
+          "rawPrimaryFalse": true
+        }
+      ]
+    },
+    "outer": {
+      "role": "node-v4-captured-dispatch",
+      "spawned": true,
+      "pid": 76416,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "bytes": 1078,
+      "primary": null,
+      "cleanup": []
+    },
+    "old": "c24c48876debbdb0bf5219f71ba53b9cc44d2586",
+    "noRescore": true
+  },
+  "build": {
+    "code": 0,
+    "diagnostics": [],
+    "emissions": 956,
+    "emissionsJSONSha256": "ee7b49f8ce5ba6db92cf3e253008af882bd174e3ca622ccec5bfe9863c6ad858",
+    "moduleJs": 15,
+    "moduleDeclarations": 15,
+    "role": "strict selected source project; public engine reused historical emits, not recompiled"
+  },
+  "package": {
+    "bytes": 869709,
+    "sha256": "e855465283cc2e78a068c4614a4861502ece55bbd416a47e699f1e4cd1965fb6",
+    "entries": 958,
+    "baselineProjectionExact": true,
+    "physicalMove": true,
+    "originAbsent": true,
+    "rootApiNotExported": true
+  },
+  "totals": {
+    "main": {
+      "workers": 81,
+      "engineAttempts": 69,
+      "guestEntries": 69,
+      "entryReturns": 45,
+      "requests": 141,
+      "postcopy": 129,
+      "exits": 81,
+      "retired": 81,
+      "parentCleanup": 81
+    },
+    "all": {
+      "workers": 91,
+      "engineAttempts": 79,
+      "guestEntries": 79,
+      "entryReturns": 51,
+      "requests": 165,
+      "postcopy": 152,
+      "exits": 91,
+      "retired": 91,
+      "parentCleanup": 91
+    },
+    "cases": 183,
+    "passed": 171,
+    "failed": 12,
+    "focused": 102,
+    "focusedPass": 96,
+    "workerCase": 81,
+    "workerPass": 75
+  },
+  "perLayout": [
+    {
+      "layout": "source",
+      "identities": 61,
+      "pass": 57,
+      "nonpass": 4,
+      "focusedPass": 32,
+      "focusedTotal": 34,
+      "workerPass": 25,
+      "workerTotal": 27
+    },
+    {
+      "layout": "installed",
+      "identities": 61,
+      "pass": 57,
+      "nonpass": 4,
+      "focusedPass": 32,
+      "focusedTotal": 34,
+      "workerPass": 25,
+      "workerTotal": 27
+    },
+    {
+      "layout": "moved",
+      "identities": 61,
+      "pass": 57,
+      "nonpass": 4,
+      "focusedPass": 32,
+      "focusedTotal": 34,
+      "workerPass": 25,
+      "workerTotal": 27
+    }
+  ],
+  "nonpasses": [
+    {
+      "layout": "source",
+      "id": "F16",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "source",
+      "id": "F17",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "source",
+      "id": "W05",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n1 !== 0\n",
+      "actual": 1,
+      "expected": 0,
+      "stdout": "",
+      "stderr": "node: Unexpected non-whitespace character after JSON at position 6 (line 1 column 7)\n"
+    },
+    {
+      "layout": "source",
+      "id": "W23",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n0 !== 1\n",
+      "actual": 2,
+      "expected": 2,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "layout": "installed",
+      "id": "F16",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "installed",
+      "id": "F17",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "installed",
+      "id": "W05",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n1 !== 0\n",
+      "actual": 1,
+      "expected": 0,
+      "stdout": "",
+      "stderr": "node: Unexpected non-whitespace character after JSON at position 6 (line 1 column 7)\n"
+    },
+    {
+      "layout": "installed",
+      "id": "W23",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n0 !== 1\n",
+      "actual": 2,
+      "expected": 2,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "layout": "moved",
+      "id": "F16",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "moved",
+      "id": "F17",
+      "diagnostic": {
+        "name": "AssertionError",
+        "message": "The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"
+      },
+      "assertionFailure": null,
+      "actual": null,
+      "expected": null,
+      "stdout": null,
+      "stderr": null
+    },
+    {
+      "layout": "moved",
+      "id": "W05",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n1 !== 0\n",
+      "actual": 1,
+      "expected": 0,
+      "stdout": "",
+      "stderr": "node: Unexpected non-whitespace character after JSON at position 6 (line 1 column 7)\n"
+    },
+    {
+      "layout": "moved",
+      "id": "W23",
+      "diagnostic": null,
+      "assertionFailure": "Expected values to be strictly equal:\n\n0 !== 1\n",
+      "actual": 2,
+      "expected": 2,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    }
+  ],
+  "typeReach": [
+    {
+      "layout": "source",
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "reachedNodeDeclarations": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ],
+      "reachedAllDeclarations": 179
+    },
+    {
+      "layout": "installed",
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "reachedNodeDeclarations": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ],
+      "reachedAllDeclarations": 179
+    },
+    {
+      "layout": "moved",
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "reachedNodeDeclarations": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ],
+      "reachedAllDeclarations": 179
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M02",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M03",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M04",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M05",
+      "mutantDetected": true,
+      "restorePass": false,
+      "pass": false
+    },
+    {
+      "id": "M06",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    }
+  ],
+  "mutationQualification": {
+    "wholeFamiliesPassed": 5,
+    "total": 6,
+    "M05": "Loaded mutant worsens F01/F33/F34 with rescue1/no abort; restored target rows pass with rescue0/abort. Whole focused restore remains false due F16/F17; not rescored as whole-family PASS."
+  },
+  "loadControls": [
+    {
+      "id": "source-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "builtin-edge",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "package-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "pass-nonzero",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "missing-receipt",
+      "loaded": true,
+      "code": 0,
+      "pass": true
+    },
+    {
+      "id": "tamper",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    }
+  ],
+  "loadSummary": [
+    {
+      "layout": "source",
+      "executions": 28,
+      "loadWitnessRows": 3928,
+      "unique": 148,
+      "engine": 93,
+      "node": 15,
+      "fixtures": 98
+    },
+    {
+      "layout": "installed",
+      "executions": 28,
+      "loadWitnessRows": 3928,
+      "unique": 148,
+      "engine": 93,
+      "node": 15,
+      "fixtures": 98
+    },
+    {
+      "layout": "moved",
+      "executions": 28,
+      "loadWitnessRows": 3928,
+      "unique": 148,
+      "engine": 93,
+      "node": 15,
+      "fixtures": 98
+    }
+  ],
+  "engine": {
+    "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "unchangedEmits": 95,
+    "emittedBytes": 1076164,
+    "loadedEngineJsPerLayout": 93,
+    "testOnly": true,
+    "noiseAdapterExecutions": 3,
+    "instrumentation": "Reference lifecycle observers and authenticated fd2 load witnesses; five mutant Workers and five restored controls included separately"
+  },
+  "sourceFindings": [
+    {
+      "id": "P01",
+      "kind": "product",
+      "actual": "W05 status1 JSON parse error in all3 layouts",
+      "cause": "worker-main.ts:78 default TextDecoder strips leading BOM from transported text. worker-provider.ts:121 also strips leading upload BOM; additional upload impact source-only.",
+      "repair": "Preserve BOM with ignoreBOM:true at raw transport decoders; keep intentional source/JSON-module policy separate",
+      "fixed": false
+    },
+    {
+      "id": "T01",
+      "kind": "fixture",
+      "cases": [
+        "F16",
+        "F17"
+      ],
+      "actual": "Status/raw-identity assertions reached; NodeProfileError class assertion fails",
+      "source": "16777217 exceeds valid request integer; values.ts:88 strict integer admission raises TypeError before ledger exhaustion",
+      "proposal": "Version valid16777216 reservation against already retained command ledger; retain original expectations/failures and strict admission",
+      "executed": false
+    },
+    {
+      "id": "Q01",
+      "kind": "unqualified mechanism",
+      "case": "W23",
+      "actual": "status2,1engineAttempt/entry,0engineLimit/terminal,1exit/retire per layout",
+      "source": "Adapter passes real Budget(maxSteps100000,maxCallDepth128) to public run; run uses options.budget. Parent5s admission termination is consistent with events but exact selected reason not recorded.",
+      "proposal": "Separate finite loop shutdown from unproven engineLimit notification; no invented root cause or weaker native limits"
+    }
+  ],
+  "lifecycleRepairs": {
+    "F01_F33_F34": "PASS each layout; cooperative abort/cleanup,rescue0",
+    "W26": "PASS all3 actual Workers/entries/exits/retirements and parent cleanup with selected profile stop",
+    "W27": "PASS all3 actual Workers,0guestentries,async undefined rejection identity/observer finally,exit/retirement,parent cleanup",
+    "uncooperativeGuarantee": false
+  },
+  "resources": {
+    "activationOS": 116,
+    "publicationAndRepairOSBeforeFinal": 7,
+    "finalPublicationPlannedOS": 4,
+    "finalAllOwnedOS": 127,
+    "rootCeiling": 128,
+    "activationAllClosed": true,
+    "signalTerminations": 0,
+    "peakOwnedOS": 3,
+    "peakWithExistingToolHost": 4,
+    "mainCaptureBytes": 4256244,
+    "failedBuildCaptureBytes": 1987,
+    "mainWrittenBytes": 169692605,
+    "failedBuildWrittenBytes": 157920546,
+    "cumulativeWrittenBytes": 327613151,
+    "scratchHighWater": 172060738,
+    "notRSS": true,
+    "notAllGuestJobsSettled": true,
+    "elapsedBeforePublicationMs": 998813,
+    "absoluteDeadline": 1787982218741
+  },
+  "cleanup": {
+    "mainSummary": {
+      "pass": false,
+      "unsafe": false,
+      "stopped": null,
+      "processCount": 112,
+      "workers": 91,
+      "guestEntries": 79,
+      "cleanup": true,
+      "raw": {
+        "bytes": 1920361,
+        "sha256": "b98aa8f1eaa8da9d84dcd9a267fdd236cad83ea9088f3613f7681d6d4a5cf122",
+        "mode": 384
+      }
+    },
+    "failedBuildSummary": {
+      "pass": false,
+      "unsafe": false,
+      "stopped": {
+        "present": true,
+        "isUndefined": false,
+        "name": null,
+        "message": "strict source build failed; downstream slots unrun"
+      },
+      "processCount": 2,
+      "workers": 0,
+      "guestEntries": 0,
+      "cleanup": true,
+      "raw": {
+        "bytes": 66733,
+        "sha256": "573c03943d6fca1e14e0b3107c5d59c38f4c5792b8ae0b85b36d933187f26fc1",
+        "mode": 384
+      }
+    },
+    "ownedWorksAbsent": {
+      "work": true,
+      "work-r1": true
+    },
+    "rawArchivedBeforeCleanup": true,
+    "boundCaptureParentsRetained": true
+  },
+  "raw": {
+    "failedBuild": "573c03943d6fca1e14e0b3107c5d59c38f4c5792b8ae0b85b36d933187f26fc1",
+    "main": "b98aa8f1eaa8da9d84dcd9a267fdd236cad83ea9088f3613f7681d6d4a5cf122",
+    "fullCaptureFiles": 233,
+    "fullCaptureBytes": 7337605
+  },
+  "history": {
+    "syntaxDiagnostics263aUnchanged": true,
+    "originalD6StrictTS7006": [
+      "src/commands/node/index.ts(79,26): error TS7006: Parameter 'value' implicitly has an 'any' type.",
+      "src/commands/node/index.ts(83,22): error TS7006: Parameter 'sequence' implicitly has an 'any' type.",
+      "src/commands/node/index.ts(84,21): error TS7006: Parameter 'label' implicitly has an 'any' type.",
+      "src/commands/node/index.ts(84,28): error TS7006: Parameter 'bytes' implicitly has an 'any' type.",
+      "src/commands/node/index.ts(91,24): error TS7006: Parameter 'reason' implicitly has an 'any' type.",
+      "src/commands/node/index.ts(97,17): error TS7006: Parameter 'reason' implicitly has an 'any' type."
+    ],
+    "sourceInspectionAdmission": "20KiB full-source display guard refused23,493B run.js before decoding; only8KiB prefix of authenticated archive subsequently inspected. No engine or external-source execution.",
+    "publication": "First artifact-construction tool input had a JavaScript syntax error before evaluation;0 OS children,0 files acquired. Corrected artifact construction only; no actual cohort retry.",
+    "toolDisplays": "Some long displays truncated; owned raw captures/archive complete."
+  },
+  "remaining": "Only publication slots remain. BOM repair and versioned fixture/engine-limit qualification require a fresh bounded grant; no cohort reset.",
+  "loadControlQualification": {
+    "actualLoaderRefusals": 4,
+    "actualLoadedRawCounterexamples": 2,
+    "rawCounterexamplesNotDirectJudgeReplay": true
+  }
+}

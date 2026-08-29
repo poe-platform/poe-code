@@ -1,0 +1,36 @@
+(node:96355) SecurityWarning: The flag --allow-child-process must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:96355) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/fixtures/negative-package-fallback.mjs","bytes":1049,"sha256":"507e276a1f3da4a245c34e9882cd4a6c46d5d6dde35a230e8410f1dae82d31b5"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/index.js","bytes":9079,"sha256":"c780936a1bbacfbfd676864dd0cc0ae1233f46af53767bd29751d8cd33f2f28d"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/admission.js","bytes":21402,"sha256":"c761c856737d866350082980d9acb06794bdb30522890f8f4cefe730601a7725"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/cli.js","bytes":2853,"sha256":"788d24fa61747e96123b55348e078ded0345378900ae6ad29df7d5387855caa2"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/host.js","bytes":19033,"sha256":"c1d9ffe2630dc4bc09eb8cdbbf981b65470842d512ddacd1c284afbf155a2c12"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/lifecycle.js","bytes":8452,"sha256":"902a4340271efa7e185ef55fd0a81465b2848a77fb82c9bc3018c7751b899cc2"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/program.js","bytes":13150,"sha256":"21426219ed592710d4b4f9c47b3eb784a36766832eedc3ee2b217884d277875e"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/types.js","bytes":1000,"sha256":"b24bebb200a83d97ba90a768086572faabe8dc1685e98ef01918dc7f360345dd"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/values.js","bytes":5840,"sha256":"e227b5d252180a0f7197b8edf65647be10b076fb77b0aa53004e9d996f56b3ba"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/worker-provider.js","bytes":18330,"sha256":"2068ea421a35bc31db16db752c59faaba27aecbdf87cf4eca79b4dfc038a617d"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/worker-types.js","bytes":99,"sha256":"21e4c5f5e4e26a91eb2d5cfc637bba50ac8bcb3974c0acbd90f8113e128785d5"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/contracts/errors.js","bytes":3225,"sha256":"18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/lower.js","bytes":18353,"sha256":"eb40c34278917676efb45cd0157e3a5b8464f6275d636ffd1338b5831d135a51"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/rules.js","bytes":9995,"sha256":"6a6e412ca6d3de5efd3b1f937e3c80039de0ffcfbc737e816f3ff3e0ba6cb98c"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/channel.js","bytes":3558,"sha256":"da76cf132d82115b8c1087394751401bbaef6468ca766f78b72d10960055cd4d"}
+@@NODE_LOAD {"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/source/dist/commands/node/diagnostics.js","bytes":2011,"sha256":"6c9f8da8ea09f94fdf338bbeaaed01b0b35b4c9d6c8c76843210ba16aaf3fdea"}
+file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/fixtures/load-guard-v1.mjs:11
+  if(!(specifier.startsWith('./')||specifier.startsWith('../')||specifier.startsWith('/')||specifier.startsWith('file:')))throw new Error('AUTHOR_LOAD_PACKAGE_FALLBACK');
+                                                                                                                                ^
+
+Error: AUTHOR_LOAD_PACKAGE_FALLBACK
+    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/work-r1/fixtures/load-guard-v1.mjs:11:129)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31)
+
+Node.js v22.22.2

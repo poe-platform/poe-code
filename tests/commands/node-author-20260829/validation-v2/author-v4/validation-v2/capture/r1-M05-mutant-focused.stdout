@@ -1,0 +1,35 @@
+{"role":"case-receipt-v1","id":"F01","pass":false,"diagnostic":{"name":"AssertionError","message":"The expression evaluated to a falsy value:\n\n  assert(aborted)\n"},"observation":{"rescue":1,"aborted":false,"parentClosed":true,"retirements":1}}
+{"role":"case-receipt-v1","id":"F02","pass":true}
+{"role":"case-receipt-v1","id":"F03","pass":true}
+{"role":"case-receipt-v1","id":"F04","pass":true}
+{"role":"case-receipt-v1","id":"F05","pass":true}
+{"role":"case-receipt-v1","id":"F06","pass":true}
+{"role":"case-receipt-v1","id":"F07","pass":true}
+{"role":"case-receipt-v1","id":"F08","pass":true}
+{"role":"case-receipt-v1","id":"F09","pass":true}
+{"role":"case-receipt-v1","id":"F10","pass":true}
+{"role":"case-receipt-v1","id":"F11","pass":true}
+{"role":"case-receipt-v1","id":"F12","pass":true}
+{"role":"case-receipt-v1","id":"F13","pass":true}
+{"role":"case-receipt-v1","id":"F14","pass":true}
+{"role":"case-receipt-v1","id":"F15","pass":true}
+{"role":"case-receipt-v1","id":"F16","pass":false,"diagnostic":{"name":"AssertionError","message":"The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"}}
+{"role":"case-receipt-v1","id":"F17","pass":false,"diagnostic":{"name":"AssertionError","message":"The expression evaluated to a falsy value:\n\n  assert(selected instanceof NodeProfileError)\n"}}
+{"role":"case-receipt-v1","id":"F18","pass":true}
+{"role":"case-receipt-v1","id":"F19","pass":true}
+{"role":"case-receipt-v1","id":"F20","pass":true}
+{"role":"case-receipt-v1","id":"F21","pass":true}
+{"role":"case-receipt-v1","id":"F22","pass":true}
+{"role":"case-receipt-v1","id":"F23","pass":true}
+{"role":"case-receipt-v1","id":"F24","pass":true}
+{"role":"case-receipt-v1","id":"F25","pass":true}
+{"role":"case-receipt-v1","id":"F26","pass":true}
+{"role":"case-receipt-v1","id":"F27","pass":true}
+{"role":"case-receipt-v1","id":"F28","pass":true}
+{"role":"case-receipt-v1","id":"F29","pass":true}
+{"role":"case-receipt-v1","id":"F30","pass":true}
+{"role":"case-receipt-v1","id":"F31","pass":true}
+{"role":"case-receipt-v1","id":"F32","pass":true}
+{"role":"case-receipt-v1","id":"F33","pass":false,"diagnostic":{"name":"AssertionError","message":"The expression evaluated to a falsy value:\n\n  assert(aborted)\n"},"observation":{"rescue":1,"aborted":false,"parentClosed":true,"retirements":1,"role":"inert-provider-parent-job"}}
+{"role":"case-receipt-v1","id":"F34","pass":false,"diagnostic":{"name":"AssertionError","message":"The expression evaluated to a falsy value:\n\n  assert(aborted)\n"},"observation":{"rescue":1,"aborted":false,"parentClosed":true,"retirements":1,"role":"inert-provider-parent-job"}}
+{"role":"focused-summary","pass":false,"count":34}

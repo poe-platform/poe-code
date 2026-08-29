@@ -1,0 +1,16 @@
+{
+  "method": "HEAD",
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig",
+  "startedAt": "2026-08-29T04:34:05.546Z",
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:34:05 GMT",
+    "last-modified": "Wed, 30 Jul 2025 14:07:21 GMT",
+    "etag": "\"5f-63b260b178a00\"",
+    "content-type": "application/pgp-signature",
+    "content-length": "95",
+    "location": null
+  },
+  "disposition": "HTTP_METADATA_ONLY",
+  "endedAt": "2026-08-29T04:34:05.690Z"
+}

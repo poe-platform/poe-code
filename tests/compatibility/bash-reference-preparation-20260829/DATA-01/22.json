@@ -1,0 +1,26 @@
+{
+  "role": "patch",
+  "path": "/usr/bin/patch",
+  "initial": {
+    "mode": 493,
+    "bytes": 220608,
+    "dev": 16777232,
+    "ino": 1152921500312571900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "symbolicLink": false,
+  "resolved": "/usr/bin/patch",
+  "target": {
+    "mode": 493,
+    "bytes": 220608,
+    "dev": 16777232,
+    "ino": 1152921500312571900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

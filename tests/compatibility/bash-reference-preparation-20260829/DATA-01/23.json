@@ -1,0 +1,6 @@
+{
+  "role": "patch",
+  "path": "/opt/homebrew/bin/gpatch",
+  "disposition": "ABSENT",
+  "code": "ENOENT"
+}

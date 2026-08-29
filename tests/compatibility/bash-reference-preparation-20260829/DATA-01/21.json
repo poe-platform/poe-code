@@ -1,0 +1,6 @@
+{
+  "role": "make",
+  "path": "/usr/local/bin/gmake",
+  "disposition": "ABSENT",
+  "code": "ENOENT"
+}

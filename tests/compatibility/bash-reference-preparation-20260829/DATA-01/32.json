@@ -1,0 +1,23 @@
+{
+  "role": "sdk-directory",
+  "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "initial": {
+    "mode": 493,
+    "bytes": 224,
+    "dev": 16777232,
+    "ino": 84269702,
+    "mtimeMs": 1782925430970.237,
+    "ctimeMs": 1782925430970.237
+  },
+  "symbolicLink": false,
+  "resolved": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "target": {
+    "mode": 493,
+    "bytes": 224,
+    "dev": 16777232,
+    "ino": 84269702,
+    "mtimeMs": 1782925430970.237,
+    "ctimeMs": 1782925430970.237
+  },
+  "disposition": "DIRECTORY_METADATA_ONLY_NO_CONTENT_CLOSURE"
+}

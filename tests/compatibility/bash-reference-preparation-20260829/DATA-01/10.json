@@ -1,0 +1,6 @@
+{
+  "role": "bash",
+  "path": "/usr/local/Cellar/bash/5.3/bin/bash",
+  "disposition": "ABSENT",
+  "code": "ENOENT"
+}

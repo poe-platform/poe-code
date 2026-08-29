@@ -1,0 +1,27 @@
+{
+  "role": "signature-verifier",
+  "path": "/opt/homebrew/bin/gpg",
+  "initial": {
+    "mode": 493,
+    "bytes": 30,
+    "dev": 16777232,
+    "ino": 167398513,
+    "mtimeMs": 1787774245846.4028,
+    "ctimeMs": 1787774245846.4304
+  },
+  "symbolicLink": true,
+  "linkText": "../Cellar/gnupg/2.5.21/bin/gpg",
+  "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+  "target": {
+    "mode": 365,
+    "bytes": 1074432,
+    "dev": 16777232,
+    "ino": 167393508,
+    "mtimeMs": 1787774245695.358,
+    "ctimeMs": 1787774245948.942
+  },
+  "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

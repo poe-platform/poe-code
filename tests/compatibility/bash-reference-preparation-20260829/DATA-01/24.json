@@ -1,0 +1,6 @@
+{
+  "role": "patch",
+  "path": "/usr/local/bin/gpatch",
+  "disposition": "ABSENT",
+  "code": "ENOENT"
+}

@@ -1,0 +1,26 @@
+{
+  "role": "make",
+  "path": "/usr/bin/make",
+  "initial": {
+    "mode": 493,
+    "bytes": 118928,
+    "dev": 16777232,
+    "ino": 1152921500312570900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "symbolicLink": false,
+  "resolved": "/usr/bin/make",
+  "target": {
+    "mode": 493,
+    "bytes": 118928,
+    "dev": 16777232,
+    "ino": 1152921500312570900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

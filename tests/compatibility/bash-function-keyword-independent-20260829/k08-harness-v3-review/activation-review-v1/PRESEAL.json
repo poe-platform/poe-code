@@ -1,0 +1,27 @@
+{
+  "utc": "2026-08-29T16:14:20.759Z",
+  "binding": "463b17b4df4430555f72b2c358ba94e747fa50b6",
+  "qualification": "4989e28151ab3b384871455af0660ec8ac88b5aa",
+  "helper": {
+    "path": "check.mjs",
+    "bytes": 6390,
+    "sha256": "0f9b8d95aa2ea334325b0925f0d68858a43a9c56c3aea6c4acf994bccd7b4ebb"
+  },
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "scope": "one PURE binding helper; no census/product/archive decode",
+  "checks": [
+    "exact grant review command",
+    "18source9helper tools package source-binding",
+    "unused canonical roots",
+    "current window",
+    "stderr copy qualification",
+    "postguards"
+  ],
+  "bounds": {
+    "seconds": 300,
+    "knownOs": 18,
+    "peak": 3,
+    "capture": 25165824,
+    "work": 100663296
+  }
+}

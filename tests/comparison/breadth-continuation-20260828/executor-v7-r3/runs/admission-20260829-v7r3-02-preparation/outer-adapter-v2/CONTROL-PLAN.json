@@ -1,0 +1,162 @@
+{
+  "schema": "OUTER_ADAPTER_FINITE_CONTROLS_V1",
+  "date": "2026-08-29",
+  "attempts": 1,
+  "permission": "SOURCE/DATA and harmless stub children only; no actual admission",
+  "cases": [
+    {
+      "id": "O01",
+      "kind": "normal",
+      "stub": "normal"
+    },
+    {
+      "id": "O02",
+      "kind": "nonzero7",
+      "stub": "seven"
+    },
+    {
+      "id": "O03",
+      "kind": "preflight-object",
+      "stub": "normal"
+    },
+    {
+      "id": "O04",
+      "kind": "bootstrap-before-inner",
+      "stub": "bootstrap"
+    },
+    {
+      "id": "O05",
+      "kind": "short-writes",
+      "stub": "normal"
+    },
+    {
+      "id": "O06",
+      "kind": "stdout-overflow",
+      "stub": "overflow"
+    },
+    {
+      "id": "O07",
+      "kind": "fd3-overflow",
+      "stub": "fd3-overflow"
+    },
+    {
+      "id": "O08",
+      "kind": "zero-write",
+      "stub": "normal"
+    },
+    {
+      "id": "O09",
+      "kind": "partial-write-failure",
+      "stub": "normal"
+    },
+    {
+      "id": "O10",
+      "kind": "stderr-sync-failure",
+      "stub": "normal"
+    },
+    {
+      "id": "O11",
+      "kind": "stdout-close-failure",
+      "stub": "normal"
+    },
+    {
+      "id": "O12",
+      "kind": "dual-cleanup-reasons",
+      "stub": "normal"
+    },
+    {
+      "id": "O13",
+      "kind": "enrollment-undefined",
+      "stub": "wait"
+    },
+    {
+      "id": "O14",
+      "kind": "preflight-null",
+      "stub": "normal"
+    },
+    {
+      "id": "O15",
+      "kind": "enrollment-object",
+      "stub": "wait"
+    },
+    {
+      "id": "O16",
+      "kind": "unknown-retirement",
+      "stub": "normal"
+    },
+    {
+      "id": "O17",
+      "kind": "deadline",
+      "stub": "wait"
+    },
+    {
+      "id": "O18",
+      "kind": "spawn-error",
+      "stub": "normal"
+    },
+    {
+      "id": "O19",
+      "kind": "receipt-write-failure",
+      "stub": "normal"
+    },
+    {
+      "id": "O20",
+      "kind": "receipt-close-failure",
+      "stub": "normal"
+    },
+    {
+      "id": "O21",
+      "kind": "terminal-short-write",
+      "stub": null
+    },
+    {
+      "id": "O22",
+      "kind": "terminal-undefined",
+      "stub": null
+    },
+    {
+      "id": "O23",
+      "kind": "terminal-oversize",
+      "stub": null
+    },
+    {
+      "id": "O24",
+      "kind": "namespace-collision",
+      "stub": null
+    },
+    {
+      "id": "O25",
+      "kind": "partial-open-failure",
+      "stub": null
+    }
+  ],
+  "expected": {
+    "controlCases": 25,
+    "actualStubChildren": 17,
+    "spawnAttempts": 18,
+    "consumerConcurrency": 1,
+    "productImports": 0,
+    "comparatorImports": 0,
+    "engineEvaluations": 0,
+    "C11": 0,
+    "semanticCalls": 0
+  },
+  "bounds": {
+    "totalMilliseconds": 180000,
+    "perNormalCaseMilliseconds": 5000,
+    "deadlineCaseMilliseconds": 250,
+    "termMilliseconds": 50,
+    "killMilliseconds": 50,
+    "perStreamBytes": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144
+    },
+    "reportBytes": 262144,
+    "journalBytes": 2097152,
+    "workBytes": 16777216
+  },
+  "assessment": "Actual captureLaunch body plus actual OS Node stub children. Ordinal enrollment, exit/close/group absence and real handle closure independently checked; injected unknown-retirement negatives can continue only after the independent actual PID/group absence check. Ordinary assertion failures aggregate only after known closure and unchanged sealed source. No same-body retry.",
+  "faults": "IO wrappers delegate real regular files. Close-failure fixtures close their real handle then throw; unknown reported cleanup remains unqualified despite separately demonstrated physical cleanup. Output lost counts are observed-minus-retained, not reconstructed producer bytes.",
+  "futureTiming": "Synthetic 50/50ms cleanup and 250ms deadline only in control API; actual fixed owner remains75min including2sTERM/1sKILL, worker30s and metadata10s unchanged."
+}

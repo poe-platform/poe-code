@@ -1,0 +1,64 @@
+{
+  "status": "INACTIVE_PENDING_DIFFERENT_REVIEW_AND_FRESH_ACTUAL_GO",
+  "actualAuthorized": false,
+  "runId": "admission-20260829-v7r3-02",
+  "elapsed": {
+    "ownerWindowMilliseconds": 4500000,
+    "administrationReserveMilliseconds": 900000,
+    "totalMilliseconds": 5400000
+  },
+  "capture": {
+    "innerBodyBytes": 260046848,
+    "innerCollectorBytes": 8388608,
+    "outerBytes": 524288,
+    "publicationAdminBytes": 524288,
+    "totalBytes": 269484032
+  },
+  "workingBytes": 805306368,
+  "processes": {
+    "runtimeIncludingOwner": 47,
+    "administrationSlots": 20,
+    "totalPlanned": 67,
+    "allOwnedCap": 128,
+    "peak": 5,
+    "admissionWorkers": 14,
+    "legacyWorkerCap": 27,
+    "emptyC11Setups": 2,
+    "semanticCalls": 0
+  },
+  "administrationSlots": [
+    "wrapper-private-capture-preparer",
+    "wrapper-preopened-fd-guard",
+    "preflight-source-bindings",
+    "preflight-archive-projection",
+    "namespace-check",
+    "grant-author",
+    "grant-add",
+    "grant-commit",
+    "auth-author",
+    "auth-add",
+    "auth-commit",
+    "post-integrity",
+    "evidence-summary-author",
+    "raw-reference-authentication",
+    "final-manifest-generation",
+    "evidence-add",
+    "evidence-commit",
+    "final-clean-status",
+    "cleanup-verification",
+    "bounded-publication-receipt"
+  ],
+  "topology": "One shell runs capture-preparer then fd/environment guard as sequential exec-replaced helper children; shell then exec-replaces itself with exact attempt02 owner. No retained waiting shell. Two helper processes consume administration slots, runtime chain remains owner->launcher->coordinator->worker->one Git metadata child.",
+  "scope": "Prospective root ceiling only; not retroactive compliance for old 256MiB profiles or old administration caps.",
+  "unchangedLimits": {
+    "workerMilliseconds": 30000,
+    "termMilliseconds": 2000,
+    "killMilliseconds": 1000,
+    "metadataMilliseconds": 10000,
+    "metadataBytes": 65536,
+    "recordBytes": 262144,
+    "documentBytes": 33554432,
+    "nodeOldSpaceMiB": 256,
+    "notRSS": true
+  }
+}

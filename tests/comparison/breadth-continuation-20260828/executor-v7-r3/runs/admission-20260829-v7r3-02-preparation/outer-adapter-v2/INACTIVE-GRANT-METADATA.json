@@ -1,0 +1,77 @@
+{
+  "schema": "INACTIVE_OUTER_CAPTURE_GRANT_METADATA_V1",
+  "status": "INACTIVE_NOT_A_ROOT_GRANT_OR_AUTH",
+  "date": "2026-08-29",
+  "rootDecision": "Prospective overall257MiB partition, not a change/rescore of old256MiB profile or frozen inner recipe",
+  "capture": {
+    "overall": 269484032,
+    "inner": 268435456,
+    "body": 260046848,
+    "innerCollector": 8388608,
+    "outer": 524288,
+    "publicationAdministration": 524288,
+    "outerPartitions": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536
+    }
+  },
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "interfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "runId": "admission-20260829-v7r3-02",
+  "rootGrantTemplate": "../wrapper-v3/INACTIVE-ROOT-GRANT.TEMPLATE.json",
+  "authTemplate": "../wrapper-v3/INACTIVE-AUTH.TEMPLATE.json",
+  "freshRootGrantCommit": null,
+  "rawAuthSha256": null,
+  "adapterDifferentReviewReceipt": null,
+  "actualAuthorized": false,
+  "futureCommand": {
+    "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json",
+      "EXACT_FRESH_AUTH_RAW_SHA256",
+      "EXACT_ADAPTER_SEAL_SHA256"
+    ]
+  },
+  "futureTopology": {
+    "owner": "This dedicated Node owner replaces the abstract existing capture-owner slot; no persistent shell or CLI process added",
+    "chain": [
+      "outer owner",
+      "frozen launcher",
+      "coordinator",
+      "one worker",
+      "one Git metadata child"
+    ],
+    "runtimeProcesses": 47,
+    "administrationProcesses": 20,
+    "totalPlanned": 67,
+    "allProcessCap": 128,
+    "peak": 5,
+    "workerCount": 14,
+    "workerCap": 27,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "metadataChildrenPerWorker": 2,
+    "coordinatorMetadataChildren": 2,
+    "additionalOwnerChildren": 0,
+    "additionalOwnerSubprocessesBeyondLauncher": 0
+  },
+  "outerTotalMilliseconds": 4500000,
+  "workBeforeTerminationMilliseconds": 4497000,
+  "termMilliseconds": 2000,
+  "killMilliseconds": 1000,
+  "metadataMilliseconds": 10000,
+  "metadataStreamBytes": 65536,
+  "innerWorkerMilliseconds": 30000,
+  "heap": "Node --max-old-space-size=256, not RSS",
+  "preparationOnly": "Current source/synthetic GO is not authority to instantiate either active template or launch owner against real inputs. The inner full authority checks remain mandatory."
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "THREE_VERSIONED_MODE_TAILS_V3",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "cases": [
+    {
+      "id": "M01",
+      "mask": "022",
+      "parentMask": "077",
+      "fault": "none",
+      "existing": null,
+      "exit": 0
+    },
+    {
+      "id": "M02",
+      "mask": "022",
+      "parentMask": "000",
+      "fault": "none",
+      "existing": null,
+      "exit": 0
+    },
+    {
+      "id": "M03",
+      "mask": "077",
+      "parentMask": "022",
+      "fault": "none",
+      "existing": null,
+      "exit": 72
+    }
+  ],
+  "attempts": 1,
+  "plannedControls": 3,
+  "plannedProcesses": 10,
+  "peak": 3,
+  "perWrapperMilliseconds": 5000,
+  "termMilliseconds": 2000,
+  "killMilliseconds": 1000,
+  "totalControlMilliseconds": 120000,
+  "stdoutBytesPerChild": 65536,
+  "stderrBytesPerChild": 65536,
+  "recordBytes": 262144,
+  "workBytes": 16777216,
+  "actualOwnerLauncherCoordinatorProductWorkers": 0,
+  "oracles": [
+    "M01/M02: original complete assertions including previously unexecuted tails, exact observed host-only Darwin UID501/CF value allowance replaces empty-env assertion",
+    "M03: original legacy077 negative remains expected exit72, with full tail assertions and exact host-tool allowance"
+  ],
+  "stop": "Any capture/integrity/unknown-retirement/resource failure unsafe-stops; only ordinary assertion outcomes aggregate after safe closure",
+  "guards": "Authenticated exact own control source/tools/unchanged writer and owner bytes; no actual owner import/evaluation",
+  "history": "Old5/8 andM01-M03 failures unchanged. Only three corrected families executed; M04-M08 not rerun. Same source/stub mode expectations, stdout/stderr exactness, process/closure/integrity assertions."
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "EXACT_HOST_TOOL_ENVIRONMENT_ALLOWANCE_V1",
+  "scope": "Host Node22.22.2 tooling only, empty exec -c inheritance; no guest env change; no generic ambient inheritance",
+  "platform": "darwin",
+  "uid": 501,
+  "keys": [
+    "__CF_USER_TEXT_ENCODING"
+  ],
+  "key": "__CF_USER_TEXT_ENCODING",
+  "value": "0x1F5:0x0:0x0",
+  "valueBytes": 13,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "probePresealCommit": "ce47629f43f9e466dccd4cc1e9fcc0cf72aa0918",
+  "probeSealSha256": "8a22599e56af42e7a48c7da78b88910023074293747351ac007c6ffecc398041",
+  "probeReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/probe-01/RECEIPT.json",
+    "bytes": 1584,
+    "mode": 384,
+    "sha256": "85f7297bbea04ad40e0f2ac1aba7a24432db35c90b4f278abc6b8912df641d9f"
+  },
+  "origin": "UNKNOWN",
+  "authority": "Current root conditional allowance activated by exactly one qualified bounded probe; not actual admission authorization"
+}

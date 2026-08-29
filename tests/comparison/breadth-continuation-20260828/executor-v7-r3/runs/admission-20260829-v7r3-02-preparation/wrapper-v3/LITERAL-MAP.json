@@ -1,0 +1,82 @@
+{
+  "schema": "ATTEMPT02_EXACT_INSTANCE_LITERAL_MAP",
+  "oldHome": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1",
+  "newHome": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2",
+  "productionLogicSourceDelta": [
+    {
+      "file": "owner.mjs",
+      "old": "const runId = 'admission-20260829-v7r3-01';",
+      "new": "const runId = 'admission-20260829-v7r3-02';",
+      "count": 1
+    }
+  ],
+  "derivedPathChanges": [
+    {
+      "expression": "path.resolve(home, '../activation/AUTH.json')",
+      "old": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+      "new": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json"
+    },
+    {
+      "expression": "path.resolve(home, '../activation/ROOT-GRANT.json')",
+      "old": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/ROOT-GRANT.json",
+      "new": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json"
+    },
+    {
+      "expression": "path.join(home, 'actual-capture')",
+      "old": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture",
+      "new": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/actual-capture"
+    },
+    {
+      "expression": "inner outputRoot derived from runId by unchanged launcher",
+      "old": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01",
+      "new": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02"
+    }
+  ],
+  "unchangedRelativeExpressions": true,
+  "unchangedSourceFiles": [
+    "capture.mjs",
+    "controls.mjs",
+    "stub.mjs"
+  ],
+  "historicalDocuments": [
+    "CONTROL-PLAN.json",
+    "README.md"
+  ],
+  "metadataEdits": {
+    "runId": [
+      "admission-20260829-v7r3-01",
+      "admission-20260829-v7r3-02"
+    ],
+    "rootGrantTemplate": [
+      "../INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "../wrapper-v3/INACTIVE-ROOT-GRANT.TEMPLATE.json"
+    ],
+    "authTemplate": [
+      "../INACTIVE-AUTH.TEMPLATE.json",
+      "../wrapper-v3/INACTIVE-AUTH.TEMPLATE.json"
+    ],
+    "futureCommand.args[2]": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs"
+    ],
+    "futureCommand.args[3]": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json"
+    ],
+    "futureTopology.administrationProcesses": [
+      8,
+      20
+    ],
+    "futureTopology.totalPlanned": [
+      55,
+      67
+    ]
+  },
+  "metadataAuthority": "Namespace substitutions plus current root-selected67=47+20 census; no runtime logic change. Copied25-control documents remain historical, not new executions.",
+  "newSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+    "bytes": 2103,
+    "mode": 420,
+    "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+  }
+}

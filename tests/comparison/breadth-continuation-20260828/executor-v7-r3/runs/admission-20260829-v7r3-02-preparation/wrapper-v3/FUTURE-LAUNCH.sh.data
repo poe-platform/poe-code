@@ -1,0 +1,11 @@
+set -eu
+set -C
+[ "$#" -eq 1 ] || exit 74
+umask 022
+cd '/Users/kjopek/Workspace/safe-bash'
+printf '%s\n' "$$" > '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture/EXEC-PID.data'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/prepare-captures.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture' 'none' )
+exec 1>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture/stdout.raw'
+exec 2>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture/stderr.raw'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/verify-fds-v3.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture' )
+exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json' "$1" '7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2'

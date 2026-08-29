@@ -1,0 +1,723 @@
+{
+  "schema": "FUNCTIONAL_V2_ACTUAL_LIFECYCLE",
+  "runId": "semantic-functional-20260829-v2-01",
+  "grantConsumed": true,
+  "retries": 0,
+  "actualProcessesIncludingWrapperHelpers": 37,
+  "actualRuntimeProcessesExcludingHelpers": 35,
+  "wrapperHelperAdministration": 2,
+  "prepAdminChildren": 7,
+  "knownClosedBeforePublication": 44,
+  "processes": [
+    {
+      "role": "owner",
+      "pid": 52842,
+      "closed": true,
+      "exit": 1,
+      "source": "exec-replaced wrapper PID and tool session30354 exit1"
+    },
+    {
+      "role": "capture-preparer",
+      "pid": 52843,
+      "closed": true,
+      "exit": 0,
+      "source": "synchronous wrapper succeeded to next stage; PREPARE qualified"
+    },
+    {
+      "role": "fd-verifier",
+      "pid": 52845,
+      "closed": true,
+      "exit": 0,
+      "source": "synchronous wrapper succeeded to owner; FD-GUARD receipt"
+    },
+    {
+      "role": "launcher",
+      "pid": 52848,
+      "closed": true,
+      "exit": 1,
+      "source": "outer child exit/close/pid+group absent"
+    },
+    {
+      "role": "coordinator",
+      "pid": 52856,
+      "closed": true,
+      "exit": 1,
+      "source": "collector supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-1",
+      "pid": 52890,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-2",
+      "pid": 53017,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-3",
+      "pid": 53073,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-4",
+      "pid": 53086,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-5",
+      "pid": 53109,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-6",
+      "pid": 53123,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-7",
+      "pid": 53223,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-8",
+      "pid": 53236,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-9",
+      "pid": 53282,
+      "closed": true,
+      "exit": 0,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "semantic-worker",
+      "operationId": "case-10",
+      "pid": 53307,
+      "closed": true,
+      "exit": 1,
+      "source": "worker supervisor exit/close"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 52867,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 52870,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 52893,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 52894,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53020,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53021,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53074,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53075,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53087,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53088,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53110,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53111,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53131,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53132,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53224,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53225,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53238,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53239,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53283,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53284,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53308,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    },
+    {
+      "role": "git-authority-metadata",
+      "pid": 53309,
+      "closed": true,
+      "exit": 0,
+      "source": "recorded authority receipt"
+    }
+  ],
+  "prep": [
+    {
+      "ordinal": 1,
+      "pid": 45524,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "show",
+        "37026b85275a2fa4b015cc18b04d75d90fa6dc3c:tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json"
+      ],
+      "started": "2026-08-29T07:11:53.333Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 159,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:11:53.364Z"
+    },
+    {
+      "ordinal": 2,
+      "pid": 45525,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "show",
+        "37026b85275a2fa4b015cc18b04d75d90fa6dc3c:tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/FUTURE-AUTH-REQUIREMENTS.json"
+      ],
+      "started": "2026-08-29T07:11:53.366Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 3302,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:11:53.385Z"
+    },
+    {
+      "ordinal": 3,
+      "pid": 49834,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-AUTHORITY.json"
+      ],
+      "started": "2026-08-29T07:13:36.759Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:13:36.858Z"
+    },
+    {
+      "ordinal": 4,
+      "pid": 49837,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "Authorize one reviewed functional-profile-v2 cohort conditionally",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-AUTHORITY.json"
+      ],
+      "started": "2026-08-29T07:13:36.862Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 956,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:13:37.431Z"
+    },
+    {
+      "ordinal": 5,
+      "pid": 49855,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "show",
+        "1979eca53f1a878619e0442dc6184f84bec030b0:tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json"
+      ],
+      "started": "2026-08-29T07:13:37.433Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 1325,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:13:37.471Z"
+    },
+    {
+      "ordinal": 6,
+      "pid": 52227,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CALL-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/LAUNCH-INTENT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/PROCESS-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/ADMIN.ndjson",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/REAL-PAYLOAD-PREFLIGHT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/SOURCE-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stdout"
+      ],
+      "started": "2026-08-29T07:14:59.912Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:15:00.023Z"
+    },
+    {
+      "ordinal": 7,
+      "pid": 52229,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "Bind fresh functional-v2 AUTH and real-payload preflight",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CALL-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/LAUNCH-INTENT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/PROCESS-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/ADMIN.ndjson",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/REAL-PAYLOAD-PREFLIGHT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/SOURCE-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stdout",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stderr",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stdout"
+      ],
+      "started": "2026-08-29T07:15:00.024Z",
+      "closed": true,
+      "exit": 0,
+      "signal": null,
+      "stdoutBytes": 3473,
+      "stderrBytes": 0,
+      "failure": null,
+      "captureClosed": true,
+      "finished": "2026-08-29T07:15:00.353Z"
+    }
+  ],
+  "peakQualification": "Reviewed source topology cap5 (owner/launcher/coordinator/worker/synchronous authority child); not a host-global process census or performance measurement.",
+  "workerResourceRows": [
+    {
+      "id": "case-1",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-2",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": false,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-3",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-4",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-5",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": false,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-6",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-7",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-8",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": false,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-9",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "id": "case-10",
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [
+          {
+            "operation": "UNSUPPORTED_WORKER_ASSET_ADMISSION",
+            "argument": "object"
+          }
+        ],
+        "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+      },
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": []
+    }
+  ],
+  "workerCreationQualification": "One guard refusal before Worker asset admission; object contents not captured. No successful Worker creation receipt. No host-global thread claim.",
+  "ownerStreamFiles": {
+    "stdout": {
+      "syncAttempted": true,
+      "synced": true,
+      "closeAttempted": true,
+      "closed": true
+    },
+    "stderr": {
+      "syncAttempted": true,
+      "synced": true,
+      "closeAttempted": true,
+      "closed": true
+    },
+    "fd3": {
+      "syncAttempted": true,
+      "synced": true,
+      "closeAttempted": true,
+      "closed": true
+    },
+    "intent": {
+      "syncAttempted": true,
+      "synced": true,
+      "closeAttempted": true,
+      "closed": true
+    },
+    "events": {
+      "syncAttempted": true,
+      "synced": true,
+      "closeAttempted": true,
+      "closed": true
+    }
+  },
+  "collectorCleanup": [],
+  "bodyCleanup": [],
+  "rootCapsUnchanged": true,
+  "preparationHelperErrors": [
+    "Oversize projection rejected by default metadata reader before use; declared document bound then used.",
+    "Postflight display identifier ownerPidRaw was undefined; corrected to existing goOwnerPidRaw. No child or product execution."
+  ],
+  "publicationChildrenExcludedUntilTheirActualClosure": true
+}

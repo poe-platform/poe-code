@@ -1,0 +1,20 @@
+ M tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/ADMIN.ndjson
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ACTUAL-DISPATCH.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ACTUAL-LIFECYCLE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CAPTURE-RECONCILIATION.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/FINITE-OUTCOMES.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/LOADED-EDGE-RECONCILIATION.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/POSTFLIGHT-DATA.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/REPORT.md
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-06.stderr
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-06.stdout
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-07.stderr
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-07.stdout
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-08.stderr
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-08.stdout
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-09.stderr
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-09.stdout
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/

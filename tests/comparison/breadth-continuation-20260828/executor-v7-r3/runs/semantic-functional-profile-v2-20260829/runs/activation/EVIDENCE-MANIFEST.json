@@ -1,0 +1,827 @@
+{
+  "schema": "FUNCTIONAL_V2_ACTUAL_EVIDENCE_MANIFEST",
+  "runId": "semantic-functional-20260829-v2-01",
+  "grantConsumed": true,
+  "grantCommit": "1979eca53f1a878619e0442dc6184f84bec030b0",
+  "authCommit": "ad57055df4cdcf06d50871ce9499da7cb57e3fa3",
+  "sourceSealSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "independentReview": {
+    "commit": "37026b85275a2fa4b015cc18b04d75d90fa6dc3c",
+    "path": "tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json",
+    "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+  },
+  "status": "UNSAFE_STOP",
+  "attempts": 1,
+  "realWorkersLaunched": 10,
+  "unlaunchedIdentities": 89,
+  "semanticOraclePasses": 7,
+  "ordinaryMismatches": 2,
+  "capabilityRefusalUnqualified": 1,
+  "rawResultCounterQualification": "Raw unrun90 includes attempted unsafe tenth operation; raw fields unchanged.",
+  "invocations": {
+    "semantic": {
+      "attempted": 10,
+      "fulfilled": 10,
+      "rejected": 0,
+      "unresolved": 0
+    },
+    "emptySetup": {
+      "attempted": 7,
+      "fulfilled": 7,
+      "rejected": 0,
+      "unresolved": 0
+    }
+  },
+  "legacyCompleted": {
+    "semantic": 9,
+    "emptySetup": 6,
+    "C11": 0,
+    "total": 15
+  },
+  "C11": 0,
+  "captureChannels": 38,
+  "observedBytes": 1265401,
+  "retainedBytes": 1265401,
+  "lostBytes": 0,
+  "overallCaptureQualified": false,
+  "loadObservations": 1553,
+  "authorityMetadataChildren": 22,
+  "actualProcessCountIncludingWrapperHelpers": 37,
+  "closedAdministrationBeforeFinalCommit": 11,
+  "knownClosedBeforeFinalCommit": 48,
+  "finalCommit": "This publication process is separately captured by the caller tool; cannot self-hash its own final receipt.",
+  "files": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "AUTHORITY.lock",
+      "bytes": 425,
+      "mode": 292,
+      "sha256": "fdfa53b2e27b1715b54e0672e94bee46ed9db300d2f39de42bae07058b8fdb02"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "AUTHORIZATION.json",
+      "bytes": 916,
+      "mode": 420,
+      "sha256": "a2a05e83d536b6e8104daf40a021886c61eb0cb2a991a91cb359cbf83a8f3e25"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "RESULT.json",
+      "bytes": 45019,
+      "mode": 420,
+      "sha256": "36707cb668f1d152f6f260beec4cac90f154b8f5863e56d4b34c3ee8e2f30865"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-001.json",
+      "bytes": 149454,
+      "mode": 420,
+      "sha256": "71877858cad11330e62ae5841ececc13d3dbfe5f746c31c538c7ce61c7dfc0df"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-001.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "2e10694292cca0229feff8ff59e50d4fdba08dd98a53ce74dc82de1f3f7a72e1"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-001.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "ca671b69cbc14d4e100b31d582241809507c3e431cd8b332f87dab1a2459a6b5"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-001.receipt.json.part-0001.data",
+      "bytes": 77069,
+      "mode": 420,
+      "sha256": "29174a3d4a231a8911cb0e22c25aefd3364ffa39d23a22deb304c956511e2ce0"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-002.json",
+      "bytes": 563,
+      "mode": 420,
+      "sha256": "8e95c98fa428127c7e3dae809991fb87216aa85d1dfc36726f7448b689c2d4f2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-002.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "eb3131fe3ea038901b62024d0688fb1e3a8b64603fa1f68327dab9838f960d38"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-002.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "c35990dff9046ef9e5f0c86a57ed36c9ceb84ee38ec2330b66da94c720c4bbb5"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-002.json.part-0002.data",
+      "bytes": 162135,
+      "mode": 420,
+      "sha256": "0dd5e294d5d60b3dd538057da638f54ef742e8f572e61e70701c2be5206d295a"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-002.receipt.json",
+      "bytes": 175581,
+      "mode": 420,
+      "sha256": "8b251a01ab6c591a8dfb48dcaf7b635e6761ff40b19eab7ef70703659739f67b"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-003.json",
+      "bytes": 149589,
+      "mode": 420,
+      "sha256": "f28af812784bb633df1681193c1d3d884526b17fb38f3cfe200f0ba5cb9fbc02"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-003.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "27d2795874fe262828e6443fc1a39d5095bcc4ada0b0f23080876fc05442581f"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-003.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "e4322915c733f2ba4adcdbd723d6c4be97b39368aa5fce764d2a8c8b177c8864"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-003.receipt.json.part-0001.data",
+      "bytes": 76865,
+      "mode": 420,
+      "sha256": "109f702b3fe970c69ddcfe84dd1b1b49081115a93166128436bb4f656a563c5f"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-004.json",
+      "bytes": 149424,
+      "mode": 420,
+      "sha256": "39e0e0541ab5b027146bceb36b1541f41a082079a416a64dd4b1ea89e3e7e00a"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-004.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "308fa8ecf25083acd69bbe92fa35254106ce95b8abd617ceee54ce8718cec3cd"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-004.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "e208a88c8e18710e7d0aac65c2b24cc0bae55e23d66fe3643dee72597d48c081"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-004.receipt.json.part-0001.data",
+      "bytes": 76627,
+      "mode": 420,
+      "sha256": "c4a8b0284b527030a5bd8288b92d7510e27ff4a5d1c4823e2861e901c5569b47"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-005.json",
+      "bytes": 563,
+      "mode": 420,
+      "sha256": "7d7f86cab7fba47b71da88fcebf3126e7f59c5399e8f74217bb3814f81a37781"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-005.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "f62ea3bb97c9da4ad79db8e3b461e4af0c53cab88520a24d230cbf00f16f04fe"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-005.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "6b878cefc900c98513c1d9d49a556bc32206fc47d75a17727b9a532592cf3abb"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-005.json.part-0002.data",
+      "bytes": 162105,
+      "mode": 420,
+      "sha256": "5d97fb9e9166c25d9fdb6549c75943b90f1c07908ecd415c98413a73667374f1"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-005.receipt.json",
+      "bytes": 175143,
+      "mode": 420,
+      "sha256": "55de3c49027639f5de2e3f83bb67eb0c57bd85eff8471c98f3e7795481d4d5f3"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-006.json",
+      "bytes": 149559,
+      "mode": 420,
+      "sha256": "fc6d6e05cfffb597406d2bfdba019bc735eef67374dbb368b5507d9ef8d64087"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-006.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "1c59c490c7de7b96c9d70b58a15f81e0bca5a15a0a694e255f3346b484f98e33"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-006.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "c6d90be8cb182189cc83431051f85f957aa9057eb198169967c5952ffe7bcbc7"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-006.receipt.json.part-0001.data",
+      "bytes": 76423,
+      "mode": 420,
+      "sha256": "9156223d75a68b1cf7ad8af159da559072df0db5327f34ba76154d7487e3b130"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.json",
+      "bytes": 152204,
+      "mode": 420,
+      "sha256": "8d1cf4f6cb59757c9d9b6667bab9659e8423f3d4820b3c6a4a2a77dee2e627bb"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "8f21610b82d27a2d92ec3cd6d60bbf3bbae769a222228c1bbf9662dbeba56430"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "d31cecdbbe74d51ef9af4cdf2f39cf3288a7eaa90e9a940c99deb419fe85ba04"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json.part-0001.data",
+      "bytes": 89811,
+      "mode": 420,
+      "sha256": "3408dd10aa6d664c058a2fa48ed0afd7564e96540ecf3ca5a7deabc626cd5230"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-008.json",
+      "bytes": 563,
+      "mode": 420,
+      "sha256": "27e7e5b7563529b399d751fff79b16ed209f58132a492505d4261650e99da55a"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-008.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "053a2ab2842bcca22d0cf1d14d5fde4f34d4106937d2904a1ff490c78305db79"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-008.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "060a92c23dc8ac23970d830757b5e063edb4603607adf9507724330b8edc2ca0"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-008.json.part-0002.data",
+      "bytes": 164885,
+      "mode": 420,
+      "sha256": "4c049a439259d1a55e5857584430ef55427076280981404585d744576df29d79"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-008.receipt.json",
+      "bytes": 189755,
+      "mode": 420,
+      "sha256": "5535f47566d1436efaa6ed12dcd05f009cbdeb88974554a0bf4f481f07a7fc7a"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.json",
+      "bytes": 152339,
+      "mode": 420,
+      "sha256": "b54f6857de39b66cedb4f534fea1a2e54a73a9160b72f02b23dcbe12b70c42fc"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "4ed11b62497a4ad084ca2c5b10e6d2d7b90f9f93c6592aa339156701603cb1da"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "edf703f3348c0a330de241da3f6765b49ae541f93e2ba52f2b1d67ebabcd7abf"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json.part-0001.data",
+      "bytes": 89607,
+      "mode": 420,
+      "sha256": "7c49b83748cd28e95ddf9659a0e437f09c78b9b65d22d5dca907fde8cf0fc387"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.json",
+      "bytes": 149446,
+      "mode": 420,
+      "sha256": "1c813d77dfc08f09c8479845ec43117ae9547e61e79ab470d833cf0897d9aef7"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "9a15c7822f6c4602694c3f4f97e08453cbe11ce07baa729410ccb3b70025154c"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "6461a123b91813458956dfd5cf0ad881919cfe35bf19bdb4465769ebfb528f74"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json.part-0001.data",
+      "bytes": 77592,
+      "mode": 420,
+      "sha256": "951bbeb4a6156c19bbee15571ac684fab8b6e83c125a7b90e03fcc07f942740e"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-1.claim",
+      "bytes": 289,
+      "mode": 292,
+      "sha256": "341ea0b1ef9c82f5799b30d4138b801273f332cef3b6bc4def518002057244c8"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-10.claim",
+      "bytes": 290,
+      "mode": 292,
+      "sha256": "f219078b454c6182368cc05e5d7deca20afa4a6ae5ccf6ecb0366cbb3239fd32"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-2.claim",
+      "bytes": 291,
+      "mode": 292,
+      "sha256": "52502cc8754e20b07927c321ab2a4cae6e7b318457348bd5a1c44e07c9437e49"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-3.claim",
+      "bytes": 285,
+      "mode": 292,
+      "sha256": "6b27fed9df75f558e8122e9946ec5e9105d2e0cf2cc7bf278c5ff154258422f6"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-4.claim",
+      "bytes": 287,
+      "mode": 292,
+      "sha256": "740ead419357d333e101fa8d51eb6a41e4c994d7b7ed23b5b2cfe7d9b3474188"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-5.claim",
+      "bytes": 289,
+      "mode": 292,
+      "sha256": "c427fb95afb055b414dc2ab11a2463a7016dfa1562130dc5825193ac92eb6421"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-6.claim",
+      "bytes": 283,
+      "mode": 292,
+      "sha256": "89525afd8496793c28364cca8b56373cc8c9661d14da78a6e70f639f2e432590"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-7.claim",
+      "bytes": 285,
+      "mode": 292,
+      "sha256": "74c572b4d30f7dd32adcfa337c1d80a9b09292abfac48cf6c1bb971cfe1ab76f"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-8.claim",
+      "bytes": 287,
+      "mode": 292,
+      "sha256": "7ba2c653104d3bc4e547cce8bce3877fc0f935d031d65936569b21e6b50e5fae"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "operation-case-9.claim",
+      "bytes": 281,
+      "mode": 292,
+      "sha256": "317b63da4babc9d8ac9a9d9ac10e07ac7a238bb15fee888ccbafcb89206c3c34"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision",
+      "path": "COORDINATOR-RECEIPT.json",
+      "bytes": 7171,
+      "mode": 420,
+      "sha256": "beef865037dd2f8000fc10bac79cb2d7034046559cf31df32d5d27d882438f38"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision",
+      "path": "LAUNCH.json",
+      "bytes": 1005,
+      "mode": 420,
+      "sha256": "adaa554e17f8f94cf77da589be6c9201153d8d6f6ca80384ecdc06b11dd276b6"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision",
+      "path": "OUTER.json",
+      "bytes": 1227,
+      "mode": 420,
+      "sha256": "b7b437813907d7437992dbd5aa40773eb08f3dc8d8d320d03a69af455e80feac"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "RECEIPT.json",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "acf7134edcc41868e77e78460bd7036303d640bf7b27a0884a1235d445b3be8c"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "6d50a1c546ee10d8fbd338b5c32ed363b60fe06d392c855461d3889f4aaf0fd2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "intent.ndjson",
+      "bytes": 335,
+      "mode": 384,
+      "sha256": "cf4c962c93a48d3cb92708b240b9602ace74c6dc207969a31bc2c41c521baee1"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "path": "stdout.raw",
+      "bytes": 653,
+      "mode": 384,
+      "sha256": "cd27fb93f97a138e22ac6349679fcc676cfce6342d8381b1fd3fedd9075a1a7c"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "ACTUAL-DISPATCH.json",
+      "bytes": 1205,
+      "mode": 420,
+      "sha256": "5a327151ee179200b1c1fd824093fd04d635d6b36b49405f34625561f6d32ae2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "ACTUAL-LIFECYCLE.json",
+      "bytes": 23583,
+      "mode": 420,
+      "sha256": "4ed667ffdda8a114a2265533e8819b4a18cff3436dc9c93d5648af2aaa5b27c2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "AUTH.json",
+      "bytes": 572,
+      "mode": 420,
+      "sha256": "3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "CALL-PLAN.json",
+      "bytes": 26551,
+      "mode": 420,
+      "sha256": "6532eaa893650ff70cc5083114f974fef3f957640b561a8e31a631760a240852"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "CAPTURE-RECONCILIATION.json",
+      "bytes": 8821,
+      "mode": 420,
+      "sha256": "3668b75bf3a14dc15b6d5aec0db96b5e51b7909580f9fa8a3fe949a8c77989cd"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "FINITE-OUTCOMES.json",
+      "bytes": 64917,
+      "mode": 420,
+      "sha256": "db649324a0a6935baf48f4524580a206d560a16513d699b5a95a4c525b097b96"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "LAUNCH-INTENT.json",
+      "bytes": 2533,
+      "mode": 420,
+      "sha256": "3477a2907692e3bb4af92244c7cf9203f5b946cd3b17bf1a07ea8c83e478d202"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "LOADED-EDGE-RECONCILIATION.json",
+      "bytes": 650,
+      "mode": 420,
+      "sha256": "205606bb9186c2f2d424f39f2d2f32de01dc87c2ac9953484e1bd416a695221f"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "POSTFLIGHT-DATA.json",
+      "bytes": 1763,
+      "mode": 420,
+      "sha256": "72f461009e4ed31dcfd0b2f1285cd63bf4ca4007af14899ca55d2977a843bcee"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "PROCESS-PLAN.json",
+      "bytes": 68662,
+      "mode": 420,
+      "sha256": "73618b581c34909e1b54824699b4c729237729b9b3659da7bc58f6cd2f34bd6b"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "PUBLICATION-HELPER-ERROR.json",
+      "bytes": 2993,
+      "mode": 420,
+      "sha256": "95b128fa3f6290d407df58efb07f7f7d8d91e3b4c3bb50be49d8794fedd5ddee"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "REPORT.md",
+      "bytes": 5312,
+      "mode": 420,
+      "sha256": "20a9c6d3099f219b21c7d01047493fddbf61ecec16bc417ca62715541189f2a2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "ROOT-AUTHORITY.json",
+      "bytes": 1627,
+      "mode": 420,
+      "sha256": "baf87f1399268d120e1dcc2a5cfb7770de252c1618f4a3cc1988f2e7638990e7"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "ROOT-GRANT.json",
+      "bytes": 1325,
+      "mode": 420,
+      "sha256": "d9b4f0c5e91f2b1b7b0c4c0db6110afa7c165f51ab5892182bffc53e04fccef2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "TOOL-LAUNCH-RECEIPT.json",
+      "bytes": 429,
+      "mode": 420,
+      "sha256": "b6a682e510ef2c817b2e228fd62cad6b983fd97e47e3cb8bc75c3028b74ed518"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "admin-capture/EXEC-PID.data",
+      "bytes": 6,
+      "mode": 420,
+      "sha256": "35251726676152a7e7aa2c70ba1c2362f3bd447add328686c3c681acde0a221c"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "admin-capture/FD-GUARD.json",
+      "bytes": 240,
+      "mode": 384,
+      "sha256": "558b9ef409e37f536cc06c272051808f118c6251a2ccb7d4501e7ddb9cd83141"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "admin-capture/PREPARE.json",
+      "bytes": 437,
+      "mode": 384,
+      "sha256": "bb3d011e719ae884c4ad5589868c312badf48b919e54db8b88340dd10ff519f6"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "admin-capture/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "admin-capture/stdout.raw",
+      "bytes": 1793,
+      "mode": 384,
+      "sha256": "8e1cd9be59177423dc6a52efebad611324acbb4699e7b40601c47e07758c3e27"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/ADMIN.ndjson",
+      "bytes": 12473,
+      "mode": 384,
+      "sha256": "a0dbbb6ef6bda13f2d7af32d965d18536b90fe381831acaa700180a37e82c527"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/REAL-PAYLOAD-PREFLIGHT.json",
+      "bytes": 8275,
+      "mode": 420,
+      "sha256": "3d48916546a86cf3b1f2e3ecaf0731f5b1679d71dd94ea71ffcaef53f46001c7"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/SOURCE-BINDINGS.json",
+      "bytes": 166188,
+      "mode": 420,
+      "sha256": "b732ff75a1ef82fcf8b2d2441fda1d48d3d9e9408781dd7fb8abbe12fdcde585"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-01.stdout",
+      "bytes": 159,
+      "mode": 384,
+      "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-02.stdout",
+      "bytes": 3302,
+      "mode": 384,
+      "sha256": "18846b6776b4cac4d07280001481d22bb0bcb0733feb100addb02081c4a1910f"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-03.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-04.stdout",
+      "bytes": 956,
+      "mode": 384,
+      "sha256": "b6461361eba1f30398d07641976a0e774218eb479701544d8de9b6ffc723b535"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-05.stdout",
+      "bytes": 1325,
+      "mode": 384,
+      "sha256": "d9b4f0c5e91f2b1b7b0c4c0db6110afa7c165f51ab5892182bffc53e04fccef2"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-06.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-07.stdout",
+      "bytes": 3473,
+      "mode": 384,
+      "sha256": "e2f5926a2149f6e325b9181d71021827bb1dc6ca2d9310383c054a974727e451"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-08.stdout",
+      "bytes": 173,
+      "mode": 384,
+      "sha256": "96af857e73809faf77a1503a92146b5da66b79c407381aa66fdf006ebc161dd3"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-09.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-09.stdout",
+      "bytes": 2897,
+      "mode": 384,
+      "sha256": "0a190e87f8447f94b4e3bcb9d424f1898be52d7533629170f2fac9bab74735b9"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-10.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-10.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-11.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "path": "preflight/admin-11.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "oldFailuresUnchanged": true,
+  "publicationHelperCorrection": "Rejected empty DATA manifest preserved in PUBLICATION-HELPER-ERROR.json; no runtime replay or raw mutation."
+}

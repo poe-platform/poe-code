@@ -1,0 +1,330 @@
+{
+  "schema": "FUNCTIONAL_V2_ACTUAL_CAPTURE_RECONCILIATION",
+  "rows": [
+    {
+      "role": "worker-1",
+      "channel": "stdout",
+      "observed": 11,
+      "retained": 11,
+      "lost": 0,
+      "sha256": "f50daa9829c7f6d945341dbb29193a908cbc5046e0f853c511ccea03ae8f55e1"
+    },
+    {
+      "role": "worker-1",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-1",
+      "channel": "records",
+      "observed": 145265,
+      "retained": 145265,
+      "lost": 0,
+      "sha256": "6818af60e2a9a97b9989d6c15d059220ef40af101b0cd11e4ec724c4faca0cac"
+    },
+    {
+      "role": "worker-2",
+      "channel": "stdout",
+      "observed": 11,
+      "retained": 11,
+      "lost": 0,
+      "sha256": "f50daa9829c7f6d945341dbb29193a908cbc5046e0f853c511ccea03ae8f55e1"
+    },
+    {
+      "role": "worker-2",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-2",
+      "channel": "records",
+      "observed": 75138,
+      "retained": 75138,
+      "lost": 0,
+      "sha256": "fc613b24a9a972aa67c69b9fc14b70293288e2130be737795f0c1a4c50afe33b"
+    },
+    {
+      "role": "worker-3",
+      "channel": "stdout",
+      "observed": 11,
+      "retained": 11,
+      "lost": 0,
+      "sha256": "f50daa9829c7f6d945341dbb29193a908cbc5046e0f853c511ccea03ae8f55e1"
+    },
+    {
+      "role": "worker-3",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-3",
+      "channel": "records",
+      "observed": 145177,
+      "retained": 145177,
+      "lost": 0,
+      "sha256": "cdc80436bb971b9efb81c7d94c054783f984d565e5ababc5b54c571c3c9f4195"
+    },
+    {
+      "role": "worker-4",
+      "channel": "stdout",
+      "observed": 21,
+      "retained": 21,
+      "lost": 0,
+      "sha256": "8f2148c336b70d69d770cd80e0f3decc5a1c9716fac2fc7961f7a5b2d57701e8"
+    },
+    {
+      "role": "worker-4",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-4",
+      "channel": "records",
+      "observed": 145071,
+      "retained": 145071,
+      "lost": 0,
+      "sha256": "70c3c33720e051c216a814e52c83cede9c235efbb2b453cbcd77e9d7c92e2ac8"
+    },
+    {
+      "role": "worker-5",
+      "channel": "stdout",
+      "observed": 21,
+      "retained": 21,
+      "lost": 0,
+      "sha256": "8f2148c336b70d69d770cd80e0f3decc5a1c9716fac2fc7961f7a5b2d57701e8"
+    },
+    {
+      "role": "worker-5",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-5",
+      "channel": "records",
+      "observed": 74944,
+      "retained": 74944,
+      "lost": 0,
+      "sha256": "4597254a5618ef0d9bf47f5ca622f35db3a62f9418da72b5ef6ba8fd679b74d7"
+    },
+    {
+      "role": "worker-6",
+      "channel": "stdout",
+      "observed": 21,
+      "retained": 21,
+      "lost": 0,
+      "sha256": "8f2148c336b70d69d770cd80e0f3decc5a1c9716fac2fc7961f7a5b2d57701e8"
+    },
+    {
+      "role": "worker-6",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-6",
+      "channel": "records",
+      "observed": 144983,
+      "retained": 144983,
+      "lost": 0,
+      "sha256": "0931fb77b9f58f4ba6907dd6f85f9d62fa84905d54539953cf2b2d301cdb1233"
+    },
+    {
+      "role": "worker-7",
+      "channel": "stdout",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-7",
+      "channel": "stderr",
+      "observed": 58,
+      "retained": 58,
+      "lost": 0,
+      "sha256": "554aa952254f75fa9129db01cf385b9415315572d1eebe603c39ca5d415f4078"
+    },
+    {
+      "role": "worker-7",
+      "channel": "records",
+      "observed": 150699,
+      "retained": 150699,
+      "lost": 0,
+      "sha256": "adcf0b8560eb43b0bc30f07dea032b59bb5f0a1f9f6c8b83617de05f293ce344"
+    },
+    {
+      "role": "worker-8",
+      "channel": "stdout",
+      "observed": 11,
+      "retained": 11,
+      "lost": 0,
+      "sha256": "79e6315579046f4a14a483116ef39fdd6d4d02dd40bed383e8db9cc3410a1632"
+    },
+    {
+      "role": "worker-8",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-8",
+      "channel": "records",
+      "observed": 81212,
+      "retained": 81212,
+      "lost": 0,
+      "sha256": "2a3c3472b2024b830ce32e4a7a4d280ec4c32ad20cd6f3ce0812126616d7e670"
+    },
+    {
+      "role": "worker-9",
+      "channel": "stdout",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-9",
+      "channel": "stderr",
+      "observed": 58,
+      "retained": 58,
+      "lost": 0,
+      "sha256": "554aa952254f75fa9129db01cf385b9415315572d1eebe603c39ca5d415f4078"
+    },
+    {
+      "role": "worker-9",
+      "channel": "records",
+      "observed": 150611,
+      "retained": 150611,
+      "lost": 0,
+      "sha256": "18985789b08f065491043cbd466ef9b3e40de43a2cccc4f7d0ebb178d0cc6596"
+    },
+    {
+      "role": "worker-10",
+      "channel": "stdout",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker-10",
+      "channel": "stderr",
+      "observed": 57,
+      "retained": 57,
+      "lost": 0,
+      "sha256": "ff60a5b36146a936d076d7f2876878883b64e2599babbdb4189689c21ffa1f86"
+    },
+    {
+      "role": "worker-10",
+      "channel": "records",
+      "observed": 145463,
+      "retained": 145463,
+      "lost": 0,
+      "sha256": "f3f5648442074a40f7359d479459935f53b3f521d5a942f002a6d596c7b97abf"
+    },
+    {
+      "role": "coordinator",
+      "channel": "stdout",
+      "observed": 2674,
+      "retained": 2674,
+      "lost": 0,
+      "sha256": "e36eb86b962c4ab872800741164795cfd458c79c8229172c5a3c2865c37ef81a"
+    },
+    {
+      "role": "coordinator",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "coordinator",
+      "channel": "records",
+      "observed": 1438,
+      "retained": 1438,
+      "lost": 0,
+      "sha256": "68f8d7b05e7e4fb23dec7b144f063d44766a389e7bfd0ce15567f3a641cde571"
+    },
+    {
+      "role": "outer-launcher",
+      "channel": "stdout",
+      "observed": 653,
+      "retained": 653,
+      "lost": 0,
+      "limit": 65536,
+      "truncated": false,
+      "writeFailed": false,
+      "ended": true,
+      "sha256": "cd27fb93f97a138e22ac6349679fcc676cfce6342d8381b1fd3fedd9075a1a7c"
+    },
+    {
+      "role": "outer-launcher",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "limit": 65536,
+      "truncated": false,
+      "writeFailed": false,
+      "ended": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "outer-launcher",
+      "channel": "fd3",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "limit": 262144,
+      "truncated": false,
+      "writeFailed": false,
+      "ended": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "admin-owner",
+      "channel": "stdout",
+      "observed": 1793,
+      "retained": 1793,
+      "lost": 0,
+      "sha256": "8e1cd9be59177423dc6a52efebad611324acbb4699e7b40601c47e07758c3e27"
+    },
+    {
+      "role": "admin-owner",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "lost": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "channels": 38,
+  "totalObservedBytes": 1265401,
+  "totalRetainedBytes": 1265401,
+  "lostBytes": 0,
+  "rawOwnerCaptureQualified": false,
+  "rawCoordinatorNatural": false,
+  "rawWorker10Natural": false,
+  "qualification": "Byte equality is a separate fact, not a replacement for failed overall capture/protocol disposition.",
+  "oldLostBytesNotReconstructed": true
+}

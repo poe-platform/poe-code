@@ -1,0 +1,67 @@
+{
+  "schema": "FUNCTIONAL_V2_POSTSTOP_DATA_GUARDS",
+  "scope": "Standalone DATA postguards after UNSAFE_STOP; does not override raw owner postflight:false/captureQualified:false or worker/coordinator natural:false.",
+  "checks": 491,
+  "allPassed": true,
+  "views": [
+    {
+      "name": "target-installed",
+      "census": {
+        "files": 860,
+        "omittedMetadataOnly": 0,
+        "entries": 906,
+        "complete": true
+      },
+      "oldOriginAbsent": null
+    },
+    {
+      "name": "target-moved",
+      "census": {
+        "files": 860,
+        "omittedMetadataOnly": 0,
+        "entries": 906,
+        "complete": true
+      },
+      "oldOriginAbsent": true
+    },
+    {
+      "name": "baseline-installed",
+      "census": {
+        "files": 3845,
+        "omittedMetadataOnly": 0,
+        "entries": 4277,
+        "complete": true
+      },
+      "oldOriginAbsent": null
+    }
+  ],
+  "comparator": {
+    "files": 3843,
+    "omittedMetadataOnly": 1,
+    "entries": 4275,
+    "complete": true
+  },
+  "archives": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "bytes": 749907,
+      "mode": 420,
+      "uid": 501,
+      "gid": 20,
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "metadataOnly": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "mode": 292,
+      "uid": 501,
+      "gid": 0,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "metadataOnly": false
+    }
+  ],
+  "rawRuntimeSourceChanged": false,
+  "grantsConsumed": true,
+  "oldResultsUntouched": true
+}

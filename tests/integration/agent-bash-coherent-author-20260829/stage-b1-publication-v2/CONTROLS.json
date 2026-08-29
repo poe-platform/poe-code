@@ -1,0 +1,88 @@
+{
+  "startedUTC": "2026-08-29T13:22:49.667Z",
+  "finishedUTC": "2026-08-29T13:23:43.773Z",
+  "passed": 16,
+  "actual": 0,
+  "outcomes": [
+    {
+      "id": "P01-short-writes",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P02-zero-write",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P03-overlong-write",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P04-paths",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P05-inventory",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P06-complete-and-falsy",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P07-wrong-id",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P08-clock",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P09-generated-metadata-charge",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P10-live-tail",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P11-outside-evidence-charge",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P12-partial",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P13-missing-malformed",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P14-no-inferred-zero",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P15-falsy-presence",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    },
+    {
+      "id": "P16-final-receipt-reserve",
+      "status": "PASS",
+      "role": "PURE; no OS/FD/commit or product proof"
+    }
+  ]
+}

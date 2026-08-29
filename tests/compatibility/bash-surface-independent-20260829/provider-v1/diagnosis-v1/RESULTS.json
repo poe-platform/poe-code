@@ -1,0 +1,138 @@
+{
+  "role": "TWO_NEW_DIAGNOSTIC_IDENTITIES_NOT_F01_RESCORE",
+  "observations": [
+    {
+      "id": "D01-unfenced-readiness",
+      "request": {
+        "id": "D01-unfenced-readiness",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--eval",
+          "process.stdout.write(\"PROVIDER_DIAGNOSTIC_READY\\n\");"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+        },
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+        "stdinBase64": "",
+        "stdio": [
+          "pipe",
+          "pipe",
+          "pipe",
+          "pipe"
+        ],
+        "detached": true,
+        "shell": false,
+        "expected": {
+          "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+          "stderrBase64": "",
+          "status": 0,
+          "signal": null
+        }
+      },
+      "started": 1787978924884,
+      "pid": 93673,
+      "spawnObserved": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "eventEOF": true,
+      "status": 0,
+      "signal": null,
+      "signalsSent": [],
+      "errors": [],
+      "captureComplete": true,
+      "groupPresent": false,
+      "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+      "stderrBase64": "",
+      "eventsBase64": "",
+      "bytes": {
+        "stdout": 26,
+        "stderr": 0,
+        "events": 0
+      },
+      "knownRetired": true,
+      "expectedReadiness": true,
+      "stop": false,
+      "finished": 1787978924923,
+      "captureDescriptorsClosed": true
+    },
+    {
+      "id": "D02-original-fence-readiness",
+      "request": {
+        "id": "D02-original-fence-readiness",
+        "executable": "/usr/bin/sandbox-exec",
+        "args": [
+          "-f",
+          "/private/tmp/safe-bash-surface-provider-author-v1/profiles/F01.sb",
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--eval",
+          "process.stdout.write(\"PROVIDER_DIAGNOSTIC_READY\\n\");"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+        },
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+        "stdinBase64": "",
+        "stdio": [
+          "pipe",
+          "pipe",
+          "pipe",
+          "pipe"
+        ],
+        "detached": true,
+        "shell": false,
+        "expected": {
+          "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+          "stderrBase64": "",
+          "status": 0,
+          "signal": null
+        }
+      },
+      "started": 1787978924925,
+      "pid": 93674,
+      "spawnObserved": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "eventEOF": true,
+      "status": null,
+      "signal": "SIGABRT",
+      "signalsSent": [],
+      "errors": [],
+      "captureComplete": true,
+      "groupPresent": false,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "eventsBase64": "",
+      "bytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "events": 0
+      },
+      "knownRetired": true,
+      "expectedReadiness": false,
+      "stop": true,
+      "finished": 1787978924949,
+      "captureDescriptorsClosed": true
+    }
+  ],
+  "failure": "STOP_AFTER_D02-original-fence-readiness",
+  "unrun": [],
+  "captureBytes": 4865,
+  "noNativeBash": true,
+  "noProduct": true,
+  "noNetworkCalls": true
+}

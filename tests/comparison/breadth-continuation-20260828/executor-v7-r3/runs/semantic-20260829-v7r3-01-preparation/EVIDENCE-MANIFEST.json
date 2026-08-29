@@ -1,0 +1,164 @@
+{
+  "schema": "SEMANTIC_PREPARATION_EVIDENCE_MANIFEST_V1",
+  "date": "2026-08-29",
+  "presealCommit": "cc8139986c0914649cc4a2c4792dbcc8212db338",
+  "presealSha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490",
+  "files": [
+    {
+      "path": "AUTH.TEMPLATE.json",
+      "bytes": 1868,
+      "mode": 420,
+      "sha256": "202ed28aa0b8921441710da20163d1839c523b55de5e248209ddb6ec7b1366f4"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 16018,
+      "mode": 420,
+      "sha256": "db1efafd81bd6efb8e4bd96e73d62992775e44baa1c0c8e404a23c7c1997ab73"
+    },
+    {
+      "path": "CENSUS-AND-LIMITS.json",
+      "bytes": 50381,
+      "mode": 420,
+      "sha256": "cb897c926cf7c39bd4726bc54888f71fca818c27b44cf126291933707a4bf5ba"
+    },
+    {
+      "path": "CONTROL-PLAN.json",
+      "bytes": 2794,
+      "mode": 420,
+      "sha256": "14dfddf49c7b7d6b11ffad45c861949cdf55b4accb99baf94cdc4c9719f91e2f"
+    },
+    {
+      "path": "DATA-LAUNCH.json",
+      "bytes": 893,
+      "mode": 384,
+      "sha256": "61da91954dc3bb7256cebcc8792340899dd54613bad17fa1d41f55cc9103f12b"
+    },
+    {
+      "path": "DATA-RESULT.json",
+      "bytes": 1725,
+      "mode": 384,
+      "sha256": "a3efa582d89819911b4fd367381e2740b194e858dde0344fd09cd20ef384fcca"
+    },
+    {
+      "path": "DATA-STDERR.bin",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "DATA-STDOUT.bin",
+      "bytes": 159,
+      "mode": 384,
+      "sha256": "fa5fcf76f0fc773156b427906b43bc4fb47e0034a9fd198e3984feb7e156a1fd"
+    },
+    {
+      "path": "FAIRNESS.json",
+      "bytes": 12362,
+      "mode": 420,
+      "sha256": "492b112d2338ec1f58576310149ae9b86c59e6aec513b81a89b7436f0a60d079"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2760,
+      "mode": 420,
+      "sha256": "8cd2c9a1018d69a41c1ea62cdccae9217fba0ae3fac6d6b8d223b8e27a9d483f"
+    },
+    {
+      "path": "OWNER-LITERAL-MAP.json",
+      "bytes": 1249,
+      "mode": 420,
+      "sha256": "dc7dbf7a3e83b748544cb622001c37518c84bee22f4bf44c09232d2cec2168e2"
+    },
+    {
+      "path": "PREPARATION-CAPTURE.ndjson",
+      "bytes": 13223,
+      "mode": 384,
+      "sha256": "92f0b658587e11ae1a7d477e88f627f86e0d7e947f2905a388324fcdcbfc4961"
+    },
+    {
+      "path": "PREPARATION-ERRORS.json",
+      "bytes": 202,
+      "mode": 420,
+      "sha256": "2d9e4e76f0f9f771514a71a35c9c22d2d63a2569defa55fcf889680787e89807"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 3397,
+      "mode": 420,
+      "sha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6911,
+      "mode": 420,
+      "sha256": "e7dbf1c8be5b800c37a342a0d626e887bfa1f7a760eb7642d96a56de6fa48fdc"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 3449,
+      "mode": 420,
+      "sha256": "a802d375d9d9df411b4bf9911e08a8713c01516abf360833a315fd213f69715f"
+    },
+    {
+      "path": "ROOT-ACCEPTANCE.json",
+      "bytes": 1148,
+      "mode": 420,
+      "sha256": "d1cc67cf925f0e76717ecd0d1c4dd52c9e0d06b8dcc6706abd44ca2267181515"
+    },
+    {
+      "path": "ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1810,
+      "mode": 420,
+      "sha256": "018ab66d52d9007740d9abc7b70572cdcd3cb44fab23d7f55c1497b411e8a362"
+    },
+    {
+      "path": "SEMANTIC-PLAN.json",
+      "bytes": 55320,
+      "mode": 420,
+      "sha256": "599ba0869866a2f2184aa270ee64bc0693f7af3dd8165c8a042264108053e27b"
+    },
+    {
+      "path": "SOURCE-BRANCHES.json",
+      "bytes": 4253,
+      "mode": 420,
+      "sha256": "6a27f13b28e28a1ddb8bcfd58b96e69f7d0a4b7020290ac1f63308a964c60b71"
+    },
+    {
+      "path": "data-controls.mjs",
+      "bytes": 9634,
+      "mode": 420,
+      "sha256": "9ec08f985c663f49b1f403e1d75e9c828528929b6b0d99eba846826ece01f89a"
+    },
+    {
+      "path": "owner-proposed.mjs.data",
+      "bytes": 7176,
+      "mode": 420,
+      "sha256": "e85b2ee59e4ae60b690cdf4cbfdcce5d23b953ced2c5d764c8b27dbd16d8013c"
+    }
+  ],
+  "selfExcluded": true,
+  "publicationCapture": "Separate PUBLICATION-CAPTURE.ndjson closed and bound in finalpublication; subsequent finalcommit transport not recursively selfhashed",
+  "results": {
+    "dataChecks": 12,
+    "passed": 12,
+    "failed": 0,
+    "actualWorkers": 0,
+    "actualSemantics": 0
+  },
+  "processesAtManifest": 8,
+  "allKnownClosed": true,
+  "capturedSubprocessBytes": 4559,
+  "physicalEvidenceBytesAtManifest": 196732,
+  "elapsedMillisecondsAtManifest": 922155,
+  "limits": {
+    "milliseconds": 1800000,
+    "allChildren": 64,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912
+  },
+  "actualRunIdConsumed": false,
+  "runtimeStatus": "HOLD_SOURCE_GATES_AND_ROOT_DECISIONS",
+  "historicalScoresAndLossesUnchanged": true
+}

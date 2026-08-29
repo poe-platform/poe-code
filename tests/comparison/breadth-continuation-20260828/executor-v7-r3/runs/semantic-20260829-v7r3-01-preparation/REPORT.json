@@ -1,0 +1,91 @@
+{
+  "schema": "SEMANTIC_PREPARATION_HANDOFF_V1",
+  "date": "2026-08-29",
+  "status": "PREPARATION_COMPLETE_RUNTIME_HOLD",
+  "presealCommit": "cc8139986c0914649cc4a2c4792dbcc8212db338",
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-preparation/PRESEAL.json",
+    "bytes": 3397,
+    "mode": 420,
+    "sha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490"
+  },
+  "actualPreparation": {
+    "dataInvocations": 1,
+    "dataChecks": 12,
+    "passed": 12,
+    "failed": 0,
+    "sourceBindingChecks": 29,
+    "retainedReceiptBindings": 10,
+    "presealedFilesPostchecked": 13,
+    "engineImports": 0,
+    "Workers": 0,
+    "C11": 0,
+    "semantics": 0,
+    "baselineInstall": 0,
+    "builds": 0,
+    "network": 0,
+    "privateAccess": 0,
+    "namespaceConsumed": false
+  },
+  "caseCensus": {
+    "identities": 33,
+    "old": 23,
+    "new": 10,
+    "scheduled": 99,
+    "newExec": 165,
+    "newSemanticExec": 99,
+    "newEmptyExec": 66,
+    "newC11": 0,
+    "historicalAdmissionEmptyExec": 2,
+    "crossPhaseOriginalPlanExec": 167,
+    "historicalCallsReused": false
+  },
+  "futureProcessCensus": {
+    "runtime": 302,
+    "proposedAdministrationIncluding2Helpers": 20,
+    "planned": 322,
+    "proposedCap": 322,
+    "peak": 5,
+    "oldCap128Insufficient": true,
+    "exactSuccessorDispatchStillHeld": true
+  },
+  "blockers": [
+    "S01: unchanged launcher rejects cohort before authentication",
+    "S02: unchanged collector only qualifies admission status/schema/counts/operations",
+    "S03: published interface admission scope needs additive reviewed cohort mapping",
+    "S04: prospective322 ALL-process ceiling needs root approval;257MiB fail-closed evidence bound does not guarantee99completion"
+  ],
+  "rootDecisions": [
+    "Authorize narrowly versioned launcher+collector cohort mode and full count/authority reconciliation with independent review; do not bypass old guards",
+    "Approve prospective>=322 total owned processes with serial peak5 and fully bound20administration slots or another separately reviewed schedule",
+    "Retain257MiB evidence cap with explicit possible incomplete tail; no automatic expansion",
+    "Keep semantic actualGO held until successor mode/source review and fresh inactive-to-active grant authorization"
+  ],
+  "futureCaptures": {
+    "totalBytes": 269484032,
+    "bodyBytes": 260046848,
+    "collectorBytes": 8388608,
+    "outerBytes": 524288,
+    "adminBytes": 524288,
+    "legacyRawAllMaxBytes": 608698368,
+    "wholeCohortFitsNotProven": true
+  },
+  "fairness": {
+    "W07": "comparator UNQUALIFIED/UNCREDITED even matchingbytes",
+    "W03": "unchangedsharedbytes/status/FS, incomplete telemetry explicitly unqualified",
+    "bootstrap": "nonstock unavailable module then worker_threads; zero delegation and revocation; notcaller authentication",
+    "networkFaultRuntimeAdapters": "not installed by frozen33",
+    "oldScoresRescored": false,
+    "speedClaim": false
+  },
+  "preparationErrors": [
+    {
+      "phase": "patch-tool-discovery",
+      "message": "NONREGULAR",
+      "classification": "helper discovery rejected a symlink before reading; no launch/no changed source/no guard relaxation"
+    }
+  ],
+  "actualSourceLogicChanges": 0,
+  "ownerProposal": "inert .mjs.data exact two literals only; not executable/sealed as an actual owner",
+  "historyPreserved": true
+}

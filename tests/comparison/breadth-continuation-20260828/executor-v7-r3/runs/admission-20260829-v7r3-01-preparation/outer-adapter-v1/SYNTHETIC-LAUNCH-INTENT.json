@@ -1,0 +1,21 @@
+{
+  "schema": "OUTER_ADAPTER_SYNTHETIC_LAUNCH_INTENT",
+  "date": "2026-08-29",
+  "presealCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "sealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls.mjs",
+    "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"
+  ],
+  "maximumMs": 180000,
+  "stdoutBytes": 65536,
+  "stderrBytes": 65536,
+  "expectedActualStubChildren": 17,
+  "allowedActualProductImports": 0,
+  "allowedActualComparatorImports": 0,
+  "allowedC11": 0,
+  "attempts": 1
+}

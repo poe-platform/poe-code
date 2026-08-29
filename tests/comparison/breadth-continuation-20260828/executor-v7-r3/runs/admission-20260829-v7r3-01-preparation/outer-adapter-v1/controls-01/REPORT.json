@@ -1,0 +1,4025 @@
+{
+  "schema": "OUTER_ADAPTER_CONTROLS_V1",
+  "sealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "attempted": 25,
+  "passed": 25,
+  "failed": 0,
+  "unrun": [],
+  "unsafe": false,
+  "attemptedSpawns": 18,
+  "actualChildren": 17,
+  "maximumLiveChildren": 1,
+  "liveChildren": 0,
+  "workBytes": 418452,
+  "elapsedMs": 2874,
+  "inventory": [
+    {
+      "path": "CONTROLS.ndjson",
+      "bytes": 47464,
+      "mode": 384,
+      "sha256": "c10ba97baec02a51a3a41d0c8c896b5a3ef9e5bb2f6f17a42da1adb9ee10818a"
+    },
+    {
+      "path": "O01/RECEIPT.json",
+      "bytes": 1642,
+      "mode": 384,
+      "sha256": "c668496280fd71cbc8d57c71dfbbbdd8260d9c1ff7e96430aabeeeb0e81a8a64"
+    },
+    {
+      "path": "O01/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "5485b326356c212a39dd3bb862f1a37270f285a5067e304f66cd89d1d233d0ea"
+    },
+    {
+      "path": "O01/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O01/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "67908b6686b06169e4146d3f92d128c7acbff6188e19cfdf2a945af2271720da"
+    },
+    {
+      "path": "O01/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O01/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O02/RECEIPT.json",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "cdb738ec97439b04848d5e9b59494ee7ab3264da4f9fd9401a54931c5aac0e51"
+    },
+    {
+      "path": "O02/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "80d18a5555de5f7a9125e67e1d73919bd7d60be21cdb0a29948dfa7f1c2bba2f"
+    },
+    {
+      "path": "O02/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O02/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "7cb11df186fcdbba65ed77620bbc11afbf28339dac2dd6587d99000b18b4f53f"
+    },
+    {
+      "path": "O02/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O02/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O03/RECEIPT.json",
+      "bytes": 1456,
+      "mode": 384,
+      "sha256": "0f1fc9fd04cbab19d9186341ccd64644726d0326e2380dbb1aed567332b4d7cf"
+    },
+    {
+      "path": "O03/events.ndjson",
+      "bytes": 43,
+      "mode": 384,
+      "sha256": "ecc22688dbd39b04fe5c00de6308cdee2261dcacfc64614a4307f200ea1b7f2b"
+    },
+    {
+      "path": "O03/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O03/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "793fe2e6ced653b675bf490b2866f273bb04a86ba1dd149ccf7f4d1c51b67599"
+    },
+    {
+      "path": "O03/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O03/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O04/RECEIPT.json",
+      "bytes": 1761,
+      "mode": 384,
+      "sha256": "60e1b7ecd6882d2a2fc3fab9e92424abe772a9e5bcb44779de81605b8a2af4c1"
+    },
+    {
+      "path": "O04/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "4bde5a029b8bd243c58a52197f052e33118b9a9daa8ea04631915ddd2045b27a"
+    },
+    {
+      "path": "O04/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O04/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "7daed06fc43a13abd578fd7fb346f8852ea5a2131f746ed352a89ed9f8d3b855"
+    },
+    {
+      "path": "O04/stderr.raw",
+      "bytes": 38,
+      "mode": 384,
+      "sha256": "0300125998c0730dd54886be1fdbe58fc456390b468f78135c0912b73b3837ee"
+    },
+    {
+      "path": "O04/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O05/RECEIPT.json",
+      "bytes": 1642,
+      "mode": 384,
+      "sha256": "352f8a73f54453ba4f4fdda3d690ffd36ba2a58de08c6af11d42a1dc180253d4"
+    },
+    {
+      "path": "O05/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "85ea4ac8643535f3db25891766afdfa9b8742dd6ab9c0056283e4167b4834557"
+    },
+    {
+      "path": "O05/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O05/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "492a863ce8df269c6f3644067eb71ed59a081537cead29c0378f210c3d7ccab5"
+    },
+    {
+      "path": "O05/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O05/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O06/RECEIPT.json",
+      "bytes": 1921,
+      "mode": 384,
+      "sha256": "8429d6521350a5bbadb7e7c7c95979bc490a3e80f0dc9b3c75e01d3fc27a16fe"
+    },
+    {
+      "path": "O06/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "62046aabb42ee8990cfadbfec61ea5e2b496ff75b8e5b20fb89b2d5f1645aa58"
+    },
+    {
+      "path": "O06/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O06/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "1f7897fadabf62a4a35e06ef8963337a03358bffab41543d71312b274bcfda50"
+    },
+    {
+      "path": "O06/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O06/stdout.raw",
+      "bytes": 65536,
+      "mode": 384,
+      "sha256": "156c38442089c1323d3e3ba549a6ac24341c47e8b6367bec4740c9b8c865826e"
+    },
+    {
+      "path": "O07/RECEIPT.json",
+      "bytes": 1920,
+      "mode": 384,
+      "sha256": "8e98f9a56d3926057f4835549cc65f2f7e38b47525babe333c405d02a8db86ec"
+    },
+    {
+      "path": "O07/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "73b26f9a31af7d351e744779d16a50b3ee64024c553ef5d0018e9374b0ff0e01"
+    },
+    {
+      "path": "O07/fd3.raw",
+      "bytes": 262144,
+      "mode": 384,
+      "sha256": "4b0d375a615c0382b4f958b48e43e7f356b4fcac76e20423294adc07b8d4976e"
+    },
+    {
+      "path": "O07/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "03c22b72df69721ab872495d13516394f1466882b981049dfc960e508432d270"
+    },
+    {
+      "path": "O07/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O07/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O08/RECEIPT.json",
+      "bytes": 1929,
+      "mode": 384,
+      "sha256": "e370b3a56beb4e6343417a1d52d5255ccf527cd3e0a6a6160e49f05350e9f052"
+    },
+    {
+      "path": "O08/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "627b3892e5b00098e95056bfa481f1d8ce34c9cdeba9222fcde979a582a9c2ba"
+    },
+    {
+      "path": "O08/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O08/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "03a6c0c979c44a56ed53a17809314d62e544ffab1507dbf81c652550d10f35c9"
+    },
+    {
+      "path": "O08/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O08/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O09/RECEIPT.json",
+      "bytes": 1915,
+      "mode": 384,
+      "sha256": "7fecc0246d62dc969e31d0a7321128c797027920c98fe2e566fd1b7c0467defb"
+    },
+    {
+      "path": "O09/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "bcb5fa2ef075d4c9017be17a99e2995e8c1d5f848fa3db41be8aab1440b3b97d"
+    },
+    {
+      "path": "O09/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O09/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "b5b407f7c28dd3de0280c354caa51dddd97e60234cb777c2e0690fe3b75f46a3"
+    },
+    {
+      "path": "O09/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O09/stdout.raw",
+      "bytes": 3,
+      "mode": 384,
+      "sha256": "762069bc07a6e1b5df123a5ae7bd91c10daa04694fbaa17fba0cd6a8dcce8f22"
+    },
+    {
+      "path": "O10/RECEIPT.json",
+      "bytes": 1738,
+      "mode": 384,
+      "sha256": "9856bb14c3052640102dcb2b9c7f6ca33ac126310d76b89d057948bf3c2a2383"
+    },
+    {
+      "path": "O10/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "10fe8004c4a27f42992108ea26e88560442b66e05c6d2075af749c6d6ae3a3ae"
+    },
+    {
+      "path": "O10/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O10/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "4d0f4345d06a0a7e27e51a9b197e7af8cb764f80977936fba65a49685a6b55a7"
+    },
+    {
+      "path": "O10/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O10/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O11/RECEIPT.json",
+      "bytes": 1739,
+      "mode": 384,
+      "sha256": "cfa748af62825e24c12df780a0b5336dbc81caa4b901b9f80b4e2b3997513fc2"
+    },
+    {
+      "path": "O11/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "2301333439359a42e292cf9054bca22851a86e574f8d2f3a4a211b474a6826d1"
+    },
+    {
+      "path": "O11/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O11/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "7ff67aeded304ebb2ce311ec15d832564f4895ddde02997b85815fef8f20fad2"
+    },
+    {
+      "path": "O11/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O11/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O12/RECEIPT.json",
+      "bytes": 1742,
+      "mode": 384,
+      "sha256": "6a5e71990474b1c829116918fac840fb9979f60267911515e05390240b1f3e67"
+    },
+    {
+      "path": "O12/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "e0115270d4354fe1df5c6a6e82939e6de8b2588edcef172086767f346a6f4ff7"
+    },
+    {
+      "path": "O12/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O12/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "59c48845e0ab271ab1ee2abf0d31bc4e7d8491e9cbeb737f2c9b06e41fd3c84b"
+    },
+    {
+      "path": "O12/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O12/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O13/RECEIPT.json",
+      "bytes": 1971,
+      "mode": 384,
+      "sha256": "aac25b6beebc6cf8cd5a427e8a23ddf346167906814bd3244c10fb4006d5d472"
+    },
+    {
+      "path": "O13/events.ndjson",
+      "bytes": 43,
+      "mode": 384,
+      "sha256": "ecc22688dbd39b04fe5c00de6308cdee2261dcacfc64614a4307f200ea1b7f2b"
+    },
+    {
+      "path": "O13/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O13/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "5872c6f28826b169b5fe279aff054498858ed45aef0d44f6de008ef341f75d5e"
+    },
+    {
+      "path": "O13/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O13/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O14/RECEIPT.json",
+      "bytes": 1555,
+      "mode": 384,
+      "sha256": "d779610253eceb4cf4fcf32037e17ee4d0f2b080da3404f65aa7bb6d4f013b02"
+    },
+    {
+      "path": "O14/events.ndjson",
+      "bytes": 43,
+      "mode": 384,
+      "sha256": "ecc22688dbd39b04fe5c00de6308cdee2261dcacfc64614a4307f200ea1b7f2b"
+    },
+    {
+      "path": "O14/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O14/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "f15698a5ab66721f2c019b0eff81e1dca38bcc048bddd6e5bf93123cb56f51f8"
+    },
+    {
+      "path": "O14/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O14/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O15/RECEIPT.json",
+      "bytes": 1969,
+      "mode": 384,
+      "sha256": "73b506e7e4a9a3a5a43c157a36205bd74b5dcc4314be83e54d91245375d35346"
+    },
+    {
+      "path": "O15/events.ndjson",
+      "bytes": 43,
+      "mode": 384,
+      "sha256": "ecc22688dbd39b04fe5c00de6308cdee2261dcacfc64614a4307f200ea1b7f2b"
+    },
+    {
+      "path": "O15/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O15/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "e0aa1989f01e1987331069262ec145a8978d1760b55a461099d24f286cef484a"
+    },
+    {
+      "path": "O15/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O15/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O16/RECEIPT.json",
+      "bytes": 1889,
+      "mode": 384,
+      "sha256": "285c2a6ebb385ebaa848464ec95812fe261570bf5c743f2bf811bd21ec7dcc41"
+    },
+    {
+      "path": "O16/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "201e0485cffa557ba9e99dc9cbfca03f9c23c977dd44df5a7c21c1020670d93c"
+    },
+    {
+      "path": "O16/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O16/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "3c580bdbc0539c0b09dce295efdae43e3d0f77a012567eba3c1a7b0def696eb2"
+    },
+    {
+      "path": "O16/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O16/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O17/RECEIPT.json",
+      "bytes": 1910,
+      "mode": 384,
+      "sha256": "0bf85f8a808cc19c424a22d6c3f8d18451a7a2f54a4279d0d338337e79844384"
+    },
+    {
+      "path": "O17/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "f801c4b42f413b883fc082910b7fcab1946b915f6a0a1c3dde49b0690a40c95a"
+    },
+    {
+      "path": "O17/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O17/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "e65d01fb18faa4c70fac614603e8e31e493e1d7accb009ea331597e4fe09c2d5"
+    },
+    {
+      "path": "O17/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O17/stdout.raw",
+      "bytes": 8,
+      "mode": 384,
+      "sha256": "a61eb4074b2cf994d16529f91f08d48258a14778d14cf4854c6a6beda57da1fe"
+    },
+    {
+      "path": "O18/RECEIPT.json",
+      "bytes": 2262,
+      "mode": 384,
+      "sha256": "d28669696dc4f122f0c4403d0961e53f3b536702808a2d13be496188eb1a71e5"
+    },
+    {
+      "path": "O18/events.ndjson",
+      "bytes": 81,
+      "mode": 384,
+      "sha256": "3cbf83d6d4e21b7b3792af0220bff56a009e4c5fc1eded277c198515d3a41e0b"
+    },
+    {
+      "path": "O18/fd3.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O18/intent.ndjson",
+      "bytes": 440,
+      "mode": 384,
+      "sha256": "83e0c04dbaab470d191753360a42a1abce83fe7747371c35054fa7d2b12e3a84"
+    },
+    {
+      "path": "O18/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O18/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O19/RECEIPT.json",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "O19/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "278f065baa84aba1f0d19cee33277526218f0b7d637e65c3ca7e7d637b2f1f39"
+    },
+    {
+      "path": "O19/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O19/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "d2aad4e9440cb7b465774ed29cd54eddb1f8a2e109b8567449adaa710b0ac8b2"
+    },
+    {
+      "path": "O19/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O19/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O20/RECEIPT.json",
+      "bytes": 1642,
+      "mode": 384,
+      "sha256": "ec9f66c7109e78620876e7067402b6e399b7636ea9ece8f9a1442d5c555d31b2"
+    },
+    {
+      "path": "O20/events.ndjson",
+      "bytes": 82,
+      "mode": 384,
+      "sha256": "3a62f688ee363863121933580194c2acb925df88f77feeef955a8cf7247a01ea"
+    },
+    {
+      "path": "O20/fd3.raw",
+      "bytes": 14,
+      "mode": 384,
+      "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+    },
+    {
+      "path": "O20/intent.ndjson",
+      "bytes": 304,
+      "mode": 384,
+      "sha256": "41e64c7f9aa31e86d598d22497ecd73738766f6ebe951514a2e18aed9f189d01"
+    },
+    {
+      "path": "O20/stderr.raw",
+      "bytes": 17,
+      "mode": 384,
+      "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+    },
+    {
+      "path": "O20/stdout.raw",
+      "bytes": 9,
+      "mode": 384,
+      "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+    },
+    {
+      "path": "O24/SENTINEL.data",
+      "bytes": 9,
+      "mode": 420,
+      "sha256": "301cd2869d2924f75e591bf982a3da45fdac17b62d490b3e2879c75008d646ef"
+    },
+    {
+      "path": "O25/RECEIPT.json",
+      "bytes": 763,
+      "mode": 384,
+      "sha256": "644fb22066987904016b7b149a53d3791a3375eaa883ea42300e2630de9dfdab"
+    },
+    {
+      "path": "O25/stdout.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "O01",
+      "kind": "normal",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83201,
+        "group": 83201,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": false,
+        "primary": null,
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83201
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83201,
+          "group": 83201,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": true,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2068,
+        "elapsedMs": 70
+      },
+      "qualified": true
+    },
+    {
+      "id": "O02",
+      "kind": "nonzero7",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83202,
+        "group": 83202,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 7,
+          "signal": null
+        },
+        "close": {
+          "code": 7,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "disposition",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_NONZERO_OR_UNNATURAL",
+            "message": "OUTER_NONZERO_OR_UNNATURAL"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83202
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83202,
+          "group": 83202,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 7,
+            "signal": null
+          },
+          "close": {
+            "code": 7,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2189,
+        "elapsedMs": 70
+      },
+      "qualified": false
+    },
+    {
+      "id": "O03",
+      "kind": "preflight-object",
+      "pass": true,
+      "child": {
+        "attempted": false,
+        "pid": null,
+        "group": null,
+        "enrolled": false,
+        "error": null,
+        "exit": null,
+        "close": null,
+        "pidPresence": null,
+        "groupPresence": null,
+        "reaped": false,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "capture",
+          "reason": {
+            "type": "object"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          }
+        ],
+        "child": {
+          "attempted": false,
+          "pid": null,
+          "group": null,
+          "enrolled": false,
+          "error": null,
+          "exit": null,
+          "close": null,
+          "pidPresence": null,
+          "groupPresence": null,
+          "reaped": false,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 1803,
+        "elapsedMs": 16
+      },
+      "qualified": false
+    },
+    {
+      "id": "O04",
+      "kind": "bootstrap-before-inner",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83203,
+        "group": 83203,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "disposition",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_NONZERO_OR_UNNATURAL",
+            "message": "OUTER_NONZERO_OR_UNNATURAL"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83203
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83203,
+          "group": 83203,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 1,
+            "signal": null
+          },
+          "close": {
+            "code": 1,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 38,
+            "retained": 38,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "0300125998c0730dd54886be1fdbe58fc456390b468f78135c0912b73b3837ee"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2185,
+        "elapsedMs": 61
+      },
+      "qualified": false
+    },
+    {
+      "id": "O05",
+      "kind": "short-writes",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83207,
+        "group": 83207,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": false,
+        "primary": null,
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83207
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83207,
+          "group": 83207,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": true,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2068,
+        "elapsedMs": 78
+      },
+      "qualified": true
+    },
+    {
+      "id": "O06",
+      "kind": "stdout-overflow",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83209,
+        "group": 83209,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stdout",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_CAPTURE_CAP",
+            "message": "OUTER_CAPTURE_CAP"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83209
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83209,
+          "group": 83209,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 65537,
+            "retained": 65536,
+            "lost": 1,
+            "limit": 65536,
+            "truncated": true,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "156c38442089c1323d3e3ba549a6ac24341c47e8b6367bec4740c9b8c865826e"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 67843,
+        "elapsedMs": 62
+      },
+      "qualified": false
+    },
+    {
+      "id": "O07",
+      "kind": "fd3-overflow",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83211,
+        "group": 83211,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "fd3",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_CAPTURE_CAP",
+            "message": "OUTER_CAPTURE_CAP"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83211
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83211,
+          "group": 83211,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 262145,
+            "retained": 262144,
+            "lost": 1,
+            "limit": 262144,
+            "truncated": true,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "4b0d375a615c0382b4f958b48e43e7f356b4fcac76e20423294adc07b8d4976e"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 264450,
+        "elapsedMs": 65
+      },
+      "qualified": false
+    },
+    {
+      "id": "O08",
+      "kind": "zero-write",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83214,
+        "group": 83214,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stdout:write",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_WRITE_PROGRESS",
+            "message": "OUTER_WRITE_PROGRESS"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83214
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83214,
+          "group": 83214,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 0,
+            "lost": 9,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": true,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2346,
+        "elapsedMs": 64
+      },
+      "qualified": false
+    },
+    {
+      "id": "O09",
+      "kind": "partial-write-failure",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83223,
+        "group": 83223,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stdout:write",
+          "reason": {
+            "type": "object",
+            "code": "PARTIAL_WRITE",
+            "message": "PARTIAL_WRITE"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83223
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83223,
+          "group": 83223,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 3,
+            "lost": 6,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": true,
+            "ended": true,
+            "sha256": "762069bc07a6e1b5df123a5ae7bd91c10daa04694fbaa17fba0cd6a8dcce8f22"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2335,
+        "elapsedMs": 72
+      },
+      "qualified": false
+    },
+    {
+      "id": "O10",
+      "kind": "stderr-sync-failure",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83225,
+        "group": 83225,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stderr:sync",
+          "reason": {
+            "type": "object",
+            "code": "LATER_CLEANUP",
+            "message": "LATER_CLEANUP"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83225
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83225,
+          "group": 83225,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": false,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2164,
+        "elapsedMs": 59
+      },
+      "qualified": false
+    },
+    {
+      "id": "O11",
+      "kind": "stdout-close-failure",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83227,
+        "group": 83227,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stdout:close",
+          "reason": {
+            "type": "object",
+            "code": "LATER_CLEANUP",
+            "message": "LATER_CLEANUP"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83227
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83227,
+          "group": 83227,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": false
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2165,
+        "elapsedMs": 62
+      },
+      "qualified": false
+    },
+    {
+      "id": "O12",
+      "kind": "dual-cleanup-reasons",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83228,
+        "group": 83228,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "stdout:sync",
+          "reason": {
+            "type": "undefined"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "stderr:close",
+            "reason": {
+              "type": "null"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83228
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83228,
+          "group": 83228,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": false,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": false
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2168,
+        "elapsedMs": 65
+      },
+      "qualified": false
+    },
+    {
+      "id": "O13",
+      "kind": "enrollment-undefined",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83229,
+        "group": 83229,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "after-enrollment",
+          "reason": {
+            "type": "undefined"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          },
+          {
+            "phase": "stderr:sync",
+            "reason": {
+              "type": "object",
+              "code": "LATER_CLEANUP",
+              "message": "LATER_CLEANUP"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83229
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83229,
+          "group": 83229,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": false,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2318,
+        "elapsedMs": 15
+      },
+      "qualified": false
+    },
+    {
+      "id": "O14",
+      "kind": "preflight-null",
+      "pass": true,
+      "child": {
+        "attempted": false,
+        "pid": null,
+        "group": null,
+        "enrolled": false,
+        "error": null,
+        "exit": null,
+        "close": null,
+        "pidPresence": null,
+        "groupPresence": null,
+        "reaped": false,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "capture",
+          "reason": {
+            "type": "null"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "stdout:close",
+            "reason": {
+              "type": "object",
+              "code": "LATER_CLEANUP",
+              "message": "LATER_CLEANUP"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          }
+        ],
+        "child": {
+          "attempted": false,
+          "pid": null,
+          "group": null,
+          "enrolled": false,
+          "error": null,
+          "exit": null,
+          "close": null,
+          "pidPresence": null,
+          "groupPresence": null,
+          "reaped": false,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": false
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 1902,
+        "elapsedMs": 17
+      },
+      "qualified": false
+    },
+    {
+      "id": "O15",
+      "kind": "enrollment-object",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83231,
+        "group": 83231,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "after-enrollment",
+          "reason": {
+            "type": "object"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          },
+          {
+            "phase": "stdout:close",
+            "reason": {
+              "type": "object",
+              "code": "LATER_CLEANUP",
+              "message": "LATER_CLEANUP"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83231
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83231,
+          "group": 83231,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": false
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2316,
+        "elapsedMs": 16
+      },
+      "qualified": false
+    },
+    {
+      "id": "O16",
+      "kind": "unknown-retirement",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83232,
+        "group": 83232,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "unknown",
+        "groupPresence": "unknown",
+        "reaped": false,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "retirement",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_RETIREMENT_UNKNOWN",
+            "message": "OUTER_RETIREMENT_UNKNOWN"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83232
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": false,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83232,
+          "group": 83232,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "unknown",
+          "groupPresence": "unknown",
+          "reaped": false,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2315,
+        "elapsedMs": 65
+      },
+      "qualified": false
+    },
+    {
+      "id": "O17",
+      "kind": "deadline",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83233,
+        "group": 83233,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "code": null,
+          "signal": "SIGTERM"
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "deadline",
+          "reason": {
+            "type": "object",
+            "code": "OUTER_DEADLINE",
+            "message": "OUTER_DEADLINE"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83233
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83233,
+          "group": 83233,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 8,
+            "retained": 8,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a61eb4074b2cf994d16529f91f08d48258a14778d14cf4854c6a6beda57da1fe"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [
+          {
+            "name": "SIGTERM",
+            "delivered": true
+          }
+        ],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2304,
+        "elapsedMs": 166
+      },
+      "qualified": false
+    },
+    {
+      "id": "O18",
+      "kind": "spawn-error",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": null,
+        "group": null,
+        "enrolled": true,
+        "error": {
+          "type": "object",
+          "code": "ENOENT",
+          "message": "spawn /Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls-01/ABSENT_EXECUTABLE ENOENT"
+        },
+        "exit": null,
+        "close": {
+          "code": -2,
+          "signal": null
+        },
+        "pidPresence": "not-created",
+        "groupPresence": "not-created",
+        "reaped": true,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "spawn",
+          "reason": {
+            "type": "object",
+            "code": "ENOENT",
+            "message": "spawn /Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls-01/ABSENT_EXECUTABLE ENOENT"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "disposition",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_NONZERO_OR_UNNATURAL",
+              "message": "OUTER_NONZERO_OR_UNNATURAL"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": null
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": false
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": null,
+          "group": null,
+          "enrolled": true,
+          "error": {
+            "type": "object",
+            "code": "ENOENT",
+            "message": "spawn /Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls-01/ABSENT_EXECUTABLE ENOENT"
+          },
+          "exit": null,
+          "close": {
+            "code": -2,
+            "signal": null
+          },
+          "pidPresence": "not-created",
+          "groupPresence": "not-created",
+          "reaped": true,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "fd3": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2783,
+        "elapsedMs": 16
+      },
+      "qualified": false
+    },
+    {
+      "id": "O19",
+      "kind": "receipt-write-failure",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83235,
+        "group": 83235,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "receipt-publication",
+          "reason": {
+            "type": "object",
+            "code": "RECEIPT_WRITE",
+            "message": "RECEIPT_WRITE"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83235
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83235,
+          "group": 83235,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": true,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 426,
+        "elapsedMs": 64
+      },
+      "qualified": false
+    },
+    {
+      "id": "O20",
+      "kind": "receipt-close-failure",
+      "pass": true,
+      "child": {
+        "attempted": true,
+        "pid": 83236,
+        "group": 83236,
+        "enrolled": true,
+        "error": null,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "pidPresence": "absent",
+        "groupPresence": "absent",
+        "reaped": true,
+        "natural": true
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "receipt-publication",
+          "reason": {
+            "type": "object",
+            "code": "LATER_CLEANUP",
+            "message": "LATER_CLEANUP"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "receipt-publication-close",
+            "reason": {
+              "type": "object",
+              "code": "LATER_CLEANUP",
+              "message": "LATER_CLEANUP"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [
+          {
+            "ordinal": 1,
+            "phase": "captures-open"
+          },
+          {
+            "ordinal": 2,
+            "phase": "admission-complete"
+          },
+          {
+            "ordinal": 3,
+            "phase": "child-enrolled-listeners-installed",
+            "pid": 83236
+          },
+          {
+            "ordinal": 4,
+            "phase": "child-settled",
+            "reaped": true,
+            "natural": true
+          }
+        ],
+        "child": {
+          "attempted": true,
+          "pid": 83236,
+          "group": 83236,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "streams": {
+          "stdout": {
+            "observed": 9,
+            "retained": 9,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "646b8a16d3af0916d0b0cf48642998a98ffb17dcb9dbf8a866bc658209f37592"
+          },
+          "stderr": {
+            "observed": 17,
+            "retained": 17,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "a62bbf355addc93f3c652b1a511d9e29b006b0dd67f92f77a4ff3524813c21aa"
+          },
+          "fd3": {
+            "observed": 14,
+            "retained": 14,
+            "lost": 0,
+            "limit": 262144,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": true,
+            "sha256": "1cd24289b8601443abf90711d9e15066c302c6d80a7cba5243d6292305b309e0"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "stderr": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "fd3": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "intent": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          },
+          "events": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": true,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 2068,
+        "elapsedMs": 63
+      },
+      "qualified": false
+    },
+    {
+      "id": "O21",
+      "kind": "terminal-short-write",
+      "pass": true,
+      "child": null,
+      "independentlyRetired": null,
+      "handlesActuallyClosed": null,
+      "publisher": {
+        "ok": true,
+        "primaryPresent": false,
+        "bytes": 31,
+        "retained": 31
+      }
+    },
+    {
+      "id": "O22",
+      "kind": "terminal-undefined",
+      "pass": true,
+      "child": null,
+      "independentlyRetired": null,
+      "handlesActuallyClosed": null,
+      "publisher": {
+        "ok": false,
+        "primaryPresent": true,
+        "bytes": 21,
+        "retained": 0,
+        "reasonType": "undefined"
+      }
+    },
+    {
+      "id": "O23",
+      "kind": "terminal-oversize",
+      "pass": true,
+      "child": null,
+      "independentlyRetired": null,
+      "handlesActuallyClosed": null,
+      "publisher": {
+        "ok": false,
+        "bytes": 8205,
+        "retained": 0
+      }
+    },
+    {
+      "id": "O24",
+      "kind": "namespace-collision",
+      "pass": true,
+      "child": {
+        "attempted": false,
+        "pid": null,
+        "group": null,
+        "enrolled": false,
+        "error": null,
+        "exit": null,
+        "close": null,
+        "pidPresence": null,
+        "groupPresence": null,
+        "reaped": false,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "capture",
+          "reason": {
+            "type": "object",
+            "code": "EEXIST",
+            "message": "EEXIST: file already exists, mkdir '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls-01/O24'"
+          }
+        },
+        "secondary": [
+          {
+            "phase": "receipt-publication",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_DIRECTORY_NOT_CREATED",
+              "message": "OUTER_DIRECTORY_NOT_CREATED"
+            }
+          }
+        ],
+        "secondaryOmitted": 0,
+        "events": [],
+        "child": {
+          "attempted": false,
+          "pid": null,
+          "group": null,
+          "enrolled": false,
+          "error": null,
+          "exit": null,
+          "close": null,
+          "pidPresence": null,
+          "groupPresence": null,
+          "reaped": false,
+          "natural": false
+        },
+        "streams": {},
+        "signals": [],
+        "files": {},
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "elapsedMs": 1
+      },
+      "qualified": false
+    },
+    {
+      "id": "O25",
+      "kind": "partial-open-failure",
+      "pass": true,
+      "child": {
+        "attempted": false,
+        "pid": null,
+        "group": null,
+        "enrolled": false,
+        "error": null,
+        "exit": null,
+        "close": null,
+        "pidPresence": null,
+        "groupPresence": null,
+        "reaped": false,
+        "natural": false
+      },
+      "independentlyRetired": true,
+      "handlesActuallyClosed": true,
+      "receipt": {
+        "schema": "BREADTH_OUTER_CAPTURE_V1",
+        "primaryPresent": true,
+        "primary": {
+          "phase": "capture",
+          "reason": {
+            "type": "object",
+            "code": "OPEN_FAULT",
+            "message": "OPEN_FAULT"
+          }
+        },
+        "secondary": [],
+        "secondaryOmitted": 0,
+        "events": [],
+        "child": {
+          "attempted": false,
+          "pid": null,
+          "group": null,
+          "enrolled": false,
+          "error": null,
+          "exit": null,
+          "close": null,
+          "pidPresence": null,
+          "groupPresence": null,
+          "reaped": false,
+          "natural": false
+        },
+        "streams": {
+          "stdout": {
+            "observed": 0,
+            "retained": 0,
+            "lost": 0,
+            "limit": 65536,
+            "truncated": false,
+            "writeFailed": false,
+            "ended": false,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "signals": [],
+        "files": {
+          "stdout": {
+            "syncAttempted": true,
+            "synced": true,
+            "closeAttempted": true,
+            "closed": true
+          }
+        },
+        "captureQualified": false,
+        "publication": "REQUIRES_TERMINAL_CONFIRMATION",
+        "actualCaptureBytes": 763,
+        "elapsedMs": 7
+      },
+      "qualified": false
+    }
+  ],
+  "countQualified": true
+}

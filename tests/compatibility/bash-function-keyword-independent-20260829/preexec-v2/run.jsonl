@@ -1,0 +1,3 @@
+{"pid":72861,"phase":"run","started":1788008474690}
+{"child":72864,"exited":{"code":1,"signal":null},"closed":{"code":1,"signal":null},"stopped":false,"total":85,"postguards":28}
+{"archiveBytes":48822,"files":21,"ownedWorkRemoved":true}

@@ -1,0 +1,522 @@
+{
+  "author": [
+    {
+      "id": "D01",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D02",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D03",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D04",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D05",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D06",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D07",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D08",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D09",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D10",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D11",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D12",
+      "kind": "PURE",
+      "pass": true
+    }
+  ],
+  "novel": [
+    {
+      "id": "N01",
+      "pass": true
+    },
+    {
+      "id": "N02",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+    },
+    {
+      "id": "N03",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+    },
+    {
+      "id": "N04",
+      "pass": true
+    },
+    {
+      "id": "N05",
+      "pass": true
+    },
+    {
+      "id": "N06",
+      "pass": true
+    },
+    {
+      "id": "N07",
+      "pass": true
+    },
+    {
+      "id": "N08",
+      "pass": true
+    }
+  ],
+  "readiness": [
+    {
+      "id": "H01",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788008474969
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788008474972
+        },
+        {
+          "name": "spawn",
+          "at": 1788008474972
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788008475029
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788008475029
+        },
+        {
+          "name": "exit",
+          "at": 1788008475030
+        },
+        {
+          "name": "close",
+          "at": 1788008475030
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 20,
+          "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+          "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 72868,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788008475041,
+      "trace": {
+        "bytes": 837,
+        "sha256": "6705924651a74622ad8a13907b4a6816e6c435b57de7c2c75d1f1737c3079c0a",
+        "events": [
+          {
+            "event": "permission-admitted",
+            "child": false,
+            "worker": false,
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H01"
+          },
+          {
+            "event": "synchronous-hooks-installed",
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H01"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/entry.js",
+            "bytes": 74,
+            "sha256": "b6e048e739011692d84bdba30374cb5416b54dad84b614393ac2ba1f0e8b5c75",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H01"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/payload.js",
+            "bytes": 44,
+            "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H01"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H02",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788008475102
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788008475104
+        },
+        {
+          "name": "spawn",
+          "at": 1788008475104
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788008475161
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788008475161
+        },
+        {
+          "name": "exit",
+          "at": 1788008475161
+        },
+        {
+          "name": "close",
+          "at": 1788008475161
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 20,
+          "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+          "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 72871,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788008475165,
+      "trace": {
+        "bytes": 872,
+        "sha256": "513e2ae25e2a600f5c9973d22e63a0e67fe7cdbba9c83e182fa6a84a8fc30fd4",
+        "events": [
+          {
+            "event": "permission-admitted",
+            "child": false,
+            "worker": false,
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H02"
+          },
+          {
+            "event": "synchronous-hooks-installed",
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H02"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/entry.js",
+            "bytes": 74,
+            "sha256": "f45043bce075c6b1c1af5233db65a26c257232ac5caacff4589ac89240348d70",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H02"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/node_modules/virtual-bash/dist/index.js",
+            "bytes": 44,
+            "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H02"
+          }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "starts": 3,
+    "maximum": 3,
+    "active": 0,
+    "stopped": false,
+    "captureBytes": 40,
+    "captureMaximum": 4194304,
+    "rows": [
+      {
+        "id": "H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788008474969
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788008474972
+          },
+          {
+            "name": "spawn",
+            "at": 1788008474972
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788008475029
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788008475029
+          },
+          {
+            "name": "exit",
+            "at": 1788008475030
+          },
+          {
+            "name": "close",
+            "at": 1788008475030
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 72868,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788008475041,
+        "trace": {
+          "bytes": 837,
+          "sha256": "6705924651a74622ad8a13907b4a6816e6c435b57de7c2c75d1f1737c3079c0a",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/entry.js",
+              "bytes": 74,
+              "sha256": "b6e048e739011692d84bdba30374cb5416b54dad84b614393ac2ba1f0e8b5c75",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/payload.js",
+              "bytes": 44,
+              "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            }
+          ]
+        }
+      },
+      {
+        "id": "H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788008475102
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788008475104
+          },
+          {
+            "name": "spawn",
+            "at": 1788008475104
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788008475161
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788008475161
+          },
+          {
+            "name": "exit",
+            "at": 1788008475161
+          },
+          {
+            "name": "close",
+            "at": 1788008475161
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 72871,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788008475165,
+        "trace": {
+          "bytes": 872,
+          "sha256": "513e2ae25e2a600f5c9973d22e63a0e67fe7cdbba9c83e182fa6a84a8fc30fd4",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/entry.js",
+              "bytes": 74,
+              "sha256": "f45043bce075c6b1c1af5233db65a26c257232ac5caacff4589ac89240348d70",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/node_modules/virtual-bash/dist/index.js",
+              "bytes": 44,
+              "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "productImports": 0,
+  "workerStarts": 0
+}

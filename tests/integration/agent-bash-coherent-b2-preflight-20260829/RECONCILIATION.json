@@ -1,0 +1,277 @@
+{
+  "requestedRetained": 672,
+  "independentReportedTotal": 744,
+  "declaredOldNovel": 48,
+  "declaredNewIdentity": 24,
+  "selectedLabels": [
+    "source-redirections-v3",
+    "source-strict",
+    "source-conditional",
+    "source-extension",
+    "source-arrays",
+    "source-n14",
+    "installed-redirections-v3",
+    "installed-strict",
+    "installed-conditional",
+    "installed-extension",
+    "installed-arrays",
+    "installed-n14",
+    "moved-redirections-v3",
+    "moved-strict",
+    "moved-conditional",
+    "moved-extension",
+    "moved-arrays",
+    "moved-n14"
+  ],
+  "excludedCohorts": [
+    {
+      "originalLabel": "source-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "source-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "installed-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "installed-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "moved-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "moved-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "drop-exact-provenance-restored",
+      "cases": 1,
+      "ids": [
+        "N10"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "expose-private-wrapper-restored",
+      "cases": 1,
+      "ids": [
+        "N04"
+      ],
+      "selectedForB2": false
+    }
+  ],
+  "countQualifiedOldNovelCandidates": [
+    {
+      "originalLabel": "source-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "installed-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "moved-novel",
+      "cases": 16,
+      "ids": [
+        "N01-write-only-empty",
+        "N02-rhs-before-publication",
+        "N03-compound-lhs-first",
+        "N04-lazy-recursive-branches",
+        "N05-inner-recursive-name",
+        "N06-function-or-fatal",
+        "N07-subprocess-boundary",
+        "N08-pipefail-boundary",
+        "N09-substring-length-read",
+        "N10-invalid-tail-positionals",
+        "N11-errexit-prefix-or",
+        "N12-listing-replay",
+        "N13-sh-special-unchanged",
+        "N14-zero-sink-held-cleanup",
+        "N15-caller-over-typed-sink",
+        "N16-no-free-diagnostic"
+      ],
+      "selectedForB2": false
+    }
+  ],
+  "countQualifiedNewIdentityCandidates": [
+    {
+      "originalLabel": "source-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "installed-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    },
+    {
+      "originalLabel": "moved-identity",
+      "cases": 8,
+      "ids": [
+        "J01-consume-zero-then-unrelated-zero",
+        "J02-consume-undefined-then-unrelated-undefined",
+        "J03-forwarding-thenable-is-not-exact-promise",
+        "J04-Promise-resolve-preserves-exact-identity",
+        "J05-side-catch-does-not-consume-returned-original",
+        "J06-caller-zero-during-cleanup-beats-sink-false",
+        "J07-sibling-promises-same-reason-independent-provenance",
+        "J08-next-execution-does-not-inherit-diagnostic-poison"
+      ],
+      "selectedForB2": false
+    }
+  ],
+  "qualification": "Excluded labels and IDs are preserved literally; cardinality candidates do not invent semantic classifications."
+}

@@ -1,0 +1,23 @@
+{
+  "firstAttempt": {
+    "status": "STOP",
+    "exit": 127,
+    "files": "NONE",
+    "diagnostics": "TOOL_TRANSCRIPT_ONLY",
+    "rawArtifact": "UNAVAILABLE",
+    "qualificationInherited": false,
+    "cause": "Reported zsh special path variable assignment replaced PATH; cat/git/find unavailable"
+  },
+  "preparationR2": {
+    "capture": "/private/tmp/safe-bash-b2-init-r2-01a04d95.log",
+    "exclusiveInitialOpen": true,
+    "observedInitialMode": "0644",
+    "observedInitialWorkDirectoryMode": "0755",
+    "restrictiveUmaskAppliedDuringAdministration": "0077",
+    "existingOwnedFilesTightened": "go-rwx",
+    "original0600Claim": false,
+    "instructionPlaintext": "Initial external operational capture contains instruction reads; retained privately, not copied into repository evidence. This is disclosed, not redacted into manufactured proof.",
+    "missingLocator": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146:tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/HANDOFF.md",
+    "missingLocatorOutcome": "Git batch returned missing; owner resolved from commit change locators and authenticated owner.mjs instead; no source substitution."
+  }
+}

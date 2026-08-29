@@ -1,0 +1,202 @@
+{
+  "schema": "b2-partial-packet-seal-r2.1",
+  "status": "PARTIAL_PREEXECUTION_PACKET_NOT_READY",
+  "domain": "UTF-8 file bytes; relative paths are packet paths, never original repository identities",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 426,
+      "sha256": "e6b9021cfd03a5d8c2fb9060034fbb80ac47972975aead8de6b3d6eb0010fb56"
+    },
+    {
+      "path": "AUTHENTICATED-INPUTS.json",
+      "bytes": 12756,
+      "sha256": "7eab14263f86e44aa7ccc3efa70cc13ca9dc201ee5867689ac75125a0ef2f3ff"
+    },
+    {
+      "path": "AUTHORITY.json",
+      "bytes": 342,
+      "sha256": "e21096fd56ed37364f2bfd8d00eafeeee86f1005500a8264064e8a725da55bb3"
+    },
+    {
+      "path": "BINDING-CHECKS.json",
+      "bytes": 853,
+      "sha256": "8063af385228aa20057bd3fb1572f768e2b0e64fc2391d0865c4717b750b128d"
+    },
+    {
+      "path": "FROZEN-BINDINGS.json",
+      "bytes": 617256,
+      "sha256": "3e4ace73b6ef5f47a3f8eb7330cb22f5d8b51742e484032ae8f2a1864f35b0e9"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3242,
+      "sha256": "444d1c14980b8c797b9a8203702a3772f2cd86adcd56f102cf59c19bb6fa6a0b"
+    },
+    {
+      "path": "INITIALIZATION-HISTORY.json",
+      "bytes": 1163,
+      "sha256": "84dc40e3406a85077b3777cfb9d8147fd53827291c0fe090fec85903a15fd8ab"
+    },
+    {
+      "path": "MUTATIONS.json",
+      "bytes": 4621,
+      "sha256": "5f1369693ea17d6829d4a0c1e5435beb5836807ec64ca87cb68cf89f63a05bc6"
+    },
+    {
+      "path": "ORIGINS.json",
+      "bytes": 16917,
+      "sha256": "dfb08d655e1d0fb3822dc8cece9ab7250a62e8fe831246dde66a1ee34fc0fd7e"
+    },
+    {
+      "path": "OWNER-REUSE.json",
+      "bytes": 872,
+      "sha256": "4c84eec11fe5e11e0dffe9c93d89f011c29fa7601952a915977ccca1dcaeb7c7"
+    },
+    {
+      "path": "PREPARATION-CENSUS.json",
+      "bytes": 8456,
+      "sha256": "8429339a87f6612d03014ddb476094f640802881e7cac95575d3a4f2fb5590ce"
+    },
+    {
+      "path": "RECONCILIATION.json",
+      "bytes": 8854,
+      "sha256": "8d106577183da799935cb03eb829205398804fa2f75010a875106d2d49caafa6"
+    },
+    {
+      "path": "REGEX-DERIVATION-INPUTS.json",
+      "bytes": 3272,
+      "sha256": "01afdd36cb35b8b0238344a508aa5b1ed193ac9f153ceb5a482bc36488dd42d5"
+    },
+    {
+      "path": "RETAINED-672.json",
+      "bytes": 1167441,
+      "sha256": "17d547a02a762c535e98f5867e2a4dcf78d047f1c485552e0076b81dc1df9410"
+    },
+    {
+      "path": "ROLE-GRAPH.json",
+      "bytes": 85788,
+      "sha256": "d3c6e13e79ae7887081234422bb6147224381611a4854a38577c1fc888b354b8"
+    },
+    {
+      "path": "STATUS.json",
+      "bytes": 3757,
+      "sha256": "201062a78c137d803ca047186cf7d2cd90dbde584d7f82efe1293d5c639f22b5"
+    },
+    {
+      "path": "SYNTAX.json",
+      "bytes": 1770,
+      "sha256": "2bd3cf2c64dae8993b3262cc93c1d9251426a1d70362c7fba242b47cc0f881b5"
+    },
+    {
+      "path": "TYPE-CONSUMERS.json",
+      "bytes": 6877,
+      "sha256": "6b627df052cdba21ed0f72c09affe166e2d2509fd2017030ee350c76f1d537a8"
+    },
+    {
+      "path": "finalize-r2.mjs",
+      "bytes": 35799,
+      "sha256": "de89c1e315bfeb9710a0b4f88a995a28ddd0061be1ed1d971df5548fc6f2335d"
+    },
+    {
+      "path": "prepare-r2.mjs",
+      "bytes": 7339,
+      "sha256": "4f551b1df4c7bcdda2e7b9e0d743842241290fbde4f368f6d4ce45c73e998912"
+    },
+    {
+      "path": "runtime/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "runtime/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "runtime/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "path": "runtime/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "path": "runtime/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+    },
+    {
+      "path": "runtime/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+    },
+    {
+      "path": "runtime/harness/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "runtime/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "path": "runtime/harness/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    },
+    {
+      "path": "runtime/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "path": "runtime/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "path": "runtime/harness/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "runtime/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "path": "runtime/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    },
+    {
+      "path": "runtime/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "runtime/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "runtime/types/consumer-negative.mts.fixture",
+      "bytes": 1744,
+      "sha256": "01a2ed9b7b6eb42e03e163d6da2e762bf5a3663ebf548495c5788ffc385fe7ff"
+    },
+    {
+      "path": "runtime/types/consumer-positive.mts.fixture",
+      "bytes": 1736,
+      "sha256": "c735d61e010e7f8e6528181d800c3e9e9aac6c22d20b03d1e4bcf68e3222b6ff"
+    }
+  ],
+  "selfExcluded": [
+    "SEAL.json"
+  ],
+  "rootAuthority": "PENDING",
+  "reviewAuthority": "PENDING"
+}

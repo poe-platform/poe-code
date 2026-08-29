@@ -1,0 +1,273 @@
+{
+  "inspection": {
+    "bytes": 3564561,
+    "sha256": "c9f14318a12caca009018ef60f4deead8b753b633ba9262f2a7c4014b029adb5"
+  },
+  "metadata": [
+    {
+      "name": "retained",
+      "commit": "cdbf1813da3f2382a7c4e36e16dd67b8f889074f",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json",
+      "blob": "ae181705b8957a23c75588fe9869a720af566de8",
+      "bytes": 102475,
+      "sha256": "806c9ee4706132fd169925aaa84b569764029f5c3af303c338f773e224bd03a4"
+    },
+    {
+      "name": "origins",
+      "commit": "bd0f227d081829512bafc2936f0b33632e02890b",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/STAGED-IMPORT-ORIGINS.json",
+      "blob": "6ba967629970c7f08b51c0dc83a82643004c4c8f",
+      "bytes": 1345134,
+      "sha256": "08eb0cebbf0c5e23a4b3e14b29a69b517917cc8dad4d0bb715947c38d6dac37c"
+    },
+    {
+      "name": "author-summary",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/results-v5/SUMMARY.json",
+      "blob": "987f3bc737ace907ad9da203f2153f79c3d19a78",
+      "bytes": 31673,
+      "sha256": "84765c2b23563995939dab3ea5a4bea6dc927757cfb90dd24289ef37b3c4d7de"
+    },
+    {
+      "name": "author-executor",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs",
+      "blob": "0a5ffcc9eab5a26f2c32d009d48ffb2ef8100bfc",
+      "bytes": 30737,
+      "sha256": "238d3bb3b3f3611b259b0804309489cc57f79cdb7ed1561568671195bcfc26b3"
+    },
+    {
+      "name": "author-n14",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "name": "owner",
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+      "blob": "e8313d521a454cf9b2f540a119c168c13de061b1",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "name": "owner-run",
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs",
+      "blob": "a530b96d6410f96ed730498290db1da006027efe",
+      "bytes": 11225,
+      "sha256": "318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"
+    },
+    {
+      "name": "b1-run",
+      "commit": "bd0f227d081829512bafc2936f0b33632e02890b",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs",
+      "blob": "f210029f54f1401cd8c5dca4f5f8fee571965cb3",
+      "bytes": 12887,
+      "sha256": "5f94ab64d58ebfa4c3ea7ff7dbdb16a8bafd8e8e37425c74615bc64583f2765a"
+    },
+    {
+      "name": "independent-result",
+      "commit": "be7d4b9827ba4350f1fcbb34ef85a43705d1487f",
+      "originalPath": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+      "blob": "0ef41968556d78dc473c305b49a1f67b55cf57a0",
+      "bytes": 1651971,
+      "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+    },
+    {
+      "name": "producer-handoff",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/HANDOFF.md",
+      "blob": "0e34ae5f486efca9d96f263b479e5eadedd5749b",
+      "bytes": 3757,
+      "sha256": "7c4d2f7ed22aaec5dd45ceebfa7916b47848d0acd71426074e318c0c21547ccc"
+    },
+    {
+      "name": "selected",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/SELECTED-SOURCE.json",
+      "blob": "2ff4277a22de3991816aab7739266fd31b8fcefd",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "name": "emitted",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json",
+      "blob": "282e14135244b21b2c8bbbae5105f82fb4ad5913",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "name": "members",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json",
+      "blob": "067b89a18e37cf7bad1da113b923c4626e4c482f",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "name": "producer-receipt",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-OUTPUT-RECEIPT.json",
+      "blob": "1aa4161910a90ab6905373e43516b0d45595be51",
+      "bytes": 507,
+      "sha256": "1333c9c3261298d49a0d2c0a1dd09bdb96c93bb347b6eb9a9121f37c23eab83d"
+    },
+    {
+      "name": "producer-root",
+      "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/ROOT-IDENTITY.json",
+      "blob": "f6b85f7082a457134e02c54fca79cb7fbff6f717",
+      "bytes": 178,
+      "sha256": "a84a19be9f6a98987c961998493fd9d94dfa778c5ba52d05f20d9c6eba6ddae2"
+    },
+    {
+      "name": "consumer",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/git-public-20260829/consumer.ts.fixture",
+      "blob": "2118e2786fb54e55c1749b239275dfb246f90e01",
+      "bytes": 1336,
+      "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1"
+    },
+    {
+      "name": "owner-common",
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+      "blob": "75e3393531a74ddbe426b7bf8af855006a10fcd3",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+      "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "name": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+      "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "name": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+      "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "name": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+      "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    },
+    {
+      "name": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+      "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "name": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+      "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "name": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+      "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+    },
+    {
+      "name": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+      "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+    },
+    {
+      "name": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "name": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "name": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "name": "tests/integration/git-public-20260829/resources.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/git-public-20260829/resources.mjs",
+      "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "name": "tests/integration/git-public-20260829/loader.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/git-public-20260829/loader.mjs",
+      "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "name": "tests/integration/git-public-20260829/names.mjs",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/git-public-20260829/names.mjs",
+      "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "mode": 493
+    }
+  ],
+  "toolQualification": "Node/Git freshly sealed; no compiler/npm executed. Complete compiler/npm inventory admission remains mandatory before future use."
+}

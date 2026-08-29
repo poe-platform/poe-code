@@ -1,0 +1,100 @@
+{
+  "retained": {
+    "slots": 672,
+    "identities": 224,
+    "perLayout": 224,
+    "unit2PerLayout": 50,
+    "unit2Total": 150,
+    "groups": [
+      {
+        "group": "redirections-v3",
+        "script": "redirections.mjs",
+        "perLayout": 48,
+        "allLayouts": 144
+      },
+      {
+        "group": "strict",
+        "script": "strict.mjs",
+        "perLayout": 50,
+        "allLayouts": 150
+      },
+      {
+        "group": "conditional",
+        "script": "conditional.mjs",
+        "perLayout": 67,
+        "allLayouts": 201
+      },
+      {
+        "group": "extension",
+        "script": "extension.mjs",
+        "perLayout": 35,
+        "allLayouts": 105
+      },
+      {
+        "group": "arrays",
+        "script": "arrays.mjs",
+        "perLayout": 12,
+        "allLayouts": 36
+      },
+      {
+        "group": "n14",
+        "script": "n14.mjs",
+        "perLayout": 12,
+        "allLayouts": 36
+      }
+    ]
+  },
+  "frozen": {
+    "selectedTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "derivedOnly": true,
+    "selectedManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+    "sourceInputsAuthenticated": 309,
+    "typescriptInputs": 253,
+    "producer": "d8524695c472cdea1e506bc234f426b4e6829cce",
+    "emittedDeclared": 1012,
+    "actualEmittedFreshlyAuthenticated": 1012,
+    "packageMembers": 1014,
+    "compressedPackage": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    "compressedDecodeCalls": 0,
+    "sourceTreeRecomputed": false,
+    "sourceTreeQualification": "Manifest authenticated by supplied SHA256; individual blobs authenticated; derived tree is not queried as a Git object."
+  },
+  "owner": {
+    "source": {
+      "name": "owner",
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+      "blob": "e8313d521a454cf9b2f540a119c168c13de061b1",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    "byteIdentical": true,
+    "implementedB2Deltas": [],
+    "requiredB2Deltas": [
+      "Pass fixed B2 roles instead of four B0 defaults",
+      "Define narrowly declared expected nonzero exits for negative types/mutants/bindings without poisoning valid expected-negative outcomes",
+      "Bind the B2 inclusive clock, work/capture ceilings, phase reserve and per-role ceilings"
+    ],
+    "qualification": "Exact inherited owner retained as DATA; not imported or executed; previous qualification is not a new B2 qualification."
+  },
+  "controls": {
+    "types": 6,
+    "negativeTypeDiagnostics": 24,
+    "mutants": 7,
+    "restores": 7,
+    "bindings": 2
+  },
+  "status": "PARTIAL_PREEXECUTION_PACKET_NOT_READY",
+  "blockers": [
+    "No executable B2 whole-cohort coordinator or qualified expected-nonzero owner delta has been authored; the exact B0 owner is retained unmodified.",
+    "Regex Worker and Regex-loader ceilings must be derived from the retained case branches; occurrence inventory is not a count. The 34 explicit main-loader admissions do not close that graph.",
+    "Offline installation/tool closure, source-dist staging, actual rename and complete computed-load bindings require an executable B2 admission/dispatch implementation and independent preexecution review.",
+    "Fresh root GO and independent review authority remain PENDING; runtime caps are proposals, not this preparation grant."
+  ],
+  "runtime": "UNRUN",
+  "sourceHeadUsedAsAuthority": false
+}

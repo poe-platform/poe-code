@@ -1,0 +1,636 @@
+{
+  "role": "POSTRUN_SOURCE_DATA_AUTHENTICATION_NO_NEW_PRODUCT_EXECUTION",
+  "testedCandidate": "e83d6c481e3c17b56fe32a17593628d8d7c820a9",
+  "fixtureSuccessor": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "integrationCommit": "83730c6085597d8480a25aa639793582984eebd0",
+  "moduleCommit": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "moduleRows": [
+    {
+      "path": "src/commands/apply-patch/apply.ts",
+      "mode": "100644",
+      "blob": "8082bf27ac4c4a0f2ea5f44554c21220fc55e872",
+      "bytes": 11929,
+      "sha256": "4444754643de62e7d1385a2205f8ffde2f0b7787c5cbd466388ca351ff70a36e",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    },
+    {
+      "path": "src/commands/apply-patch/index.ts",
+      "mode": "100644",
+      "blob": "55df2f886bc662ddb143b682dd82ca7866a71207",
+      "bytes": 1298,
+      "sha256": "98dbcac5b211bd3d789ae4da451df3794ceaaca269b70cb10ed99fc3ce73050b",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    },
+    {
+      "path": "src/commands/apply-patch/matcher.ts",
+      "mode": "100644",
+      "blob": "b800610cbbbdb57bdc4a38719f75fbae72a7a09a",
+      "bytes": 5308,
+      "sha256": "c747472b92ed32bfa36cca27d99a57260554f147e4c2cbb4f8fe57af014c27ce",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    },
+    {
+      "path": "src/commands/apply-patch/options.ts",
+      "mode": "100644",
+      "blob": "feaeee920c501ded8aae91b53b6631167e8328db",
+      "bytes": 1864,
+      "sha256": "3d0aad73e4b6482813fd2aebc117236b5f091bebe6531d7b1c35f019b8c50de3",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    },
+    {
+      "path": "src/commands/apply-patch/parser.ts",
+      "mode": "100644",
+      "blob": "1f97926f765a1f9bde099e8cb415249b01399174",
+      "bytes": 6525,
+      "sha256": "3160bb0cdae28e3393d40b584a7bfadd83cd4035af6fb2cb718eaa98a33f0955",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    },
+    {
+      "path": "src/commands/apply-patch/shared.ts",
+      "mode": "100644",
+      "blob": "7c470c9e434666438e49873181aadf45188e4a1a",
+      "bytes": 8369,
+      "sha256": "b0cd2d91508e402d581a85b748bb294fcf806e2e5c0a25d0b231f0a403aded9f",
+      "revision": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d"
+    }
+  ],
+  "sourceSha256": "c2cffb6d132f8fae85f5fe80382d653753a1cffba14b82e78b3ad62679ee9559",
+  "successorSourceSha256": "da431477e0cf1072370b8e55cdebce80e33dbf9cac8471656854572b363b9d0d",
+  "executorSha256": "b2219e7128059c47a2e5fc8aab8d2401688933363bca6760412f1388bc73e926",
+  "sourceInputsIdentity": "3d6270e7525a62a4064da2c1ca63837965f4ad0418df25b8f7fbbf1ba0729bc4",
+  "sourceInputs": 278,
+  "successorBuildInputsByteIdentical": true,
+  "successorExecutions": 0,
+  "package": {
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "bytes": 814632,
+    "members": 898,
+    "baseSha256": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+    "added": [
+      {
+        "path": "dist/commands/apply-patch/apply.js",
+        "mode": 420,
+        "bytes": 12819,
+        "sha256": "ea0a5e393bc6e5b4f27a1baf9b1332edbdc94e8a00350486eab446c805a49789"
+      },
+      {
+        "path": "dist/commands/apply-patch/index.js",
+        "mode": 420,
+        "bytes": 1015,
+        "sha256": "45f3d0b52c8de30b6fb7191c7e5c47dd9aad197fd511b85ad6b9eec8e7bf04bf"
+      },
+      {
+        "path": "dist/commands/apply-patch/matcher.js",
+        "mode": 420,
+        "bytes": 5714,
+        "sha256": "5bebbf4a753b727c2316be7847e50f870daab8b4820e5b256dba10bb4a105f57"
+      },
+      {
+        "path": "dist/commands/apply-patch/options.js",
+        "mode": 420,
+        "bytes": 1298,
+        "sha256": "ec22265fffabb5683a0777fcd504b717a4907856434c6382bded4e8a24b2129b"
+      },
+      {
+        "path": "dist/commands/apply-patch/parser.js",
+        "mode": 420,
+        "bytes": 6991,
+        "sha256": "8380b36b88d4e47a95f5e59552ff2f992e4f475788aa2afe9e9101b5baa47627"
+      },
+      {
+        "path": "dist/commands/apply-patch/shared.js",
+        "mode": 420,
+        "bytes": 8998,
+        "sha256": "5394bb37a1ca2af08ab5a57f077dbe738e0d02355da4543fecb6bc6403b09fc3"
+      },
+      {
+        "path": "dist/commands/apply-patch/apply.d.ts.map",
+        "mode": 420,
+        "bytes": 343,
+        "sha256": "bb2bd8cbfcedfc0bb999c633bf143788850e5a990fd51c48e9f26da1e338bf7f"
+      },
+      {
+        "path": "dist/commands/apply-patch/apply.js.map",
+        "mode": 420,
+        "bytes": 14274,
+        "sha256": "1b12d39f1e7efdc23dd05e24d9109914bd699317d68c6f481d16c5fbd52f5d57"
+      },
+      {
+        "path": "dist/commands/apply-patch/index.d.ts.map",
+        "mode": 420,
+        "bytes": 483,
+        "sha256": "8aa4b902373efd376068adce14bdd381decbcadca367a8ecb7bba2e3f6a593cd"
+      },
+      {
+        "path": "dist/commands/apply-patch/index.js.map",
+        "mode": 420,
+        "bytes": 1019,
+        "sha256": "d7c2b2ff3a11f0e11eb3df644d38ee458da19ef371979d2ee77a9ad592646188"
+      },
+      {
+        "path": "dist/commands/apply-patch/matcher.d.ts.map",
+        "mode": 420,
+        "bytes": 351,
+        "sha256": "df78c485f0b16353ae1d88db629e39a67b552229c50dae9ca61a17635c205678"
+      },
+      {
+        "path": "dist/commands/apply-patch/matcher.js.map",
+        "mode": 420,
+        "bytes": 7111,
+        "sha256": "ffea12844fa2071a5ae06d8d52facffd16fa9276114d0eef65177c20e6135dcd"
+      },
+      {
+        "path": "dist/commands/apply-patch/options.d.ts.map",
+        "mode": 420,
+        "bytes": 855,
+        "sha256": "dd83ab6b812bba64c3ebd80e1a9255d2fc01b6b8f8be49e9a067f9fea4dac0d5"
+      },
+      {
+        "path": "dist/commands/apply-patch/options.js.map",
+        "mode": 420,
+        "bytes": 1464,
+        "sha256": "f2316b28318f7436f2ce458cf7aebe15e0831283d2a30f592c3e765d9992f028"
+      },
+      {
+        "path": "dist/commands/apply-patch/parser.d.ts.map",
+        "mode": 420,
+        "bytes": 924,
+        "sha256": "9259056ff0092ed5d0a73d75419c108e4f1e30f84361015e68cab59688177c6d"
+      },
+      {
+        "path": "dist/commands/apply-patch/parser.js.map",
+        "mode": 420,
+        "bytes": 7680,
+        "sha256": "f423b431dd2d15966c0b50cddc18fcd11b93ebdd62fb59cac96b0a0454042722"
+      },
+      {
+        "path": "dist/commands/apply-patch/shared.d.ts.map",
+        "mode": 420,
+        "bytes": 1989,
+        "sha256": "6b2fc0e7f0a2082a7e76dc53c3423daedaaeb2a1fb23af211f439d80732e53a1"
+      },
+      {
+        "path": "dist/commands/apply-patch/shared.js.map",
+        "mode": 420,
+        "bytes": 10069,
+        "sha256": "7ab4c186a7b057f19b98527227a2397bdfdf96f85f72f7b6580ec609cf82ba40"
+      },
+      {
+        "path": "dist/commands/apply-patch/apply.d.ts",
+        "mode": 420,
+        "bytes": 273,
+        "sha256": "d8d38b4a8ed9861bc9c44c6eca6182c5612f3182131101d4237b4d6a37ba6fe0"
+      },
+      {
+        "path": "dist/commands/apply-patch/index.d.ts",
+        "mode": 420,
+        "bytes": 589,
+        "sha256": "053e35078563df1f575cd31943a4e596f940ed96ad4f3d049ab422befb42f76c"
+      },
+      {
+        "path": "dist/commands/apply-patch/matcher.d.ts",
+        "mode": 420,
+        "bytes": 249,
+        "sha256": "1416a5decc7b075d90469fda953cbe3c8e1ab79fac3ca2d3ea63dc6c0deaefa6"
+      },
+      {
+        "path": "dist/commands/apply-patch/options.d.ts",
+        "mode": 420,
+        "bytes": 780,
+        "sha256": "7c5bfe230e0ac79a0c79742a78b7e49758f959e9e7c83db2e350e57989684e9b"
+      },
+      {
+        "path": "dist/commands/apply-patch/parser.d.ts",
+        "mode": 420,
+        "bytes": 703,
+        "sha256": "c0ad626ed4f279630a0571d51cc5acb28329dc9b56f3ad580161cee53565efa0"
+      },
+      {
+        "path": "dist/commands/apply-patch/shared.d.ts",
+        "mode": 420,
+        "bytes": 1763,
+        "sha256": "897467b93541fa3949503eb961b70524141e56527eb6d36c34573c54d0b2fa7c"
+      }
+    ],
+    "changed": [
+      {
+        "previous": {
+          "path": "dist/index.js",
+          "mode": 420,
+          "bytes": 1586,
+          "sha256": "0c068042244a0a885db69a1790bdcb79ba2853b9b76cfd5e3554fec95d27b108"
+        },
+        "current": {
+          "path": "dist/index.js",
+          "mode": 420,
+          "bytes": 1635,
+          "sha256": "aaf6ff64037743c34319f47f19ea06ce0804d5fc3fb9fdba80ad8ac6c4010515"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/plugins/index.js",
+          "mode": 420,
+          "bytes": 4555,
+          "sha256": "e074f1afba839036996ffa52a68d12eee2dd60900cd6dea7b367ac2c77890389"
+        },
+        "current": {
+          "path": "dist/plugins/index.js",
+          "mode": 420,
+          "bytes": 4786,
+          "sha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45"
+        }
+      },
+      {
+        "previous": {
+          "path": "package.json",
+          "mode": 420,
+          "bytes": 4979,
+          "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+        },
+        "current": {
+          "path": "package.json",
+          "mode": 420,
+          "bytes": 5130,
+          "sha256": "e0cfacc7d808bc5d855cfe84aae7a2d325b44deb9650327ac9dced7f1477c1bf"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/index.d.ts.map",
+          "mode": 420,
+          "bytes": 975,
+          "sha256": "5bfa876232e98533c2c32ecb4015d3626a006d8b83ab40ea5d34f19714b07e07"
+        },
+        "current": {
+          "path": "dist/index.d.ts.map",
+          "mode": 420,
+          "bytes": 998,
+          "sha256": "73ec1e20aa37c14e7827751bee49386d72bfde270fadd9fa6940825f2ac0b938"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/plugins/index.d.ts.map",
+          "mode": 420,
+          "bytes": 2796,
+          "sha256": "f6038ffdfb57e0030a394ca26384d25d4cac6212f113867b87f2423fc773e845"
+        },
+        "current": {
+          "path": "dist/plugins/index.d.ts.map",
+          "mode": 420,
+          "bytes": 2915,
+          "sha256": "64fac1c8ebbe852b20fcf320d2fef79c2fd83b00305120c67a171219f4b12141"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/index.js.map",
+          "mode": 420,
+          "bytes": 928,
+          "sha256": "673bd6d7279e00ec43c069db697a64703cbec593917069babc49373df32c43be"
+        },
+        "current": {
+          "path": "dist/index.js.map",
+          "mode": 420,
+          "bytes": 951,
+          "sha256": "07dc15549c557d0d22ccbb92def030ec71e24c4411f81382655d2f2b86c29427"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/plugins/index.js.map",
+          "mode": 420,
+          "bytes": 4356,
+          "sha256": "591a0cc9639bbcc7d08a73ef67e3f4d330ff1bb812ad2c94027a37e71a7bf4ef"
+        },
+        "current": {
+          "path": "dist/plugins/index.js.map",
+          "mode": 420,
+          "bytes": 4562,
+          "sha256": "e759e6cb9e630c2cde2f6e4bd7d0d6541cea72d16ae72c70fce5a80660b9603c"
+        }
+      },
+      {
+        "previous": {
+          "path": "README.md",
+          "mode": 420,
+          "bytes": 36273,
+          "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+        },
+        "current": {
+          "path": "README.md",
+          "mode": 420,
+          "bytes": 48669,
+          "sha256": "f58dbb46f5d58cef9e3273808ac83d3a64ab995d1efd45ceb83aeb8b7082fc17"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/index.d.ts",
+          "mode": 420,
+          "bytes": 1673,
+          "sha256": "de8dde4ceeee70c6b0069473454387ccda60aebe13b2532089698d9dea75bed0"
+        },
+        "current": {
+          "path": "dist/index.d.ts",
+          "mode": 420,
+          "bytes": 1722,
+          "sha256": "9431396035dfbb75130859d64f1d7bd1f03ef99e4eab3b8756535954ef9223c7"
+        }
+      },
+      {
+        "previous": {
+          "path": "dist/plugins/index.d.ts",
+          "mode": 420,
+          "bytes": 3262,
+          "sha256": "b4fefabebff9d6d7f8de1da730210fc3db389edcdc0700862036637b131bdd5c"
+        },
+        "current": {
+          "path": "dist/plugins/index.d.ts",
+          "mode": 420,
+          "bytes": 3415,
+          "sha256": "d034587372c975ccd6c8d89b1ad87ed3b70948d1a91322efa153ccebcad0d061"
+        }
+      }
+    ],
+    "unchanged": 864,
+    "removed": 0
+  },
+  "traces": [
+    {
+      "label": "source-public",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "2760d5bf5045f7d88b6512c6358b6003b9b81e0d38bb00c8213937e4d2c509b5",
+      "authenticated": true
+    },
+    {
+      "label": "source-arrays",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "ade50d4a96337c630db73a56b037039004e17436a94ca6d16e218d8557827c50",
+      "authenticated": true
+    },
+    {
+      "label": "source-coherence",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "49d7c27c5995e9deccc6d6ddde0246dc1ac7ee0c2dd13c8b668bc1b565df2b38",
+      "authenticated": true
+    },
+    {
+      "label": "installed-public",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "42de770c3870bc863b426ce1be13c46d000131996862e907e4d338d5d06bb29c",
+      "authenticated": true
+    },
+    {
+      "label": "installed-arrays",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "7fd2cd8c3256d48f81df577be9474fbca896ff5fbfe98a403f251f643c850c5c",
+      "authenticated": true
+    },
+    {
+      "label": "installed-coherence",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "086fc901a2eef37f53fdd18f24721885cb03e5798033eb8a2977f7091ed6ddf1",
+      "authenticated": true
+    },
+    {
+      "label": "moved-public",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "9e2fed5f938fb7c4de139d03cea09d97a21fe42f6f68d13d13c7857d9ca93713",
+      "authenticated": true
+    },
+    {
+      "label": "moved-arrays",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "8470386106244a9d806cb5169482d1dc52503f6f992bfe0c337b16506e6ca449",
+      "authenticated": true
+    },
+    {
+      "label": "moved-coherence",
+      "rows": 220,
+      "unique": 220,
+      "sha256": "113b5443f8dfb98eb751958b13e0c5d47a19cfb88308cdc2e05c367617d325fb",
+      "authenticated": true
+    }
+  ],
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "source/__consumer/consumer-source-true.mts(10,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "source/__consumer/consumer-source-true.mts(12,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "source/__consumer/consumer-source-true.mts(14,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "source/__consumer/consumer-source-true.mts(16,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'."
+      ]
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "installed/consumer-installed-true.mts(10,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "installed/consumer-installed-true.mts(12,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "installed/consumer-installed-true.mts(14,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "installed/consumer-installed-true.mts(16,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'."
+      ]
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "moved package/consumer-moved-true.mts(10,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "moved package/consumer-moved-true.mts(12,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "moved package/consumer-moved-true.mts(14,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "moved package/consumer-moved-true.mts(16,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'."
+      ]
+    }
+  ],
+  "cohorts": [
+    {
+      "label": "source-public",
+      "pass": 27,
+      "fail": 1,
+      "cases": 28
+    },
+    {
+      "label": "source-arrays",
+      "pass": 12,
+      "fail": 0,
+      "cases": 12
+    },
+    {
+      "label": "source-coherence",
+      "pass": 18,
+      "fail": 0,
+      "cases": 18
+    },
+    {
+      "label": "installed-public",
+      "pass": 27,
+      "fail": 1,
+      "cases": 28
+    },
+    {
+      "label": "installed-arrays",
+      "pass": 12,
+      "fail": 0,
+      "cases": 12
+    },
+    {
+      "label": "installed-coherence",
+      "pass": 18,
+      "fail": 0,
+      "cases": 18
+    },
+    {
+      "label": "moved-public",
+      "pass": 27,
+      "fail": 1,
+      "cases": 28
+    },
+    {
+      "label": "moved-arrays",
+      "pass": 12,
+      "fail": 0,
+      "cases": 12
+    },
+    {
+      "label": "moved-coherence",
+      "pass": 18,
+      "fail": 0,
+      "cases": 18
+    }
+  ],
+  "controls": [
+    {
+      "name": "registration-omission",
+      "detected": true,
+      "candidateArtifactSha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45",
+      "mutantArtifactSha256": "d4bf3fb6f4475bc6a3abd6e13d6969367698d9bb624802851b71a0b647794d1b"
+    },
+    {
+      "name": "registration-restored",
+      "pass": true
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    },
+    {
+      "name": "binding-outside",
+      "pass": true
+    },
+    {
+      "name": "missing-explicit-export",
+      "pass": true
+    }
+  ],
+  "maintained": {
+    "code": 1,
+    "tests": 83,
+    "pass": 82,
+    "fail": 1,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "streamConsumer": {
+    "code": 0,
+    "tests": 21,
+    "pass": 21,
+    "fail": 0
+  },
+  "cleanup": {
+    "directChildren": 28,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "bounds": {
+    "elapsedMs": 36678,
+    "captureBytes": 2964466,
+    "actualScratchBytes": 66273312
+  },
+  "retainedFailures": [
+    {
+      "label": "source-public",
+      "cases": [
+        {
+          "id": "P05-replace-global-true",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'custom'\n}\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/source/__consumer/public.mjs:63:200\n    at record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/source/__consumer/public.mjs:26:15)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/source/__consumer/public.mjs:61:7",
+          "shells": 0,
+          "closed": 0
+        }
+      ]
+    },
+    {
+      "label": "installed-public",
+      "cases": [
+        {
+          "id": "P05-replace-global-true",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'custom'\n}\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/installed/public.mjs:63:200\n    at record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/installed/public.mjs:26:15)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/installed/public.mjs:61:7",
+          "shells": 0,
+          "closed": 0
+        }
+      ]
+    },
+    {
+      "label": "moved-public",
+      "cases": [
+        {
+          "id": "P05-replace-global-true",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'custom'\n}\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/moved%20package/public.mjs:63:200\n    at record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/moved%20package/public.mjs:26:15)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/apply-patch-public-author-KR4Jg8/moved%20package/public.mjs:61:7",
+          "shells": 0,
+          "closed": 0
+        }
+      ]
+    },
+    {
+      "label": "maintained-four-bodies",
+      "code": 1,
+      "tests": 83,
+      "pass": 82,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  ],
+  "fixtureVersionStatus": "P05 identity and maintained name-tail corrections committed6bcb5561, not executed or rescored",
+  "noNativePrivateNetwork": true
+}

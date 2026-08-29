@@ -1,0 +1,323 @@
+{
+  "start": "2026-08-29T09:20:29.773Z",
+  "at": "2026-08-29T09:32:09.054Z",
+  "directProcesses": 28,
+  "runtimeProcesses": 4,
+  "toolServiceReservation": 1,
+  "parsingOnlyChecks": 14,
+  "admin": [
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=no"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/common.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/observer.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/preload.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/policy.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/mutation.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/writer-controls.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/controls.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixtures.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/package.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/INSTRUMENTATION.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/owned-writer.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/deferred-collector.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PLAN.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-child.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-parent.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/capture.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/CONTROL-ASSUMPTIONS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTHORITY.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SMALL-FIXTURE-PLAN.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/README.md\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PRIOR-BINDINGS.json\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/owned-writer.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/deferred-collector.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/common.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/writer-controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-child.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-parent.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/capture.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch_update",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nM tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs\nM tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs\n",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch_update",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nM tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs\nM tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-CHECKS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-DELTA.json\n",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json\n",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTH.json\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/CONTROL-ASSUMPTIONS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PRIOR-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SMALL-FIXTURE-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-CHECKS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-DELTA.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/deferred-collector.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-child.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-parent.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/mutation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/owned-writer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/writer-controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "test: seal deferred Regex witness collector and two no-Worker fixtures",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/CONTROL-ASSUMPTIONS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PRIOR-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SMALL-FIXTURE-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-CHECKS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-DELTA.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/deferred-collector.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-child.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-parent.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/mutation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/owned-writer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/writer-controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "[main 131a898c3edb25edc34e2d26dfdcd28b74e7c015] test: seal deferred Regex witness collector and two no-Worker fixtures\n 29 files changed, 2546 insertions(+)\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTH.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/AUTHORITY.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/CONTROL-ASSUMPTIONS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/INSTRUMENTATION.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PLAN.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/PRIOR-BINDINGS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/README.md\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SMALL-FIXTURE-PLAN.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-CHECKS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SOURCE-DELTA.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/capture.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/case.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/common.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/controls.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/deferred-collector.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/early-record.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-child.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixture-parent.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/fixtures.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/guarded-operation.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/mutation.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/observer.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/owned-writer.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/package.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/policy.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/preload.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/supervisor.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/writer-controls.mjs\n",
+      "stderr": ""
+    },
+    {
+      "role": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/POST-BINDINGS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/CAPTURE-INVENTORY.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/EVIDENCE.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/REPORT.md\n",
+      "stderr": ""
+    }
+  ],
+  "execReceipt": {
+    "toolChunk": "9ac8e4",
+    "exit": 0,
+    "execReplacement": true,
+    "extraWaitingShell": false,
+    "stdout": "{\"closed\":true,\"qualified\":true,\"status\":0,\"observed\":[56,0],\"retained\":[56,0]}\n"
+  },
+  "captureObserved": 2072,
+  "elapsedMs": 699281
+}

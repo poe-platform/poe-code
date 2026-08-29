@@ -61,6 +61,7 @@ type HostBridgeOptions = {
   operation?: string;
   signal?: AbortSignal;
   lifecycle?: RunLifecycle;
+  proofFunctions?: WeakMap<object, SandboxClosure>;
 };
 
 type HostCallbacks = {
@@ -69,6 +70,7 @@ type HostCallbacks = {
   entries: Map<number, (args: SandboxValue[], token?: string) => Promise<unknown>>;
   hostFunctions: Map<number, (...args: readonly unknown[]) => Promise<unknown>>;
   sourceFunctions: Map<number, SandboxClosure>;
+  proofFunctions: WeakMap<object, SandboxClosure>;
   active: Set<Promise<unknown>>;
   seen: WeakMap<SandboxClosure, (...args: readonly unknown[]) => Promise<unknown>>;
   nextReissuedInvocation?: number;
@@ -146,6 +148,7 @@ function wrapCallerInjectedFunction(
           entries: new Map(),
           hostFunctions: new Map(),
           sourceFunctions: new Map(),
+          proofFunctions: new WeakMap(),
           active: new Set(),
           seen: new WeakMap(),
           restored: []
@@ -355,6 +358,7 @@ function executeHostCall(
     );
   }
   if (restored && record.policy === "read-side-effect" && record.lifecycle !== "created") {
+    let active = true;
     const context =
       callbacks === undefined
         ? undefined
@@ -366,9 +370,23 @@ function executeHostCall(
             })),
             async waitForCallbacks() {
               while (callbacks.active.size > 0) await Promise.allSettled([...callbacks.active]);
+            },
+            toSandboxValue(value: unknown): SandboxValue {
+              if (!active) throw new TypeError("Host call resume context is no longer active.");
+              if (options.signal?.aborted) throw readAbortReason(options.signal);
+              return copyHostValueToSandbox(
+                value,
+                stackFrames,
+                { ...options, proofFunctions: callbacks.proofFunctions },
+                { seen: new WeakMap() },
+                "<root>"
+              );
             }
           };
-    return createHostCallPromise(record, hostCalls.reconcile(record, context), hostCalls);
+    const outcome = hostCalls.reconcile(record, context).finally(() => {
+      active = false;
+    });
+    return createHostCallPromise(record, outcome, hostCalls);
   }
 
   if (restored && callbacks !== undefined) callbacks.nextReissuedInvocation = 0;
@@ -689,6 +707,7 @@ function wrapSandboxClosureForHost(
   callbacks?.entries.set(id, invoke);
   callbacks?.hostFunctions.set(id, wrapped);
   callbacks?.sourceFunctions.set(id, closure);
+  callbacks?.proofFunctions.set(wrapped, closure);
   if (callbacks?.record !== undefined)
     callbacks.journal?.registerCallbackFunction(callbacks.record, id, closure, wrapped);
   return wrapped;
@@ -817,10 +836,18 @@ function copyHostValueToSandbox(
   }
 
   if (isSandboxClosure(value) || isSandboxPromise(value)) {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: sandbox capability`);
     return deepCopyToSandbox(value);
   }
 
   if (typeof value === "function") {
+    if (options.proofFunctions !== undefined) {
+      const sourceClosure = options.proofFunctions.get(value);
+      if (sourceClosure === undefined)
+        throw new TypeError(`Unsupported proof value at ${path}: function`);
+      return sourceClosure;
+    }
     const sourceClosure = options.hostCalls?.nativeClosures.get(value);
     if (sourceClosure !== undefined) return sourceClosure;
     const callable = value as (...args: readonly unknown[]) => unknown;
@@ -843,6 +870,8 @@ function copyHostValueToSandbox(
   }
 
   if (!options.errorData && isPromiseLike(value)) {
+    if (options.proofFunctions !== undefined)
+      throw new TypeError(`Unsupported proof value at ${path}: promise`);
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(

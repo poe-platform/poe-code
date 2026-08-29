@@ -58,6 +58,7 @@ export type HostCallResumeContext = {
   callbacks: ReadonlyMap<number, (...args: readonly unknown[]) => Promise<unknown>>;
   replayed: ReadonlyArray<{ callbackId: number; result: Promise<unknown> }>;
   waitForCallbacks: () => Promise<void>;
+  toSandboxValue: (value: unknown) => SandboxValue;
 };
 
 export type HostCallResumeRequest = Omit<HostCallRecord, "id" | "outcome"> & {

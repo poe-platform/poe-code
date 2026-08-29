@@ -1,0 +1,74 @@
+{
+  "encoding": "gzip JSON base64",
+  "rawMembers": [
+    {
+      "path": "coordinator.stdout.raw",
+      "bytes": 563,
+      "sha256": "0958f001e8b7e9792f356ddbfa387a2febfb6b1da5dc190e8cc3577f707decfb"
+    },
+    {
+      "path": "coordinator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer-events.jsonl",
+      "bytes": 2007,
+      "sha256": "9fc491d5c7a0e3393eb83b65fcbf8ce847c5fb02f81925645bf7e241d96104c1"
+    },
+    {
+      "path": "work/RESULT.json",
+      "bytes": 967701,
+      "sha256": "be305c42e9df0caa584db2e3d6ac4ca91e98e660e5875d2bf5b21e0cfee87685"
+    },
+    {
+      "path": "work/development-blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/development-blobs.stdout",
+      "bytes": 2683040,
+      "sha256": "704d21ba2d5f6f605f21dda311241ecd26e22018a8959b4a48c9e7bd43ebd4c3"
+    },
+    {
+      "path": "work/offline-pack.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/offline-pack.stdout",
+      "bytes": 106822,
+      "sha256": "db163d69ef607e840e216a009d4e699a419109b367548e7c8814c567175b58da"
+    },
+    {
+      "path": "work/production-build-once.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/production-build-once.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/source-public-binding.json",
+      "bytes": 134411,
+      "sha256": "ab00893b1e9ca5a248721c7d6c405c671b55f9edc62fa392cb009611fdd28e73"
+    },
+    {
+      "path": "work/source-public.stderr",
+      "bytes": 1471,
+      "sha256": "d90727edc0fb6110673803b34128e1318cb9bf589fdcbaabd1c3c9042c89d9a2"
+    },
+    {
+      "path": "work/source-public.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "decodedJsonBytes": 5196546,
+  "compressedBytes": 1501456,
+  "compressedSha256": "356077204478b8e61a8142170076144ea4ed2ff6cfffb6a5dfea6cc8fd10dcd3",
+  "runtimeInventorySha256": "0104f44deffbcc56cc68d1fdf45b514e36fe7b1bfdda84fb7f03f4ef87b761bd"
+}

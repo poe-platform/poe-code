@@ -1,0 +1,228 @@
+{
+  "role": "AFTER_STOP_READONLY_DATA_GUARDS_NOT_RUNNER_TERMINAL_GUARDS",
+  "runtime": [
+    {
+      "path": "launch.py",
+      "equal": true
+    },
+    {
+      "path": "run.mjs",
+      "equal": true
+    },
+    {
+      "path": "prepare.mjs",
+      "equal": true
+    },
+    {
+      "path": "resources.mjs",
+      "equal": true
+    },
+    {
+      "path": "worker-policy.mjs",
+      "equal": true
+    },
+    {
+      "path": "loader.mjs",
+      "equal": true
+    },
+    {
+      "path": "novel.mjs",
+      "equal": true
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "equal": true
+    },
+    {
+      "path": "SOURCE.json",
+      "equal": true
+    },
+    {
+      "path": "PRESEAL.json",
+      "equal": true
+    },
+    {
+      "path": "EXECUTOR.json",
+      "equal": true
+    }
+  ],
+  "executor": [
+    {
+      "path": "tests/integration/git-public-20260829/PRESEAL.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/SOURCE.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/FIXTURE-PLAN.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/FIXTURE-VERSIONS.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/prepare.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/run.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/public.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/resources.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/names.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/loader.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/consumer.ts.fixture",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/apply-public.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/m1a.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/packs.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/RECIPE.md",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/probe.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/names.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/stream-format/helpers.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/split/helpers.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "equal": true
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-20260829/m1a-public-v2.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/run.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/prepare.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/resources.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/worker-policy.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/loader.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/novel.mjs",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/consumer.ts.fixture",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/PRESEAL.json",
+      "equal": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/SOURCE.json",
+      "equal": true
+    }
+  ],
+  "candidateInputCount": 292,
+  "candidateInputMismatches": [],
+  "packageMemberCount": 950,
+  "packageMemberMismatches": [],
+  "outerExit": {
+    "code": 1,
+    "signal": null,
+    "at": "2026-08-29T02:44:34.725Z"
+  },
+  "coordinatorCleanupRecord": "ownedGroupAbsentAfterCleanup",
+  "workerObservation": "No bootstrap/birth/exit events; runner resourceClosureUnknown retained; no resource-leak inference",
+  "package": {
+    "bytes": 864000,
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "equal": true
+  },
+  "allObservedEqual": true
+}

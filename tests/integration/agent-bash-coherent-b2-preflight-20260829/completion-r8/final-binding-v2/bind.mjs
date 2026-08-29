@@ -32,6 +32,7 @@ const packet=JSON.parse(fs.readFileSync(packetPath));assert.equal(packet.files.l
 for(const entry of packet.files)admit(path.join(base,'staged',entry.path),entry);
 admit(packet.package.path,packet.package);
 const frozen=JSON.parse(fs.readFileSync(path.join(base,'staged/metadata/FROZEN-BINDINGS.json')));
+assert(Array.isArray(frozen.selectedInputs));assert(Array.isArray(frozen.actualEmitted));assert(Array.isArray(frozen.packageMembers));
 assert.equal(frozen.selectedInputs.length,309);assert.equal(frozen.actualEmitted.length,1012);assert.equal(frozen.packageMembers.length,1014);
 const publisher=path.join(base,'publication-v2.mjs'),publisherStat=fs.lstatSync(publisher);assert(publisherStat.size<131072);
 admit(publisher,{bytes:publisherStat.size,sha256:'f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f'});

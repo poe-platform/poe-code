@@ -1,0 +1,374 @@
+src/commands/regex-execution/ere/limits.ts
+import { setImmediate } from "node:timers/promises";
+import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
+import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
+
+const resources: readonly EreResource[] = Object.freeze([
+  "patternBytes", "subjectBytes", "work", "states", "allocationUnits", "captureBytes", "captureSlots",
+]);
+
+function integer(value: number): void {
+  if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("ERE bounds must be nonnegative safe integers");
+}
+
+function multiply(value: number, factor: number, ceiling: number): number {
+  return value > Math.floor(ceiling / factor) ? ceiling : value * factor;
+}
+
+export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
+  integer(bounds.maxExpansionBytes);
+  integer(bounds.maxExpansionFields);
+  const bytes = bounds.maxExpansionBytes;
+  const fields = bounds.maxExpansionFields;
+  const byteUnits = multiply(bytes, 8, 4_000_000);
+  const fieldUnits = multiply(fields, 128, 4_000_000);
+  return Object.freeze({
+    patternBytes: Math.min(bytes, 65_536),
+    subjectBytes: Math.min(bytes, 1_048_576),
+    work: multiply(bytes, 32, 50_000_000),
+    states: multiply(fields, 8, 65_536),
+    allocationUnits: byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
+    captureBytes: bytes,
+    captureSlots: fields,
+  });
+}
+
+export class EreLedger {
+  readonly limits: EreLimits;
+  #usage: Record<EreResource, number> = {
+    patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0,
+  };
+  #poison: EreUsageUnknownError | undefined;
+  #lastYield = 0;
+
+  constructor(bounds: EreExpansionBounds, lowering: Partial<EreLimits> = {}) {
+    const limits = { ...deriveEreLimits(bounds) };
+    for (const resource of Object.keys(lowering)) {
+      if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
+      const key = resource as EreResource;
+      const value = lowering[key];
+      if (value === undefined) throw new TypeError("undefined ERE limit");
+      integer(value);
+      if (value > limits[key]) throw new RangeError("ERE limits may only be lowered");
+      limits[key] = value;
+    }
+    this.limits = Object.freeze(limits);
+  }
+
+  get usage(): EreUsage { return Object.freeze({ ...this.#usage }); }
+
+  check(signal?: AbortSignal): void {
+    if (signal?.aborted) throw signal.reason;
+    if (this.#poison) throw this.#poison;
+  }
+
+  charge(resource: EreResource, amount: number, signal?: AbortSignal): void {
+    this.check(signal);
+    integer(amount);
+    if (amount > this.limits[resource] - this.#usage[resource]) {
+      throw new EreProfileLimitError(resource, this.limits[resource]);
+    }
+    this.#usage[resource] += amount;
+  }
+
+  admitInput(resource: "patternBytes" | "subjectBytes", length: number, signal?: AbortSignal): void {
+    this.check(signal);
+    integer(length);
+    if (length > this.limits[resource]) throw new EreProfileLimitError(resource, this.limits[resource]);
+    this.#usage[resource] = Math.max(this.#usage[resource], length);
+  }
+
+  async checkpoint(signal?: AbortSignal): Promise<void> {
+    this.check(signal);
+    if (this.#usage.work - this.#lastYield >= 256) {
+      this.#lastYield = this.#usage.work;
+      await setImmediate();
+      this.check(signal);
+    }
+  }
+
+  markUnknownUsage(reason: unknown): void {
+    this.#poison ??= new EreUsageUnknownError(reason);
+  }
+}
+
+src/commands/regex-execution/ere/types.ts
+export type EreResource =
+  | "patternBytes"
+  | "subjectBytes"
+  | "work"
+  | "states"
+  | "allocationUnits"
+  | "captureBytes"
+  | "captureSlots";
+
+export type EreLimits = Readonly<Record<EreResource, number>>;
+export type EreUsage = Readonly<Record<EreResource, number>>;
+
+export interface EreExpansionBounds {
+  readonly maxExpansionBytes: number;
+  readonly maxExpansionFields: number;
+}
+
+export interface EreFragment {
+  readonly text: string;
+  readonly literal: boolean;
+}
+
+export interface EreSpan {
+  readonly start: number;
+  readonly end: number;
+}
+
+export interface EreMatch {
+  readonly matched: true;
+  readonly captures: readonly (EreSpan | null)[];
+  readonly values: readonly string[];
+}
+
+export interface EreNoMatch {
+  readonly matched: false;
+  readonly captures: readonly [];
+  readonly values: readonly [];
+}
+
+export type EreResult = EreMatch | EreNoMatch;
+
+export interface EreProgram {
+  readonly pattern: string;
+  readonly groups: number;
+}
+
+export interface EreNodeBase {
+  readonly nullable: boolean;
+  readonly captured: boolean;
+}
+
+export type EreNode = EreNodeBase & (
+  | { readonly kind: "empty" | "dot" | "start" | "end" }
+  | { readonly kind: "literal"; readonly code: number }
+  | { readonly kind: "set"; readonly members: readonly boolean[] }
+  | { readonly kind: "sequence" | "alternative"; readonly children: readonly EreNode[] }
+  | { readonly kind: "group"; readonly index: number; readonly child: EreNode }
+  | { readonly kind: "repeat"; readonly child: EreNode; readonly min: number; readonly max: number }
+);
+
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
+import { setImmediate as immediate } from 'node:timers/promises';
+
+const [directory, selection = 'all'] = process.argv.slice(2);
+const loads = {};
+for (const name of ['types','errors','limits','syntax','matcher']) {
+  const path = `${directory}/${name}.js`;
+  loads[name] = { path, sha256: createHash('sha256').update(await readFile(path)).digest('hex') };
+}
+console.log(JSON.stringify({ event: 'loaded', execPath: process.execPath, version: process.version, files: loads }));
+const { EreLedger } = await import(pathToFileURL(`${directory}/limits.js`));
+const { compileEre } = await import(pathToFileURL(`${directory}/syntax.js`));
+const { matchEre } = await import(pathToFileURL(`${directory}/matcher.js`));
+const { EreProfileLimitError } = await import(pathToFileURL(`${directory}/errors.js`));
+const bounds = { maxExpansionBytes: 1048576, maxExpansionFields: 8192 };
+class ObservedLedger extends EreLedger {
+  units = 0; previous = 0; maximum = 0; calls = 0; observer;
+  charge(resource, amount, signal) { super.charge(resource, amount, signal); if (resource === 'work' && amount === 1) this.units++; }
+  async checkpoint(signal) {
+    this.maximum = Math.max(this.maximum, this.units - this.previous);
+    this.previous = this.units; this.calls++;
+    this.observer?.();
+    await super.checkpoint(signal);
+  }
+  finish() { this.maximum = Math.max(this.maximum, this.units - this.previous); }
+}
+const rows = [];
+async function check(id, body) {
+  if (selection !== 'all' && selection !== id) return;
+  try { const detail = await body(); rows.push({ id, pass: true, detail }); }
+  catch (error) { rows.push({ id, pass: false, error: String(error?.stack ?? error) }); }
+}
+const witness = '(a){255}(|)';
+const subject = 'a'.repeat(255);
+await check('C01', async () => {
+matcher.ts
+29: 
+30: async function historyOrder(left: History | null, right: History | null, ledger: EreLedger, signal?: AbortSignal): Promise<number> {
+31:   const leftCount = left?.count ?? 0;
+32:   const rightCount = right?.count ?? 0;
+33:   for (let ordinal = 1; ordinal <= Math.min(leftCount, rightCount); ordinal++) {
+34:     ledger.charge("work", 1, signal);
+35:     await ledger.checkpoint(signal);
+36:     let leftEntry = left!;
+37:     let rightEntry = right!;
+38:     for (let remaining = leftCount; remaining > ordinal; remaining--) {
+39:       ledger.charge("work", 1, signal);
+40:       await ledger.checkpoint(signal);
+41:       leftEntry = leftEntry.previous!;
+42:     }
+43:     for (let remaining = rightCount; remaining > ordinal; remaining--) {
+44:       ledger.charge("work", 1, signal);
+45:       await ledger.checkpoint(signal);
+46:       rightEntry = rightEntry.previous!;
+47:     }
+48:     const compared = spanOrder(leftEntry.span, rightEntry.span);
+53: 
+54: async function preferred(candidate: State, incumbent: State, ledger: EreLedger, signal?: AbortSignal): Promise<boolean> {
+55:   if (candidate.position !== incumbent.position) return candidate.position > incumbent.position;
+56:   for (let group = 1; group < candidate.captures.length; group++) {
+57:     ledger.charge("work", 1, signal);
+58:     const compared = await historyOrder(candidate.histories[group]!, incumbent.histories[group]!, ledger, signal);
+59:     if (compared !== 0) return compared > 0;
+60:   }
+61:   return false;
+63: 
+64: export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
+65:   ledger.check(signal);
+66:   const root = resolveEreProgram(program, ledger);
+67:   ledger.admitInput("subjectBytes", subject.length, signal);
+82:   };
+83:   for (let start = 0; start <= subject.length; start++) {
+84:     push(start, task(() => ({ kind: "node", node: root, next: null })), emptyCaptures, emptyHistories);
+85:     let best: State | undefined;
+86:     while (pending.length > 0) {
+87:       ledger.charge("work", 1, signal);
+88:       await ledger.checkpoint(signal);
+89:       const state = pending.pop()!;
+90:       const current = state.task;
+91:       if (current === null) {
+131:           let next = current.next;
+132:           for (let index = node.children.length - 1; index >= 0; index--) {
+133:             ledger.charge("work", 1, signal);
+134:             await ledger.checkpoint(signal);
+135:             const following = next;
+136:             next = task(() => ({ kind: "node", node: node.children[index]!, next: following }));
+137:           }
+141:         case "alternative":
+142:           for (let index = node.children.length - 1; index >= 0; index--) {
+143:             ledger.charge("work", 1, signal);
+144:             await ledger.checkpoint(signal);
+145:             push(state.position, task(() => ({ kind: "node", node: node.children[index]!, next: current.next })), state.captures, state.histories);
+146:           }
+147:           break;
+160:       let bytes = best.position - start;
+161:       for (let group = 1; group < width; group++) {
+162:         ledger.charge("work", 1, signal);
+163:         const span = best.captures[group];
+164:         if (span) bytes += span.end - span.start;
+syntax.ts
+29: 
+30: export async function admitAscii(text: string, ledger: EreLedger, signal?: AbortSignal): Promise<void> {
+31:   for (let offset = 0; offset < text.length; offset++) {
+32:     ledger.charge("work", 1, signal);
+33:     const code = text.charCodeAt(offset);
+34:     if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
+35:     await ledger.checkpoint(signal);
+36:   }
+37: }
+38: 
+39: async function flatten(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<{ pattern: string; quoted: readonly boolean[] | null }> {
+40:   if (typeof input === "string") {
+41:     ledger.admitInput("patternBytes", input.length, signal);
+42:     await admitAscii(input, ledger, signal);
+45:   let size = 0;
+46:   for (const fragment of input) {
+47:     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") throw new TypeError("invalid ERE fragment");
+48:     ledger.charge("work", 1, signal);
+49:     ledger.admitInput("patternBytes", fragment.text.length, signal);
+57:   const quoted: boolean[] = [];
+58:   for (const fragment of input) {
+59:     for (let offset = 0; offset < fragment.text.length; offset++) {
+60:       ledger.charge("work", 1, signal);
+61:       await ledger.checkpoint(signal);
+62:       quoted.push(fragment.literal);
+63:     }
+64:     output.push(fragment.text);
+65:     await ledger.checkpoint(signal);
+66:   }
+67:   return { pattern: output.join(""), quoted: Object.freeze(quoted) };
+68: }
+84: 
+85:   async expression(depth: number): Promise<EreNode> {
+86:     if (depth > 64) throw new EreUnsupportedError("64-level grammar ceiling", this.offset);
+87:     this.ledger.charge("allocationUnits", 1, this.signal);
+88:     const alternatives: EreNode[] = [];
+89:     while (true) {
+90:       const child = await this.sequence(depth);
+91:       this.ledger.charge("allocationUnits", 1, this.signal);
+92:       alternatives.push(child);
+97:     this.ledger.charge("work", alternatives.length * 2, this.signal);
+98:     await this.ledger.checkpoint(this.signal);
+99:     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
+100:   }
+101: 
+102:   async sequence(depth: number): Promise<EreNode> {
+103:     this.ledger.charge("allocationUnits", 1, this.signal);
+104:     const children: EreNode[] = [];
+105:     while (this.offset < this.pattern.length && !this.at("|") && !this.at(")")) {
+106:       this.ledger.charge("work", 1, this.signal);
+107:       await this.ledger.checkpoint(this.signal);
+108:       let child = await this.atom(depth);
+109:       const operator = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
+110:       if (operator === "*" || operator === "+" || operator === "?" || operator === "{") {
+136:     this.ledger.charge("work", children.length * 2, this.signal);
+137:     await this.ledger.checkpoint(this.signal);
+138:     return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
+139:   }
+140: 
+141:   async count(): Promise<number> {
+142:     const begin = this.offset;
+143:     let value = 0;
+144:     while (!this.quoted?.[this.offset] && this.pattern[this.offset] !== undefined && this.pattern[this.offset]! >= "0" && this.pattern[this.offset]! <= "9") {
+145:       this.ledger.charge("work", 1, this.signal);
+146:       await this.ledger.checkpoint(this.signal);
+147:       value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
+148:       if (value > 255) throw new EreUnsupportedError("interval counts exceed 255", begin);
+149:     }
+153: 
+154:   async atom(depth: number): Promise<EreNode> {
+155:     const begin = this.offset;
+156:     const character = this.pattern[this.offset++]!;
+157:     if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+180: 
+181:   async set(begin: number): Promise<EreNode> {
+182:     this.ledger.charge("allocationUnits", 128, this.signal);
+183:     const members: boolean[] = new Array<boolean>(128).fill(false);
+184:     const negate = this.at("^");
+186:     let first = true;
+187:     while (this.offset < this.pattern.length) {
+188:       this.ledger.charge("work", 1, this.signal);
+189:       await this.ledger.checkpoint(this.signal);
+190:       if (this.at("]") && !first) {
+191:         this.offset++;
+192:         if (negate) for (let code = 1; code < 128; code++) {
+193:           this.ledger.charge("work", 1, this.signal);
+194:           await this.ledger.checkpoint(this.signal);
+195:           members[code] = !members[code];
+196:         }
+197:         return this.node(() => ({ kind: "set", members: Object.freeze(members), nullable: false, captured: false }));
+206:         let name = "";
+207:         while (this.offset < this.pattern.length && !this.at(":")) {
+208:           this.ledger.charge("work", 1, this.signal);
+209:           await this.ledger.checkpoint(this.signal);
+210:           if (name.length >= 6) throw new EreSyntaxError("unknown character class", classBegin);
+211:           name += this.pattern[this.offset++];
+212:         }
+214:         this.offset += 2;
+215:         for (let code = 1; code < 128; code++) {
+216:           this.ledger.charge("work", 1, this.signal);
+217:           await this.ledger.checkpoint(this.signal);
+218:           if (classMember(name, code)) members[code] = true;
+219:         }
+220:         if (this.at("-") && !this.at("]", this.offset + 1)) throw new EreSyntaxError("class cannot be a range endpoint", this.offset);
+227:           if (lower > upper) throw new EreSyntaxError("descending range", this.offset - 3);
+228:           for (let code = lower; code <= upper; code++) {
+229:             this.ledger.charge("work", 1, this.signal);
+230:             await this.ledger.checkpoint(this.signal);
+231:             members[code] = true;
+232:           }
+233:         } else members[lower] = true;
+239: 
+240: export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<EreProgram> {
+241:   ledger.check(signal);
+242:   const { pattern, quoted } = await flatten(input, ledger, signal);
+243:   const parser = new Parser(pattern, quoted, ledger, signal);

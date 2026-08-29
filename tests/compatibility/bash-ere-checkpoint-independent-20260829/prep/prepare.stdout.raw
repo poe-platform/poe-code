@@ -1,0 +1,636 @@
+a3cca12f1cfd38d18ad7650e3d18228438184319 blob 1554
+export type EreResource =
+  | "patternBytes"
+  | "subjectBytes"
+  | "work"
+  | "states"
+  | "allocationUnits"
+  | "captureBytes"
+  | "captureSlots";
+
+export type EreLimits = Readonly<Record<EreResource, number>>;
+export type EreUsage = Readonly<Record<EreResource, number>>;
+
+export interface EreExpansionBounds {
+  readonly maxExpansionBytes: number;
+  readonly maxExpansionFields: number;
+}
+
+export interface EreFragment {
+  readonly text: string;
+  readonly literal: boolean;
+}
+
+export interface EreSpan {
+  readonly start: number;
+  readonly end: number;
+}
+
+export interface EreMatch {
+  readonly matched: true;
+  readonly captures: readonly (EreSpan | null)[];
+  readonly values: readonly string[];
+}
+
+export interface EreNoMatch {
+  readonly matched: false;
+  readonly captures: readonly [];
+  readonly values: readonly [];
+}
+
+export type EreResult = EreMatch | EreNoMatch;
+
+export interface EreProgram {
+  readonly pattern: string;
+  readonly groups: number;
+}
+
+export interface EreNodeBase {
+  readonly nullable: boolean;
+  readonly captured: boolean;
+}
+
+export type EreNode = EreNodeBase & (
+  | { readonly kind: "empty" | "dot" | "start" | "end" }
+  | { readonly kind: "literal"; readonly code: number }
+  | { readonly kind: "set"; readonly members: readonly boolean[] }
+  | { readonly kind: "sequence" | "alternative"; readonly children: readonly EreNode[] }
+  | { readonly kind: "group"; readonly index: number; readonly child: EreNode }
+  | { readonly kind: "repeat"; readonly child: EreNode; readonly min: number; readonly max: number }
+);
+
+8dcdc8591d330c3edcc7bdb2cf2de407be45f375 blob 1003
+import type { EreResource } from "./types.js";
+
+export class EreSyntaxError extends Error {
+  readonly status = 2;
+  constructor(message: string, readonly offset: number) {
+    super(`invalid ERE at ${offset}: ${message}`);
+    this.name = "EreSyntaxError";
+  }
+}
+
+export class EreUnsupportedError extends Error {
+  readonly status = 2;
+  constructor(message: string, readonly offset: number) {
+    super(`unsupported ERE profile at ${offset}: ${message}`);
+    this.name = "EreUnsupportedError";
+  }
+}
+
+export class EreProfileLimitError extends Error {
+  readonly status = 3;
+  constructor(readonly resource: EreResource, readonly limit: number) {
+    super(`ERE profile limit exceeded: ${resource} (${limit})`);
+    this.name = "EreProfileLimitError";
+  }
+}
+
+export class EreUsageUnknownError extends Error {
+  readonly status = 3;
+  constructor(reason: unknown) {
+    super("ERE invocation usage is unknown; further work is refused", { cause: reason });
+    this.name = "EreUsageUnknownError";
+  }
+}
+
+a4a31f8789a61ecf0ca138ab15567b8f76e6a14d blob 3471
+import { setImmediate } from "node:timers/promises";
+import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
+import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
+
+const resources: readonly EreResource[] = Object.freeze([
+  "patternBytes", "subjectBytes", "work", "states", "allocationUnits", "captureBytes", "captureSlots",
+]);
+
+function integer(value: number): void {
+  if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("ERE bounds must be nonnegative safe integers");
+}
+
+function multiply(value: number, factor: number, ceiling: number): number {
+  return value > Math.floor(ceiling / factor) ? ceiling : value * factor;
+}
+
+export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
+  integer(bounds.maxExpansionBytes);
+  integer(bounds.maxExpansionFields);
+  const bytes = bounds.maxExpansionBytes;
+  const fields = bounds.maxExpansionFields;
+  const byteUnits = multiply(bytes, 8, 4_000_000);
+  const fieldUnits = multiply(fields, 128, 4_000_000);
+  return Object.freeze({
+    patternBytes: Math.min(bytes, 65_536),
+    subjectBytes: Math.min(bytes, 1_048_576),
+    work: multiply(bytes, 32, 50_000_000),
+    states: multiply(fields, 8, 65_536),
+    allocationUnits: byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
+    captureBytes: bytes,
+    captureSlots: fields,
+  });
+}
+
+export class EreLedger {
+  readonly limits: EreLimits;
+  #usage: Record<EreResource, number> = {
+    patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0,
+  };
+  #poison: EreUsageUnknownError | undefined;
+  #lastYield = 0;
+
+  constructor(bounds: EreExpansionBounds, lowering: Partial<EreLimits> = {}) {
+    const limits = { ...deriveEreLimits(bounds) };
+    for (const resource of Object.keys(lowering)) {
+      if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
+      const key = resource as EreResource;
+      const value = lowering[key];
+      if (value === undefined) throw new TypeError("undefined ERE limit");
+      integer(value);
+      if (value > limits[key]) throw new RangeError("ERE limits may only be lowered");
+      limits[key] = value;
+    }
+    this.limits = Object.freeze(limits);
+  }
+
+  get usage(): EreUsage { return Object.freeze({ ...this.#usage }); }
+
+  check(signal?: AbortSignal): void {
+    if (signal?.aborted) throw signal.reason;
+    if (this.#poison) throw this.#poison;
+  }
+
+  charge(resource: EreResource, amount: number, signal?: AbortSignal): void {
+    this.check(signal);
+    integer(amount);
+    if (amount > this.limits[resource] - this.#usage[resource]) {
+      throw new EreProfileLimitError(resource, this.limits[resource]);
+    }
+    this.#usage[resource] += amount;
+  }
+
+  admitInput(resource: "patternBytes" | "subjectBytes", length: number, signal?: AbortSignal): void {
+    this.check(signal);
+    integer(length);
+    if (length > this.limits[resource]) throw new EreProfileLimitError(resource, this.limits[resource]);
+    this.#usage[resource] = Math.max(this.#usage[resource], length);
+  }
+
+  async checkpoint(signal?: AbortSignal): Promise<void> {
+    this.check(signal);
+    if (this.#usage.work - this.#lastYield >= 256) {
+      this.#lastYield = this.#usage.work;
+      await setImmediate();
+      this.check(signal);
+    }
+  }
+
+  markUnknownUsage(reason: unknown): void {
+    this.#poison ??= new EreUsageUnknownError(reason);
+  }
+}
+
+30752089bf9eee3dff40fddee78f29ac5fb2a599 blob 13033
+import { EreSyntaxError, EreUnsupportedError } from "./errors.js";
+import { EreLedger } from "./limits.js";
+import type { EreFragment, EreNode, EreProgram } from "./types.js";
+
+const programs = new WeakMap<EreProgram, { root: EreNode; ledger: EreLedger }>();
+const special = "\\.^$[]()|*+?{}";
+const classes = new Set(["alnum", "alpha", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "xdigit"]);
+
+function classMember(name: string, code: number): boolean {
+  const upper = code >= 65 && code <= 90;
+  const lower = code >= 97 && code <= 122;
+  const digit = code >= 48 && code <= 57;
+  switch (name) {
+    case "alnum": return upper || lower || digit;
+    case "alpha": return upper || lower;
+    case "blank": return code === 9 || code === 32;
+    case "cntrl": return code < 32 || code === 127;
+    case "digit": return digit;
+    case "graph": return code >= 33 && code <= 126;
+    case "lower": return lower;
+    case "print": return code >= 32 && code <= 126;
+    case "punct": return code >= 33 && code <= 126 && !upper && !lower && !digit;
+    case "space": return code === 32 || code >= 9 && code <= 13;
+    case "upper": return upper;
+    case "xdigit": return digit || code >= 65 && code <= 70 || code >= 97 && code <= 102;
+    default: return false;
+  }
+}
+
+export async function admitAscii(text: string, ledger: EreLedger, signal?: AbortSignal): Promise<void> {
+  for (let offset = 0; offset < text.length; offset++) {
+    ledger.charge("work", 1, signal);
+    const code = text.charCodeAt(offset);
+    if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
+    await ledger.checkpoint(signal);
+  }
+}
+
+async function flatten(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<{ pattern: string; quoted: readonly boolean[] | null }> {
+  if (typeof input === "string") {
+    ledger.admitInput("patternBytes", input.length, signal);
+    await admitAscii(input, ledger, signal);
+    return { pattern: input, quoted: null };
+  }
+  let size = 0;
+  for (const fragment of input) {
+    if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") throw new TypeError("invalid ERE fragment");
+    ledger.charge("work", 1, signal);
+    ledger.admitInput("patternBytes", fragment.text.length, signal);
+    await admitAscii(fragment.text, ledger, signal);
+    if (fragment.text.length > ledger.limits.patternBytes - size) ledger.admitInput("patternBytes", ledger.limits.patternBytes + 1, signal);
+    size += fragment.text.length;
+    ledger.admitInput("patternBytes", size, signal);
+  }
+  ledger.charge("allocationUnits", size * 2 + input.length + 2, signal);
+  const output: string[] = [];
+  const quoted: boolean[] = [];
+  for (const fragment of input) {
+    for (let offset = 0; offset < fragment.text.length; offset++) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      quoted.push(fragment.literal);
+    }
+    output.push(fragment.text);
+    await ledger.checkpoint(signal);
+  }
+  return { pattern: output.join(""), quoted: Object.freeze(quoted) };
+}
+
+class Parser {
+  offset = 0;
+  groups = 0;
+  nodes = 0;
+  constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined) {}
+
+  at(character: string, offset = this.offset): boolean { return !this.quoted?.[offset] && this.pattern[offset] === character; }
+
+  node(create: () => EreNode): EreNode {
+    if (this.nodes >= 4096) throw new EreUnsupportedError("4096-node grammar ceiling", this.offset);
+    this.ledger.charge("allocationUnits", 8, this.signal);
+    this.nodes++;
+    return Object.freeze(create());
+  }
+
+  async expression(depth: number): Promise<EreNode> {
+    if (depth > 64) throw new EreUnsupportedError("64-level grammar ceiling", this.offset);
+    this.ledger.charge("allocationUnits", 1, this.signal);
+    const alternatives: EreNode[] = [];
+    while (true) {
+      const child = await this.sequence(depth);
+      this.ledger.charge("allocationUnits", 1, this.signal);
+      alternatives.push(child);
+      if (!this.at("|")) break;
+      this.offset++;
+    }
+    if (alternatives.length === 1) return alternatives[0]!;
+    this.ledger.charge("work", alternatives.length * 2, this.signal);
+    await this.ledger.checkpoint(this.signal);
+    return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
+  }
+
+  async sequence(depth: number): Promise<EreNode> {
+    this.ledger.charge("allocationUnits", 1, this.signal);
+    const children: EreNode[] = [];
+    while (this.offset < this.pattern.length && !this.at("|") && !this.at(")")) {
+      this.ledger.charge("work", 1, this.signal);
+      await this.ledger.checkpoint(this.signal);
+      let child = await this.atom(depth);
+      const operator = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
+      if (operator === "*" || operator === "+" || operator === "?" || operator === "{") {
+        const begin = this.offset++;
+        let min = operator === "+" ? 1 : 0;
+        let max = operator === "?" ? 1 : Infinity;
+        if (operator === "{") {
+          min = await this.count();
+          max = min;
+          if (this.at(",")) {
+            this.offset++;
+            max = this.at("}") ? Infinity : await this.count();
+          }
+          if (!this.at("}") || max < min) throw new EreSyntaxError("invalid interval", begin);
+          this.offset++;
+        }
+        if (child.kind === "start" || child.kind === "end") throw new EreUnsupportedError("repeated anchor", begin);
+        if (child.nullable && child.captured && max > 1) throw new EreUnsupportedError("nullable captured repetition", begin);
+        const repeated = child;
+        child = this.node(() => ({ kind: "repeat", child: repeated, min, max, nullable: min === 0 || repeated.nullable, captured: repeated.captured }));
+        const next = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
+        if (next === "*" || next === "+" || next === "?" || next === "{") throw new EreUnsupportedError("stacked repetition", this.offset);
+      }
+      this.ledger.charge("allocationUnits", 1, this.signal);
+      children.push(child);
+    }
+    if (children.length === 0) return this.node(() => ({ kind: "empty", nullable: true, captured: false }));
+    if (children.length === 1) return children[0]!;
+    this.ledger.charge("work", children.length * 2, this.signal);
+    await this.ledger.checkpoint(this.signal);
+    return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
+  }
+
+  async count(): Promise<number> {
+    const begin = this.offset;
+    let value = 0;
+    while (!this.quoted?.[this.offset] && this.pattern[this.offset] !== undefined && this.pattern[this.offset]! >= "0" && this.pattern[this.offset]! <= "9") {
+      this.ledger.charge("work", 1, this.signal);
+      await this.ledger.checkpoint(this.signal);
+      value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
+      if (value > 255) throw new EreUnsupportedError("interval counts exceed 255", begin);
+    }
+    if (begin === this.offset) throw new EreSyntaxError("missing interval count", begin);
+    return value;
+  }
+
+  async atom(depth: number): Promise<EreNode> {
+    const begin = this.offset;
+    const character = this.pattern[this.offset++]!;
+    if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+    if (character === "(") {
+      if (this.at("?")) throw new EreUnsupportedError("extended group syntax", begin);
+      if (this.groups >= 32) throw new EreUnsupportedError("32-group grammar ceiling", begin);
+      const index = ++this.groups;
+      const child = await this.expression(depth + 1);
+      if (!this.at(")")) throw new EreSyntaxError("unclosed group", begin);
+      this.offset++;
+      return this.node(() => ({ kind: "group", index, child, nullable: child.nullable, captured: true }));
+    }
+    if (character === "[") return this.set(begin);
+    if (character === "\\") {
+      const escaped = this.pattern[this.offset++];
+      if (escaped === undefined) throw new EreSyntaxError("trailing escape", begin);
+      if (!special.includes(escaped)) throw new EreUnsupportedError("backreference or escape extension", begin);
+      return this.node(() => ({ kind: "literal", code: escaped.charCodeAt(0), nullable: false, captured: false }));
+    }
+    if (character === "*" || character === "+" || character === "?" || character === "{") throw new EreSyntaxError("repetition without operand", begin);
+    if (character === ".") return this.node(() => ({ kind: "dot", nullable: false, captured: false }));
+    if (character === "^") return this.node(() => ({ kind: "start", nullable: true, captured: false }));
+    if (character === "$") return this.node(() => ({ kind: "end", nullable: true, captured: false }));
+    return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+  }
+
+  async set(begin: number): Promise<EreNode> {
+    this.ledger.charge("allocationUnits", 128, this.signal);
+    const members: boolean[] = new Array<boolean>(128).fill(false);
+    const negate = this.at("^");
+    if (negate) this.offset++;
+    let first = true;
+    while (this.offset < this.pattern.length) {
+      this.ledger.charge("work", 1, this.signal);
+      await this.ledger.checkpoint(this.signal);
+      if (this.at("]") && !first) {
+        this.offset++;
+        if (negate) for (let code = 1; code < 128; code++) {
+          this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
+          members[code] = !members[code];
+        }
+        return this.node(() => ({ kind: "set", members: Object.freeze(members), nullable: false, captured: false }));
+      }
+      first = false;
+      if (this.at("[") && (this.at(".", this.offset + 1) || this.at("=", this.offset + 1))) {
+        throw new EreUnsupportedError("collating or equivalence element", this.offset);
+      }
+      if (this.at("[") && this.at(":", this.offset + 1)) {
+        const classBegin = this.offset;
+        this.offset += 2;
+        let name = "";
+        while (this.offset < this.pattern.length && !this.at(":")) {
+          this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
+          if (name.length >= 6) throw new EreSyntaxError("unknown character class", classBegin);
+          name += this.pattern[this.offset++];
+        }
+        if (!this.at(":") || !this.at("]", this.offset + 1) || !classes.has(name)) throw new EreSyntaxError("unknown character class", classBegin);
+        this.offset += 2;
+        for (let code = 1; code < 128; code++) {
+          this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
+          if (classMember(name, code)) members[code] = true;
+        }
+        if (this.at("-") && !this.at("]", this.offset + 1)) throw new EreSyntaxError("class cannot be a range endpoint", this.offset);
+      } else {
+        const lower = this.pattern.charCodeAt(this.offset++);
+        if (this.at("-") && !this.at("]", this.offset + 1) && this.pattern[this.offset + 1] !== undefined) {
+          this.offset++;
+          if (this.at("[")) throw new EreSyntaxError("nonliteral range endpoint", this.offset);
+          const upper = this.pattern.charCodeAt(this.offset++);
+          if (lower > upper) throw new EreSyntaxError("descending range", this.offset - 3);
+          for (let code = lower; code <= upper; code++) {
+            this.ledger.charge("work", 1, this.signal);
+            await this.ledger.checkpoint(this.signal);
+            members[code] = true;
+          }
+        } else members[lower] = true;
+      }
+    }
+    throw new EreSyntaxError("unclosed bracket expression", begin);
+  }
+}
+
+export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal): Promise<EreProgram> {
+  ledger.check(signal);
+  const { pattern, quoted } = await flatten(input, ledger, signal);
+  const parser = new Parser(pattern, quoted, ledger, signal);
+  const root = await parser.expression(0);
+  if (parser.offset !== pattern.length) throw new EreSyntaxError("unmatched closing group", parser.offset);
+  ledger.charge("allocationUnits", 3, signal);
+  const program = Object.freeze({ pattern, groups: parser.groups });
+  programs.set(program, { root, ledger });
+  return program;
+}
+
+export function resolveEreProgram(program: EreProgram, ledger: EreLedger): EreNode {
+  const entry = programs.get(program);
+  if (!entry || entry.ledger !== ledger) throw new TypeError("ERE program is not bound to this invocation ledger");
+  return entry.root;
+}
+
+4999c609ebef6c7c750cf77b01b3664ac0d9c910 blob 8543
+import { EreLedger } from "./limits.js";
+import { admitAscii, resolveEreProgram } from "./syntax.js";
+import type { EreNode, EreProgram, EreResult, EreSpan } from "./types.js";
+
+interface History {
+  readonly span: EreSpan;
+  readonly previous: History | null;
+  readonly count: number;
+}
+
+type Task =
+  | { readonly kind: "node"; readonly node: EreNode; readonly next: Task | null }
+  | { readonly kind: "close"; readonly group: number; readonly start: number; readonly next: Task | null }
+  | { readonly kind: "repeat"; readonly node: Extract<EreNode, { kind: "repeat" }>; readonly count: number; readonly previous: number; readonly next: Task | null };
+
+interface State {
+  readonly position: number;
+  readonly task: Task | null;
+  readonly captures: readonly (EreSpan | null)[];
+  readonly histories: readonly (History | null)[];
+}
+
+function spanOrder(left: EreSpan | null, right: EreSpan | null): number {
+  if (left === null) return right === null ? 0 : -1;
+  if (right === null) return 1;
+  const length = left.end - left.start - (right.end - right.start);
+  return length === 0 ? right.start - left.start : length;
+}
+
+async function historyOrder(left: History | null, right: History | null, ledger: EreLedger, signal?: AbortSignal): Promise<number> {
+  const leftCount = left?.count ?? 0;
+  const rightCount = right?.count ?? 0;
+  for (let ordinal = 1; ordinal <= Math.min(leftCount, rightCount); ordinal++) {
+    ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
+    let leftEntry = left!;
+    let rightEntry = right!;
+    for (let remaining = leftCount; remaining > ordinal; remaining--) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      leftEntry = leftEntry.previous!;
+    }
+    for (let remaining = rightCount; remaining > ordinal; remaining--) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      rightEntry = rightEntry.previous!;
+    }
+    const compared = spanOrder(leftEntry.span, rightEntry.span);
+    if (compared !== 0) return compared;
+  }
+  return leftCount - rightCount;
+}
+
+async function preferred(candidate: State, incumbent: State, ledger: EreLedger, signal?: AbortSignal): Promise<boolean> {
+  if (candidate.position !== incumbent.position) return candidate.position > incumbent.position;
+  for (let group = 1; group < candidate.captures.length; group++) {
+    ledger.charge("work", 1, signal);
+    const compared = await historyOrder(candidate.histories[group]!, incumbent.histories[group]!, ledger, signal);
+    if (compared !== 0) return compared > 0;
+  }
+  return false;
+}
+
+export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
+  ledger.check(signal);
+  const root = resolveEreProgram(program, ledger);
+  ledger.admitInput("subjectBytes", subject.length, signal);
+  await admitAscii(subject, ledger, signal);
+  const width = program.groups + 1;
+  ledger.charge("allocationUnits", width * 2 + 1, signal);
+  const emptyCaptures: readonly (EreSpan | null)[] = Object.freeze(new Array<EreSpan | null>(width).fill(null));
+  const emptyHistories: readonly (History | null)[] = Object.freeze(new Array<History | null>(width).fill(null));
+  const pending: State[] = [];
+  const task = (create: () => Task): Task => {
+    ledger.charge("allocationUnits", 5, signal);
+    return create();
+  };
+  const push = (position: number, next: Task | null, captures: readonly (EreSpan | null)[], histories: readonly (History | null)[]): void => {
+    ledger.charge("states", 1, signal);
+    ledger.charge("allocationUnits", 5, signal);
+    pending.push({ position, task: next, captures, histories });
+  };
+  for (let start = 0; start <= subject.length; start++) {
+    push(start, task(() => ({ kind: "node", node: root, next: null })), emptyCaptures, emptyHistories);
+    let best: State | undefined;
+    while (pending.length > 0) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      const state = pending.pop()!;
+      const current = state.task;
+      if (current === null) {
+        if (!best || await preferred(state, best, ledger, signal)) best = state;
+        continue;
+      }
+      if (current.kind === "close") {
+        ledger.charge("allocationUnits", width * 2 + 6, signal);
+        const span = Object.freeze({ start: current.start, end: state.position });
+        const captures = state.captures.slice();
+        captures[current.group] = span;
+        const histories = state.histories.slice();
+        const previous = histories[current.group]!;
+        histories[current.group] = { span, previous, count: (previous?.count ?? 0) + 1 };
+        push(state.position, current.next, captures, histories);
+        continue;
+      }
+      if (current.kind === "repeat") {
+        const { node, count } = current;
+        if (count >= node.min) push(state.position, current.next, state.captures, state.histories);
+        const noProgress = count > 0 && state.position === current.previous;
+        if (count < node.max && (!noProgress || count < node.min)) {
+          const repeat = task(() => ({ kind: "repeat", node, count: count + 1, previous: state.position, next: current.next }));
+          push(state.position, task(() => ({ kind: "node", node: node.child, next: repeat })), state.captures, state.histories);
+        }
+        continue;
+      }
+      const node = current.node;
+      switch (node.kind) {
+        case "empty": push(state.position, current.next, state.captures, state.histories); break;
+        case "start": if (state.position === 0) push(state.position, current.next, state.captures, state.histories); break;
+        case "end": if (state.position === subject.length) push(state.position, current.next, state.captures, state.histories); break;
+        case "dot":
+        case "literal":
+        case "set": {
+          const code = subject.charCodeAt(state.position);
+          if (state.position < subject.length && (node.kind === "dot" || node.kind === "literal" && node.code === code || node.kind === "set" && node.members[code])) {
+            push(state.position + 1, current.next, state.captures, state.histories);
+          }
+          break;
+        }
+        case "sequence": {
+          let next = current.next;
+          for (let index = node.children.length - 1; index >= 0; index--) {
+            ledger.charge("work", 1, signal);
+            await ledger.checkpoint(signal);
+            const following = next;
+            next = task(() => ({ kind: "node", node: node.children[index]!, next: following }));
+          }
+          push(state.position, next, state.captures, state.histories);
+          break;
+        }
+        case "alternative":
+          for (let index = node.children.length - 1; index >= 0; index--) {
+            ledger.charge("work", 1, signal);
+            await ledger.checkpoint(signal);
+            push(state.position, task(() => ({ kind: "node", node: node.children[index]!, next: current.next })), state.captures, state.histories);
+          }
+          break;
+        case "group": {
+          const close = task(() => ({ kind: "close", group: node.index, start: state.position, next: current.next }));
+          push(state.position, task(() => ({ kind: "node", node: node.child, next: close })), state.captures, state.histories);
+          break;
+        }
+        case "repeat":
+          push(state.position, task(() => ({ kind: "repeat", node, count: 0, previous: -1, next: current.next })), state.captures, state.histories);
+          break;
+      }
+    }
+    if (best) {
+      ledger.charge("captureSlots", width, signal);
+      let bytes = best.position - start;
+      for (let group = 1; group < width; group++) {
+        ledger.charge("work", 1, signal);
+        const span = best.captures[group];
+        if (span) bytes += span.end - span.start;
+      }
+      ledger.charge("captureBytes", bytes, signal);
+      ledger.charge("allocationUnits", width * 2 + bytes + 4, signal);
+      const captures = best.captures.slice();
+      captures[0] = Object.freeze({ start, end: best.position });
+      const values = captures.map(span => span === null ? "" : subject.slice(span.start, span.end));
+      ledger.check(signal);
+      return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
+    }
+  }
+  ledger.charge("allocationUnits", 3, signal);
+  ledger.check(signal);
+  return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
+}
+
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/runner.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/AUTHOR-SEAL.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/RUNNER-TRANSFORMS.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/SOURCE-GIT.json
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/EXECUTOR.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/EXECUTOR.sha256

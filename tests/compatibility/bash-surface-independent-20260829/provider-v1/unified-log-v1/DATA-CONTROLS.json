@@ -1,0 +1,171 @@
+{
+  "role": "SYNTHETIC_SELECTOR_ONLY_NOT_OS_QUERY_PROOF",
+  "cases": [
+    {
+      "id": "exact-token-loader-denial",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17408) deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": true
+    },
+    {
+      "id": "wrong-pid",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17409) deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "prefix-not-token",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: xnode(17408) deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "suffix-not-token",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17408)x deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "outside-window",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:29+0000",
+        "eventMessage": "Sandbox: node(17408) deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "unrelated-reporter",
+      "input": {
+        "process": "other",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17408) deny(1) file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "non-denial",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17408) allowed file-read-data /usr/lib/dyld"
+      },
+      "expected": false
+    },
+    {
+      "id": "private-denied-target-redacted",
+      "input": {
+        "process": "kernel",
+        "timestamp": "2026-08-29 05:06:24.806300+0000",
+        "eventMessage": "Sandbox: node(17408) deny(1) file-read-data /Users/PRIVATE/secret"
+      },
+      "expected": true
+    }
+  ],
+  "results": [
+    {
+      "id": "exact-token-loader-denial",
+      "expectedMatch": true,
+      "actual": {
+        "matched": true,
+        "fields": {
+          "timestamp": "2026-08-29 05:06:24.806300+0000",
+          "process": "kernel",
+          "pid": 17408,
+          "denialOperation": "file-read-data",
+          "deniedPath": "/usr/lib/dyld",
+          "result": {
+            "denyCode": 1
+          }
+        },
+        "qualified": "LOADER_OPERATION"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "wrong-pid",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "TOKEN"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "prefix-not-token",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "TOKEN"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "suffix-not-token",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "TOKEN"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "outside-window",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "TIME"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "unrelated-reporter",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "REPORTER"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "non-denial",
+      "expectedMatch": false,
+      "actual": {
+        "matched": false,
+        "reason": "DENIAL"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "private-denied-target-redacted",
+      "expectedMatch": true,
+      "actual": {
+        "matched": true,
+        "fields": {
+          "timestamp": "2026-08-29 05:06:24.806300+0000",
+          "process": "kernel",
+          "pid": 17408,
+          "denialOperation": "file-read-data",
+          "deniedPath": "[target withheld: not established loader path]",
+          "result": {
+            "denyCode": 1
+          }
+        },
+        "qualified": "LOADER_OPERATION"
+      },
+      "status": "PASS"
+    }
+  ]
+}

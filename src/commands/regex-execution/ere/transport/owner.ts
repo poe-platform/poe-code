@@ -59,9 +59,9 @@ export class EreWorkerOwner {
     return ended;
   }
 
-  async start(): Promise<void> {
-    if (this.#failed) { await this.close().catch(() => {}); throw this.#failure; }
-    if (this.#closing) { await this.#closing; throw new EreTransportError("CLOSED", "ERE Worker is closing"); }
+  start(): Promise<void> {
+    if (this.#failed) return Promise.reject(this.#failure);
+    if (this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker is closing"));
     if (!this.#ready) {
       this.#ready = new Promise<void>((resolve, reject) => { this.#readyResolve = resolve; this.#readyReject = reject; });
       void this.#ready.catch(() => {});
@@ -102,13 +102,12 @@ export class EreWorkerOwner {
         this.#fail(reason);
       }
     }
-    try { await this.#ready; }
-    catch (reason) { await this.close().catch(() => {}); throw reason; }
+    return this.#ready;
   }
 
-  async request(request: EreTransportRequest, posted: () => void): Promise<unknown> {
-    if (this.#failed) { await this.close().catch(() => {}); throw this.#failure; }
-    if (!this.#worker || !this.#readySeen || this.#pending || this.#closing) throw new EreTransportError("CLOSED", "ERE Worker request unavailable");
+  request(request: EreTransportRequest, posted: () => void): Promise<unknown> {
+    if (this.#failed) return Promise.reject(this.#failure);
+    if (!this.#worker || !this.#readySeen || this.#pending || this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker request unavailable"));
     const pending = new Promise<unknown>((resolve, reject) => {
       const timer = setTimeout(() => this.#fail(new EreTransportError("REQUEST_TIMEOUT", "ERE request timeout")), 1000);
       this.#pending = { resolve, reject, timer };
@@ -117,13 +116,15 @@ export class EreWorkerOwner {
     void pending.catch(() => {});
     try { posted(); this.#worker.postMessage(request); }
     catch (reason) { this.#fail(reason); }
-    try { return await pending; }
-    catch (reason) { await this.close().catch(() => {}); throw reason; }
-    finally { if (this.#request === pending) this.#request = undefined; }
+    const forget = (): void => { if (this.#request === pending) this.#request = undefined; };
+    void pending.then(forget, forget);
+    return pending;
   }
 
   close(): Promise<void> {
     if (this.#closing) return this.#closing;
+    const ready = this.#ready;
+    const request = this.#request;
     this.#closing = Promise.resolve().then(async () => {
       const worker = this.#worker;
       const termination = Promise.resolve().then(async () => {
@@ -132,7 +133,7 @@ export class EreWorkerOwner {
         if (!this.#exitListenerInstalled) this.#exitResolve?.();
       });
       const retired = await Promise.allSettled([termination, this.#exited, this.#stdout, this.#stderr]);
-      await Promise.allSettled([this.#ready, this.#request]);
+      await Promise.allSettled([ready, request]);
       for (const result of retired) if (result.status === "rejected") throw result.reason;
       if (this.#notificationFailed) throw this.#notificationFailure;
       this.#worker = undefined;

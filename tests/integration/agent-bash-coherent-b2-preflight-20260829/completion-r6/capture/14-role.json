@@ -1,0 +1,23 @@
+{
+  "role": "scoped-new-code-whitespace",
+  "pid": 97277,
+  "args": [
+    "diff",
+    "--check",
+    "5ef7a451e75df0ec85804457c2b0d9d4c9202b95",
+    "--",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/prepare.mjs",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/check.mjs",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/definition-controls.mjs",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/HANDOFF.md"
+  ],
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

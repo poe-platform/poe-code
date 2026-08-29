@@ -1,0 +1,38 @@
+{
+  "schema": "B2_R6_DEVELOPMENT_PATCH_ACCOUNTING",
+  "toolCalls": 5,
+  "conservativeKnownOS": 10,
+  "countsPerCall": {
+    "toolShell": 1,
+    "applyPatch": 1
+  },
+  "capture": "ordinary tool transcript, separate from file-based Node/Git capture",
+  "attempts": [
+    {
+      "number": 1,
+      "outcome": "verification failed: partial long line not found",
+      "filesChanged": 0
+    },
+    {
+      "number": 2,
+      "outcome": "success",
+      "filesChanged": 5
+    },
+    {
+      "number": 3,
+      "outcome": "success: exact false cleanup boolean retained",
+      "filesChanged": 1
+    },
+    {
+      "number": 4,
+      "outcome": "success",
+      "filesChanged": 4
+    },
+    {
+      "number": 5,
+      "outcome": "success",
+      "filesChanged": 2
+    }
+  ],
+  "qualification": "Development tool internals not a universal subprocess census; no failed runtime execution or rescore"
+}

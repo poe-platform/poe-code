@@ -1,0 +1,18 @@
+{
+  "role": "sealed-author-commit-identities",
+  "pid": 96207,
+  "args": [
+    "rev-parse",
+    "5ef7a451e",
+    "baf16563a"
+  ],
+  "start": "2026-08-29T14:33:41.050Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

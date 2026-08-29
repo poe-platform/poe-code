@@ -3897,3 +3897,23 @@ that any implementation, command, fixture, or test currently exists.
   full Bash/Git, Node, live HEAD, global gate or comparator acceptance. This root
   acceptance publication is docs-only: no runtime/native/Workers or historical rewrite.
   Exact record: `tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md`.
+
+### 2026-08-29 — ROOT qualified restricted Node module acceptance
+
+- Accepted exact source `a2f3983da537b95bed65b8bc727ab93bc7e98ca3`, full958 package
+  SHA256 `f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092`,
+  based on independent `1a15f7a520399a6fc73e910974ffa718b455c39c` and its explicit
+  accounting clarification. Finite255 expected outcomes =183 version-mapped
+  +6 BOM +66 independent, NOT255 successful guest commands; separate72 types,
+  6 mutant kills/restores and6 binding/consumer controls. Q01–Q03 finite controls accepted.
+- Exact ALL-process cap compliance is NOT established:126 recorded execution
+  +54 reserved administration is not a measured total. Preparation/actual/admin
+  census and owner-only byte-counter qualifications remain. No global resource,
+  full Node/RSS/whole-guest/all-jobs or universal host-authorization proof.
+- Original parser HOLD and raw failures remain; authorized ordinary captured,
+  retired helper correction `c43879c6` does not rescore them.38-family coverage
+  remains partial; E09's non-required rejection catch, unexecuted variants, W23
+  diagnostic detail and old loop telemetry UNKNOWN remain explicit.
+- Trusted explicit provider/test loader is not product authentication. Public
+  opt-in integration is separate; this docs-only record changes no product/defaults.
+  Exact decision: `tests/commands/node-independent-20260829/actual-review-v1/ROOT-ACCEPTANCE.md`.

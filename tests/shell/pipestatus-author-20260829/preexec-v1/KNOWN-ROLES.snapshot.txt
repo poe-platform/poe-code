@@ -1,0 +1,52 @@
+1 instruction shell returned
+2 instruction sed returned
+3 instruction shell returned
+4 instruction sed returned
+5 startup shell
+6 mkdir returned
+7 rg source locations returned
+8 rg filter returned
+9 locations-read-shell
+10 owner-locator-shell
+11 owner-read-shell
+12 stat source types returned
+13 sed owner returned
+14 helper-source-shell
+15 rg seal returned
+16 head returned
+17 sed direct-child returned
+18 reused-source-shell
+19 rg helper names returned
+20 sed auth returned
+21 loader-policy-read-shell
+22 sed guard returned
+23 sed finalization returned
+24 profile-read-shell
+25 sed profile returned
+26 executable-author-shell
+27 apply_patch returned
+28 preparation-code-shell
+29 apply_patch returned
+30 admission-hardening-shell
+31 apply_patch returned
+32 prepare-dispatch-shell
+33 Node shasum returned
+34 preparation Node returned
+35 preseal-commit-shell
+36 git-add returned
+37 git-commit returned
+38 continuity clock shell returned
+39 controls dispatch shell
+harmless child C10 spawn requested
+harmless child C11 spawn requested
+harmless child C12 spawn requested
+40 controls Node returned exit=0
+41-43 harmless children pending receipt verification
+44 result-read shell
+45 receipt-display shell
+46 seal-shape shell
+47 preparation-schema shell
+48 publication-patch shell
+49 apply_patch returned exit=0
+50 publication dispatch shell
+51 publication PURE Node enrolled

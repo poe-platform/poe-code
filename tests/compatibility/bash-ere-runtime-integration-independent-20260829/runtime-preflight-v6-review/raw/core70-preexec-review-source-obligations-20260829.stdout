@@ -1,0 +1,65 @@
+
+---tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/HANDOFF.md---
+41:identified source-conflict holds among those65. Equivalently195 body cells,
+42:15 incomplete cells, and six additional conflict-held cells—not195 passes.
+43:
+44:## Exact per-ID decisions/access requirements
+45:
+46:| ID | Source-backed blocker / requested disposition |
+47:|---|---|
+48:| H02 | wire-engine.ts:13 constructs the actual ledger internally; limits.ts:checkpoint has no public progress callback. The parent postMessage/held-reply observer cannot prove an actual matcher checkpoint. Request a fixed worker-local forwarding ledger checkpoint observer, armed only after subject admission, plus one strictly filtered test witness message. Exact wrapper/filter assets must be separately admitted. No new public API, counters, alternate engine or mutable payload. This authority was proposed in v2 and is not assumed granted by approval of the three assertions. |
+49:| H03 | The approved real expansion subcase is implemented. **64-depth public boundary is shadowed by the32-group ceiling:** syntax.ts:88 checks depth, while :161 refuses the33rd group before nested expression can reach depth64. Request SOURCE-only qualification of that unreachable grammar boundary, rather than a fake public test made by lifting the group cap. Proposed remaining public vectors are32/33 groups;4095/4096 literal `a` atoms (sequence node makes4096/4097 nodes);interval255/256; finite `(a|aa){24}` /48-byte subject under public B8192/F1024 for a private-budget refusal. The last vector needs explicit resource-stimulus preseal/finite proof; no current runtime outcome is assumed. |
+50:| H04 | Public strings cannot reveal old private snapshot holds, ticket retirement or simultaneous ledger occupancy. Request read-only forwarding observation around the exact private ArrayOwner.reserve/hold/close and binding retain/release paths, with source-bound ownership identities and no injected counters/lowered caps. Locators: arrays/ledger.ts:181–215,227–233; arrays/state.ts:255–307; runtime.ts:975–985. Without that explicitly admitted instrumentation, public string length alone must not be called private ledger proof. |
+51:| H05 | Runtime target watch precedes session.execute (:943–955), and readonly precedes stale (:972–974,989–991). Request one bounded **parent request-forwarding gate** in worker-observer.postMessage, holding the original request before forwarding while actual context.invoke performs the mutation. It needs no worker-local matcher witness, private state mutation or public option. The currently sealed observer only records then immediately forwards; adding a gate is a concrete observer-role change, not an existing capability to silently assume. |
+52:| H07 | Static literal fault workers may be authored, but the current observer admits only the production worker URL/size/hash; transport/owner.ts constructs that fixed entry. Request an exact per-case production-entry→owned-fault-entry replacement map in the observer, with independently bound static wire-engine imports and positive companions. No blanket alternate URL, new Worker options or relaxed product reply validator. This is a test admission/closure change, not a product API blocker. A fractional ASCII span can test the span validator; it cannot honestly become a non-ASCII UTF8 matching proof under the ASCII-only profile. |
+53:| EH04 | No policy/access blocker: complete three-scenario body is authored, syntax-checked only, actual future execution still required. |
+54:| EH05 | No policy/access blocker: complete three-route body is authored, syntax-checked only; source-derived outcomes remain test expectations, not observed product behavior. |
+55:
+56:The requested observer changes above have **not** been implemented behind an
+57:assumed capability expansion. H03's remaining source classification is also
+58:explicit. There is no210-ready claim or released actual command.
+59:
+60:## Additional source finding: preserve EH01/EH02
+61:
+62:Original v1 uses33 groups as its status3 private-resource stimulus. Actual
+63:selected syntax.ts:161 throws EreUnsupportedError('32-group grammar ceiling');
+64:transport reports semantic unsupported, runtime.ts:959–962 returns2. Numeric
+65:status3 is instead reserved by runtime.ts:1684–1688 for typed private limit errors.
+66:This is a **SOURCE-proven fixture/input mismatch**, not a newly observed product
+67:failure. Original scripts and expected statuses are preserved unchanged, with
+68:additive admissionHold metadata. Request a genuine bounded private-limit stimulus
+69:or a separately classified fixed profile-limit fault reply for control-flow-only
+70:proof; do not silently change their private-limit goal into a grammar test.
+71:
+72:## PURE evidence and literal failures
+73:
+74:The first reader retired exit1 because it compared nonexistent manifest `.size`
+75:against actual length; the authenticated selected catalog uses `.bytes`.
+76:read-v2 validates the real schema and exact SHA/byte count. Both executable
+77:versions and raw stdout/stderr remain. This ordinary helper error was not a
+78:content-hash mismatch; no expected source digest changed. Ten selected source
+---tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/cell-v4.mjs---
+77:    await h06False({ shell, observer });
+78:  } else if (definition.id === 'H08') {
+79:    shell.register({ name: 'relay', execute(context) { assert.equal(typeof context.invoke, 'function'); return context.invoke('match', []); } });
+80:    const script = "match(){ [[ aa =~ (a+) ]]; printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; }; relay; relay";
+81:    await check(script, { exitCode: 0, stdout: '<aa>\n<aa>\n', stderr: { exact: '' } });
+82:    assert.equal(observer.rows.length, 1); assert.equal(observer.rows[0].requests.length, 2);
+83:    assert.ok(observer.rows[0].requests[1].work < observer.rows[0].requests[0].work);
+84:    await check("[[ a =~ (a) ]]; printf '<%s>\\n' \"${BASH_REMATCH[1]}\"", { exitCode: 0, stdout: '<a>\n', stderr: { exact: '' } });
+85:    assert.equal(observer.rows.length, 2);
+86:    h08Fresh({ observer });
+87:  } else if (definition.id === 'EH04') {
+88:    await eh04({ shell, observer });
+89:  } else if (definition.id === 'EH05') {
+90:    await eh05({ shell, observer });
+91:  } else if (definition.id === 'EH01' || definition.id === 'EH02') {
+---/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/syntax.js---
+90:    async expression(depth) {
+91:        if (depth > 64)
+96:            const child = await this.sequence(depth);
+109:    async sequence(depth) {
+115:            let child = await this.atom(depth);
+167:    async atom(depth) {
+178:            const child = await this.expression(depth + 1);
+277:    const root = await parser.expression(0);{"totalSyntacticEdges":33,"relativePackagedEdges":29,"builtinEdges":[{"importer":"dist/commands/regex-execution/ere/limits.js","specifier":"node:timers/promises","target":"node:timers/promises","qualification":"static source edge only; no nested-load execution witness"},{"importer":"dist/commands/regex-execution/ere/transport/owner.js","specifier":"node:worker_threads","target":"node:worker_threads","qualification":"static source edge only; no nested-load execution witness"},{"importer":"dist/commands/regex-execution/ere/transport/validation.js","specifier":"node:util","target":"node:util","qualification":"static source edge only; no nested-load execution witness"},{"importer":"dist/commands/regex-execution/ere/transport/worker-entry.js","specifier":"node:worker_threads","target":"node:worker_threads","qualification":"static source edge only; no nested-load execution witness"}],"qualification":"Count domains explicit; all are static SOURCE edges, no actual nested loads."}

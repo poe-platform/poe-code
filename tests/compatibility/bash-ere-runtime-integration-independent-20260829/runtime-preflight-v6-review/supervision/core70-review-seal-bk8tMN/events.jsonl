@@ -1,0 +1,8 @@
+{"at":"2026-08-29T14:32:52.829Z","event":"owner-start","pid":93994,"mode":"seal"}
+{"at":"2026-08-29T14:32:52.837Z","label":"add","event":"start","pid":93996,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","add","--","tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review"]}
+{"at":"2026-08-29T14:32:52.928Z","label":"add","event":"exit","pid":93996,"code":0,"signal":null}
+{"at":"2026-08-29T14:32:52.931Z","label":"add","event":"close","pid":93996,"code":0,"signal":null,"exited":true}
+{"at":"2026-08-29T14:32:52.937Z","label":"commit","event":"start","pid":93997,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","commit","--only","-m","Seal CORE70 v6 independent preexecution controls","--","tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review"]}
+{"at":"2026-08-29T14:32:53.126Z","label":"commit","event":"exit","pid":93997,"code":0,"signal":null}
+{"at":"2026-08-29T14:32:53.131Z","label":"commit","event":"close","pid":93997,"code":0,"signal":null,"exited":true}
+{"at":"2026-08-29T14:32:53.137Z","event":"owner-complete","pid":93994,"mode":"seal"}

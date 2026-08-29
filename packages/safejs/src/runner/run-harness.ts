@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
 import { hasOwnErrorCode } from "../error-codes.js";
-import { countLineBreaks, extractBlock } from "../loader/extract-block.js";
+import { countLineBreaks, extractBlock, maskSource } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
 import { lint, type Diagnostic } from "../lint.js";
 import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
@@ -93,7 +93,7 @@ export async function runHarness(
   filepath: string,
   options: RunHarnessOptions
 ): Promise<RunHarnessResult> {
-  const rawSource = stripByteOrderMark(await readHarnessFile(filepath));
+  const rawSource = await readHarnessFile(filepath);
   const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
   assertFrontmatterAgentModes(frontmatter);
   const meta = createHarnessMeta(filepath, frontmatter);
@@ -196,12 +196,13 @@ function loadExecutableSource(
   isRawScript: boolean;
 } {
   if (isRawScriptPath(filepath)) {
-    if (source.length === 0) {
+    const executableSource = stripByteOrderMark(source);
+    if (executableSource.length === 0) {
       throw new Error(`No code block found in empty harness file: ${filepath}`);
     }
 
     return {
-      executableSource: source,
+      executableSource,
       frontmatter: {},
       isRawScript: true
     };
@@ -217,10 +218,9 @@ function loadExecutableSource(
     body,
     countLineBreaks(source, 0, bodyStartOffset) + 1
   );
-  const absoluteLineOffset = countLineBreaks(source, 0, bodyStartOffset + startOffset);
-
   return {
-    executableSource: createLineOffsetSource(stripHashbang(executableBlock), absoluteLineOffset),
+    executableSource:
+      maskSource(source.slice(0, bodyStartOffset + startOffset)) + stripHashbang(executableBlock),
     frontmatter,
     isRawScript: false
   };
@@ -327,10 +327,6 @@ function stripHashbang(source: string): string {
   let end = 2;
   while (end < source.length && source[end] !== "\n" && source[end] !== "\r") end += 1;
   return `${" ".repeat(end)}${source.slice(end)}`;
-}
-
-function createLineOffsetSource(source: string, lineOffset: number): string {
-  return `${"\n".repeat(Math.max(lineOffset, 0))}${source}`;
 }
 
 function formatLintErrorMessage(diagnostics: readonly Diagnostic[]): string {

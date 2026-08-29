@@ -58,12 +58,10 @@ export function extractBlock(markdown: string, startLine = 1): ExtractBlockResul
   const parts: string[] = [];
   let cursor = first.start;
   for (const block of blocks) {
-    let gap = "";
-    for (let offset = cursor; offset < block.start; offset++) {
-      const character = markdown[offset];
-      gap += character === "\n" || character === "\r" ? character : " ";
-    }
-    parts.push(gap, markdown.slice(block.start, block.end));
+    parts.push(
+      maskSource(markdown.slice(cursor, block.start)),
+      markdown.slice(block.start, block.end)
+    );
     cursor = block.end;
   }
   return {
@@ -73,6 +71,15 @@ export function extractBlock(markdown: string, startLine = 1): ExtractBlockResul
     startOffset: first.start,
     ranges: blocks.map((block) => [block.start, block.end])
   };
+}
+
+export function maskSource(source: string): string {
+  let masked = "";
+  for (let offset = 0; offset < source.length; offset++) {
+    const character = source[offset];
+    masked += character === "\n" || character === "\r" ? character : " ";
+  }
+  return masked;
 }
 
 interface Fence {

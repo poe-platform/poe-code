@@ -8,7 +8,7 @@ import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { Budget, SandboxError } from "./interp/budget.js";
-import { countLineBreaks, extractBlock } from "./loader/extract-block.js";
+import { countLineBreaks, extractBlock, maskSource } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { lint, type Diagnostic, type Fix } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
@@ -552,17 +552,18 @@ function loadExecutableSource(filepath: string, rawSource: string): LoadedSource
   }
 
   const { frontmatter, body } = splitFrontmatter(source);
-  const bodyStartOffset = source.length - body.length;
-  const executableBlock = extractBlock(body, countLineBreaks(source, 0, bodyStartOffset) + 1);
-  const lineOffset = countLineBreaks(source, 0, bodyStartOffset + executableBlock.startOffset);
+  const bodyStartOffset = rawSource.length - body.length;
+  const executableBlock = extractBlock(body, countLineBreaks(rawSource, 0, bodyStartOffset) + 1);
 
   return {
-    sourceOffset: byteOrderMarkLength + bodyStartOffset + executableBlock.startOffset - lineOffset,
+    sourceOffset: 0,
     fixRanges: executableBlock.ranges.map(([start, end]) => [
-      start - executableBlock.startOffset + lineOffset,
-      end - executableBlock.startOffset + lineOffset
+      bodyStartOffset + start,
+      bodyStartOffset + end
     ]),
-    executableSource: createLineOffsetSource(executableBlock.source, lineOffset),
+    executableSource:
+      maskSource(rawSource.slice(0, bodyStartOffset + executableBlock.startOffset)) +
+      executableBlock.source,
     frontmatter,
     isRawScript: false,
     rawSource
@@ -832,10 +833,6 @@ function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): Mo
 
 function stripByteOrderMark(source: string): string {
   return source.startsWith("\uFEFF") ? source.slice(1) : source;
-}
-
-function createLineOffsetSource(source: string, lineOffset: number): string {
-  return `${"\n".repeat(Math.max(lineOffset, 0))}${source}`;
 }
 
 function normalizeLogEntry(entry: LogModuleEntry): LogModuleEntry {

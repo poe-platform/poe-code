@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { countLineBreaks, extractBlock } from "./loader/extract-block.js";
+import { countLineBreaks, extractBlock, maskSource } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { lint, type Fix } from "./lint.js";
 import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
@@ -179,15 +179,15 @@ function loadExecutableSource(source: string): {
   const bodyStartOffset = source.length - body.length;
   const executableBlock = extractBlock(body, countLineBreaks(source, 0, bodyStartOffset) + 1);
   const hasScriptBlock = executableBlock.source !== body || executableBlock.lineOffset !== 1;
-  const lineOffset = countLineBreaks(source, 0, bodyStartOffset + executableBlock.startOffset);
-
   return {
-    sourceOffset: bodyStartOffset + executableBlock.startOffset - lineOffset,
+    sourceOffset: 0,
     fixRanges: executableBlock.ranges.map(([start, end]) => [
-      start - executableBlock.startOffset + lineOffset,
-      end - executableBlock.startOffset + lineOffset
+      bodyStartOffset + start,
+      bodyStartOffset + end
     ]),
-    executableSource: `${"\n".repeat(lineOffset)}${executableBlock.source}`,
+    executableSource:
+      maskSource(source.slice(0, bodyStartOffset + executableBlock.startOffset)) +
+      executableBlock.source,
     frontmatter,
     hasScriptBlock
   };

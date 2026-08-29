@@ -1,0 +1,14 @@
+publication_epoch=1787997870.9756169319
+known_dispatch_roles_through_publication=28
+full_transitive_process_census=UNOBSERVED
+fixture_children=2
+fixture_exit_close_group_absence=2
+fixture_signals=0
+raw_fixture_capture_bytes=1063
+repository_files=32
+repository_bytes_before_publication=56887
+repository_capture_bytes=8617
+retained_capsule_files=3
+retained_capsule_bytes=4080
+producer_runs=0
+stage_b=UNRUN

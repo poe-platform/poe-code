@@ -1,0 +1,22 @@
+[main 4c764d70] test: seal explicit loader descriptor identities and two fixed probes
+ 20 files changed, 382 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/ACTIVATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/DATA-CONTROLS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/MATERIALIZE.patch
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/PLAN.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/PROFILE.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/SEAL-RESULT.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/plan.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/plan.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/precommit.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/precommit.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/seal.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/capture/seal.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/data-controls/literal.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/descriptor.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/fixture/entry.js.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/fixture/payload.js.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/outer.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2/probe.mjs

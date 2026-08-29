@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "role": "H1 TEXT-only diagnosis; all 28 rows published before nonzero exit",
+  "source": {
+    "name": "syntax-diagnosis.mjs",
+    "size": 3216,
+    "sha256": "56bea316e523b3a59f2d0bf3320358f5849a89ce58dced04f69e245ef009c154"
+  },
+  "typescript": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/BUILD/work/node_modules/typescript/lib/typescript.js",
+    "size": 9112572,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "inputs": [
+    {
+      "name": "bridge-state.mjs.data",
+      "size": 763,
+      "sha256": "a77be6b40d41175011cbaf4bfc1d55291a39cba247254413fde4beb9e5425b44"
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "size": 2291,
+      "sha256": "44b7b27866b8d3dac8669a457d70e44213db35ceb39413f56364ea0070bdbacf"
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "size": 287,
+      "sha256": "6d17eb806c3adccec39841e36a912692810ecfd09c3b010d3a586f4325cb6280"
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "size": 2033,
+      "sha256": "133080e5c3872651169848cbd269af7adb531884a63ce15359a7bf3a1b628971"
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "size": 12620,
+      "sha256": "2f25a171d6d3cb8902521b4a2680a8e8c60a2d440030cb0f599692a67b5a4d5e"
+    },
+    {
+      "name": "FAULT-ASSETS.json",
+      "size": 19335,
+      "sha256": "cf197e48813f738ff8e7f5474c5c795bb1b1c274305241054603b0dcac88324e"
+    }
+  ],
+  "limits": {
+    "seconds": 30,
+    "captureBytes": 1048576,
+    "productImports": 0,
+    "Workers": 0
+  }
+}

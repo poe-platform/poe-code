@@ -260,7 +260,7 @@ async function replaceRegex(
     result += value.slice(copiedThrough, match.index);
     result +=
       typeof replacement === "string"
-        ? expandReplacement(replacement, match.text, match.captures)
+        ? expandReplacement(replacement, match.text, match.captures, value, match.index)
         : String(
             await callClosure(replacement, [match.text, ...match.captures, match.index, value])
           );
@@ -273,13 +273,49 @@ async function replaceRegex(
 function expandReplacement(
   replacement: string,
   match: string,
-  captures: (string | undefined)[]
+  captures: (string | undefined)[],
+  input: string,
+  matchIndex: number
 ): string {
-  return replacement.replace(/\$([$&]|[1-9][0-9]?)/g, (token, part: string) => {
-    if (part === "$") return "$";
-    if (part === "&") return match;
-    return captures[Number(part) - 1] ?? token;
-  });
+  let result = "";
+  for (let index = 0; index < replacement.length; index += 1) {
+    const character = replacement.charAt(index);
+    if (character !== "$") {
+      result += character;
+      continue;
+    }
+
+    const token = replacement.charAt(index + 1);
+    if (token === "$") {
+      result += "$";
+    } else if (token === "&") {
+      result += match;
+    } else if (token === "`") {
+      result += input.slice(0, matchIndex);
+    } else if (token === "'") {
+      result += input.slice(matchIndex + match.length);
+    } else if (token >= "0" && token <= "9") {
+      let captureIndex = Number(token);
+      const nextDigit = replacement.charAt(index + 2);
+      if (nextDigit >= "0" && nextDigit <= "9") {
+        const twoDigitIndex = Number(token + nextDigit);
+        if (twoDigitIndex > 0 && twoDigitIndex <= captures.length) {
+          captureIndex = twoDigitIndex;
+          index += 1;
+        }
+      }
+      if (captureIndex === 0 || captureIndex > captures.length) {
+        result += "$";
+        continue;
+      }
+      result += captures[captureIndex - 1] ?? "";
+    } else {
+      result += "$";
+      continue;
+    }
+    index += 1;
+  }
+  return result;
 }
 
 async function replaceWithClosure(

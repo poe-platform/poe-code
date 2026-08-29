@@ -1,0 +1,2254 @@
+/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib (architecture x86_64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000040000
+  fileoff 0
+ filesize 262144
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000001658
+      size 0x000000000003b336
+    offset 5720
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x000000000003c98e
+      size 0x0000000000000180
+    offset 248206
+     align 2^1 (2)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 6 (size of stubs)
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x000000000003cb10
+      size 0x0000000000000d30
+    offset 248592
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x000000000003d840
+      size 0x0000000000001867
+    offset 251968
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x000000000003f0a8
+      size 0x00000000000009c8
+    offset 258216
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000000040000
+   vmsize 0x0000000000002000
+  fileoff 262144
+ filesize 8192
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000000040000
+      size 0x0000000000000228
+    offset 262144
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 64 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x0000000000040230
+      size 0x0000000000001d68
+    offset 262704
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 312
+  segname __DATA
+   vmaddr 0x0000000000042000
+   vmsize 0x0000000000001000
+  fileoff 270336
+ filesize 4096
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 3
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x0000000000042000
+      size 0x0000000000000018
+    offset 270336
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x0000000000042018
+      size 0x00000000000000a8
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x00000000000420c0
+      size 0x0000000000000018
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x0000000000043000
+   vmsize 0x000000000000c000
+  fileoff 274432
+ filesize 33520
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 48
+         name @rpath/libtapi.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 2100.0.2
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 274432
+ datasize 2352
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 276784
+ datasize 1800
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 280256
+   nsyms 120
+  stroff 282712
+ strsize 4664
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 1
+     iextdefsym 1
+     nextdefsym 47
+      iundefsym 48
+      nundefsym 72
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 282176
+  nindirectsyms 133
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 5B88C406-CBFE-35F0-8C66-54524D72EB3D
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 2100.0.2.6
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.2.12
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_SUB_CLIENT
+      cmdsize 16
+       client ld (offset 12)
+Load command 16
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 278584
+ datasize 1344
+Load command 17
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 279928
+ datasize 328
+Load command 18
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 287376
+ datasize 20576
+/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib (architecture arm64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000040000
+  fileoff 0
+ filesize 262144
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000001648
+      size 0x00000000000382c4
+    offset 5704
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x000000000003990c
+      size 0x00000000000002f4
+    offset 235788
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000000039c00
+      size 0x0000000000000d08
+    offset 236544
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x000000000003a908
+      size 0x0000000000001bb6
+    offset 239880
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x000000000003c4c0
+      size 0x0000000000000a20
+    offset 246976
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000000040000
+   vmsize 0x0000000000004000
+  fileoff 262144
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000000040000
+      size 0x0000000000000218
+    offset 262144
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 63 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x0000000000040218
+      size 0x0000000000001d80
+    offset 262680
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 312
+  segname __DATA
+   vmaddr 0x0000000000044000
+   vmsize 0x0000000000004000
+  fileoff 278528
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 3
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x0000000000044000
+      size 0x0000000000000018
+    offset 278528
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x0000000000044018
+      size 0x00000000000000a8
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x00000000000440c0
+      size 0x0000000000000018
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x0000000000048000
+   vmsize 0x000000000000c000
+  fileoff 294912
+ filesize 33328
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 48
+         name @rpath/libtapi.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 2100.0.2
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 294912
+ datasize 2328
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 297240
+ datasize 1776
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 300400
+   nsyms 120
+  stroff 302840
+ strsize 4656
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 1
+     iextdefsym 1
+     nextdefsym 47
+      iundefsym 48
+      nundefsym 72
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 302320
+  nindirectsyms 130
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 24F5772D-58EC-3ABE-89C3-EE71CE600519
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 2100.0.2.6
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.2.12
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_SUB_CLIENT
+      cmdsize 16
+       client ld (offset 12)
+Load command 16
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 299016
+ datasize 1384
+Load command 17
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 300400
+ datasize 0
+Load command 18
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 307504
+ datasize 20736
+/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib (architecture x86_64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000004000
+  fileoff 0
+ filesize 16384
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x00000000000005b0
+      size 0x0000000000001ef0
+    offset 1456
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x00000000000024a0
+      size 0x0000000000000096
+    offset 9376
+     align 2^1 (2)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 6 (size of stubs)
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000000002540
+      size 0x00000000000000a4
+    offset 9536
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x00000000000025e4
+      size 0x000000000000094b
+    offset 9700
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x0000000000002f30
+      size 0x0000000000000118
+    offset 12080
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000000004000
+   vmsize 0x0000000000001000
+  fileoff 16384
+ filesize 4096
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000000004000
+      size 0x00000000000000e8
+    offset 16384
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 25 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x00000000000040f0
+      size 0x00000000000000e0
+    offset 16624
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA
+   vmaddr 0x0000000000005000
+   vmsize 0x0000000000001000
+  fileoff 20480
+ filesize 4096
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x0000000000005000
+      size 0x0000000000000008
+    offset 20480
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x0000000000005008
+      size 0x0000000000000010
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x0000000000006000
+   vmsize 0x0000000000008000
+  fileoff 24576
+ filesize 24448
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/libcodedirectory.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 1.0.0
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 24576
+ datasize 664
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 25240
+ datasize 800
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 26136
+   nsyms 110
+  stroff 28112
+ strsize 2328
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 39
+     iextdefsym 39
+     nextdefsym 39
+      iundefsym 78
+      nundefsym 32
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 27896
+  nindirectsyms 54
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid C8ADF313-2EEF-3EC0-90F2-9E97A1D1786D
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 17.0
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 13
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 26040
+ datasize 80
+Load command 14
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 26120
+ datasize 16
+Load command 15
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 30448
+ datasize 18576
+/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib (architecture arm64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000004000
+  fileoff 0
+ filesize 16384
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000000590
+      size 0x0000000000002140
+    offset 1424
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x00000000000026d0
+      size 0x0000000000000120
+    offset 9936
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x00000000000027f0
+      size 0x000000000000009c
+    offset 10224
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x000000000000288c
+      size 0x000000000000094b
+    offset 10380
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x00000000000031d8
+      size 0x0000000000000120
+    offset 12760
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000000004000
+   vmsize 0x0000000000004000
+  fileoff 16384
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000000004000
+      size 0x00000000000000e8
+    offset 16384
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 24 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x00000000000040e8
+      size 0x0000000000000100
+    offset 16616
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA
+   vmaddr 0x0000000000008000
+   vmsize 0x0000000000004000
+  fileoff 32768
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x0000000000008000
+      size 0x0000000000000008
+    offset 32768
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x0000000000008008
+      size 0x0000000000000010
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x000000000000c000
+   vmsize 0x0000000000008000
+  fileoff 49152
+ filesize 24608
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/libcodedirectory.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 1.0.0
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 49152
+ datasize 656
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 49808
+ datasize 800
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 50696
+   nsyms 110
+  stroff 52672
+ strsize 2320
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 39
+     iextdefsym 39
+     nextdefsym 39
+      iundefsym 78
+      nundefsym 32
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 52456
+  nindirectsyms 53
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 719BEFFB-CC3E-3FFC-AF38-66D63AED300E
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 17.0
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 13
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 50608
+ datasize 88
+Load command 14
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 50696
+ datasize 0
+Load command 15
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 54992
+ datasize 18768
+/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib (architecture x86_64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 792
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000003f9d000
+  fileoff 0
+ filesize 66703360
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 9
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000001d40
+      size 0x0000000002f54410
+    offset 7488
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x0000000002f56150
+      size 0x0000000000000912
+    offset 49635664
+     align 2^1 (2)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 6 (size of stubs)
+Section
+  sectname __init_offsets
+   segname __TEXT
+      addr 0x0000000002f56a64
+      size 0x0000000000000810
+    offset 49637988
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000016
+ reserved1 0
+ reserved2 0
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000002f57280
+      size 0x0000000000ecc600
+    offset 49640064
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x0000000003e23880
+      size 0x0000000000125235
+    offset 65157248
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __gcc_except_tab
+   segname __TEXT
+      addr 0x0000000003f48ab8
+      size 0x00000000000215ac
+    offset 66357944
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __ustring
+   segname __TEXT
+      addr 0x0000000003f6a070
+      size 0x000000000000026e
+    offset 66494576
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x0000000003f6a2e0
+      size 0x0000000000031d38
+    offset 66495200
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __eh_frame
+   segname __TEXT
+      addr 0x0000000003f9c018
+      size 0x0000000000000058
+    offset 66699288
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x6800000b
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000003f9d000
+   vmsize 0x000000000012c000
+  fileoff 66703360
+ filesize 1228800
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000003f9d000
+      size 0x0000000000001240
+    offset 66703360
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 387 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x0000000003f9e240
+      size 0x0000000000129e10
+    offset 66708032
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 632
+  segname __DATA
+   vmaddr 0x00000000040c9000
+   vmsize 0x000000000009c000
+  fileoff 67932160
+ filesize 32768
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 7
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x00000000040c9000
+      size 0x0000000000007588
+    offset 67932160
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __static_data
+   segname __DATA
+      addr 0x00000000040d05c0
+      size 0x0000000000000410
+    offset 67962304
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_vars
+   segname __DATA
+      addr 0x00000000040d09d0
+      size 0x0000000000000240
+    offset 67963344
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000013
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_data
+   segname __DATA
+      addr 0x00000000040d0c40
+      size 0x0000000000000084
+    offset 67963968
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000011
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_bss
+   segname __DATA
+      addr 0x00000000040d0d00
+      size 0x00000000000000a0
+    offset 0
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000012
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x00000000040d0dc0
+      size 0x0000000000082831
+    offset 0
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x0000000004153600
+      size 0x0000000000010fd0
+    offset 0
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x0000000004165000
+   vmsize 0x0000000000c7c000
+  fileoff 67964928
+ filesize 13078704
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 48
+         name @rpath/libLTO.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 5100.1.1
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 67964928
+ datasize 13552
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 67978480
+ datasize 3160
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 68098688
+   nsyms 115382
+  stroff 69948688
+ strsize 10448528
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 114800
+     iextdefsym 114800
+     nextdefsym 126
+      iundefsym 114926
+      nundefsym 456
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 69944800
+  nindirectsyms 971
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 58BA0691-537D-3ECD-B199-F08725ED506A
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 2100.1.1.101
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.2.12
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libresolv.9.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.0.0
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 16
+          cmd LC_RPATH
+      cmdsize 32
+         path @loader_path/../lib (offset 12)
+Load command 17
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 67981640
+ datasize 117048
+Load command 18
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 68098688
+ datasize 0
+Load command 19
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 80397216
+ datasize 646416
+/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib (architecture arm64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 792
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000003bcc000
+  fileoff 0
+ filesize 62701568
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 9
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000001cc0
+      size 0x0000000002b5d888
+    offset 7360
+     align 2^5 (32)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x0000000002b5f548
+      size 0x000000000000120c
+    offset 45479240
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __init_offsets
+   segname __TEXT
+      addr 0x0000000002b60754
+      size 0x0000000000000810
+    offset 45483860
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000016
+ reserved1 0
+ reserved2 0
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000002b60f70
+      size 0x0000000000edef3c
+    offset 45485936
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x0000000003a3feb0
+      size 0x00000000001340a1
+    offset 61079216
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __gcc_except_tab
+   segname __TEXT
+      addr 0x0000000003b73f54
+      size 0x00000000000214a0
+    offset 62340948
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __ustring
+   segname __TEXT
+      addr 0x0000000003b953f4
+      size 0x000000000000026e
+    offset 62477300
+     align 2^1 (2)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x0000000003b95664
+      size 0x0000000000035840
+    offset 62477924
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __eh_frame
+   segname __TEXT
+      addr 0x0000000003bcaea8
+      size 0x00000000000004c8
+    offset 62697128
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x6800000b
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000003bcc000
+   vmsize 0x0000000000134000
+  fileoff 62701568
+ filesize 1261568
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000003bcc000
+      size 0x0000000000000db0
+    offset 62701568
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 385 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x0000000003bccdb0
+      size 0x0000000000130d78
+    offset 62705072
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 552
+  segname __DATA
+   vmaddr 0x0000000003d00000
+   vmsize 0x0000000000090000
+  fileoff 63963136
+ filesize 32768
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 6
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x0000000003d00000
+      size 0x0000000000007280
+    offset 63963136
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_vars
+   segname __DATA
+      addr 0x0000000003d07280
+      size 0x0000000000000240
+    offset 63992448
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000013
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_data
+   segname __DATA
+      addr 0x0000000003d074c0
+      size 0x0000000000000084
+    offset 63993024
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000011
+ reserved1 0
+ reserved2 0
+Section
+  sectname __thread_bss
+   segname __DATA
+      addr 0x0000000003d07580
+      size 0x00000000000000a0
+    offset 0
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000012
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x0000000003d07640
+      size 0x0000000000077790
+    offset 0
+     align 2^6 (64)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x0000000003d7edd0
+      size 0x0000000000010660
+    offset 0
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x0000000003d90000
+   vmsize 0x0000000000c20000
+  fileoff 63995904
+ filesize 12703408
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 48
+         name @rpath/libLTO.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 5100.1.1
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 63995904
+ datasize 12952
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 64008856
+ datasize 3160
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 64126160
+   nsyms 112356
+  stroff 65927152
+ strsize 10159432
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 111776
+     iextdefsym 111776
+     nextdefsym 126
+      iundefsym 111902
+      nundefsym 454
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 65923856
+  nindirectsyms 823
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid C2CB6E38-CAA7-38BC-A766-C134D601B04B
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 2100.1.1.101
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.2.12
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libresolv.9.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1.0.0
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 16
+          cmd LC_RPATH
+      cmdsize 32
+         path @loader_path/../lib (offset 12)
+Load command 17
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 64012016
+ datasize 114144
+Load command 18
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 64126160
+ datasize 0
+Load command 19
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 76086592
+ datasize 612720
+/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib (architecture x86_64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x000000000007b000
+  fileoff 0
+ filesize 503808
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x00000000000015d0
+      size 0x0000000000073340
+    offset 5584
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x0000000000074910
+      size 0x00000000000000ba
+    offset 477456
+     align 2^1 (2)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 6 (size of stubs)
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x00000000000749d0
+      size 0x0000000000002e81
+    offset 477648
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000000077860
+      size 0x0000000000002fa4
+    offset 489568
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x000000000007a804
+      size 0x00000000000003c0
+    offset 501764
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x000000000007b000
+   vmsize 0x0000000000001000
+  fileoff 503808
+ filesize 4096
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x000000000007b000
+      size 0x0000000000000100
+    offset 503808
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 31 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x000000000007b100
+      size 0x00000000000001b0
+    offset 504064
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 152
+  segname __DATA
+   vmaddr 0x000000000007c000
+   vmsize 0x0000000000001000
+  fileoff 507904
+ filesize 4096
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 1
+    flags 0x0
+Section
+  sectname __crash_info
+   segname __DATA
+      addr 0x000000000007c000
+      size 0x0000000000000040
+    offset 507904
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x000000000007d000
+   vmsize 0x0000000000018000
+  fileoff 512000
+ filesize 95760
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/libswiftDemangle.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 6.3.3
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 512000
+ datasize 1032
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 513032
+ datasize 10192
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 524816
+   nsyms 679
+  stroff 535936
+ strsize 48920
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 410
+     iextdefsym 410
+     nextdefsym 237
+      iundefsym 647
+      nundefsym 32
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 535680
+  nindirectsyms 63
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 0DCE7CDD-3EB4-3A6E-BC6A-932BDB227B56
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 6.3.3.1.3
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 228.0.0
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_RPATH
+      cmdsize 32
+         path /usr/lib/swift (offset 12)
+Load command 16
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 523224
+ datasize 1168
+Load command 17
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 524392
+ datasize 424
+Load command 18
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 584864
+ datasize 22896
+/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib (architecture arm64):
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000074000
+  fileoff 0
+ filesize 475136
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x00000000000015c0
+      size 0x000000000006af3c
+    offset 5568
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x000000000006c4fc
+      size 0x0000000000000168
+    offset 443644
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x000000000006c664
+      size 0x00000000000050aa
+    offset 444004
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000000071710
+      size 0x0000000000001b7c
+    offset 464656
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x000000000007328c
+      size 0x00000000000005b8
+    offset 471692
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 232
+  segname __DATA_CONST
+   vmaddr 0x0000000000074000
+   vmsize 0x0000000000004000
+  fileoff 475136
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 2
+    flags 0x10
+Section
+  sectname __got
+   segname __DATA_CONST
+      addr 0x0000000000074000
+      size 0x0000000000000100
+    offset 475136
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 30 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA_CONST
+      addr 0x0000000000074100
+      size 0x0000000000000e10
+    offset 475392
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 152
+  segname __DATA
+   vmaddr 0x0000000000078000
+   vmsize 0x0000000000004000
+  fileoff 491520
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 1
+    flags 0x0
+Section
+  sectname __crash_info
+   segname __DATA
+      addr 0x0000000000078000
+      size 0x0000000000000040
+    offset 491520
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x000000000007c000
+   vmsize 0x0000000000018000
+  fileoff 507904
+ filesize 94768
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 4
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/libswiftDemangle.dylib (offset 24)
+   time stamp 1 Thu Jan  1 00:00:01 1970
+      current version 6.3.3
+compatibility version 1.0.0
+Load command 5
+      cmd LC_DYLD_CHAINED_FIXUPS
+  cmdsize 16
+  dataoff 507904
+ datasize 1032
+Load command 6
+      cmd LC_DYLD_EXPORTS_TRIE
+  cmdsize 16
+  dataoff 508936
+ datasize 10152
+Load command 7
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 520248
+   nsyms 672
+  stroff 531248
+ strsize 48560
+Load command 8
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 403
+     iextdefsym 403
+     nextdefsym 237
+      iundefsym 640
+      nundefsym 32
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 531000
+  nindirectsyms 62
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 9
+     cmd LC_UUID
+ cmdsize 24
+    uuid 0F54A2B1-DCDB-38C4-B73A-9FD3B83FE74D
+Load command 10
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 14.0
+      sdk 26.4
+   ntools 1
+     tool 3
+  version 1267.0
+Load command 11
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 6.3.3.1.3
+Load command 12
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 228.0.0
+compatibility version 1.0.0
+Load command 13
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 2100.39.0
+compatibility version 1.0.0
+Load command 14
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 00:00:02 1970
+      current version 1356.0.0
+compatibility version 1.0.0
+Load command 15
+          cmd LC_RPATH
+      cmdsize 32
+         path /usr/lib/swift (offset 12)
+Load command 16
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 519088
+ datasize 1160
+Load command 17
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 520248
+ datasize 0
+Load command 18
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 579808
+ datasize 22864

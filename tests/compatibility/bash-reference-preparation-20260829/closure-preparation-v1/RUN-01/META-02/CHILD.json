@@ -1,0 +1,14 @@
+{
+  "id": "META-02",
+  "status": {
+    "code": 0,
+    "signal": null
+  },
+  "closed": true,
+  "failure": null,
+  "sizes": [
+    45210,
+    0
+  ],
+  "elapsedMs": 19.705375000000004
+}

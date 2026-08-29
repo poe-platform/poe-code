@@ -1,0 +1,350 @@
+{
+  "tools": [
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "resolved": "/usr/bin/sandbox-exec",
+      "isLink": false,
+      "bytes": 102560,
+      "mode": "755",
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    },
+    {
+      "path": "/usr/bin/eslogger",
+      "resolved": "/usr/bin/eslogger",
+      "isLink": false,
+      "bytes": 1183680,
+      "mode": "755",
+      "sha256": "6394d699c75b416a1e7c8bce099d1060c303957c373ab6572a75d1e3cf21ecb2"
+    },
+    {
+      "path": "/usr/sbin/dtrace",
+      "resolved": "/usr/sbin/dtrace",
+      "isLink": false,
+      "bytes": 173664,
+      "mode": "755",
+      "sha256": "98856c0a34e4f1b9ee5919c52e694baa3d2ad2aaac5c713bdea7208e883eabb6"
+    },
+    {
+      "path": "/usr/bin/ps",
+      "absent": true
+    }
+  ],
+  "manuals": [
+    {
+      "path": "/usr/share/man/man1/sandbox-exec.1",
+      "resolved": "/usr/share/man/man1/sandbox-exec.1",
+      "isLink": false,
+      "bytes": 1102,
+      "mode": "644",
+      "sha256": "0d264f72dc6a8e0db5474840f33b512542c469beb109ed146c17055da287336b",
+      "lineClassifications": [
+        {
+          "line": 5,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 8,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 9,
+          "concepts": [
+            "deprecated",
+            "exec"
+          ]
+        },
+        {
+          "line": 22,
+          "concepts": [
+            "deprecated"
+          ]
+        },
+        {
+          "line": 31,
+          "concepts": [
+            "exec"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/usr/share/man/man1/eslogger.1",
+      "resolved": "/usr/share/man/man1/eslogger.1",
+      "isLink": false,
+      "bytes": 5702,
+      "mode": "644",
+      "sha256": "b0378cec2f92ea0093a9ca7d42b0bd27ad9469018dd40c2c541eb97eebd72f3d",
+      "lineClassifications": [
+        {
+          "line": 23,
+          "concepts": [
+            "Full Disk"
+          ]
+        },
+        {
+          "line": 51,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 70,
+          "concepts": [
+            "exec",
+            "exit"
+          ]
+        },
+        {
+          "line": 97,
+          "concepts": [
+            "exec",
+            "fork",
+            "exit"
+          ]
+        },
+        {
+          "line": 109,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 113,
+          "concepts": [
+            "Full Disk"
+          ]
+        },
+        {
+          "line": 116,
+          "concepts": [
+            "Full Disk"
+          ]
+        },
+        {
+          "line": 119,
+          "concepts": [
+            "Full Disk"
+          ]
+        },
+        {
+          "line": 120,
+          "concepts": [
+            "Full Disk",
+            "privacy"
+          ]
+        },
+        {
+          "line": 125,
+          "concepts": [
+            "Full Disk"
+          ]
+        },
+        {
+          "line": 126,
+          "concepts": [
+            "Full Disk",
+            "privacy"
+          ]
+        },
+        {
+          "line": 127,
+          "concepts": [
+            "Full Disk",
+            "privacy"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/usr/share/man/man1/dtrace.1",
+      "resolved": "/usr/share/man/man1/dtrace.1",
+      "isLink": false,
+      "bytes": 45815,
+      "mode": "644",
+      "sha256": "bb92b5c4389002d76d0387f8641d49c6565b37a8858d22d79a059a933e2becc6",
+      "lineClassifications": [
+        {
+          "line": 120,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 125,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 134,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 139,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 144,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 180,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 186,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 188,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 353,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 358,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 434,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 450,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 452,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 457,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 458,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 478,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 626,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 664,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 667,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 950,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 968,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 1005,
+          "concepts": [
+            "exec"
+          ]
+        },
+        {
+          "line": 1347,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1350,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1501,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1502,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1507,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1515,
+          "concepts": [
+            "exit"
+          ]
+        },
+        {
+          "line": 1528,
+          "concepts": [
+            "exec"
+          ]
+        }
+      ]
+    }
+  ],
+  "observedPermissionGrant": false,
+  "fenceActivated": false,
+  "observerExecuted": false
+}

@@ -1,0 +1,84 @@
+{
+  "selector": {
+    "path": "/private/var/select/sh",
+    "mode": "755",
+    "isSymbolicLink": true,
+    "link": "/bin/bash"
+  },
+  "manual": {
+    "path": "/usr/share/man/man1/sh.1",
+    "bytes": 2097,
+    "sha256": "bdd621de221975e429524b29816ee4275ae841704f01906b24529dbc518bd823",
+    "lineClassifications": [
+      {
+        "line": 39,
+        "concepts": [
+          "re-exec"
+        ]
+      },
+      {
+        "line": 40,
+        "concepts": [
+          "bash"
+        ]
+      },
+      {
+        "line": 41,
+        "concepts": [
+          "dash"
+        ]
+      },
+      {
+        "line": 43,
+        "concepts": [
+          "zsh"
+        ]
+      },
+      {
+        "line": 45,
+        "concepts": [
+          "select/sh"
+        ]
+      },
+      {
+        "line": 47,
+        "concepts": [
+          "select/sh"
+        ]
+      },
+      {
+        "line": 50,
+        "concepts": [
+          "supported shells"
+        ]
+      },
+      {
+        "line": 54,
+        "concepts": [
+          "select/sh"
+        ]
+      },
+      {
+        "line": 61,
+        "concepts": [
+          "bash"
+        ]
+      },
+      {
+        "line": 62,
+        "concepts": [
+          "dash"
+        ]
+      },
+      {
+        "line": 65,
+        "concepts": [
+          "zsh"
+        ]
+      }
+    ]
+  },
+  "dispatcherRan": false,
+  "selectedRuntimeObserved": false,
+  "proposal": "Use explicitly pinned /bin/bash as CONFIG_SHELL and SHELL with absent ENV/BASH_ENV and noninteractive invocation, rather than claiming /bin/sh identity closes its dispatch. Any remaining hardcoded /bin/sh call is a separate unqualified interpreter edge, not permission to allow all fallback shells."
+}

@@ -1,0 +1,28 @@
+{
+  "reader": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "isLink": false,
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  "argv": [
+    "-l",
+    "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+    "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+    "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+    "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib"
+  ],
+  "env": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/META-02/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/META-02/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/META-02/empty-bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/META-02",
+  "maxBodyMs": 10000,
+  "maxRetireMs": 1000
+}

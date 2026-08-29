@@ -1,0 +1,42 @@
+{
+  "status": "PREPARATION_COMPLETE_BUILD_HELD",
+  "signatureCommit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+  "sourceCommit": "efcd8b49a63ceb4276ae9d075da59bfb027b3510",
+  "metadataPreseal": "2ba8bff61c542c6b6d74dd5ee06374d48131b73e",
+  "profileP1Sha256": "0d483ca59ee76011a001c10dd096ad623b7e36ac1e054e88e77c02d8c476fad0",
+  "profileP2Sha256": "83a79cdbe5a387ddc95f72a74011639743847daa0ee056296a386bfe5deaea68",
+  "summary": {
+    "status": "METADATA_COMPLETE_NOT_BUILD_READY",
+    "toolObservations": 49,
+    "presentTools": 45,
+    "distinctToolFiles": 44,
+    "loaderFiles": 48,
+    "newLibraryFiles": 4,
+    "unresolvedLoaderEdges": 0,
+    "systemImageEdges": 123,
+    "sdk": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
+    "resource": "/Library/Developer/CommandLineTools/usr/lib/clang/21",
+    "headerFiles": 366,
+    "headerBytes": 2911692,
+    "headerCandidatesUnprocessed": 0,
+    "absentOrUnresolvedHeaderCandidates": 401,
+    "stubs": 47,
+    "stubBytes": 863546,
+    "missingStubs": 1,
+    "sourceUnchanged": {
+      "source": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+      "members": 1602,
+      "sha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    },
+    "runtimeOrFenceQualified": false
+  },
+  "metadataChildrenClosed": 2,
+  "activeOwnedChildren": 0,
+  "buildExecutions": 0,
+  "fenceActivations": 0,
+  "proposedProbes": 14,
+  "probesExecuted": 0,
+  "readFilesInP2": 476,
+  "executableAliasesInP2": 41,
+  "executableFilesInP2": 40
+}

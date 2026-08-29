@@ -1,0 +1,2445 @@
+{
+  "loadCommands": [
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "x86_64",
+      "rpaths": [
+        "@loader_path/../lib"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libresolv.9.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "arm64",
+      "rpaths": [
+        "@loader_path/../lib"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libresolv.9.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rpaths": [
+        "@executable_path/../lib/"
+      ],
+      "libraries": [
+        {
+          "name": "@rpath/libtapi.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libcodedirectory.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libLTO.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libswiftDemangle.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/PrivateFrameworks/CoreAnalytics.framework/Versions/A/CoreAnalytics",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libobjc.A.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rpaths": [
+        "@executable_path/../lib/"
+      ],
+      "libraries": [
+        {
+          "name": "@rpath/libtapi.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libcodedirectory.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libLTO.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "@rpath/libswiftDemangle.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/PrivateFrameworks/CoreAnalytics.framework/Versions/A/CoreAnalytics",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libobjc.A.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "architecture": "x86_64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "architecture": "arm64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "architecture": "x86_64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "architecture": "arm64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "x86_64",
+      "rpaths": [
+        "@executable_path/../lib/"
+      ],
+      "libraries": [
+        {
+          "name": "@rpath/libLTO.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "arm64",
+      "rpaths": [
+        "@executable_path/../lib/"
+      ],
+      "libraries": [
+        {
+          "name": "@rpath/libLTO.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "x86_64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "arm64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/sh",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/bash",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/sed",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/awk",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/grep",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libbz2.1.0.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/liblzma.5.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/tr",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/sort",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/expr",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/wc",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libxo.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/dirname",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/basename",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/cat",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/rm",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/mkdir",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/cp",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/mv",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/chmod",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/touch",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/env",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/uname",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/head",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/tail",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libutil.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/cut",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/cmp",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libutil.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/install",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libmd.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/printf",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/true",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/false",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/tee",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/od",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/du",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libutil.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/ls",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libutil.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/readlink",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/pwd",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/bin/sleep",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libsandbox.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/System/Library/PrivateFrameworks/ArgumentParserInternal.framework/Versions/A/ArgumentParserInternal",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libEndpointSecurity.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libobjc.A.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftCore.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftCoreFoundation.dylib",
+          "kind": "LC_LOAD_WEAK_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftDispatch.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftIOKit.dylib",
+          "kind": "LC_LOAD_WEAK_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftObjectiveC.dylib",
+          "kind": "LC_LOAD_WEAK_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftSystem.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftXPC.dylib",
+          "kind": "LC_LOAD_WEAK_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswift_Builtin_float.dylib",
+          "kind": "LC_LOAD_WEAK_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswift_DarwinFoundation1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/swift/libswiftos.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libdtrace.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "x86_64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "arm64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "architecture": "x86_64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "architecture": "arm64",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "x86_64",
+      "rpaths": [
+        "@loader_path/../lib"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libresolv.9.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "arm64",
+      "rpaths": [
+        "@loader_path/../lib"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libz.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libresolv.9.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "x86_64",
+      "rpaths": [
+        "/usr/lib/swift"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libobjc.A.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "arm64",
+      "rpaths": [
+        "/usr/lib/swift"
+      ],
+      "libraries": [
+        {
+          "name": "/usr/lib/libobjc.A.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libc++.1.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": []
+    }
+  ],
+  "edges": [
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libresolv.9.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libresolv.9.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libtapi.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+          "isLink": false,
+          "bytes": 655920,
+          "mode": "755",
+          "sha256": "d4fe1afc4fee343de797e5c4f6c3891ffd8b97a18a02011b8d7371a2ac0bf2a2"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libcodedirectory.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+          "isLink": false,
+          "bytes": 139296,
+          "mode": "755",
+          "sha256": "07bc6fe7df6f118caa658a251e14fe44cd2391303b61013af20970902f8f0d64"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libLTO.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "isLink": false,
+          "bytes": 157767344,
+          "mode": "755",
+          "sha256": "52f09013247c7da02f8d566a737427c0e7b7a6988e967a2c0ac6e534946caeaf"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libswiftDemangle.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+          "isLink": false,
+          "bytes": 1241648,
+          "mode": "755",
+          "sha256": "c87c6d5299266089820e9da6e45d6dbfb075c43c4ed1088d992cae59c3ac1d70"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/PrivateFrameworks/CoreAnalytics.framework/Versions/A/CoreAnalytics",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libobjc.A.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libtapi.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+          "isLink": false,
+          "bytes": 655920,
+          "mode": "755",
+          "sha256": "d4fe1afc4fee343de797e5c4f6c3891ffd8b97a18a02011b8d7371a2ac0bf2a2"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libcodedirectory.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+          "isLink": false,
+          "bytes": 139296,
+          "mode": "755",
+          "sha256": "07bc6fe7df6f118caa658a251e14fe44cd2391303b61013af20970902f8f0d64"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libLTO.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "isLink": false,
+          "bytes": 157767344,
+          "mode": "755",
+          "sha256": "52f09013247c7da02f8d566a737427c0e7b7a6988e967a2c0ac6e534946caeaf"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "@rpath/libswiftDemangle.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+          "isLink": false,
+          "bytes": 1241648,
+          "mode": "755",
+          "sha256": "c87c6d5299266089820e9da6e45d6dbfb075c43c4ed1088d992cae59c3ac1d70"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/PrivateFrameworks/CoreAnalytics.framework/Versions/A/CoreAnalytics",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libobjc.A.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "@rpath/libLTO.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "isLink": false,
+          "bytes": 157767344,
+          "mode": "755",
+          "sha256": "52f09013247c7da02f8d566a737427c0e7b7a6988e967a2c0ac6e534946caeaf"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "@rpath/libLTO.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [
+        {
+          "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "resolved": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+          "isLink": false,
+          "bytes": 157767344,
+          "mode": "755",
+          "sha256": "52f09013247c7da02f8d566a737427c0e7b7a6988e967a2c0ac6e534946caeaf"
+        }
+      ],
+      "classification": "UNIQUE_PRESENT_STATIC_CANDIDATE_NOT_DYLD_OBSERVATION"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/sh",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/sh",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/bash",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/bash",
+      "name": "/usr/lib/libncurses.5.4.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/bash",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/bash",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/sed",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/sed",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/awk",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/awk",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/grep",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/grep",
+      "name": "/usr/lib/libbz2.1.0.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/grep",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/grep",
+      "name": "/usr/lib/liblzma.5.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/grep",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/grep",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/grep",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/grep",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/tr",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/tr",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/sort",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/sort",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/expr",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/expr",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/wc",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/wc",
+      "name": "/usr/lib/libxo.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/wc",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/wc",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/dirname",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/dirname",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/basename",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/basename",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/cat",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/cat",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/rm",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/rm",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/mkdir",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/mkdir",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/cp",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/cp",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/mv",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/mv",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/chmod",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/chmod",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/touch",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/touch",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/env",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/env",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/uname",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/uname",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/head",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/head",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/tail",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/tail",
+      "name": "/usr/lib/libutil.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/tail",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/tail",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/cut",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/cut",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/cmp",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/cmp",
+      "name": "/usr/lib/libutil.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/cmp",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/cmp",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/install",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/install",
+      "name": "/usr/lib/libmd.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/install",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/install",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/printf",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/printf",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/true",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/true",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/false",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/false",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/tee",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/tee",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/od",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/od",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/du",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/du",
+      "name": "/usr/lib/libutil.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/du",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/du",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/ls",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/ls",
+      "name": "/usr/lib/libutil.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/ls",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/ls",
+      "name": "/usr/lib/libncurses.5.4.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/ls",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/ls",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/readlink",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/readlink",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/pwd",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/pwd",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/bin/sleep",
+      "architecture": "unspecified",
+      "rootExecutable": "/bin/sleep",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/sandbox-exec",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/sandbox-exec",
+      "name": "/usr/lib/libsandbox.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/sandbox-exec",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/sandbox-exec",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/System/Library/PrivateFrameworks/ArgumentParserInternal.framework/Versions/A/ArgumentParserInternal",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/libEndpointSecurity.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/libobjc.A.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftCore.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftCoreFoundation.dylib",
+      "kind": "LC_LOAD_WEAK_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftDispatch.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftIOKit.dylib",
+      "kind": "LC_LOAD_WEAK_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftObjectiveC.dylib",
+      "kind": "LC_LOAD_WEAK_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftSystem.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftXPC.dylib",
+      "kind": "LC_LOAD_WEAK_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswift_Builtin_float.dylib",
+      "kind": "LC_LOAD_WEAK_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswift_DarwinFoundation1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/bin/eslogger",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/bin/eslogger",
+      "name": "/usr/lib/swift/libswiftos.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/sbin/dtrace",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/sbin/dtrace",
+      "name": "/usr/lib/libdtrace.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/sbin/dtrace",
+      "name": "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/sbin/dtrace",
+      "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/usr/sbin/dtrace",
+      "architecture": "unspecified",
+      "rootExecutable": "/usr/sbin/dtrace",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libresolv.9.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libz.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libresolv.9.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libobjc.A.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "x86_64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libobjc.A.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libc++.1.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    },
+    {
+      "owner": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "architecture": "arm64",
+      "rootExecutable": "/Library/Developer/CommandLineTools/usr/bin/ld",
+      "name": "/usr/lib/libSystem.B.dylib",
+      "kind": "LC_LOAD_DYLIB",
+      "candidates": [],
+      "classification": "PUBLIC_SYSTEM_IMAGE_NAME_NOT_ACTUAL_LOAD_PROOF"
+    }
+  ],
+  "libraryIdentities": [
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "resolved": "/Library/Developer/CommandLineTools/usr/lib/libtapi.dylib",
+      "isLink": false,
+      "bytes": 655920,
+      "mode": "755",
+      "sha256": "d4fe1afc4fee343de797e5c4f6c3891ffd8b97a18a02011b8d7371a2ac0bf2a2"
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "resolved": "/Library/Developer/CommandLineTools/usr/lib/libcodedirectory.dylib",
+      "isLink": false,
+      "bytes": 139296,
+      "mode": "755",
+      "sha256": "07bc6fe7df6f118caa658a251e14fe44cd2391303b61013af20970902f8f0d64"
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "resolved": "/Library/Developer/CommandLineTools/usr/lib/libLTO.dylib",
+      "isLink": false,
+      "bytes": 157767344,
+      "mode": "755",
+      "sha256": "52f09013247c7da02f8d566a737427c0e7b7a6988e967a2c0ac6e534946caeaf"
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "resolved": "/Library/Developer/CommandLineTools/usr/lib/libswiftDemangle.dylib",
+      "isLink": false,
+      "bytes": 1241648,
+      "mode": "755",
+      "sha256": "c87c6d5299266089820e9da6e45d6dbfb075c43c4ed1088d992cae59c3ac1d70"
+    }
+  ],
+  "pendingAfterRoundCap": 0,
+  "runtimeLoadedImagesObserved": false
+}

@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-29T17:02:42.311Z",
+  "priorProfileSha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "priorCoordinator": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/coordinator.mjs",
+    "size": 10531,
+    "mode": 420,
+    "sha256": "26987efc84b6ebb2ffb2e05c33e75a5c2970c585059c879bc935afc1d398bf12"
+  },
+  "reviewCommit": "026d2e9fbd9bca460bb6267d7fc3e131540d754b",
+  "reviewReceiptSha256": "45dce84c4f0115c8abca42d4c8691f5fb9a9fd2f4791e7ec2b190c4656cca2f3",
+  "sourceDerivedOnly": true,
+  "generated": {
+    "core": "51fc9f6f617f0220a6a02eef1d773346d5761435c61f3880aec9e6637fb154b2",
+    "coordinator": "f3ec799428c5ee525fd782ff7883221d29b9cbb0b933a695444d2765271629d3"
+  },
+  "actualWorkers": 0,
+  "productImports": 0
+}

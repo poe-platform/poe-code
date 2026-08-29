@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "status": "AUTHORITY_DATA_COMPLETE_WINDOW_SCHEMA_HOLD",
+  "actualAuthorization": false,
+  "sourceCommit": "ba1721a99fdfe4954e187c57ae36d77fafac3a5a",
+  "review": {
+    "commit": "6f9632cc2e51987f3fdfdb9eae2718e1977dc2d6",
+    "receiptSha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743"
+  },
+  "executionPresealSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+  "externalOwnerClosure": [
+    {
+      "name": "supervisor.mjs",
+      "size": 7784,
+      "sha256": "9a7a8e7a1e6591e93c5db2c1b4421dae3de51837d77c1c2fe21e7fb5614c3f6f",
+      "imports": [
+        "node:fs",
+        "node:crypto",
+        "node:url",
+        "node:path",
+        "node:zlib",
+        "./data-support.mjs",
+        "./owned-process.mjs",
+        "./receipt-gate.mjs"
+      ],
+      "dynamic": []
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce",
+      "imports": [
+        "node:fs",
+        "node:crypto",
+        "node:path",
+        "node:zlib"
+      ],
+      "dynamic": []
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44",
+      "imports": [
+        "node:child_process",
+        "node:fs",
+        "./data-support.mjs"
+      ],
+      "dynamic": []
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 13611,
+      "sha256": "2395b583165d3be99675ff4398dc2c5baaaff4b026abdb4a38ddf0e4d5a89afe",
+      "imports": [
+        "node:util",
+        "./data-support.mjs"
+      ],
+      "dynamic": []
+    }
+  ],
+  "externalOwnerAuthority": "PENDING_ROOT_REVIEW_EXACT_IMPORTER_EDGES",
+  "a03": {
+    "authority": "ROOT_APPROVED_TEST_ONLY_SOURCE_BOUND",
+    "bootstrap": {
+      "name": "child-bootstrap.mjs.data",
+      "size": 3063,
+      "sha256": "04b6eecd850f38471d202a372eb777035d4a1b4cd020a52cb002c505ef323787",
+      "imports": [
+        "node:worker_threads",
+        "node:fs",
+        "node:crypto",
+        "node:module",
+        "node:url",
+        "node:path"
+      ],
+      "dynamic": [
+        "./worker-entry.actual.js"
+      ]
+    },
+    "fixedModules": [
+      "errors.js",
+      "limits.js",
+      "matcher.js",
+      "syntax.js",
+      "transport/accounting.js",
+      "transport/protocol.js",
+      "transport/validation.js",
+      "transport/wire-engine.js",
+      "transport/worker-entry.actual.js"
+    ],
+    "innerBuiltinEdges": {
+      "limits.js": [
+        "node:timers/promises"
+      ],
+      "transport/validation.js": [
+        "node:util"
+      ],
+      "transport/worker-entry.actual.js": [
+        "node:worker_threads"
+      ]
+    },
+    "requested": {
+      "env": {},
+      "execArgv": [],
+      "workerData": {
+        "operation": "shell-ere",
+        "version": 1
+      }
+    },
+    "effectiveEvidence": "bootstrap URL/argv/execArgv/env KEY NAMES and operation/version only; UNOBSERVED",
+    "stockIdentityClaim": false
+  },
+  "inheritedCaseAuthority": {
+    "path": "../preparation-r3/AUTHORITY.json",
+    "size": 279865,
+    "sha256": "554f8aa10ff57f4ce3feb0be38dff63b21585aae6ca471e10b09f2a8d4031f8c",
+    "inventory": {
+      "path": "../preparation-r3/CASE-INVENTORY.json",
+      "size": 1002206,
+      "sha256": "60479454833b1c6431414b3cf8685d1ef5ce288e9f9100c014914feeda351c48"
+    },
+    "caseCount": 135,
+    "policy": "Fixed per-case importer map and CASE hash remain authoritative; no wildcard or global builtin admission; nonA03 nested NOT_OBSERVED."
+  },
+  "nonactivationSourceReads": [
+    {
+      "name": "materializer.mjs",
+      "size": 6162,
+      "sha256": "8df0024715237496f3cda306987c31007b5a6fa993992bca683ceb38f6e7ca28",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "./data-support.mjs"
+      ],
+      "dynamic": []
+    },
+    {
+      "name": "prepare-data.mjs",
+      "size": 4484,
+      "sha256": "30f727a1804062396c2a36871d87d9e6ab2ac44770d0cf9eed2f53fac2968636",
+      "imports": [
+        "node:assert",
+        "node:fs",
+        "node:crypto",
+        "node:url",
+        "node:path",
+        "node:zlib",
+        "./data-support.mjs",
+        "./receipt-gate.mjs",
+        "./materializer.mjs"
+      ],
+      "dynamic": [
+        "./controls-v2.mjs"
+      ]
+    }
+  ],
+  "nonactivationQualification": "materializer and prepare-data are not reachable from the supervisor and are NOT authorized for actual launch; prepare-data has a separate controls-v2 dynamic dependency, not included in actual closure.",
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "authenticatedAt": "2026-08-29T14:10:45.635Z",
+      "streamChunkBytes": 65536
+    }
+  },
+  "noCodeChanges": true
+}

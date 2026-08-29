@@ -1,0 +1,22 @@
+import {lstatSync,readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+const own=fileURLToPath(new URL('.',import.meta.url));
+const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+function read(file,size,hash){const stat=lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==size)throw Error('input type/size');const bytes=readFileSync(file);if(digest(bytes)!==hash)throw Error('input digest');return bytes;}
+const presealBytes=read(own+'PRESEAL.json',Number(process.argv[2]),process.argv[3]);
+const preseal=JSON.parse(presealBytes);const manifest=JSON.parse(read(own+'AUTHORITY-CLOSURE.json',preseal.closure.size,preseal.closure.sha256));
+const results=[];function check(id,run){try{run();results.push({id,pass:true});}catch(error){results.push({id,pass:false,reason:String(error)});}}
+function assert(condition){if(!condition)throw Error('assertion');}
+const expected={'supervisor.mjs':['node:fs','node:crypto','node:url','node:path','node:zlib','./data-support.mjs','./owned-process.mjs','./receipt-gate.mjs'],'data-support.mjs':['node:fs','node:crypto','node:path','node:zlib'],'owned-process.mjs':['node:child_process','node:fs','./data-support.mjs'],'receipt-gate.mjs':['node:util','./data-support.mjs']};
+function validate(rows){assert(rows.length===4);for(let index=0;index<rows.length;index++){const row=rows[index];assert(row.name===Object.keys(expected)[index]);const bytes=read(own+'../preparation-r3/'+row.name,row.size,row.sha256);const imports=[...bytes.toString().matchAll(/\b(?:import|export)\s+(?:[^'";]+?\s+from\s*)?['"]([^'"]+)['"]/g)].map(match=>match[1]);assert(JSON.stringify(imports)===JSON.stringify(expected[row.name]));assert(JSON.stringify(row.imports)===JSON.stringify(imports));assert(row.dynamic.length===0);}}
+function rejects(run){let rejected=false;try{run();}catch{rejected=true;}assert(rejected);}
+check('C01_exact_exhaustive_owner_closure',()=>validate(manifest.externalOwnerClosure));
+check('C02_missing_edge_reject',()=>{const rows=structuredClone(manifest.externalOwnerClosure);rows[0].imports.shift();rejects(()=>validate(rows));});
+check('C03_extra_edge_reject',()=>{const rows=structuredClone(manifest.externalOwnerClosure);rows[1].imports.push('node:net');rejects(()=>validate(rows));});
+check('C04_importer_hash_drift_reject',()=>{const rows=structuredClone(manifest.externalOwnerClosure);rows[2].sha256='0'.repeat(64);rejects(()=>validate(rows));});
+check('C05_A03_exact_source_and_inherited_case_binding',()=>{const row=manifest.a03.bootstrap;const text=read(own+'../preparation-r3/'+row.name,row.size,row.sha256).toString();const imports=[...text.matchAll(/\bimport\s+(?:[^'";]+?\s+from\s*)?['"]([^'"]+)['"]/g)].map(match=>match[1]);assert(JSON.stringify(imports)===JSON.stringify(['node:worker_threads','node:fs','node:crypto','node:module','node:url','node:path']));assert(manifest.a03.fixedModules.length===9);const inherited=manifest.inheritedCaseAuthority;const authority=JSON.parse(read(own+inherited.path,inherited.size,inherited.sha256));const inventory=JSON.parse(read(own+inherited.inventory.path,inherited.inventory.size,inherited.inventory.sha256));assert(authority.cases.length===135&&inventory.cases.length===135);for(let index=0;index<135;index++)assert(authority.cases[index].caseSha256===inventory.cases[index].caseSha256);});
+const dependency=manifest.externalOwnerClosure.find(row=>row.name==='data-support.mjs');read(own+'../preparation-r3/data-support.mjs',dependency.size,dependency.sha256);
+const {admitCaseGrant}=await import('../preparation-r3/data-support.mjs');
+check('C06_frozen_window_schema_incompatibility',()=>{const slot=JSON.parse(read(own+'SLOT.json',preseal.slot.size,preseal.slot.sha256));const grant=slot.grantTemplateDataOnly;assert(admitCaseGrant(grant,manifest.executionPresealSha256,135,111)===grant);rejects(()=>admitCaseGrant({...grant,latestStart:1200000,expires:3300000},manifest.executionPresealSha256,135,111));rejects(()=>admitCaseGrant({...grant,wallMilliseconds:1800000},manifest.executionPresealSha256,135,111));});
+const result={schema:1,controls:results,passed:results.filter(row=>row.pass).length,total:6,actualWorkers:0,productImports:0,pureHelperImports:['../preparation-r3/data-support.mjs'],runtimeAuthorization:false,windowReady:false};writeFileSync(own+'RESULT.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(result));if(result.passed!==6)process.exitCode=1;

@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "status": "BLOCKED_SCHEMA_DECISION_NOT_A_GRANT",
+  "authorized": false,
+  "prospectiveApprovedLimits": {
+    "knownOS": 146,
+    "peakKnownOS": 3,
+    "WorkerThreads": 111,
+    "peakWorkerThreads": 1,
+    "otherNativeThreads": "UNKNOWN_NOT_CLAIMED",
+    "observationWindowMilliseconds": 2100000,
+    "perCaseMilliseconds": 10000,
+    "TERMmilliseconds": 2000,
+    "postKILLobservationMilliseconds": 1000,
+    "publicationReserveMilliseconds": 180000,
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "quiescenceGuarantee": false
+  },
+  "review": {
+    "commit": "6f9632cc2e51987f3fdfdb9eae2718e1977dc2d6",
+    "receiptSha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743"
+  },
+  "grantTemplateDataOnly": {
+    "schema": 1,
+    "authorized": true,
+    "profileSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+    "runId": "ERE-PRIVATE-RUNTIME-v3",
+    "cases": 135,
+    "Workers": 111,
+    "wallMilliseconds": 2100000,
+    "knownOS": 146,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "typedWindowRequest": {
+    "anchor": "fresh ROOT grant issuance instant, not preparation time",
+    "latestStartOffsetMilliseconds": 1200000,
+    "expiresOffsetMilliseconds": 3300000,
+    "runtimeMilliseconds": 2100000,
+    "latestStart": null,
+    "expires": null
+  },
+  "blocker": {
+    "code": "FROZEN_SCHEMA_HAS_NO_TIME_WINDOW",
+    "validator": "../preparation-r3/data-support.mjs:14",
+    "exactKeys": [
+      "schema",
+      "authorized",
+      "profileSha256",
+      "runId",
+      "cases",
+      "Workers",
+      "wallMilliseconds",
+      "knownOS",
+      "captureBytes",
+      "workingBytes"
+    ],
+    "behavior": "Extra latestStart/expires fields rejected; omission leaves wall-clock window unenforced. No changed schema or unchecked outer window substituted."
+  },
+  "requestedDecision": "Authorize a narrowly versioned admission wrapper/schema enforcing finite latest-start/expiry before invoking the unchanged supervisor, or specify the already-approved external typed-window validator and exact binding. No source change made.",
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/supervisor.mjs",
+      "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+      "PENDING_IMMUTABLE_ROOT_GRANT_SHA"
+    ],
+    "transport": "pinned non-login shell -> /usr/bin/env -i -> pinned Node; outer noclobber captures before admission",
+    "env": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ACTUAL-01",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ACTUAL-01"
+    },
+    "executesNow": false
+  },
+  "reservedKnownRoles": {
+    "owner": 1,
+    "cases": 135,
+    "administration": 10,
+    "total": 146,
+    "measuredPublicationSlot": {
+      "count": 1,
+      "within": "administration10",
+      "purpose": "outer-tool observed final publication/receipt binding",
+      "status": "RESERVED_UNSPENT_NOT_EXTRA"
+    }
+  },
+  "runtime": "47 eligible/135 cells/111 Workers; 6 nonpublic +7 public obligations deferred, all60 UNRUN; no guaranteed OS quiescence",
+  "immutableGrantPresent": false
+}

@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: SIZE:/Users/kjopek/Workspace/safe-bash/README.md
+    at admit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:17:3)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:34:18)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:37:44)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:37:44)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:35:78)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:37:44)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:35:78)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:37:44)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:35:78)
+    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-r6-final-review/review.mjs:37:44) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

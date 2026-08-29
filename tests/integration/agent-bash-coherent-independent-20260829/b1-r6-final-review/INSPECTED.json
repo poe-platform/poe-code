@@ -1,0 +1,55 @@
+{
+  "at": "2026-08-29T16:05:21.431Z",
+  "records": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+      "bytes": 24620,
+      "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PRESEAL.json",
+      "bytes": 7367,
+      "sha256": "c22dc1ac1e821c97018987d858c5ca35a3b514c2152bf9a8eb5dcf00f71fc9d4"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/COMMAND.json",
+      "bytes": 747,
+      "sha256": "9ecf5ccae3492024fd67f35f64ee925b4062a590d5f5d6fb943c8542539b02b0"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-BINDING.json",
+      "bytes": 4746,
+      "sha256": "39f13f45b6bf663c7e2157f0f861f5a337fa628e399272a015955a459fbd6e14"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-PRESEAL.json",
+      "bytes": 1461,
+      "sha256": "2d6efeee6a235603a5fc9bff0a4dfa6279ba729cdcd32b66f200b9a9e6304445"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs",
+      "bytes": 2495,
+      "sha256": "fb7411f820f3dbb55621cb3e3421ce308c94dd832ce091b8c2a44c8d7b7bbd40"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json",
+      "bytes": 3421,
+      "sha256": "97141a41039c1c7e77082662e6f291aba5ca0352a991da54fec34d8c9e3df04e"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs",
+      "bytes": 3357,
+      "sha256": "0b4a3510b78eec3db3ab0ad940fa017478b128ae88d819588a7fcc708423a86a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs",
+      "bytes": 14111,
+      "sha256": "d6071cd81c646360830529a590140de11095ead643beecc60145691c59355eb8"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/RECEIPT.json",
+      "bytes": 9698,
+      "sha256": "8e70c8aa6793ce580f1afbf14fdfc59d94157e771bb5a4c8a18f0c2fb33645bb"
+    }
+  ]
+}

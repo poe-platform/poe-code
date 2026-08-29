@@ -1,0 +1,95 @@
+{
+  "schema": "B1-r6-independent-hold-v1",
+  "at": "2026-08-29T16:08:27.131Z",
+  "verdict": "HOLD",
+  "reason": "Reviewer recursively confused package-member paths with live repository-file authority; SIZE refusal before PURE import; no candidate finding",
+  "final": {
+    "bytes": 24620,
+    "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9"
+  },
+  "pure": {
+    "authorGroupsUnrun": 8,
+    "novelGroupsUnrun": 3
+  },
+  "actualPublisher": 0,
+  "product": 0,
+  "Workers": 0,
+  "window": {
+    "latest": "2026-08-29T16:17:10.730Z",
+    "expiry": "2026-08-29T16:47:10.730Z",
+    "renewed": false
+  },
+  "knownProcessChargeCeilingThroughPublication": 22,
+  "bindings": [
+    {
+      "path": "REPORT.md",
+      "bytes": 4751,
+      "sha256": "3a8af0cb47d86d5ffbde19f43dd2626ac260c4a08d27fb10847ea9c07a117ef5"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 1137,
+      "sha256": "5ce4e2193128f296d805c2390232b73f84615fd3e91e06e0ee0190a00f3b443d"
+    },
+    {
+      "path": "inspect.mjs",
+      "bytes": 1470,
+      "sha256": "30a45aff60526bae89bed5c207a95714b8079128341f3cf03555e8a5201cca6e"
+    },
+    {
+      "path": "INSPECTED.json",
+      "bytes": 2280,
+      "sha256": "22469939241acb6effeea53f626cefcc2fc2f35216ce514d1553e1fde24515d7"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 5643,
+      "sha256": "871d625a76dc4754be957a9f7f4448f15a6fd1d8ee8cc29100be65105106c0b3"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 1686,
+      "sha256": "b70b384aae061cf64797fd55dd6dc73747cb19420cddc0d9e7b03d302d73bf1c"
+    },
+    {
+      "path": "raw/startup.stdout",
+      "bytes": 4552,
+      "sha256": "d82f6064f4c0458f692e859730bc9712c506f205e864eb263bdfcacf29cf8a56"
+    },
+    {
+      "path": "raw/startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/inspection.stdout",
+      "bytes": 72286,
+      "sha256": "ca0b0c272c3e61ad843995c1719bc38a617cfb15540ed42bac1701e52dfd634b"
+    },
+    {
+      "path": "raw/inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/syntax.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/syntax.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/review.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/review.stderr",
+      "bytes": 1797,
+      "sha256": "114dc57a7e0564c475f5f2c4224fc0a9ac569003f0d6f06ead98f07a4206c422"
+    }
+  ]
+}

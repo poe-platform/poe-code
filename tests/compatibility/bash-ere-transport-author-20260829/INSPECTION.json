@@ -1,0 +1,20 @@
+[
+  {
+    "path": "tests/compatibility/bash-ere-transport-design-20260829/README.md",
+    "size": 7487,
+    "mode": 420,
+    "sha256": "808ad039898d5521a99cc75665f86678d0dd3b4f787b45283493efa02235445a"
+  },
+  {
+    "path": "tests/compatibility/bash-ere-transport-design-20260829/DECISIONS-v2.md",
+    "size": 12351,
+    "mode": 420,
+    "sha256": "7827c12eea1e6a4292be5f260b1ccc8f28458aa82df1ab46dae3d360c6ee3e17"
+  },
+  {
+    "path": "tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.md",
+    "size": 2909,
+    "mode": 420,
+    "sha256": "e565ff02c9385d14c4056b95579fbd7de08d0d9817cd9d8d6bed22b8c61b4008"
+  }
+]

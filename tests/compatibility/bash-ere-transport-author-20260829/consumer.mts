@@ -1,0 +1,21 @@
+import { EreTransportRoot } from "./emitted/transport/root.js";
+import type { EreTransportInput, EreTransportReply, EreTransportResult, EreCleanupRegistration } from "./emitted/transport/protocol.js";
+import { validateReply } from "./emitted/transport/validation.js";
+import { executeWireRequest } from "./emitted/transport/wire-engine.js";
+
+declare const register: EreCleanupRegistration;
+declare const signal: AbortSignal;
+declare const reply: EreTransportReply;
+declare const input: EreTransportInput;
+const root = new EreTransportRoot({ maxExpansionBytes: 4096, maxExpansionFields: 256 }, register);
+const session = root.openSession(register);
+const result: Promise<EreTransportResult> = session.execute(input, signal);
+const close: Promise<void> = session.close();
+const rootClose: Promise<void> = root.close();
+const wire: Promise<EreTransportReply> = executeWireRequest({});
+if (reply.kind === "result") {
+  const emptyOrAbsent: number | undefined = reply.result.spans[0]?.start;
+  const steps: number = reply.usage.work;
+  void emptyOrAbsent; void steps;
+}
+void result; void close; void rootClose; void wire; void validateReply;

@@ -1,0 +1,14 @@
+{
+  "phase": "seal",
+  "started": "2026-08-29T09:57:35.363Z",
+  "pid": 12431,
+  "children": [],
+  "runtimeImports": 0,
+  "workers": 0,
+  "native": 0,
+  "sealSha256": "ac19dcd025cefad206baa15afe010026e101f45a9bebe5e21f8f4bce4d14edb1",
+  "sources": 12,
+  "tools": 241,
+  "ended": "2026-08-29T09:57:35.541Z",
+  "knownRetired": 0
+}

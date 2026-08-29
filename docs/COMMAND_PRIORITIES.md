@@ -37,23 +37,39 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
-## Git public integration candidate
+## ROOT-qualified Git public80 — 2026-08-29
 
-ROOT-qualified M1B module `fca6f81d2d96db2bbceabf3247cd57ffe240bde6` is now
-being wired as default80 on the fixed apply79 candidate
-`7fde32264d757ef856acf3ae92c8581b4a294341`. The selected module/full910 package
-`cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a` has
-274 finite versioned review identities (208 stock,32 mechanical,10 types,24 loaded),
-consolidated in `db8b818db983f32c9522ebe4c9589ca8766a5454`, not universal resource/native coverage.
-S02/H09/private-writer source qualifications, old bare-OID/deadline failures and
-six unrun native workflows remain. The79 baseline now has bounded public acceptance
-`bd772916c26dc87c54bafdaa784d18f058efa275`; its79/83 maintained reviewer result
-retains four RegexWorker-denied unqualified regressions. This80 public composition
-still needs independent acceptance. This is genuine bounded read-only
-VFS object/index/pack parsing, not development Git or a native fallback. All24
-fixed limits remain unchanged; only discoveryBoundary/replacement are options.
-Node remains unqualified and absent, not a stub. Curl stays optional; YQ/XAN,
-declare/mapfile/npm/npx are not added. Evidence: `tests/integration/git-public-20260829/`.
+ROOT accepts exactly `c83f352f057c64917f219eb938f54aa42cdab829`, full950 SHA256
+`4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156`: accepted
+public79 `7fde32264d757ef856acf3ae92c8581b4a294341` plus **only git** as default80.
+The read-only M1A+M1B module comes from `fca6f81d2d96db2bbceabf3247cd57ffe240bde6`;
+root and `virtual-bash/commands/git` factories/options/types and replacement
+policy are qualified. All 24 numeric caps stay fixed; discoveryBoundary and
+replacement are the finite options, not arbitrary public limit overrides.
+
+Different-review evidence `5fabc790` supplies 336 retained passes and 11 novel
+passes per layout; `caf6ba94287842fe8a63ae3226a1a9349406d46d` supplies exactly
+three I03-v2 passes, one per layout. All 12 novel properties are accepted through
+two cohorts and a versioned fixture, **not one all-green run**. Six type groups,
+83 maintained cases, 21 moved-consumer cases and nine loaded controls remain
+separate. Original three I03 failures/exit one and author three obsolete-export
+failures are preserved; baseline79 acceptance `bd772916` still retains its
+worker-denied 79/83 and is not rescored.
+
+Inherited M1B module acceptance `db8b818db983f32c9522ebe4c9589ca8766a5454` covers
+274 finite versioned identities (208 stock,32 mechanical,10 types,24 loaded), not
+universal native/resource coverage. S02/H09/private-writer SOURCE qualifications,
+old bare-OID/deadline failures, format/resource limits and six unrun native
+workflows remain. Public review observes 32 loader admissions plus three in the
+I03-v2 continuation and four RegexWorker exits in the first cohort; individual
+internal-Worker exits remain unobserved, with only known hosting-process retirement.
+
+This is bounded VFS object/index/pack parsing, not a native fallback, full Git/Bash
+compatibility, live-HEAD acceptance, hard RSS/performance or comparison superiority.
+Later `|&`/`&>` changes and product Node are not accepted here. Node remains
+pending; npm/npx are excluded, curl stays opt-in, zero runtime dependencies remain.
+Exact scope, layout reconstruction and preserved history:
+`tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.
 
 ## Apply-patch public integration candidate
 
@@ -70,7 +86,7 @@ plus arrays composition, now with bounded public acceptance `bd772916`. Root and
 `virtual-bash/commands/apply-patch` provide the three factories/plugin and typed
 limits; aggregate `applyPatch` forwards limits with top-level replacement authority.
 This is bounded literal UTF-8 VFS patching, not a host subprocess or generic native
-patch compatibility. The newer Git80 candidate is qualified separately above; Node
+patch compatibility. The frozen Git80 composition is qualified separately above; Node
 provider/contract remains unqualified. No YQ/XAN/npm/npx commands are added, and
 curl remains optional. The original user table and historical audit below are
 unchanged. Evidence: `tests/integration/apply-patch-public-20260829/`.

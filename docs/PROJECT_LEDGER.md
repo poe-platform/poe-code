@@ -3802,3 +3802,40 @@ that any implementation, command, fixture, or test currently exists.
   Handoff4ade014242d6b6ceac254c41f53b46ca00102fbe:
   `tests/integration/git-public-20260829/HANDOFF.md`. No global gate/Git/native
   parity or overall superiority claim.
+
+## 2026-08-29 — ROOT-qualified frozen public80, two-cohort I03 acceptance
+
+- ROOT accepts exact candidate `c83f352f057c64917f219eb938f54aa42cdab829`,
+  full950 SHA256 `4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156`.
+  Default79 to80 adds only Git, on accepted public79 `7fde32264d757ef856acf3ae92c8581b4a294341`
+  and M1B `fca6f81d2d96db2bbceabf3247cd57ffe240bde6`. Root/subpath factories,
+  options/types and replacement are accepted for that finite read-only M1A+M1B
+  profile. All24 numeric caps are fixed; zero runtime dependencies, npm/npx
+  exclusion, curl opt-in and pending product Node remain.
+- Independent `5fabc790c6b150622460ed377d8f85d87cb246c5` retains336 passes/layout
+  (public45,apply28,M1A-v2 140,packs93,arrays12,coherence18) plus11 novel passes/layout.
+  Versioned continuation `caf6ba94287842fe8a63ae3226a1a9349406d46d`, evidence SHA256
+  `f8e13c2982175a8d78cd6ef665b581e45bdbdf6209d9c43decef675a3591b31c`, adds only
+  three I03-v2 passes, one/layout: all12 novel properties through TWO cohorts, not
+  one all-green execution. Six type groups (24 exact negative diagnostics),
+  maintained83, moved-consumer21 and nine loaded controls are separate categories.
+- I03-v2 preserves the duplicate-registration error and observes it at frozen
+  Shell.use queued setup/public exec, not a synchronous use throw. All three cases
+  preserve the exact setup-reason object, observe no second middleware dispatch,
+  preserve two VFS marker byte strings and fulfill disposal. The continuation
+  reuses authenticated source-build/installed bytes; the vanished original install
+  is reconstructed and a separate copy physically moved. No rebuild/npm/install.
+- Original independent three I03 failures/coordinator exit1, author three obsolete
+  module-only export failures and old public79 worker-denied79/83 remain unchanged.
+  Fixture2764c054 and I03-v2 e7ce4ddf are explicitly versioned, not retrospective
+  changes to those records. Historical entries above keep their then-unrun status.
+- Resource observations stay separate: first cohort32 internal-loader admissions
+  and four RegexWorker exits; continuation3 internal-loader admissions and zero
+  RegexWorkers. Individual internal-Worker exits are UNOBSERVED; only known hosting
+  process retirement is established. Module S02/H09/private-writer SOURCE gaps,
+  finite format/resource scope and native6 UNRUN remain; no universal provider,
+  preemption/native-allocation/RSS, full Git/Bash or performance claim.
+- This is not acceptance of live HEAD, later `|&`/`&>`/Node changes, a whole gate,
+  fresh comparator evidence or an overall winner. Documentation publication is
+  SOURCE/DATA only; it runs no product, tests, build, compiler, native or private work.
+  Exact ROOT record: `tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.

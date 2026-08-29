@@ -1,0 +1,41 @@
+{
+  "kind": "SOURCE_DATA_ONLY",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "documents": [
+    {
+      "path": "README.md",
+      "bytes": 52031,
+      "sha256": "c4571d01dff1659ba4fa6bc6233964e7b6d492dfb945083fee8a0765ae2ab46d",
+      "acceptanceLine": 27
+    },
+    {
+      "path": "docs/COMMAND_PRIORITIES.md",
+      "bytes": 25001,
+      "sha256": "1ea10dae856a06c751676155ef5edb3bfc4af76db760d1eb202b1cfcf9364b48",
+      "acceptanceLine": 40
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "bytes": 280747,
+      "sha256": "fbe706e31c0e866277b9b2adb0df050c1992e96a2c3696b434cb8e903c96c0c6",
+      "acceptanceLine": 3806
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md",
+      "bytes": 4575,
+      "sha256": "21cabd8643a5daf9f9883b81df8d029ac3c9802f9615cbf3ee453d5db4b20b6a",
+      "acceptanceLine": 1
+    }
+  ],
+  "ledgerOriginalPrefixBytes": 277892,
+  "ledgerOriginalPrefixUnchanged": true,
+  "oldEvidenceInputsUnchanged": 6,
+  "noNewProductOrTestExecution": true,
+  "gitWhitespaceCheckPassed": true,
+  "priorHandoffsAndHistoricalBodiesEdited": false,
+  "observedPrepublicationProcesses": 7,
+  "editingHelperReserve": 1,
+  "peakMaximum": 2,
+  "elapsedSeconds": 277.298
+}

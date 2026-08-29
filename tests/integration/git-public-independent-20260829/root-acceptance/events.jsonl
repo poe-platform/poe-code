@@ -1,0 +1,15 @@
+{"event":"before-spawn","label":"root","args":["rev-parse","--show-toplevel"]}
+{"event":"closed","label":"root","pid":66287,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"initial-status","args":["status","--porcelain=v1","-z"]}
+{"event":"closed","label":"initial-status","pid":66296,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"initial-index-identities","args":["diff","--cached","--raw","-z"]}
+{"event":"closed","label":"initial-index-identities","pid":66300,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"handoff-ledger-path","args":["diff-tree","--no-commit-id","--name-only","-r","-z","ec007f15fbd032c32fd5b18b094a80914586c176"]}
+{"event":"closed","label":"handoff-ledger-path","pid":66301,"status":0,"signal":null,"errorPresent":false}
+{"event":"data-binding-pass","candidate":"c83f352f057c64917f219eb938f54aa42cdab829","layouts":[{"layout":"source","retainedPassed":336,"firstCohortNovelPassed":11,"firstCohortNovelFailed":1,"versionedI03Passed":1},{"layout":"installed","retainedPassed":336,"firstCohortNovelPassed":11,"firstCohortNovelFailed":1,"versionedI03Passed":1},{"layout":"moved","retainedPassed":336,"firstCohortNovelPassed":11,"firstCohortNovelFailed":1,"versionedI03Passed":1}],"versionedEvidenceSha256":"f8e13c2982175a8d78cd6ef665b581e45bdbdf6209d9c43decef675a3591b31c"}
+{"event":"before-spawn","label":"apply-authorized-docs","editingHelperReserve":1}
+{"event":"closed","label":"apply-authorized-docs","pid":68361,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"review-document-diff","args":["diff","--","README.md","docs/COMMAND_PRIORITIES.md","docs/PROJECT_LEDGER.md"]}
+{"event":"closed","label":"review-document-diff","pid":68815,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"whitespace-check","args":["diff","--check","--","README.md","docs/COMMAND_PRIORITIES.md","docs/PROJECT_LEDGER.md","tests/integration/git-public-independent-20260829/root-acceptance"]}
+{"event":"closed","label":"whitespace-check","pid":68816,"status":0,"signal":null,"errorPresent":false}

@@ -24,6 +24,19 @@ and its linked reports for original failures, later source fixes, fixture/profil
 changes and scoped acceptance. Original reports are preserved; no selected suite
 or command count establishes the full product goal.
 
+**ROOT-qualified public80 acceptance (August 29, 2026):** the exact candidate
+`c83f352f057c64917f219eb938f54aa42cdab829`, full 950-member package SHA256
+`4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156`, adds only
+`git` to the accepted 79 defaults. The
+[root acceptance](tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md)
+combines 336 retained passes and 11 novel passes per layout with one separately
+versioned I03-v2 pass per layout: all 12 novel properties through **two cohorts**,
+not a single all-green run. Six type groups, 83 maintained cases, 21 moved-consumer
+cases and nine loaded controls are separate proof categories. Original three I03
+failures/exit one, author obsolete-export failures and the old public79 worker-denied
+79/83 remain unchanged. This accepts the finite read-only Git profile, not live
+HEAD, later `|&`/`&>` changes, Node, full Git/Bash, hard RSS or an overall comparison win.
+
 **Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
 finite 31-case × three-layout membership on selected `8437e4ed` and its exact
 858-file package `6b5863d5`: 15 original source passes plus 78 RUN02 passes
@@ -88,19 +101,18 @@ arbitrary-provider support.
 The [user-provided priority table and source audit](docs/COMMAND_PRIORITIES.md)
 distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
 `nl`, `cat`, `head`, `echo`, `find`, `tail` and `ls` are in `agentCommands()`;
-`curl` is an explicit network plugin. Frozen Git M1A module
-`9885390fb11454fa194a3e60fdbef198dbfdf633` has qualified ROOT acceptance;
-`apply_patch` remains a module candidate under independent review. Git acceptance
-does not authorize root exports/default integration or cover later packed-object
-work; the accepted aggregate remains78 commands. M1B candidate `fca6f81d` and
-ROOT-reported apply_patch candidate `753` remain under independent review;
-the Node scaffold/provider remain pending, not accepted product Node support.
+`curl` is an explicit network plugin. The qualified frozen public80 composition
+includes accepted `apply_patch` and read-only M1A+M1B `git`, with root/subpath APIs
+and exactly 80 defaults. Git keeps all 24 fixed numeric caps and its declared
+storage/configuration/format refusals; packed support is bounded, not full Git
+compatibility. The Node scaffold/provider remain pending, not accepted product
+Node support. This status does not certify the moving worktree.
 `safejs` is not Node, and `patch` is not `apply_patch`.
 “Without the npm stuff” excludes npm/npx product commands only; npm, Node and
 TypeScript development tooling remain. The counts in that table are supplied by
 the user, not independently verified usage statistics or completeness scores.
 
-The [Git M1A type adjudication and scoped assessment](tests/commands/git-independent-20260828/m1a-type-adjudication-v15/TYPE-ADJUDICATION.md)
+The historical [Git M1A type adjudication and scoped assessment](tests/commands/git-independent-20260828/m1a-type-adjudication-v15/TYPE-ADJUDICATION.md)
 binds 284 unmodified semantic groups (71 each across source, compiled, offline
 installed and moved layouts), four original type passes plus the separately
 observed exact missing-export negative, and three loaded-mutant detections,
@@ -108,7 +120,7 @@ three restores and three binding refusals. These are separate proof categories,
 not a new aggregate type score or global green gate. Historical failing exits
 remain unchanged. Private-writer joins are source-qualified; closed-stream and
 registration observations do not establish native allocation/RSS bounds.
-This read-only loose-object/index profile refuses packed-object storage and other
+That earlier M1A-only loose-object/index profile refuses packed-object storage and other
 unsupported repository/configuration forms; native Git oracle workflows remain
 unrun. It is not full Git compatibility, packed readiness or acceptance of live HEAD.
 
@@ -623,8 +635,9 @@ try {
 }
 ```
 
-The module at `753f33d2` has ROOT-qualified acceptance; the new coherent78+arrays
-public/default79 composition requires its own independent integration review.
+The module at `753f33d2` has ROOT-qualified acceptance; the frozen coherent78+arrays
+public/default79 baseline has separate qualified acceptance `bd772916`, inherited
+by the exact public80 composition above, not by arbitrary later source changes.
 Historical L07's7/9 includes two unchanged cleanup-count assertion failures: two
 distinct registered owners fulfilled, not the fixture's expected one. Legacy11
 failures and21 uncredited observations retain their original qualifications. See
@@ -635,7 +648,7 @@ full native-utility parity follows from this integration.
 
 ## Read-only VFS Git
 
-The current root wiring adds `git` as default80. Root and
+The ROOT-qualified frozen public80 wiring adds only `git` to public79. Root and
 `virtual-bash/commands/git` export `createGitCommand`, `createGitCommands`,
 `gitCommands` and `GitCommandsOptions`. Aggregate `git` accepts
 `discoveryBoundary`; top-level `replace` wins over untyped nested replacement.

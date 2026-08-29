@@ -1,0 +1,76 @@
+{
+  "verdict": "RESOLVED_SLOT_DATA_ACCEPT_ONLY",
+  "files": [
+    {
+      "path": "MANIFEST-CHECK.json",
+      "bytes": 831,
+      "sha256": "13e9bfea44d38b4eaecc9841840d03b2aa1784cb7faf56af5f4cdc5d9b367fbd"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3527,
+      "sha256": "cbd1bd8175d4d52cece7a5963a19e5b44ae76873364817a0c2b6a19c4e3720a9"
+    },
+    {
+      "path": "START.json",
+      "bytes": 255,
+      "sha256": "fbf303610cf682c09df9542f8d80a80b86701d7f94c178175165d3db4109a606"
+    },
+    {
+      "path": "VERIFIED.json",
+      "bytes": 2007,
+      "sha256": "7074e7a729e733c486840d80b1922180b775399ed3d08008f410de8b95ecc85a"
+    },
+    {
+      "path": "capture/binding.committed.raw",
+      "bytes": 60960,
+      "sha256": "3b87b7388efd040752f709cbb1bf25ebfaf8ecd0e136fac71060829a8c92a25a"
+    },
+    {
+      "path": "capture/binding.git.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/handoff.raw",
+      "bytes": 3406,
+      "sha256": "e2eded84cb908a152c2ea5a95430a49761d782789eff0da4dd9ba0cf326f5610"
+    },
+    {
+      "path": "capture/handoff.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/manifest-check.raw",
+      "bytes": 703,
+      "sha256": "b5a935f45f1190cf0a4b222e57bf914f4e069419d2613887e39403a586956593"
+    },
+    {
+      "path": "capture/manifest-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/startup.events.jsonl",
+      "bytes": 615,
+      "sha256": "058294c149820e66bc8e64e4cbcf6d2d462720231a6c0127300804ff43a1b528"
+    },
+    {
+      "path": "capture/verification.events.jsonl",
+      "bytes": 1816,
+      "sha256": "0386664e033663b39aa22534ad3e3c074089d54d22d2d6c9e2c6a8158866ab5c"
+    }
+  ],
+  "totalBytes": 74120,
+  "domain": "raw file bytes; UTF-8 path order; this manifest excluded",
+  "checkedAt": "2026-08-29T11:23:46.908Z",
+  "latestFullStart": "2026-08-29T11:37:50.372Z",
+  "expires": "2026-08-29T12:07:50.372Z",
+  "residualMs": 2643464,
+  "knownRoleSlotsIncludingPublication": 12,
+  "knownPeak": 2,
+  "productCalls": 0,
+  "runtimeActivation": "NOT_GRANTED",
+  "publicationCapture": "/tmp/direct-slot-review-publication-3W7hF0"
+}

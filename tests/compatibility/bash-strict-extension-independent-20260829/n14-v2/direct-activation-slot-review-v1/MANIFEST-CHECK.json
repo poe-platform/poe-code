@@ -1,0 +1,26 @@
+{
+  "matchedRows": 111,
+  "argsEnvHashDomain": "UTF-8 JSON.stringify(value), no trailing newline, exact existing key/array order",
+  "grantReviewCommandPinsMatch": true,
+  "windowMatches": true,
+  "limitsUnchanged": true,
+  "checkedAt": "2026-08-29T11:22:41.756Z",
+  "scope": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "sourceInputs": 293,
+    "shippingMembers": 954,
+    "nativeOracleRootPublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+    "identities": 37,
+    "layouts": 3,
+    "productCalls": 111,
+    "fixtures": 4,
+    "excluded": "Curie separate B0 39-call campaign; no grant transfer",
+    "withheldNative": [
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "status": "all111 product calls UNRUN"
+  },
+  "remainingRootAuthority": "fresh actual activation required; no command executed"
+}

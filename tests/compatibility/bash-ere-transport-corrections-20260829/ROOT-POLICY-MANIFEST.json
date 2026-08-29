@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "policy": "PRIVATE-ERE-LOGICAL-ENUM-1",
+  "status": "ROOT_ADOPTED_PROSPECTIVELY; DIFFERENT_REVIEW_PENDING",
+  "authority": "Current explicit ROOT instruction; docs/DATA only, no implementation or runtime GO",
+  "sourceUnchanged": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "historicalEvidenceUnchanged": "6c884cc630a6ef1b93b247428e635596ede4b7aa",
+  "policyProposalUnchanged": "d927557d0dbe245190f702ebda018d882855d226",
+  "pendingEngine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "pendingEngineStatus": "NOT_CURRENT_TESTED; FUTURE_INTEGRATION_REBIND",
+  "files": [
+    {
+      "path": "ROOT-POLICY-DECISION.md",
+      "bytes": 5278,
+      "sha256": "e21f3c309f7c4590a71768e3933af2d40f02c9abeae8a1fc17319b36cb9622b1"
+    },
+    {
+      "path": "PROFILE-LEDGER.md",
+      "bytes": 1084,
+      "sha256": "81387ccb00c9949e65e28ba816ac62f33292967cd6d134555f4e1abdbe484a57"
+    },
+    {
+      "path": "REMAINING-VALIDATION-v2.json",
+      "bytes": 21746,
+      "sha256": "246523500f048dca3612774064cc53a48e599744fff0dfa5900dbdee72b1504e"
+    },
+    {
+      "path": "REVIEW-BINDINGS-v2.json",
+      "bytes": 12104,
+      "sha256": "81af535ad3fe6e4eeffc61626446369a675a56cf54fcd208b0dacb1e3da66b24"
+    },
+    {
+      "path": "REVIEW-PACKET-v2.md",
+      "bytes": 5556,
+      "sha256": "2fbabd8fa01459a2813afbd829f91415ed9d6f245a876d7a5dec4e20530a17fb"
+    }
+  ],
+  "remaining": {
+    "families": 32,
+    "variants": 60,
+    "status": "ALL_UNRUN"
+  },
+  "newExecution": {
+    "runtime": 0,
+    "worker": 0,
+    "compiler": 0,
+    "proxy": 0
+  },
+  "administrativeSnapshot": [
+    {
+      "index": 1,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "72187e5^{commit}"
+      ],
+      "pid": 5081,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 2,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "72187e5abc1179883f85a63e1ef558f2e141c542",
+        "--",
+        "src/commands/regex-execution/ere/errors.ts",
+        "src/commands/regex-execution/ere/limits.ts",
+        "src/commands/regex-execution/ere/matcher.ts",
+        "src/commands/regex-execution/ere/syntax.ts",
+        "src/commands/regex-execution/ere/types.ts"
+      ],
+      "pid": 5854,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 3,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+        "--",
+        "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json"
+      ],
+      "pid": 5855,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 4,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "6c884cc630a6ef1b93b247428e635596ede4b7aa",
+        "--",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/EVIDENCE.json",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/ACTUAL.json.gz.base64.data"
+      ],
+      "pid": 5856,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 5,
+      "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "pid": 8000,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 6,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/ROOT-POLICY-DECISION.md",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/PROFILE-LEDGER.md",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/REMAINING-VALIDATION-v2.json",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/REVIEW-BINDINGS-v2.json",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/REVIEW-PACKET-v2.md"
+      ],
+      "pid": 10005,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "publicationNotIncluded": true
+}

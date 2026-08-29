@@ -1,0 +1,498 @@
+{
+  "schema": "ere-transport-remaining-after-policy-amendment-v1",
+  "policy": "PRIVATE-ERE-LOGICAL-ENUM-1",
+  "sourceFreeze": {
+    "commit": "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+    "path": "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json",
+    "blob": "59e05eedfa1f08f6cd7d952d8d7140950b7f4178",
+    "sha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5"
+  },
+  "families": 32,
+  "variants": 60,
+  "status": "ALL_UNRUN",
+  "policyEffect": "Native enumeration/clone/intrinsic overhead exception is prospective. Original expectations retained verbatim, not rescored. New profile annotations require explicit review.",
+  "notExecutionAuthorization": true,
+  "correctionPureControlsExcluded": "P01-P12 in correction evidence are a separate namespace and do not complete original-freeze identities.",
+  "rows": [
+    {
+      "identity": "original-freeze:P01/matched-vector",
+      "family": "P01",
+      "variant": "matched-vector",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Exact five-key result and seven-key usage; matching ID/grant; complete0..N non-null group0, usage.work/allocatedUnits equality; accept only once."
+    },
+    {
+      "identity": "original-freeze:P02/empty-versus-absent",
+      "family": "P02",
+      "variant": "empty-versus-absent",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Same bounded subject with one null capture and one {start:1,end:1}; preserve distinction through transport, not truthiness."
+    },
+    {
+      "identity": "original-freeze:P03/no-match-two-groups",
+      "family": "P03",
+      "variant": "no-match-two-groups",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Compile groupCount2, pure no-match empty vectors; adapter sends3 null spans, no values; no false truncated success."
+    },
+    {
+      "identity": "original-freeze:P04/undefined",
+      "family": "P04",
+      "variant": "undefined",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "identity": "original-freeze:P04/null",
+      "family": "P04",
+      "variant": "null",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "identity": "original-freeze:P04/false",
+      "family": "P04",
+      "variant": "false",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "identity": "original-freeze:P04/0",
+      "family": "P04",
+      "variant": "0",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "identity": "original-freeze:P04/empty-string",
+      "family": "P04",
+      "variant": "empty-string",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "identity": "original-freeze:P05/getter",
+      "family": "P05",
+      "variant": "getter",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys."
+    },
+    {
+      "identity": "original-freeze:P05/proxy",
+      "family": "P05",
+      "variant": "proxy",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys."
+    },
+    {
+      "identity": "original-freeze:P05/extra-symbol",
+      "family": "P05",
+      "variant": "extra-symbol",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys."
+    },
+    {
+      "identity": "original-freeze:P06/hole",
+      "family": "P06",
+      "variant": "hole",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject bounded sparse/cardinality/out-of-range frames before capture copying."
+    },
+    {
+      "identity": "original-freeze:P06/wrong-count",
+      "family": "P06",
+      "variant": "wrong-count",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject bounded sparse/cardinality/out-of-range frames before capture copying."
+    },
+    {
+      "identity": "original-freeze:P06/outside-overall",
+      "family": "P06",
+      "variant": "outside-overall",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject bounded sparse/cardinality/out-of-range frames before capture copying."
+    },
+    {
+      "identity": "original-freeze:P07/over-grant",
+      "family": "P07",
+      "variant": "over-grant",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption."
+    },
+    {
+      "identity": "original-freeze:P07/noninteger",
+      "family": "P07",
+      "variant": "noninteger",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption."
+    },
+    {
+      "identity": "original-freeze:P07/duplicate-counter-mismatch",
+      "family": "P07",
+      "variant": "duplicate-counter-mismatch",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption."
+    },
+    {
+      "identity": "original-freeze:P08/syntax-usage",
+      "family": "P08",
+      "variant": "syntax-usage",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero."
+    },
+    {
+      "identity": "original-freeze:P08/unsupported-usage",
+      "family": "P08",
+      "variant": "unsupported-usage",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero."
+    },
+    {
+      "identity": "original-freeze:P08/profile-limit-usage",
+      "family": "P08",
+      "variant": "profile-limit-usage",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero."
+    },
+    {
+      "identity": "original-freeze:P09/duplicate",
+      "family": "P09",
+      "variant": "duplicate",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication."
+    },
+    {
+      "identity": "original-freeze:P09/stale-id",
+      "family": "P09",
+      "variant": "stale-id",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication."
+    },
+    {
+      "identity": "original-freeze:P09/wrong-operation",
+      "family": "P09",
+      "variant": "wrong-operation",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "originalExpectation": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication."
+    },
+    {
+      "identity": "original-freeze:L01/register-throws",
+      "family": "L01",
+      "variant": "register-throws",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "No Worker/timer/listener acquisition after registration failure or prior close; raw primary retained."
+    },
+    {
+      "identity": "original-freeze:L01/closed-before-activation",
+      "family": "L01",
+      "variant": "closed-before-activation",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "No Worker/timer/listener acquisition after registration failure or prior close; raw primary retained."
+    },
+    {
+      "identity": "original-freeze:L02/handler-setup-throws",
+      "family": "L02",
+      "variant": "handler-setup-throws",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Returned Worker handle is already owned; all fallible post-acquisition routes drain, including publication failure."
+    },
+    {
+      "identity": "original-freeze:L02/postMessage-throws",
+      "family": "L02",
+      "variant": "postMessage-throws",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Returned Worker handle is already owned; all fallible post-acquisition routes drain, including publication failure."
+    },
+    {
+      "identity": "original-freeze:L03/queued-abort-false",
+      "family": "L03",
+      "variant": "queued-abort-false",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Bounded queued child abort(false) removes only that request; sibling finishes; raw false and parent ledger retained."
+    },
+    {
+      "identity": "original-freeze:L04/active-abort-zero",
+      "family": "L04",
+      "variant": "active-abort-zero",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Abort the active held request with actual AbortController.abort(0); preserve raw0 and require actual Worker retirement/session cleanup before settlement. Do not assume abort(undefined) produces undefined; undefined failure identity is exercised on explicit rejection/cleanup routes."
+    },
+    {
+      "identity": "original-freeze:L05/reply-then-parent-abort",
+      "family": "L05",
+      "variant": "reply-then-parent-abort",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Validated usage accounted once; caller abort before publication wins by actual runtime provenance, not payload equality."
+    },
+    {
+      "identity": "original-freeze:L06/startup-timeout",
+      "family": "L06",
+      "variant": "startup-timeout",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Each timed-out acquired Worker is retired; no match/syntax result; unproved grant consumed, no automatic restart refund."
+    },
+    {
+      "identity": "original-freeze:L06/request-timeout",
+      "family": "L06",
+      "variant": "request-timeout",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Each timed-out acquired Worker is retired; no match/syntax result; unproved grant consumed, no automatic restart refund."
+    },
+    {
+      "identity": "original-freeze:L07/worker-error",
+      "family": "L07",
+      "variant": "worker-error",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events."
+    },
+    {
+      "identity": "original-freeze:L07/messageerror",
+      "family": "L07",
+      "variant": "messageerror",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events."
+    },
+    {
+      "identity": "original-freeze:L07/unexpected-exit",
+      "family": "L07",
+      "variant": "unexpected-exit",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "originalExpectation": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events."
+    },
+    {
+      "identity": "original-freeze:L08/termination-rejects-undefined",
+      "family": "L08",
+      "variant": "termination-rejects-undefined",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Failed termination retains presence/ownership; other cleanups attempted; cannot mark free/clean."
+    },
+    {
+      "identity": "original-freeze:L09/instrumented-publication-rejects",
+      "family": "L09",
+      "variant": "instrumented-publication-rejects",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "If test instrumentation returns async work, enroll/await it and cleanup; its failure cannot mask earlier caller/execution reason. No new public observer hook."
+    },
+    {
+      "identity": "original-freeze:B01/root-descendants",
+      "family": "B01",
+      "variant": "root-descendants",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "One explicit root performs successive ERE jobs through internal invoke, pipeline and substitution; shared remaining counters, no state-clone refund."
+    },
+    {
+      "identity": "original-freeze:B02/fresh-independent-exec",
+      "family": "B02",
+      "variant": "fresh-independent-exec",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Two independent public exec calls on same Shell each create fresh ERE root; concurrent roots never share mutable usage."
+    },
+    {
+      "identity": "original-freeze:B03/zero",
+      "family": "B03",
+      "variant": "zero",
+      "role": "data-accounting-future",
+      "status": "UNRUN",
+      "originalExpectation": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures."
+    },
+    {
+      "identity": "original-freeze:B03/exact-boundary",
+      "family": "B03",
+      "variant": "exact-boundary",
+      "role": "data-accounting-future",
+      "status": "UNRUN",
+      "originalExpectation": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures."
+    },
+    {
+      "identity": "original-freeze:B03/one-over",
+      "family": "B03",
+      "variant": "one-over",
+      "role": "data-accounting-future",
+      "status": "UNRUN",
+      "originalExpectation": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures."
+    },
+    {
+      "identity": "original-freeze:B04/crash-unproved",
+      "family": "B04",
+      "variant": "crash-unproved",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Consume complete unresolved cumulative allowance; fresh Worker cannot restore credit; live storage release waits retirement."
+    },
+    {
+      "identity": "original-freeze:B04/malformed-unproved",
+      "family": "B04",
+      "variant": "malformed-unproved",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Consume complete unresolved cumulative allowance; fresh Worker cannot restore credit; live storage release waits retirement."
+    },
+    {
+      "identity": "original-freeze:B05/failed-syntax-then-job",
+      "family": "B05",
+      "variant": "failed-syntax-then-job",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Known syntax failure commits measured pure-ledger usage; next job sees residual root grant with unchanged per-input caps."
+    },
+    {
+      "identity": "original-freeze:B06/input-mutation-after-admission",
+      "family": "B06",
+      "variant": "input-mutation-after-admission",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "originalExpectation": "Caller mutates fragment container after awaited transfer; owned snapshot stable, copy/queue overhead precharged, no unbounded empty-fragment vector."
+    },
+    {
+      "identity": "original-freeze:B07/capture-byte-overflow",
+      "family": "B07",
+      "variant": "capture-byte-overflow",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Span sums/slots exceed private cap before string/array publication; status3, prior captures preserved, no maxExpansionFields fabrication."
+    },
+    {
+      "identity": "original-freeze:B07/capture-slot-overflow",
+      "family": "B07",
+      "variant": "capture-slot-overflow",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Span sums/slots exceed private cap before string/array publication; status3, prior captures preserved, no maxExpansionFields fabrication."
+    },
+    {
+      "identity": "original-freeze:C01/readonly-capture-target",
+      "family": "C01",
+      "variant": "readonly-capture-target",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Match remains0/1 under approved readonly rule, old binding unchanged, required diagnostic awaited; no attribute removal."
+    },
+    {
+      "identity": "original-freeze:C02/public-expansion-limit",
+      "family": "C02",
+      "variant": "public-expansion-limit",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them."
+    },
+    {
+      "identity": "original-freeze:C02/public-output-limit",
+      "family": "C02",
+      "variant": "public-output-limit",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them."
+    },
+    {
+      "identity": "original-freeze:C02/sink-raw-false",
+      "family": "C02",
+      "variant": "sink-raw-false",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them."
+    },
+    {
+      "identity": "original-freeze:C03/short-circuited-regex",
+      "family": "C03",
+      "variant": "short-circuited-regex",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "originalExpectation": "Unvisited RHS has zero expansion, compilation, Worker starts, usage and capture mutation; parser errors still belong to shell grammar."
+    },
+    {
+      "identity": "original-freeze:A01/expr-contract-pins",
+      "family": "A01",
+      "variant": "expr-contract-pins",
+      "role": "legacy-regression-future",
+      "status": "UNRUN",
+      "originalExpectation": "Old RegexExecutionOptions/Descriptor/Request/Reply/Expr* declaration bodies unchanged; replay bounded already-owned expr contract cases only under future GO, never reinterpret ERE as expr-match."
+    },
+    {
+      "identity": "original-freeze:A02/source-built",
+      "family": "A02",
+      "variant": "source-built",
+      "role": "package-load-future",
+      "status": "UNRUN",
+      "originalExpectation": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback."
+    },
+    {
+      "identity": "original-freeze:A02/installed",
+      "family": "A02",
+      "variant": "installed",
+      "role": "package-load-future",
+      "status": "UNRUN",
+      "originalExpectation": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback."
+    },
+    {
+      "identity": "original-freeze:A02/physical-move",
+      "family": "A02",
+      "variant": "physical-move",
+      "role": "package-load-future",
+      "status": "UNRUN",
+      "originalExpectation": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback."
+    },
+    {
+      "identity": "original-freeze:A03/workerData-env-execArgv",
+      "family": "A03",
+      "variant": "workerData-env-execArgv",
+      "role": "loader-authority-future",
+      "status": "UNRUN",
+      "originalExpectation": "Exact inert WorkerData, empty env and approved bootstrap execArgv; actual ERE Worker load identity observed, not merely parent hook. Legacy expr Worker flags unchanged."
+    },
+    {
+      "identity": "original-freeze:A04/positive-new-method",
+      "family": "A04",
+      "variant": "positive-new-method",
+      "role": "types-future",
+      "status": "UNRUN",
+      "originalExpectation": "New internal session/type shapes compile against actual engine declarations; old descriptor/request methods reject shell-ere and no new root/export/options key appears."
+    },
+    {
+      "identity": "original-freeze:A04/negative-old-union",
+      "family": "A04",
+      "variant": "negative-old-union",
+      "role": "types-future",
+      "status": "UNRUN",
+      "originalExpectation": "New internal session/type shapes compile against actual engine declarations; old descriptor/request methods reject shell-ere and no new root/export/options key appears."
+    }
+  ]
+}

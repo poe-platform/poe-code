@@ -1,0 +1,422 @@
+{
+  "schema": 1,
+  "role": "retained emitted SOURCE graph only, not fresh module loads",
+  "testedSource": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "testedEngine": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb",
+  "evidenceCommit": "6c884cc630a6ef1b93b247428e635596ede4b7aa",
+  "archive": {
+    "file": "ACTUAL.json.gz.base64.data",
+    "compressedBytes": 102944,
+    "compressedSha256": "81de06b72e96be4c05e487dabd774fa97afb65d4029200d0e1260938c32c1c08",
+    "uncompressedBytes": 504295,
+    "uncompressedSha256": "2259d83e1c8c8bfcf4ed2a845a3f61dcba4bc2b3a9debd3f2523253226f73f41",
+    "entries": 69,
+    "decode": "Bound regular base64 file; decode once, authenticate compressed bytes, gunzip same buffer with exact maximum output, authenticate raw bytes before JSON.parse."
+  },
+  "assets": [
+    {
+      "path": "errors.js",
+      "bytes": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "imports": [],
+      "staticEntry": null
+    },
+    {
+      "path": "limits.js",
+      "bytes": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "imports": [
+        "node:timers/promises",
+        "./errors.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "matcher.js",
+      "bytes": 8483,
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "imports": [
+        "./limits.js",
+        "./syntax.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "syntax.js",
+      "bytes": 14270,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "imports": [
+        "./errors.js",
+        "./limits.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/accounting.js",
+      "bytes": 6678,
+      "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677",
+      "imports": [
+        "../limits.js",
+        "./protocol.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/owner.js",
+      "bytes": 7353,
+      "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652",
+      "imports": [
+        "node:worker_threads",
+        "./protocol.js",
+        "./validation.js"
+      ],
+      "staticEntry": "./worker-entry.js"
+    },
+    {
+      "path": "transport/protocol.js",
+      "bytes": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "imports": [],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/root.js",
+      "bytes": 12390,
+      "sha256": "f0a623bb7511f09889febfee051b45efc9b48a1feb6bf36a2883e78ba3d3dfa4",
+      "imports": [
+        "../errors.js",
+        "./accounting.js",
+        "./owner.js",
+        "./protocol.js",
+        "./validation.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/validation.js",
+      "bytes": 12419,
+      "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd",
+      "imports": [
+        "node:util",
+        "../errors.js",
+        "../limits.js",
+        "./accounting.js",
+        "./protocol.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/wire-engine.js",
+      "bytes": 1795,
+      "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "imports": [
+        "../limits.js",
+        "../syntax.js",
+        "../matcher.js",
+        "../errors.js",
+        "./protocol.js",
+        "./validation.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/worker-entry.js",
+      "bytes": 1331,
+      "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "imports": [
+        "node:worker_threads",
+        "./protocol.js",
+        "./validation.js",
+        "./wire-engine.js",
+        "./accounting.js"
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "imports": [],
+      "staticEntry": null
+    }
+  ],
+  "declarations": [
+    {
+      "path": "errors.d.ts",
+      "bytes": 691,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "limits.d.ts",
+      "bytes": 671,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "matcher.d.ts",
+      "bytes": 231,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "syntax.d.ts",
+      "bytes": 445,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "transport/accounting.d.ts",
+      "bytes": 1770,
+      "sha256": "eaeaa4e5adac79910aa10e3a887c8402888df09b575f4056901c2981cc9f629f"
+    },
+    {
+      "path": "transport/owner.d.ts",
+      "bytes": 492,
+      "sha256": "c18c4a6e4251a1de24640a45578a18aac8f0510bf616b6899216fb7a606c76c6"
+    },
+    {
+      "path": "transport/protocol.d.ts",
+      "bytes": 2658,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "transport/root.d.ts",
+      "bytes": 562,
+      "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1"
+    },
+    {
+      "path": "transport/validation.d.ts",
+      "bytes": 1404,
+      "sha256": "a59bc046911ad55cd526d40e28fb66c9325e6251d5a48c068969d1b1ca694909"
+    },
+    {
+      "path": "transport/wire-engine.d.ts",
+      "bytes": 144,
+      "sha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168"
+    },
+    {
+      "path": "transport/worker-entry.d.ts",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "types.d.ts",
+      "bytes": 1606,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    }
+  ],
+  "staticGraph": {
+    "parent": [
+      "errors.js",
+      "limits.js",
+      "transport/accounting.js",
+      "transport/owner.js",
+      "transport/protocol.js",
+      "transport/root.js",
+      "transport/validation.js"
+    ],
+    "worker": [
+      "errors.js",
+      "limits.js",
+      "matcher.js",
+      "syntax.js",
+      "transport/accounting.js",
+      "transport/protocol.js",
+      "transport/validation.js",
+      "transport/wire-engine.js",
+      "transport/worker-entry.js"
+    ],
+    "union": [
+      "errors.js",
+      "limits.js",
+      "matcher.js",
+      "syntax.js",
+      "transport/accounting.js",
+      "transport/owner.js",
+      "transport/protocol.js",
+      "transport/root.js",
+      "transport/validation.js",
+      "transport/wire-engine.js",
+      "transport/worker-entry.js"
+    ],
+    "unreachedEmittedModule": "types.js"
+  },
+  "proposedBuiltinEdges": [
+    {
+      "importer": "limits.js",
+      "importerSha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "builtin": "node:timers/promises"
+    },
+    {
+      "importer": "transport/owner.js",
+      "importerSha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652",
+      "builtin": "node:worker_threads"
+    },
+    {
+      "importer": "transport/validation.js",
+      "importerSha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd",
+      "builtin": "node:util"
+    },
+    {
+      "importer": "transport/worker-entry.js",
+      "importerSha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "builtin": "node:worker_threads"
+    }
+  ],
+  "authorityStatus": "PROPOSED_ONLY_NOT_GRANTED",
+  "staticEntry": {
+    "relative": "./worker-entry.js",
+    "importer": "transport/owner.js",
+    "workerData": {
+      "operation": "shell-ere",
+      "version": 1
+    },
+    "env": {},
+    "execArgv": [],
+    "stdout": true,
+    "stderr": true,
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 128,
+      "stackSizeMb": 4
+    },
+    "startupTimeoutMs": 3000,
+    "requestTimeoutMs": 1000,
+    "maxQueuedTickets": 64
+  },
+  "pendingR01": {
+    "commit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+    "status": "PENDING_INTEGRATION_REBIND_NOT_CURRENT_TESTED",
+    "bodyReadsThisTask": 0,
+    "treeBindings": [
+      {
+        "mode": "100644",
+        "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+        "bytes": 1003,
+        "path": "src/commands/regex-execution/ere/errors.ts",
+        "unchangedFromTestedB5": true
+      },
+      {
+        "mode": "100644",
+        "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+        "bytes": 3471,
+        "path": "src/commands/regex-execution/ere/limits.ts",
+        "unchangedFromTestedB5": true
+      },
+      {
+        "mode": "100644",
+        "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+        "bytes": 9759,
+        "path": "src/commands/regex-execution/ere/matcher.ts",
+        "unchangedFromTestedB5": false
+      },
+      {
+        "mode": "100644",
+        "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+        "bytes": 13070,
+        "path": "src/commands/regex-execution/ere/syntax.ts",
+        "unchangedFromTestedB5": true
+      },
+      {
+        "mode": "100644",
+        "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+        "bytes": 1554,
+        "path": "src/commands/regex-execution/ere/types.ts",
+        "unchangedFromTestedB5": true
+      }
+    ],
+    "newEmissions": "UNAVAILABLE/UNBUILT; do not substitute old matcher.js"
+  },
+  "sourceReads": {
+    "frozen": [
+      {
+        "mode": "100644",
+        "blob": "59e05eedfa1f08f6cd7d952d8d7140950b7f4178",
+        "bytes": 10692,
+        "path": "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json"
+      }
+    ],
+    "retainedEvidence": [
+      {
+        "mode": "100644",
+        "blob": "cfeeb46cdf33719ebf4f1d8ccbd6a9728f5a44de",
+        "bytes": 137261,
+        "path": "tests/compatibility/bash-ere-transport-corrections-20260829/ACTUAL.json.gz.base64.data"
+      },
+      {
+        "mode": "100644",
+        "blob": "2366da5a6bae67bf7a7a80a333788a81b4080f7f",
+        "bytes": 47151,
+        "path": "tests/compatibility/bash-ere-transport-corrections-20260829/EVIDENCE.json"
+      }
+    ]
+  },
+  "newExecution": {
+    "compiler": 0,
+    "worker": 0,
+    "runtime": 0,
+    "proxy": 0
+  },
+  "administrativeSnapshot": [
+    {
+      "index": 1,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "--verify",
+        "72187e5^{commit}"
+      ],
+      "pid": 5081,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 2,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "72187e5abc1179883f85a63e1ef558f2e141c542",
+        "--",
+        "src/commands/regex-execution/ere/errors.ts",
+        "src/commands/regex-execution/ere/limits.ts",
+        "src/commands/regex-execution/ere/matcher.ts",
+        "src/commands/regex-execution/ere/syntax.ts",
+        "src/commands/regex-execution/ere/types.ts"
+      ],
+      "pid": 5854,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 3,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+        "--",
+        "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json"
+      ],
+      "pid": 5855,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "index": 4,
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "6c884cc630a6ef1b93b247428e635596ede4b7aa",
+        "--",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/EVIDENCE.json",
+        "tests/compatibility/bash-ere-transport-corrections-20260829/ACTUAL.json.gz.base64.data"
+      ],
+      "pid": 5856,
+      "closed": true,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "publicationNotIncluded": true
+}

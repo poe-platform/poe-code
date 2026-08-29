@@ -1,0 +1,67 @@
+{
+  "at": "2026-08-29T16:43:00.094Z",
+  "profileSha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "controls": [
+    {
+      "id": "C01-frozen-archive-and-selection-admission",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-future-artifact-bindings-and-tamper",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-constructor-identity-options-and-real-event-shape",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-falsy-enrollment-retains-worker-and-enrolls-streams",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-native-exit-close-and-independent-EOF",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-close-alone-is-UNKNOWN-and-retains-actual-reference",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-partial-capture-undefined-primary-false-cleanup",
+      "status": "PASS"
+    },
+    {
+      "id": "C08-capture-prewrite-and-zero-write-no-refund",
+      "status": "PASS"
+    },
+    {
+      "id": "C09-typed-clock-grant-and-crossrealm-own-data",
+      "status": "PASS"
+    },
+    {
+      "id": "C10-exact-24-schedule-and-no-next-on-UNKNOWN",
+      "status": "PASS"
+    }
+  ],
+  "count": 10,
+  "passed": 10,
+  "fakeConstructors": 2,
+  "fakeNativeStarts": 2,
+  "fakeCaseCallbacks": 25,
+  "actualWorkers": 0,
+  "actualChildren": 0,
+  "productImports": 0,
+  "archiveInflations": 0,
+  "historicalPreparationFailureRetained": true,
+  "evaluatedModules": [
+    "prepare.mjs",
+    "core.mjs",
+    "data.mjs",
+    "observer.mjs",
+    "process-owner.mjs"
+  ],
+  "unevaluatedRuntimeEntries": [
+    "coordinator.mjs",
+    "cell.mjs"
+  ]
+}

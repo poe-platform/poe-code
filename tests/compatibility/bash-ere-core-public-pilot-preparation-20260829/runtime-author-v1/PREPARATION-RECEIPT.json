@@ -1,0 +1,77 @@
+{
+  "at": "2026-08-29T16:42:59.838Z",
+  "profileSha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "assets": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/core.mjs",
+      "size": 8220,
+      "mode": 420,
+      "sha256": "c3db649d63db084de500809ed10e0094b2df3a1ce9b3ed7369eda0a09f248bbf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/observer.mjs",
+      "size": 2280,
+      "mode": 420,
+      "sha256": "1985b97e75701f3ed2fd1229f895e7f994a9057b2e9bad2b1690ef2f2efb8c74"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/process-owner.mjs",
+      "size": 3407,
+      "mode": 420,
+      "sha256": "08bc29937289b98918dfdc2203e2d5a919833382c414a824f89388e550deb8b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/data.mjs",
+      "size": 2694,
+      "mode": 420,
+      "sha256": "a3c5fdb910cc153106acbb164dfde05b67f1498d706f442c170dbb7ad5443cd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/cell.mjs",
+      "size": 2411,
+      "mode": 420,
+      "sha256": "df23733cd243bd54eaaedfec9eb4fe0a86306f2832d4c293b6edde3404854196"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/coordinator.mjs",
+      "size": 10531,
+      "mode": 420,
+      "sha256": "26987efc84b6ebb2ffb2e05c33e75a5c2970c585059c879bc935afc1d398bf12"
+    }
+  ],
+  "tools": 2028,
+  "currentNodeRehashed": true,
+  "packageFiles": [
+    {
+      "name": "source-built",
+      "files": 1305
+    },
+    {
+      "name": "installed",
+      "files": 1002
+    },
+    {
+      "name": "moved",
+      "files": 1002
+    }
+  ],
+  "cells": 24,
+  "unchangedOracles": true,
+  "logicalBytes": 254938146,
+  "components": {
+    "retainedInputBytes": 23218807,
+    "freshPackages": 17809835,
+    "nativeMutableReservations": 67108864,
+    "allCaptureMaximum": 67108864,
+    "onePublicationCaptureCopy": 67108864,
+    "metadataAndAuthorPacket": 8388608,
+    "finalPublicationMiscellaneous": 4194304
+  },
+  "enumeratedRoles": 36,
+  "rolesCeiling": 40,
+  "futureRootAbsent": true,
+  "archiveInflations": 0,
+  "actualChildren": 0,
+  "actualWorkers": 0,
+  "productImports": 0
+}

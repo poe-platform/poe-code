@@ -1,0 +1,7 @@
+publicationEpochSeconds=1788015282.5867309570
+packagePinVerified=930368:2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca
+nodePinVerified=5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4/REPORT.md
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4/RECEIPT.json
+cf206ca25a94fba2c8152b8105aa4eb558996555f4121cfdc48870c34146735d  tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4/RECEIPT.json

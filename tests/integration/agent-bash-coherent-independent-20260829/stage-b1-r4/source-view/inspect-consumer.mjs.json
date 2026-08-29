@@ -1,0 +1,6 @@
+{
+  "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+  "bytes": 3920,
+  "sha256": "81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7",
+  "inheritedRuntimeBinding": true
+}

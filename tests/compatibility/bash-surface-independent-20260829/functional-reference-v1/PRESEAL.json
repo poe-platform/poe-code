@@ -1,0 +1,101 @@
+{
+  "schema": "functional-reference-source-preseal-v1",
+  "sourceCommit": "9afc9c5a321711fb566817916a281fe4776935fd",
+  "status": "SOURCE_DATA_PREPARED_DIFFERENT_REVIEW_AND_ROOT_TOOL_GO_REQUIRED",
+  "created": 1787985629125,
+  "files": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 40103,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6"
+    },
+    {
+      "path": "AUTHENTICATION.json",
+      "bytes": 8212,
+      "sha256": "b7a6bf1d229465c82ab7e80c717e44e31aac1ff57a7c4ef36e544660fc02340f"
+    },
+    {
+      "path": "DATA-PRESEAL.json",
+      "bytes": 909,
+      "sha256": "cc018edf5b1023bce976ce3c2ba0ed6ca1931a844ba1e8abb88d774a60c3698f"
+    },
+    {
+      "path": "DATA-RESULTS.json",
+      "bytes": 1868,
+      "sha256": "3404d6b14d843d00adef951f411a351094fff3cf218bd4ef72d9f8cf8a50b3fb"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 3557,
+      "sha256": "5a34622851e1c03ab4acaf857c5767e0c689903ae826212c1288fec61c9bea10"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7139,
+      "sha256": "13327b45830859231a7c6f3acba42052e7f4fc8a494515ccdabdcb86251edf36"
+    },
+    {
+      "path": "REFERENCES.md",
+      "bytes": 2364,
+      "sha256": "d2623f32db82e673ae985a50080238520efe61df80556cfc935e68d3bdb1f8ae"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 29287,
+      "sha256": "86d26ebc5f92857d5917f7c28f4d8648490b98cf5c37177dc13af4b74e1f93fd"
+    },
+    {
+      "path": "SOURCE-REVIEW.json",
+      "bytes": 1267,
+      "sha256": "40bd89bd876785e91566fd92e04ab22ab475f678d8ea85cae32eedb02d8b4f88"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2657,
+      "sha256": "77da774f9aae8e1409c6a8dd0425387d435c01842164abe47ce3f6e4f7bfbcc6"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb"
+    },
+    {
+      "path": "data-controls.mjs",
+      "bytes": 1958,
+      "sha256": "517f0d5d7b685c880e27e918e4d11a1c5efde19d9a2ef3527d76e42234877128"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 12619,
+      "sha256": "c93248b64eb33cd2c363351ba393a42f7858210b95537fdd6bbef257d1664147"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4011,
+      "sha256": "f4228dc8c6f2f3124270504fed369cb5bb300cf726bc66e9c03b3c2147992d57"
+    }
+  ],
+  "programIdentities": 40,
+  "proposedNativeObservations": 37,
+  "unqualified": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "dataControls": 10,
+  "nativeExecutions": 0,
+  "productExecutions": 0,
+  "osFenceQualification": false,
+  "original9and40": "UNRUN_HOLD_UNCHANGED",
+  "priorReadiness": "73020b3f047f2faaa74ffdb74168b2e68c3e26bb SIGABRT empty captures; no retry/rescore"
+}

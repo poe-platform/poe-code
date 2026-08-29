@@ -1,0 +1,36 @@
+{
+  "schema": 3,
+  "results": [
+    {
+      "name": "clock-false",
+      "pid": 58271,
+      "pass": true,
+      "closed": true,
+      "exited": true,
+      "signal": "SIGTERM",
+      "captureComplete": true
+    },
+    {
+      "name": "publication-undefined",
+      "pid": 58273,
+      "pass": true,
+      "closed": true,
+      "exited": true,
+      "signal": "SIGTERM",
+      "captureComplete": true
+    },
+    {
+      "name": "timeout",
+      "pid": 58276,
+      "pass": true,
+      "closed": true,
+      "exited": true,
+      "signal": "SIGTERM",
+      "captureComplete": true
+    }
+  ],
+  "children": 3,
+  "retired": 3,
+  "Workers": 0,
+  "rescue": 0
+}

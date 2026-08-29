@@ -1,0 +1,25 @@
+{
+  "schema": 3,
+  "controlsOld": 33,
+  "novel": 8,
+  "additional": 10,
+  "normalDataOnly": 1,
+  "syntaxFiles": 19,
+  "syntaxDiagnostics": 0,
+  "cells": 135,
+  "files": 4191,
+  "bytes": 15168573,
+  "caseInventorySha256": "60479454833b1c6431414b3cf8685d1ef5ce288e9f9100c014914feeda351c48",
+  "archive": {
+    "textBytes": 7403409,
+    "textSha256": "9a5c24cb4bcecb25c38a2a5d44da98a1afa4a94779067198810845c027d861b4",
+    "compressedBytes": 5552555,
+    "compressedSha256": "75db992d80a47319fc3a2bd86897e0c4540c1e268b58ab07c2be898ae89dfd2b",
+    "decodedBytes": 20972257,
+    "decodedSha256": "aeef06371cd550d6e3a61e4003dce2ddcb873861f0bd9607ac29c8e44593c597"
+  },
+  "Workers": 0,
+  "engineImports": 0,
+  "compiler": 0,
+  "allRuntime": "60 UNRUN"
+}

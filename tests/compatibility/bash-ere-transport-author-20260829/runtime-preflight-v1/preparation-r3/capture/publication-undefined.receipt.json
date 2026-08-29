@@ -1,0 +1,98 @@
+{
+  "schema": 3,
+  "role": "case",
+  "ownerPid": 58270,
+  "clockDomain": "owner:58270",
+  "pid": 58273,
+  "admitted": true,
+  "created": true,
+  "spawned": true,
+  "exited": true,
+  "closed": true,
+  "code": null,
+  "signal": "SIGTERM",
+  "exitCode": null,
+  "exitSignal": "SIGTERM",
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "stdoutClosed": true,
+  "stderrClosed": true,
+  "stdoutEnded": true,
+  "stderrEnded": true,
+  "state": "RETIRED",
+  "captureComplete": true,
+  "captureTruncated": false,
+  "termRequested": true,
+  "killRequested": false,
+  "primary": {
+    "present": true,
+    "kind": "undefined",
+    "value": null,
+    "objectDetail": "NOT_INSPECTED",
+    "identity": "RAW_REFERENCE_RETAINED_NOT_SERIALIZED"
+  },
+  "secondary": [],
+  "trace": [
+    {
+      "seq": 1,
+      "at": 28535,
+      "kind": "admit"
+    },
+    {
+      "seq": 2,
+      "at": 29494,
+      "kind": "created",
+      "pid": 58273
+    },
+    {
+      "seq": 3,
+      "at": 29545,
+      "kind": "term"
+    },
+    {
+      "seq": 4,
+      "at": 29578,
+      "kind": "spawn",
+      "pid": 58273
+    },
+    {
+      "seq": 5,
+      "at": 30206,
+      "kind": "stdoutEnd"
+    },
+    {
+      "seq": 6,
+      "at": 30273,
+      "kind": "stderrEnd"
+    },
+    {
+      "seq": 7,
+      "at": 30344,
+      "kind": "exit",
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "seq": 8,
+      "at": 30435,
+      "kind": "stderrClose"
+    },
+    {
+      "seq": 9,
+      "at": 30439,
+      "kind": "close",
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "seq": 10,
+      "at": 30440,
+      "kind": "stdoutClose"
+    },
+    {
+      "seq": 11,
+      "at": 30442,
+      "kind": "retired"
+    }
+  ]
+}

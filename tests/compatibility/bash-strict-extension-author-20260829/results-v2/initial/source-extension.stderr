@@ -1,0 +1,11 @@
+(node:27569) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/tmp/strict-extension-v2-author-aHDK4G/harness/loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"cleanup-registered"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"diagnostic-entered"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"caller-abort"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"cleanup-entry"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"gate-release"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"diagnostic-raw-false"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"cleanup-finished"}
+{"protocol":"X10c-parameter-caller-cleanup-v2","event":"public-settlement"}

@@ -1,0 +1,65 @@
+{
+  "outer": "/tmp/strict-extension-v2-tail-launch-ybzVia",
+  "observerPid": 30400,
+  "observerParentPid": 79787,
+  "started": "2026-08-29T07:01:06.573Z",
+  "signals": [],
+  "bytes": 351,
+  "role": "FRESH_AUTHOR_V2_NOT_RETRY_OF_STOPPED_V1",
+  "runnerSha256": "e59154114eef6f55de025f18490564fcd9ed289743bb39abf2116f73cb9c1611",
+  "sourceSha256": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "bounds": {
+    "totalSeconds": 2700,
+    "children": 96,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 188743680,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8,
+    "directProcessCeiling": 48,
+    "knownOSGrant": 112
+  },
+  "pid": 30401,
+  "events": [
+    {
+      "event": "stderr-end",
+      "at": "2026-08-29T07:01:29.688Z"
+    },
+    {
+      "event": "stderr-close",
+      "at": "2026-08-29T07:01:29.689Z"
+    },
+    {
+      "event": "stdout-end",
+      "at": "2026-08-29T07:01:29.689Z"
+    },
+    {
+      "event": "exit",
+      "code": 0,
+      "signal": null,
+      "at": "2026-08-29T07:01:29.690Z"
+    },
+    {
+      "event": "stdout-close",
+      "at": "2026-08-29T07:01:29.690Z"
+    },
+    {
+      "event": "close",
+      "at": "2026-08-29T07:01:29.690Z"
+    }
+  ],
+  "code": 0,
+  "signal": null,
+  "closed": true,
+  "finished": "2026-08-29T07:01:29.690Z"
+}

@@ -1,0 +1,19 @@
+[
+  {
+    "path": "src/index.ts",
+    "mode": "100644",
+    "blob": "b817e8162b5b1c29decb74ac9c24bdc19d71b391",
+    "bytes": 1728,
+    "sha256": "02e5cf08f9c97f3abc9a2cf2f28b640e79024381ad17e0518dbf8333a63788f7",
+    "revision": "68a5a55bbf227c7d4895a4588510a319d4f2c4d8"
+  },
+  {
+    "path": "src/shell/shell.ts",
+    "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+    "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+    "mode": "100644",
+    "bytes": 15081,
+    "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+    "role": "accepted coherent78 unchanged"
+  }
+]

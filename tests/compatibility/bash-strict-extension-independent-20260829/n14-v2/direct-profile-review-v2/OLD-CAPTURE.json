@@ -1,0 +1,7 @@
+{
+  "path": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v1/capture/initial.stdout.raw",
+  "retainedBytes": 2162688,
+  "sha256": "a1f636633c608d3e940e9358931ffaaf5fd711f0766c95d49c3784d93d3a1bd4",
+  "lostBytes": "UNKNOWN: ENOBUFS does not give total producer output",
+  "oldStatus": "immutable partial capture STOP"
+}

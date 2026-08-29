@@ -1,0 +1,328 @@
+
+### CONTROL-PROTOCOL.json
+1: {
+2:   "schema": "direct-profile-control-protocol-v1",
+3:   "profile": "bash-surface-direct-owned-child-functional-v1",
+4:   "authority": "ROOT selects B and authorizes new scoped source/preseal plus6DATA/4harmless controls; no111product activation",
+5:   "phase": {
+6:     "started": 1787996811318,
+7:     "deadline": 1787998011318,
+8:     "knownOSMaximum": 48,
+9:     "peakKnownRoles": 3,
+10:     "captureBytes": 67108864,
+11:     "workingBytes": 268435456
+12:   },
+13:   "controlEnvelope": {
+14:     "dataIds": [
+15:       "D01",
+16:       "D02",
+17:       "D03",
+18:       "D04",
+19:       "D05",
+20:       "D06"
+21:     ],
+22:     "harmlessIds": [
+23:       "H01",
+24:       "H02",
+25:       "H03",
+26:       "H04"
+27:     ],
+28:     "normalHarmlessChildren": 4,
+29:     "unexpectedExtraChildCleanupCeiling": 2,
+30:     "unexpectedExtraWorkerCleanupCeiling": 2,
+31:     "unexpectedAdmissionIsStop": true,
+32:     "perFixtureMs": 3000,
+33:     "termMs": 2000,
+34:     "killMs": 1000,
+35:     "finalizationTailMs": 60000,
+36:     "perStreamBytes": 65536,
+37:     "nestedCaptureBytes": 8388608,
+38:     "loaderThreads": 0,
+39:     "productWorkers": 0
+40:   },
+41:   "launch": {
+42:     "owner": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+43:     "entry": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/controls.mjs",
+44:     "argv": [
+45:       "CONTROL-SEAL.json",
+46:       "<raw sha256>",
+47:       "/private/tmp/bash-surface-direct-profile-v1-W8SgWF/controls"
+48:     ],
+49:     "env": "Fresh PATH=/usr/bin:/bin HOME=capture LC_ALL=C LANG=C TZ=UTC; no NODE_OPTIONS. Case children use fresh exact role env and --permission; only owned app/role/trace read + exacttrace write; no child/worker/addon/WASI/inspector grant.",
+50:     "cwd": "/Users/kjopek/Workspace/safe-bash",
+51:     "childCwd": "/private/tmp/bash-surface-direct-profile-v1-W8SgWF/controls",
+52:     "capture": "Outer metadata helper opens stdout/stderr before spawning controls owner. Owner opens each fixture stdout/stderr before acquisition; direct listeners enrolled before assertions.",
+53:     "processGroup": "No processgroup probes/signals; detached:false, ChildProcess-object signals only for necessary cleanup."
+54:   },
+55:   "subprocessTargets": {
+56:     "H01": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/extra-child.mjs",
+57:     "H02": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/extra-worker.mjs",
+58:     "executables": [
+59:       "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+60:     ],
+61:     "nativeShellTargets": [],
+62:     "qualification": "Exact harmless self-terminating Node source. Enroll unexpected returned objects before assertions, attempt cleanup; unexpected admission STOP, not passed denial."
+63:   },
+64:   "product": {
+65:     "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+66:     "identityKind": "DERIVED_COMPOSITION_NOT_GIT_OBJECT",
+67:     "closure": "Await Dirac accepted manifest/blob/archive locator recipe; no invalid Git lookup or product import",
+68:     "scripts": 37,
+69:     "fixtures": 4,
+70:     "plannedCalls": 111,
+71:     "actualCalls": 0,
+72:     "withheld": [
+73:       "B26",
+74:       "B27",
+75:       "B28"
+76:     ]
+77:   },
+78:   "claims": {
+79:     "denial": "Pinned Node permission behavior on sealed trusted code; not hostile-code OS sandbox",
+80:     "cleanup": "Actual public exec/dispose receipt only after awaited calls, accepted-contract interpretation separate; no middleware/private job census",
+81:     "threads": "Synchronous load hooks, zero custom loader-thread permission; no census of V8/libuv runtime threads",
+82:     "history": "M08 groupUNKNOWN immutable, previous native observations unchanged"
+83:   },
+84:   "presealOrder": [
+85:     "Write source/tool/fixture/protocol bytes",
+86:     "Hash actual regular files",
+87:     "Commit source and controlseal",
+88:     "Authenticate all seal/tool bytes before owner launch",
+89:     "Run exactly6DATA then4harmless unless STOP",
+90:     "Publish all raw results and unknowns; different review before any111 grant"
+91:   ]
+92: }
+93: 
+
+### case-adapter.mjs
+1: import {createHash} from 'node:crypto';
+2: import {posix} from 'node:path';
+3: export const limits=Object.freeze({maxOutputBytes:131072,maxCommands:512,maxLoopIterations:4096,maxSubstitutionDepth:32,maxSourceBytes:65536,maxExpansionFields:16384,maxExpansionBytes:1048576,pipeHighWaterMark:65536});
+4: function capture() {
+5:  const chunks=[];let size=0;
+6:  return {sink:{async write(chunk){if(!(chunk instanceof Uint8Array)||size+chunk.byteLength>65536)throw Error('ADAPTER_CAPTURE_LIMIT');const owned=Buffer.from(chunk);size+=owned.length;chunks.push(owned);}},result(){const bytes=Buffer.concat(chunks,size);return {bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),base64:bytes.toString('base64')};}};
+7: }
+8: async function snapshot(fs,root) {
+9:  const rows=[];let total=0;
+10:  async function visit(path,relative,depth) {
+11:   if(depth>16||rows.length>=128)throw Error('SNAPSHOT_LIMIT');
+12:   const stat=await fs.lstat(path);const row={path:relative,type:stat.type,mode:stat.mode&4095};rows.push(row);
+13:   if(stat.type==='file') {if(stat.size>65536||total+stat.size>262144)throw Error('SNAPSHOT_BYTES');const bytes=await fs.readFile(path);if(bytes.length!==stat.size)throw Error('SNAPSHOT_CHANGED');total+=bytes.length;row.base64=Buffer.from(bytes).toString('base64');}
+14:   else if(stat.type==='directory') {const entries=await fs.readdir(path);if(entries.length+rows.length>128)throw Error('SNAPSHOT_ENTRIES');entries.sort((left,right)=>Buffer.compare(Buffer.from(left.name),Buffer.from(right.name)));for(const entry of entries){if(!entry.name||entry.name==='.'||entry.name==='..'||entry.name.includes('/'))throw Error('SNAPSHOT_NAME');await visit(path+'/'+entry.name,relative+'/'+entry.name,depth+1);}}
+15:   else if(stat.type==='symlink')row.target=await fs.readlink(path);
+16:  }
+17:  const entries=await fs.readdir(root);if(entries.length>128)throw Error('SNAPSHOT_ENTRIES');for(const entry of entries)await visit(root+'/'+entry.name,entry.name,0);
+18:  return rows.sort((left,right)=>Buffer.compare(Buffer.from(left.path),Buffer.from(right.path)));
+19: }
+20: export async function runCase(api,row,fixtures,signal) {
+21:  const fs=new api.MemoryFileSystem();const cwd=row.virtualInvocation.cwd,caseRoot=posix.dirname(cwd);
+22:  await fs.mkdir(caseRoot,{recursive:true,mode:448});
+23:  for(const name of ['work','home','tmp','empty-path'])await fs.mkdir(caseRoot+'/'+name,{mode:448});
+24:  for(const fixture of fixtures)await fs.writeFile(cwd+'/'+fixture.path,new Uint8Array(Buffer.from(fixture.base64,'base64')),{mode:fixture.mode,flag:'wx'});
+25:  const filesBefore=await snapshot(fs,caseRoot),stdout=capture(),stderr=capture();
+26:  const shell=new api.Shell({fs,cwd,env:row.virtualInvocation.environment,limits}).use(api.agentCommands());
+27:  const publicEvents=[]; let settlement,primary,hasPrimary=false,cleanupError,hasCleanupError=false;
+28:  try {publicEvents.push("exec-started");const result=await shell.exec(row.program,{stdin:new Uint8Array(Buffer.from(row.stdinBase64,'base64')),signal,stdout:stdout.sink,stderr:stderr.sink});publicEvents.push('exec-resolved');settlement={kind:'resolved',status:result.exitCode};const out=stdout.result(),err=stderr.result();if(!Buffer.from(result.stdoutBytes).equals(Buffer.from(out.base64,'base64'))||!Buffer.from(result.stderrBytes).equals(Buffer.from(err.base64,'base64')))throw Error('CAPTURE_RESULT_DISAGREEMENT');}
+29:  catch(reason){publicEvents.push("exec-rejected");hasPrimary=true;primary=reason;settlement={kind:'rejected',reasonKind:reason===null?'null':typeof reason,reasonName:reason instanceof Error?reason.name:undefined,reasonMessage:reason instanceof Error?reason.message:typeof reason==='string'?reason:undefined};}
+30:  finally{publicEvents.push("dispose-started");try{await shell.dispose();publicEvents.push("dispose-resolved");}catch(reason){publicEvents.push("dispose-rejected");hasCleanupError=true;cleanupError=reason;}}
+31:  const filesAfter=await snapshot(fs,caseRoot);
+32:  return {...settlement,stdout:stdout.result(),stderr:stderr.result(),filesBefore,filesAfter,cleanup:{attempted:true,settled:true,rejected:hasCleanupError},publicSettlement:{execObserved:true,disposeSettled:true,disposeRejected:hasCleanupError,events:publicEvents,registeredCleanupQualification:'accepted public exec/dispose contract; no private job census or additional middleware',privateOutstandingJobs:'NOT_OBSERVED'},hasPrimary,primary,hasCleanupError,cleanupError,filesystemScope:'caseRoot descendants only; not host containment or complete VFS mutation census'};
+33: }
+34: 
+
+### case-driver.mjs
+1: import fs from 'node:fs';
+2: import {pathToFileURL} from 'node:url';
+3: import {PROFILE} from './profile.mjs';
+4: import {runCase} from './case-adapter.mjs';
+5: import {compareRaw,validateMatrix} from './data.mjs';
+6: const role=JSON.parse(fs.readFileSync(process.env.SURFACE_ROLE));const matrix=JSON.parse(fs.readFileSync(role.matrix));validateMatrix(matrix);const row=matrix.cases.find(value=>value.id===role.caseId);if(!row)throw Error('CASE_MEMBERSHIP');
+7: const api=role.layout==='source-built'?await import(pathToFileURL(role.productEntry)):await import('virtual-bash');
+8: const controller=new AbortController();const timer=setTimeout(()=>controller.abort(Error('CASE_EXEC_DEADLINE')),3000);
+9: let result;try{result=await runCase(api,row,matrix.fixtures,controller.signal);}finally{clearTimeout(timer);}
+10: if(controller.signal.aborted)throw controller.signal.reason;
+11: const clean={...result};delete clean.primary;delete clean.cleanupError;
+12: if(result.hasPrimary&&result.primary instanceof Error&&/ADAPTER_CAPTURE|CAPTURE_RESULT|SNAPSHOT/.test(result.primary.message))throw result.primary;
+13: if(result.hasCleanupError)throw Error('CASE_CLEANUP_REJECTED');
+14: const output={profile:PROFILE,publicSettlement:result.publicSettlement,caseId:row.id,layout:role.layout,observation:clean,rawComparison:compareRaw(row.nativeObservation,clean),interpretation:row.comparison.semanticTags,qualification:'Bash3.2 raw observation comparison; no automatic GNU5.3 parity or normalized pass'};
+15: process.stdout.write(JSON.stringify(output)+'\n');
+16: 
+
+### case-launch.mjs
+1: import fs from 'node:fs';
+2: import {readPinned,hash} from './auth.mjs';
+3: import {PROFILE,caseArguments,validateArguments,completion} from './profile.mjs';
+4: import {runDirect} from './direct-child.mjs';
+5: export async function launchProductCase(spec,ledger) {
+6:   const closure=JSON.parse(readPinned(spec.closurePath,spec.closurePin,2097152));
+7:   if(closure.decision!=='ACCEPT'||closure.candidate!=='bf079ada185a79aec864b068f3738ddc5520822e'||closure.identityKind!=='DERIVED_COMPOSITION_NOT_GIT_OBJECT'||closure.profile!==PROFILE||!spec.rootGrant||spec.rootGrant.decision!=='GO'||spec.rootGrant.closureSha256!==spec.closurePin.sha256)throw Error('PRODUCT_CLOSURE_OR_GRANT_HOLD');
+8:   if(spec.role.kind!=='product-case')throw Error('PRODUCT_ROLE');
+9:   for(const [filename,pin]of Object.entries(spec.role.files))readPinned(filename,pin);
+10:   const roleBytes=readPinned(spec.role.rolePath,spec.rolePin,2097152);
+11:   if(JSON.stringify(JSON.parse(roleBytes))!==JSON.stringify(spec.role))throw Error('ROLE_OBJECT_BINDING');
+12:   const env={HOME:spec.home,TMPDIR:spec.tmp,PATH:spec.emptyPath,LC_ALL:'C',LANG:'C',TZ:'UTC',SURFACE_ROLE:spec.role.rolePath,SURFACE_ROLE_BYTES:String(roleBytes.length),SURFACE_ROLE_SHA256:hash(roleBytes)};
+13:   const args=caseArguments(spec.role);validateArguments(spec.role,args,env);
+14:   const result=await runDirect({...spec,args,env,cwd:spec.role.app,id:spec.role.id,timeoutMs:8000},ledger);
+15:   if(!result.row.qualified||result.row.status!==0)throw Error('PRODUCT_DIRECT_CHILD_UNQUALIFIED');
+16:   const output=result.row.captures.find(capture=>capture.kind==='stdout');
+17:   const receipt=JSON.parse(Buffer.from(output.base64,'base64'));
+18:   if(!completion(receipt,result.row)||receipt.caseId!==spec.role.caseId||receipt.layout!==spec.role.layout)throw Error('PRODUCT_PUBLIC_SETTLEMENT_RECEIPT');
+19:   const traceStat=fs.lstatSync(spec.role.trace);if(!traceStat.isFile()||traceStat.isSymbolicLink()||traceStat.size>524288)throw Error('PRODUCT_TRACE_TYPE_SIZE');
+20:   const trace=fs.readFileSync(spec.role.trace);ledger.captureBytes+=trace.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('PRODUCT_TRACE_CAPTURE_LIMIT');
+21:   const rows=trace.toString().trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));
+22:   if(rows.filter(row=>row.event==='permission-admitted').length!==1||rows.filter(row=>row.event==='synchronous-hooks-installed').length!==1||rows.some(row=>row.profile!==PROFILE||row.role!==spec.role.id))throw Error('PRODUCT_TRACE_AUTHORITY');
+23:   return {receipt,lifecycle:result.row,loadTrace:{bytes:trace.length,sha256:hash(trace),base64:trace.toString('base64')},qualification:'Public exec/dispose settlement contract and direct-child observations, no private job census/group absence/OS containment'};
+24: }
+25: 
+
+### direct-child.mjs
+1: import fs from 'node:fs';
+2: import {spawn} from 'node:child_process';
+3: import {hash,errorRecord,Primary,pinExecutable} from './auth.mjs';
+4: const pause = ms => new Promise(resolve => setTimeout(resolve,ms));
+5: export const qualifyDirect = row => !row.primaryPresent && !row.forced && row.exit && row.close && row.stdoutEOF && row.stderrEOF && row.capturesQualified && row.knownOutstanding === 0;
+6: export async function runDirect(spec,ledger) {
+7:   if (ledger.stopped || ledger.active || ledger.starts >= ledger.maximum || Date.now() >= spec.bodyDeadline) throw Error('CHILD_ADMISSION');
+8:   pinExecutable(spec.node);
+9:   const primary = new Primary();
+10:   const row = {id:spec.id,events:[],exit:false,close:false,stdoutEOF:false,stderrEOF:false,captures:[],signals:[],forced:false,capturesQualified:false,knownOutstanding:1};
+11:   const event = name => row.events.push({name,at:Date.now()});
+12:   let stdoutFd, stderrFd;
+13:   try {stdoutFd = fs.openSync(spec.capture + '.stdout','wx+',384); stderrFd = fs.openSync(spec.capture + '.stderr','wx+',384);} catch(reason) {if(stdoutFd!==undefined)fs.closeSync(stdoutFd);throw reason;}
+14:   event('capture-open');
+15:   ledger.starts++;ledger.active++;
+16:   let child,settle;
+17:   const wake = new Promise(resolve => {settle = resolve;});
+18:   const fail = reason => {primary.fail(reason);settle();};
+19:   let stdoutBytes=0,stderrBytes=0;
+20:   try {
+21:     child=spawn(spec.node.path,spec.args,{cwd:spec.cwd,env:spec.env,shell:false,detached:false,stdio:['ignore','pipe','pipe']});
+22:     row.pid=child.pid;
+23:     child.on('spawn',()=>event('spawn'));
+24:     child.on('error',reason=>{event('error');fail(reason);});
+25:     child.on('exit',(status,signal)=>{row.exit=true;row.status=status;row.signal=signal;event('exit');});
+26:     child.on('close',()=>{row.close=true;event('close');settle();});
+27:     const consume = (descriptor,kind) => bytes => {
+28:       if (primary.present) return;
+29:       if ((kind==='stdout'?stdoutBytes:stderrBytes)+bytes.length>65536 || ledger.captureBytes+bytes.length>ledger.captureMaximum) {fail(Error('CAPTURE_LIMIT'));return;}
+30:       try {fs.writeFileSync(descriptor,bytes);ledger.captureBytes+=bytes.length;if(kind==='stdout')stdoutBytes+=bytes.length;else stderrBytes+=bytes.length;} catch(reason){fail(reason);}
+31:     };
+32:     child.stdout.on('data',consume(stdoutFd,'stdout'));child.stderr.on('data',consume(stderrFd,'stderr'));
+33:     child.stdout.on('end',()=>{row.stdoutEOF=true;event('stdout-end');});child.stderr.on('end',()=>{row.stderrEOF=true;event('stderr-end');});
+34:     child.stdout.on('error',fail);child.stderr.on('error',fail);event('listeners-enrolled');
+35:     const timer=setTimeout(()=>fail(Error('CHILD_DEADLINE')),Math.max(1,Math.min(spec.timeoutMs ?? 3000,spec.bodyDeadline-Date.now())));
+36:     await wake;clearTimeout(timer);
+37:     if(!row.close){
+38:       row.forced=true;
+39:       for(const [signal,grace] of [['SIGTERM',2000],['SIGKILL',1000]]){
+40:         if(row.close)break;
+41:         try{row.signals.push({signal,at:Date.now(),returned:child.kill(signal)});}catch(reason){primary.fail(reason);}
+42:         const until=Date.now()+grace;while(!row.close&&Date.now()<until)await pause(10);
+43:       }
+44:     }
+45:     if(!row.close||!row.exit||!row.stdoutEOF||!row.stderrEOF)primary.fail(Error('DIRECT_RETIREMENT_UNKNOWN'));
+46:   }catch(reason){primary.fail(reason);}
+47:   finally {
+48:     for(const [kind,descriptor,expected]of [['stdout',stdoutFd,stdoutBytes],['stderr',stderrFd,stderrBytes]]){
+49:       let capture,closed=false;
+50:       try {fs.fsyncSync(descriptor);const stat=fs.fstatSync(descriptor);if(stat.size!==expected)throw Error('CAPTURE_SIZE');const bytes=Buffer.alloc(expected);let offset=0;while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,bytes.length-offset,offset);if(!count)throw Error('CAPTURE_SHORT');offset+=count;}capture={kind,bytes:expected,sha256:hash(bytes),base64:bytes.toString('base64'),flushed:true};}catch(reason){primary.fail(reason);}
+51:       finally{try{fs.closeSync(descriptor);closed=true;}catch(reason){primary.fail(reason);}}
+52:       if(capture)row.captures.push({...capture,closed});
+53:     }
+54:     row.capturesQualified=row.captures.length===2&&row.captures.every(capture=>capture.closed&&capture.flushed);
+55:     if(Date.now()>=spec.finalDeadline)primary.fail(Error('FINAL_DEADLINE'));
+56:     row.primaryPresent=primary.present;row.primary=primary.present?errorRecord(primary.reason):undefined;row.secondary=primary.secondary;
+57:     row.knownOutstanding=row.close&&row.exit?0:1;
+58:     row.qualified=qualifyDirect(row);
+59:     row.finished=Date.now();ledger.rows.push(row);ledger.active--;if(!row.qualified)ledger.stopped=true;
+60:   }
+61:   return {row,primary};
+62: }
+63: 
+
+### guard.mjs
+1: import fs from 'node:fs';
+2: import {registerHooks} from 'node:module';
+3: import {fileURLToPath} from 'node:url';
+4: import {hash,readPinned} from './auth.mjs';
+5: import {PROFILE,validateRole,validateArguments} from './profile.mjs';
+6: const roleName = process.env.SURFACE_ROLE;
+7: const roleSize = Number(process.env.SURFACE_ROLE_BYTES);
+8: const raw = readPinned(roleName,{bytes:roleSize,sha256:process.env.SURFACE_ROLE_SHA256},2097152);
+9: const role = validateRole(JSON.parse(raw));
+10: if (roleName !== role.rolePath || process.execPath !== role.nodePath) throw Error('CHILD_IDENTITY');
+11: validateArguments(role,[...process.execArgv,process.argv[1]],process.env);
+12: if (!process.permission || ['child','worker','addon','wasi','inspector'].some(scope => process.permission.has(scope))) throw Error('PERMISSION_NOT_DENIED');
+13: let traceBytes = 0;
+14: function trace(event) {
+15:   const bytes = Buffer.from(JSON.stringify({...event,profile:PROFILE,role:role.id}) + '\n');
+16:   traceBytes += bytes.length;
+17:   if (traceBytes > 524288) throw Error('TRACE_LIMIT');
+18:   fs.appendFileSync(role.trace,bytes);
+19: }
+20: trace({event:'permission-admitted',child:false,worker:false,loaderThreads:0});
+21: registerHooks({
+22:   resolve(specifier,context,nextResolve) {
+23:     if (context.parentURL?.startsWith('file:')) {
+24:       const parent = fileURLToPath(context.parentURL);
+25:       if (!role.edges[parent]?.includes(specifier)) throw Error('EDGE_REFUSED');
+26:     }
+27:     if (specifier.startsWith('node:')) {
+28:       if (!role.builtins.includes(specifier)) throw Error('BUILTIN_REFUSED');
+29:       return nextResolve(specifier,context);
+30:     }
+31:     const resolved = nextResolve(specifier,context);
+32:     if (!resolved.url.startsWith('file:') || !Object.hasOwn(role.files,fileURLToPath(resolved.url))) throw Error('LOAD_BINDING_REFUSED');
+33:     return resolved;
+34:   },
+35:   load(url,context,nextLoad) {
+36:     if (url.startsWith('node:')) return nextLoad(url,context);
+37:     const filename = fileURLToPath(url), pin = role.files[filename];
+38:     if (!pin) throw Error('LOAD_BINDING_REFUSED');
+39:     const bytes = readPinned(filename,pin);
+40:     trace({event:'module-loaded',url,bytes:bytes.length,sha256:hash(bytes)});
+41:     return {format:'module',source:bytes,shortCircuit:true};
+42:   }
+43: });
+44: trace({event:'synchronous-hooks-installed',loaderThreads:0});
+45: 
+
+### mechanism.mjs
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import {hash as digest} from './auth.mjs';
+4: export {digest};
+5: export function retainPrimary(primary,secondary){return primary.present?primary:secondary;}
+6: export class Storage{
+7:  constructor(root,limits,clock=Date.now,operations=fs){this.root=root;this.limits=limits;this.clock=clock;this.fs=operations;this.bytes=0;this.completed=0;}
+8:  check(final=false){if(this.clock()>=(final?this.limits.finalDeadline:this.limits.bodyDeadline))throw Error(final?'FINAL_DEADLINE':'BODY_DEADLINE');}
+9:  file(name,bytes,{terminal=false}={}){this.check(terminal);if(!/^[a-zA-Z0-9_.-]+$/.test(name)||this.bytes+bytes.length>this.limits.maximum)throw Error('STORAGE_LIMIT_OR_NAME');let fd;let primary={present:false};let closed=false;this.bytes+=bytes.length;try{fd=this.fs.openSync(path.join(this.root,name),'wx',0o600);this.fs.writeFileSync(fd,bytes);this.fs.fsyncSync(fd);if(this.fs.fstatSync(fd).size!==bytes.length)throw Error('PUBLICATION_SIZE');this.check(terminal);}catch(reason){primary={present:true,reason};}finally{if(fd!==undefined){try{this.fs.closeSync(fd);closed=true;}catch(reason){primary=retainPrimary(primary,{present:true,reason});}}}if(primary.present)throw primary.reason;this.check(terminal);if(!closed)throw Error('PUBLICATION_CLOSE');this.completed++;return {bytes:bytes.length,sha256:digest(bytes),closed};}
+10:  terminal(name,value){return this.file(name,Buffer.from(JSON.stringify(value,null,2)+'\n'),{terminal:true});}
+11: }
+12: export function authenticated(filename,pin,max=16777216){const before=fs.lstatSync(filename);if(!before.isFile()||before.isSymbolicLink()||before.size!==pin.bytes||before.size>max)throw Error('AUTH_TYPE_SIZE');const fd=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);let bytes;try{const opened=fs.fstatSync(fd);if(opened.ino!==before.ino||opened.dev!==before.dev)throw Error('AUTH_IDENTITY');bytes=Buffer.alloc(before.size);let count=0;while(count<bytes.length){const size=fs.readSync(fd,bytes,count,Math.min(65536,bytes.length-count),count);if(!size)throw Error('AUTH_SHORT');count+=size;}const probe=Buffer.alloc(1);if(fs.readSync(fd,probe,0,1,count))throw Error('AUTH_LONG');const after=fs.fstatSync(fd),current=fs.lstatSync(filename);if(after.size!==before.size||after.mtimeMs!==before.mtimeMs||after.ctimeMs!==before.ctimeMs||current.ino!==before.ino||current.dev!==before.dev)throw Error('AUTH_MUTATION');if(digest(bytes)!==pin.sha256)throw Error('AUTH_HASH');}finally{fs.closeSync(fd);}return bytes;}
+13: 
+
+### profile.mjs
+1: import path from 'node:path';
+2: export const PROFILE = 'bash-surface-direct-owned-child-functional-v1';
+3: export function validateRole(role) {
+4:   if (role.profile !== PROFILE || role.childProcessPermission !== 0 || role.workerPermission !== 0 || role.loaderThreads !== 0 || role.loaderMode !== 'synchronous-registerHooks') throw Error('ROLE_AUTHORITY');
+5:   if (!['harmless-control','product-case'].includes(role.kind)) throw Error('ROLE_KIND');
+6:   for (const key of ['app','entry','guard','trace','rolePath']) if (typeof role[key] !== 'string' || !path.isAbsolute(role[key]) || role[key].includes('*')) throw Error('ROLE_PATH');
+7:   for (const key of ['entry','guard']) if (!role[key].startsWith(role.app + path.sep)) throw Error('ROLE_APP');
+8:   if (!Array.isArray(role.readFiles) || !role.readFiles.includes(role.rolePath) || !role.readFiles.includes(role.trace)) throw Error('ROLE_READS');
+9:   for (const filename of role.readFiles) if (!path.isAbsolute(filename) || filename.includes('*')) throw Error('ROLE_READ_PATH');
+10:   if (!role.files || !role.files[role.entry] || !role.edges || !Array.isArray(role.builtins)) throw Error('ROLE_BINDINGS');
+11:   return role;
+12: }
+13: export function caseArguments(role) {
+14:   validateRole(role);
+15:   return ['--permission','--allow-fs-read=' + role.app,...role.readFiles.map(filename => '--allow-fs-read=' + filename),'--allow-fs-write=' + role.trace,'--import',role.guard,role.entry];
+16: }
+17: export function validateArguments(role, args, env) {
+18:   if (JSON.stringify(args) !== JSON.stringify(caseArguments(role)) || Object.hasOwn(env,'NODE_OPTIONS') || Object.hasOwn(env,'NODE_PATH')) throw Error('CHILD_ARGUMENT_AUTHORITY');
+19: }
+20: export function completion(receipt, lifecycle) {
+21:   return receipt?.profile === PROFILE && receipt.publicSettlement?.execObserved === true && receipt.publicSettlement?.disposeSettled === true && receipt.publicSettlement?.disposeRejected === false && lifecycle.exit === true && lifecycle.close === true && lifecycle.stdoutEOF === true && lifecycle.stderrEOF === true && lifecycle.capturesQualified === true && lifecycle.forced === false && lifecycle.primaryPresent === false;
+22: }
+23: 

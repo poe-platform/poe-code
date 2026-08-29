@@ -1,0 +1,13 @@
+# B35 preexecution v3: F01/F02 repair
+
+This is harness-only. Parser52b6711e, package275a6c10, old startupSTOP0/54 and independentN02/N03 failures remain immutable. No new product runtime/compiler/install/native/Worker permission. Root actual GO and different review remain PENDING.
+
+F01: activation.mjs uses exact own-data schemas and rejects missing, non-number, unsafe/nonfinite/fractional/negative times before any arithmetic. Explicit version b35-runtime-grant-v3 adds issuedAtEpochMs. latestStart must equal expires minus1500000ms; issued<=started<=now<=latestStart; maximum issued-to-expiry window3000000ms. This is a proposed activation envelope, not a new actual grant/window. All limits/roles equal sealed numbers. No truthiness/coercion. JSON NaN/Infinity are not accepted; PURE controls also test direct JS values.
+
+F02: launch.sh uses umask077/noclobber and real FD1/FD2 exec redirection before Node collector startup. Collector pre-opens owner capture through unchanged direct-child.mjs before spawning owner; actual process.stderr now has a declared route. preauth.mjs reuses auth.errorRecord, preserving explicit undefined/null/false/0 primary and secondary presence. finalization.mjs remains byte-identical to83f750e5/review5bc05a7d. Initial host/tool/zsh startup remains outside qualified child clean-env/raw capture.
+
+Runtime plan65known starts (collector1+old64) plus7admin remains72, peakcollector+owner+case=3. No extra shell PID: tool exec→zsh→env→Node replaces one PID. 196608 bytes are reserved within unchanged96MiB aggregate;25min inclusive/60s inner finalization tail/case30s/build120s/512MiB sampled work remain. The parent collector reserves5s for final retirement/publication and can stop owner before the inclusive limit. Raw bootstrap byte sizes are observed after exit; no RSS/hard-disk/full-descendant/OS-containment claim.
+
+Control preseal:18 PURE groups (the original12 plus6 grouped deadline/schema/falsy controls) and2 harmless entries =20 groups; one controller andtwo children. No source-derived arrays/ERE/transport execution. The actual collector-core primitive and serializer are exercised, not the future product collector/owner entry. Successful harmless proof is not B35 functionality. bootstrap-completion.mjs records guarded regular-file completion after the directly observed controller exit; the192MiB bound is this PREPARATION receipt's bound, not a future whole-product memory claim.
+
+Current base source acknowledgments: Sagan a505f302 accepted e013 SOURCE, root c9326e17 accepted full305 SOURCE/PRODUCER; neither supplies B35 semantics. The older review's pending-Sagan statement is historical. All other gates remain qualified as recorded.

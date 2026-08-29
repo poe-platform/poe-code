@@ -843,6 +843,8 @@ function copyHostValueToSandbox(
   }
 
   if (!options.errorData && isPromiseLike(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
     const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(
       (resolved) => {
         try {
@@ -872,6 +874,7 @@ function copyHostValueToSandbox(
       }
     );
     const sandboxPromise = createSandboxPromise(promise);
+    state.seen.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

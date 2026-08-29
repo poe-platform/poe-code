@@ -1,0 +1,2687 @@
+[
+  {
+    "name": "arguments",
+    "source": "export default async fixture => {\n  const input = fixture === undefined ? incoming : fixture;\n  const promiseAlias = input.primary === input.again;\n  const first = await input.primary;\n  const repeated = await input.primary;\n  first.seen = true;\n  const alias = await input.again;\n  return {\n    promiseAlias,\n    value: first.value,\n    sameHandle: first === repeated,\n    sameAlias: first === alias,\n    markerVisible: alias.seen === true\n  };\n};\n",
+    "expected": {
+      "promiseAlias": false,
+      "value": 7,
+      "sameHandle": true,
+      "sameAlias": false,
+      "markerVisible": false
+    },
+    "snapshot": {
+      "version": 1,
+      "sourceHash": "f8a87535",
+      "executionSemantics": "jobs-v7",
+      "bindings": {
+        "JSON": {
+          "parse": {
+            "kind": "fn",
+            "name": "parse"
+          },
+          "stringify": {
+            "kind": "fn",
+            "name": "stringify"
+          }
+        },
+        "console": {
+          "error": {
+            "kind": "fn",
+            "name": "error"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          }
+        },
+        "Map": {
+          "kind": "fn",
+          "name": "Map"
+        },
+        "Set": {
+          "kind": "fn",
+          "name": "Set"
+        },
+        "Error": {
+          "kind": "fn",
+          "name": "Error"
+        },
+        "TypeError": {
+          "kind": "fn",
+          "name": "TypeError"
+        },
+        "RangeError": {
+          "kind": "fn",
+          "name": "RangeError"
+        },
+        "ReferenceError": {
+          "kind": "fn",
+          "name": "ReferenceError"
+        },
+        "SyntaxError": {
+          "kind": "fn",
+          "name": "SyntaxError"
+        },
+        "AggregateError": {
+          "kind": "fn",
+          "name": "AggregateError"
+        },
+        "Infinity": {
+          "kind": "number",
+          "value": "Infinity"
+        },
+        "Math": {
+          "E": 2.718281828459045,
+          "LN2": 0.6931471805599453,
+          "LN10": 2.302585092994046,
+          "LOG2E": 1.4426950408889634,
+          "LOG10E": 0.4342944819032518,
+          "PI": 3.141592653589793,
+          "SQRT1_2": 0.7071067811865476,
+          "SQRT2": 1.4142135623730951,
+          "random": {
+            "kind": "fn",
+            "name": "random"
+          },
+          "abs": {
+            "kind": "fn",
+            "name": "abs"
+          },
+          "acos": {
+            "kind": "fn",
+            "name": "acos"
+          },
+          "acosh": {
+            "kind": "fn",
+            "name": "acosh"
+          },
+          "asin": {
+            "kind": "fn",
+            "name": "asin"
+          },
+          "asinh": {
+            "kind": "fn",
+            "name": "asinh"
+          },
+          "atan": {
+            "kind": "fn",
+            "name": "atan"
+          },
+          "atan2": {
+            "kind": "fn",
+            "name": "atan2"
+          },
+          "atanh": {
+            "kind": "fn",
+            "name": "atanh"
+          },
+          "ceil": {
+            "kind": "fn",
+            "name": "ceil"
+          },
+          "cbrt": {
+            "kind": "fn",
+            "name": "cbrt"
+          },
+          "clz32": {
+            "kind": "fn",
+            "name": "clz32"
+          },
+          "cos": {
+            "kind": "fn",
+            "name": "cos"
+          },
+          "cosh": {
+            "kind": "fn",
+            "name": "cosh"
+          },
+          "exp": {
+            "kind": "fn",
+            "name": "exp"
+          },
+          "expm1": {
+            "kind": "fn",
+            "name": "expm1"
+          },
+          "floor": {
+            "kind": "fn",
+            "name": "floor"
+          },
+          "fround": {
+            "kind": "fn",
+            "name": "fround"
+          },
+          "hypot": {
+            "kind": "fn",
+            "name": "hypot"
+          },
+          "imul": {
+            "kind": "fn",
+            "name": "imul"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          },
+          "log1p": {
+            "kind": "fn",
+            "name": "log1p"
+          },
+          "log10": {
+            "kind": "fn",
+            "name": "log10"
+          },
+          "log2": {
+            "kind": "fn",
+            "name": "log2"
+          },
+          "max": {
+            "kind": "fn",
+            "name": "max"
+          },
+          "min": {
+            "kind": "fn",
+            "name": "min"
+          },
+          "pow": {
+            "kind": "fn",
+            "name": "pow"
+          },
+          "round": {
+            "kind": "fn",
+            "name": "round"
+          },
+          "sign": {
+            "kind": "fn",
+            "name": "sign"
+          },
+          "sin": {
+            "kind": "fn",
+            "name": "sin"
+          },
+          "sinh": {
+            "kind": "fn",
+            "name": "sinh"
+          },
+          "sqrt": {
+            "kind": "fn",
+            "name": "sqrt"
+          },
+          "tan": {
+            "kind": "fn",
+            "name": "tan"
+          },
+          "tanh": {
+            "kind": "fn",
+            "name": "tanh"
+          },
+          "trunc": {
+            "kind": "fn",
+            "name": "trunc"
+          }
+        },
+        "NaN": {
+          "kind": "number",
+          "value": "NaN"
+        },
+        "Object": {
+          "keys": {
+            "kind": "fn",
+            "name": "keys"
+          },
+          "values": {
+            "kind": "fn",
+            "name": "values"
+          },
+          "entries": {
+            "kind": "fn",
+            "name": "entries"
+          },
+          "hasOwn": {
+            "kind": "fn",
+            "name": "hasOwn"
+          },
+          "is": {
+            "kind": "fn",
+            "name": "is"
+          },
+          "fromEntries": {
+            "kind": "fn",
+            "name": "fromEntries"
+          },
+          "freeze": {
+            "kind": "fn",
+            "name": "freeze"
+          },
+          "isFrozen": {
+            "kind": "fn",
+            "name": "isFrozen"
+          },
+          "assign": {
+            "kind": "fn",
+            "name": "assign"
+          }
+        },
+        "Array": {
+          "kind": "fn",
+          "name": "Array"
+        },
+        "String": {
+          "kind": "fn",
+          "name": "String"
+        },
+        "Number": {
+          "kind": "fn",
+          "name": "Number"
+        },
+        "Boolean": {
+          "kind": "fn",
+          "name": "Boolean"
+        },
+        "structuredClone": {
+          "kind": "fn",
+          "name": "structuredClone"
+        },
+        "parseInt": {
+          "kind": "fn",
+          "name": "parseInt"
+        },
+        "parseFloat": {
+          "kind": "fn",
+          "name": "parseFloat"
+        },
+        "isNaN": {
+          "kind": "fn",
+          "name": "isNaN"
+        },
+        "isFinite": {
+          "kind": "fn",
+          "name": "isFinite"
+        },
+        "Promise": {
+          "kind": "fn",
+          "name": "Promise"
+        },
+        "RegExp": {
+          "kind": "fn",
+          "name": "RegExp"
+        },
+        "default": {
+          "kind": "fn",
+          "async": true
+        }
+      },
+      "hostCalls": [
+        {
+          "id": "418c07a9-6272-49b3-b8df-dc116b77709c:1",
+          "runId": "418c07a9-6272-49b3-b8df-dc116b77709c",
+          "sourceHash": "f8a87535",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"primary\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "value": 7
+            }
+          }
+        },
+        {
+          "id": "418c07a9-6272-49b3-b8df-dc116b77709c:2",
+          "runId": "418c07a9-6272-49b3-b8df-dc116b77709c",
+          "sourceHash": "f8a87535",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"again\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "value": 7
+            }
+          }
+        }
+      ],
+      "replay": {
+        "version": 1,
+        "calls": [
+          {
+            "id": "418c07a9-6272-49b3-b8df-dc116b77709c:1",
+            "runId": "418c07a9-6272-49b3-b8df-dc116b77709c",
+            "sourceHash": "f8a87535",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"primary\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "value": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "418c07a9-6272-49b3-b8df-dc116b77709c:2",
+            "runId": "418c07a9-6272-49b3-b8df-dc116b77709c",
+            "sourceHash": "f8a87535",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"again\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "value": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "initialInputs": {
+        "root": {
+          "tag": "ref",
+          "id": 0
+        },
+        "nodes": [
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "bindings": {
+                "value": {
+                  "tag": "ref",
+                  "id": 1
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "imports": {
+                "value": {
+                  "tag": "ref",
+                  "id": 2
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "entryPointArgs": {
+                "value": {
+                  "tag": "ref",
+                  "id": 3
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "importMeta": {
+                "value": {
+                  "tag": "ref",
+                  "id": 5
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "array",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "0": {
+                "value": {
+                  "tag": "ref",
+                  "id": 4
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "length": {
+                "value": 1,
+                "configurable": false,
+                "enumerable": false,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {
+              "primary": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"primary\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "again": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"again\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          }
+        ]
+      },
+      "promiseReplay": {
+        "version": 1,
+        "steps": 50,
+        "promises": 3,
+        "settlements": [
+          {
+            "id": 1,
+            "step": 2
+          },
+          {
+            "id": 2,
+            "step": 2
+          },
+          {
+            "id": 3,
+            "step": 50
+          }
+        ]
+      },
+      "random": {
+        "seed": 4143491704,
+        "initialState": 4143491704,
+        "state": 4143491704
+      }
+    }
+  },
+  {
+    "name": "bindings",
+    "source": "export default async fixture => {\n  const input = fixture === undefined ? incoming : fixture;\n  const promiseAlias = input.primary === input.again;\n  const first = await input.primary;\n  const repeated = await input.primary;\n  first.seen = true;\n  const alias = await input.again;\n  return {\n    promiseAlias,\n    value: first.value,\n    sameHandle: first === repeated,\n    sameAlias: first === alias,\n    markerVisible: alias.seen === true\n  };\n};\n",
+    "expected": {
+      "promiseAlias": false,
+      "value": 7,
+      "sameHandle": true,
+      "sameAlias": false,
+      "markerVisible": false
+    },
+    "snapshot": {
+      "version": 1,
+      "sourceHash": "f8a87535",
+      "executionSemantics": "jobs-v7",
+      "bindings": {
+        "JSON": {
+          "parse": {
+            "kind": "fn",
+            "name": "parse"
+          },
+          "stringify": {
+            "kind": "fn",
+            "name": "stringify"
+          }
+        },
+        "console": {
+          "error": {
+            "kind": "fn",
+            "name": "error"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          }
+        },
+        "Map": {
+          "kind": "fn",
+          "name": "Map"
+        },
+        "Set": {
+          "kind": "fn",
+          "name": "Set"
+        },
+        "Error": {
+          "kind": "fn",
+          "name": "Error"
+        },
+        "TypeError": {
+          "kind": "fn",
+          "name": "TypeError"
+        },
+        "RangeError": {
+          "kind": "fn",
+          "name": "RangeError"
+        },
+        "ReferenceError": {
+          "kind": "fn",
+          "name": "ReferenceError"
+        },
+        "SyntaxError": {
+          "kind": "fn",
+          "name": "SyntaxError"
+        },
+        "AggregateError": {
+          "kind": "fn",
+          "name": "AggregateError"
+        },
+        "Infinity": {
+          "kind": "number",
+          "value": "Infinity"
+        },
+        "Math": {
+          "E": 2.718281828459045,
+          "LN2": 0.6931471805599453,
+          "LN10": 2.302585092994046,
+          "LOG2E": 1.4426950408889634,
+          "LOG10E": 0.4342944819032518,
+          "PI": 3.141592653589793,
+          "SQRT1_2": 0.7071067811865476,
+          "SQRT2": 1.4142135623730951,
+          "random": {
+            "kind": "fn",
+            "name": "random"
+          },
+          "abs": {
+            "kind": "fn",
+            "name": "abs"
+          },
+          "acos": {
+            "kind": "fn",
+            "name": "acos"
+          },
+          "acosh": {
+            "kind": "fn",
+            "name": "acosh"
+          },
+          "asin": {
+            "kind": "fn",
+            "name": "asin"
+          },
+          "asinh": {
+            "kind": "fn",
+            "name": "asinh"
+          },
+          "atan": {
+            "kind": "fn",
+            "name": "atan"
+          },
+          "atan2": {
+            "kind": "fn",
+            "name": "atan2"
+          },
+          "atanh": {
+            "kind": "fn",
+            "name": "atanh"
+          },
+          "ceil": {
+            "kind": "fn",
+            "name": "ceil"
+          },
+          "cbrt": {
+            "kind": "fn",
+            "name": "cbrt"
+          },
+          "clz32": {
+            "kind": "fn",
+            "name": "clz32"
+          },
+          "cos": {
+            "kind": "fn",
+            "name": "cos"
+          },
+          "cosh": {
+            "kind": "fn",
+            "name": "cosh"
+          },
+          "exp": {
+            "kind": "fn",
+            "name": "exp"
+          },
+          "expm1": {
+            "kind": "fn",
+            "name": "expm1"
+          },
+          "floor": {
+            "kind": "fn",
+            "name": "floor"
+          },
+          "fround": {
+            "kind": "fn",
+            "name": "fround"
+          },
+          "hypot": {
+            "kind": "fn",
+            "name": "hypot"
+          },
+          "imul": {
+            "kind": "fn",
+            "name": "imul"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          },
+          "log1p": {
+            "kind": "fn",
+            "name": "log1p"
+          },
+          "log10": {
+            "kind": "fn",
+            "name": "log10"
+          },
+          "log2": {
+            "kind": "fn",
+            "name": "log2"
+          },
+          "max": {
+            "kind": "fn",
+            "name": "max"
+          },
+          "min": {
+            "kind": "fn",
+            "name": "min"
+          },
+          "pow": {
+            "kind": "fn",
+            "name": "pow"
+          },
+          "round": {
+            "kind": "fn",
+            "name": "round"
+          },
+          "sign": {
+            "kind": "fn",
+            "name": "sign"
+          },
+          "sin": {
+            "kind": "fn",
+            "name": "sin"
+          },
+          "sinh": {
+            "kind": "fn",
+            "name": "sinh"
+          },
+          "sqrt": {
+            "kind": "fn",
+            "name": "sqrt"
+          },
+          "tan": {
+            "kind": "fn",
+            "name": "tan"
+          },
+          "tanh": {
+            "kind": "fn",
+            "name": "tanh"
+          },
+          "trunc": {
+            "kind": "fn",
+            "name": "trunc"
+          }
+        },
+        "NaN": {
+          "kind": "number",
+          "value": "NaN"
+        },
+        "Object": {
+          "keys": {
+            "kind": "fn",
+            "name": "keys"
+          },
+          "values": {
+            "kind": "fn",
+            "name": "values"
+          },
+          "entries": {
+            "kind": "fn",
+            "name": "entries"
+          },
+          "hasOwn": {
+            "kind": "fn",
+            "name": "hasOwn"
+          },
+          "is": {
+            "kind": "fn",
+            "name": "is"
+          },
+          "fromEntries": {
+            "kind": "fn",
+            "name": "fromEntries"
+          },
+          "freeze": {
+            "kind": "fn",
+            "name": "freeze"
+          },
+          "isFrozen": {
+            "kind": "fn",
+            "name": "isFrozen"
+          },
+          "assign": {
+            "kind": "fn",
+            "name": "assign"
+          }
+        },
+        "Array": {
+          "kind": "fn",
+          "name": "Array"
+        },
+        "String": {
+          "kind": "fn",
+          "name": "String"
+        },
+        "Number": {
+          "kind": "fn",
+          "name": "Number"
+        },
+        "Boolean": {
+          "kind": "fn",
+          "name": "Boolean"
+        },
+        "structuredClone": {
+          "kind": "fn",
+          "name": "structuredClone"
+        },
+        "parseInt": {
+          "kind": "fn",
+          "name": "parseInt"
+        },
+        "parseFloat": {
+          "kind": "fn",
+          "name": "parseFloat"
+        },
+        "isNaN": {
+          "kind": "fn",
+          "name": "isNaN"
+        },
+        "isFinite": {
+          "kind": "fn",
+          "name": "isFinite"
+        },
+        "Promise": {
+          "kind": "fn",
+          "name": "Promise"
+        },
+        "RegExp": {
+          "kind": "fn",
+          "name": "RegExp"
+        },
+        "incoming": {
+          "primary": {
+            "kind": "promise"
+          },
+          "again": {
+            "kind": "promise"
+          }
+        },
+        "default": {
+          "kind": "fn",
+          "async": true
+        }
+      },
+      "hostCalls": [
+        {
+          "id": "915394b8-4311-4b3f-9f51-478b6f3d33bd:1",
+          "runId": "915394b8-4311-4b3f-9f51-478b6f3d33bd",
+          "sourceHash": "f8a87535",
+          "moduleId": "<inputs>",
+          "operation": "[\"bindings\",\"incoming\",\"primary\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "value": 7
+            }
+          }
+        },
+        {
+          "id": "915394b8-4311-4b3f-9f51-478b6f3d33bd:2",
+          "runId": "915394b8-4311-4b3f-9f51-478b6f3d33bd",
+          "sourceHash": "f8a87535",
+          "moduleId": "<inputs>",
+          "operation": "[\"bindings\",\"incoming\",\"again\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "value": 7
+            }
+          }
+        }
+      ],
+      "replay": {
+        "version": 1,
+        "calls": [
+          {
+            "id": "915394b8-4311-4b3f-9f51-478b6f3d33bd:1",
+            "runId": "915394b8-4311-4b3f-9f51-478b6f3d33bd",
+            "sourceHash": "f8a87535",
+            "moduleId": "<inputs>",
+            "operation": "[\"bindings\",\"incoming\",\"primary\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "value": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "915394b8-4311-4b3f-9f51-478b6f3d33bd:2",
+            "runId": "915394b8-4311-4b3f-9f51-478b6f3d33bd",
+            "sourceHash": "f8a87535",
+            "moduleId": "<inputs>",
+            "operation": "[\"bindings\",\"incoming\",\"again\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "value": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "initialInputs": {
+        "root": {
+          "tag": "ref",
+          "id": 0
+        },
+        "nodes": [
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "bindings": {
+                "value": {
+                  "tag": "ref",
+                  "id": 1
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "imports": {
+                "value": {
+                  "tag": "ref",
+                  "id": 3
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "entryPointArgs": {
+                "value": {
+                  "tag": "ref",
+                  "id": 4
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "importMeta": {
+                "value": {
+                  "tag": "ref",
+                  "id": 5
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "incoming": {
+                "value": {
+                  "tag": "ref",
+                  "id": 2
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "primary": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"bindings\",\"incoming\",\"primary\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "again": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"bindings\",\"incoming\",\"again\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "array",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "length": {
+                "value": 0,
+                "configurable": false,
+                "enumerable": false,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          }
+        ]
+      },
+      "promiseReplay": {
+        "version": 1,
+        "steps": 49,
+        "promises": 3,
+        "settlements": [
+          {
+            "id": 1,
+            "step": 2
+          },
+          {
+            "id": 2,
+            "step": 2
+          },
+          {
+            "id": 3,
+            "step": 49
+          }
+        ]
+      },
+      "random": {
+        "seed": 1180231699,
+        "initialState": 1180231699,
+        "state": 1180231699
+      }
+    }
+  },
+  {
+    "name": "full",
+    "source": "export default async fixture => {\n  const trace = [];\n  const scan = async (values, accumulator, seed, hasSeed, emitEach, label) => {\n    let hasState = hasSeed;\n    let state = seed;\n    const emissions = [];\n    try {\n      for (let index = 0; index < values.length; index++) {\n        const value = values[index];\n        await Promise.resolve();\n        if (hasState) state = await accumulator(state, value, index);\n        else { state = value; hasState = true; }\n        if (emitEach) emissions.push(state);\n      }\n      if (!emitEach && hasState) emissions.push(state);\n      return { state, emissions, hasState };\n    } finally {\n      trace.push([\"closed\", label, values.length, emitEach]);\n    }\n  };\n  const promiseAliases = [\n    fixture.primary === fixture.again,\n    fixture.primary === fixture.nested.promise,\n    fixture.remote === fixture.remoteAgain,\n    fixture.primary !== fixture.remote\n  ];\n  const initial = { balance: 0, names: [] };\n  let current = initial;\n  const processed = [];\n  const readState = () => ({ initialBalance: initial.balance, currentBalance: current.balance, processed: [...processed] });\n  const emissions = [];\n  const inputOutcomes = [];\n  trace.push([\"boundary\", \"both-pending\"]);\n  await boundary(\"both-pending\");\n  for (const key of fixture.order) {\n    trace.push([\"await\", key]);\n    const pending = key === \"left\" ? fixture.primary : fixture.remote;\n    const alias = key === \"left\" ? fixture.again : fixture.remoteAgain;\n    const batch = await pending;\n    const sameHandle = await pending;\n    batch.observedBy = key;\n    const repeated = await alias;\n    inputOutcomes.push({ key, status: \"fulfilled\", same: batch === repeated, batch: batch.name, sameHandle: batch === sameHandle, markerVisible: repeated.observedBy === key });\n    trace.push([\"fulfilled\", key, batch.name, batch === repeated]);\n    const accumulated = await scan(batch.events, async (state, event, index) => {\n      const next = event.replace ? { balance: state.balance, names: [...state.names] } : state;\n      await Promise.resolve();\n      next.balance += event.delta;\n      next.names.push(event.name + \":\" + index);\n      trace.push([\"event\", key, event.name, next.balance]);\n      return next;\n    }, current, true, true, key);\n    current = accumulated.state;\n    emissions.push(...accumulated.emissions);\n    processed.push(key);\n    const observed = readState();\n    trace.push([\"closure\", key, observed.initialBalance, observed.currentBalance, observed.processed.length]);\n    trace.push([\"boundary\", \"after:\" + key]);\n    await boundary(\"after:\" + key);\n  }\n  const numericIndexes = [];\n  const numeric = await scan([3, 5, 8], async (state, value, index) => {\n    numericIndexes.push(index);\n    return state + value;\n  }, undefined, false, false, \"numeric\");\n  const emptySeeded = await scan([], async state => state, 19, true, false, \"empty-seeded\");\n  const emptyUnseeded = await scan([], async state => state, undefined, false, false, \"empty-unseeded\");\n  const emissionAliases = [];\n  for (let index = 1; index < emissions.length; index++) emissionAliases.push(emissions[index - 1] === emissions[index]);\n  return {\n    balance: current.balance,\n    names: current.names,\n    promiseAliases,\n    inputOutcomes,\n    closure: readState(),\n    emissionAliases,\n    emissionBalances: emissions.map(item => item.balance),\n    initialIsFirst: initial === emissions[0],\n    lastIsCurrent: current === emissions[emissions.length - 1],\n    numeric: numeric.emissions,\n    numericIndexes,\n    empty: [emptySeeded.emissions, emptyUnseeded.emissions, emptyUnseeded.hasState],\n    trace\n  };\n};\n",
+    "expected": {
+      "balance": 13,
+      "names": ["open:0", "credit:1", "replace:0", "settle:1"],
+      "promiseAliases": [false, false, false, true],
+      "inputOutcomes": [
+        {
+          "key": "left",
+          "status": "fulfilled",
+          "same": false,
+          "batch": "left",
+          "sameHandle": true,
+          "markerVisible": false
+        },
+        {
+          "key": "right",
+          "status": "fulfilled",
+          "same": false,
+          "batch": "right",
+          "sameHandle": true,
+          "markerVisible": false
+        }
+      ],
+      "closure": {
+        "initialBalance": 8,
+        "currentBalance": 13,
+        "processed": ["left", "right"]
+      },
+      "emissionAliases": [true, false, true],
+      "emissionBalances": [8, 8, 13, 13],
+      "initialIsFirst": true,
+      "lastIsCurrent": true,
+      "numeric": [16],
+      "numericIndexes": [1, 2],
+      "empty": [[19], [], false],
+      "trace": [
+        ["boundary", "both-pending"],
+        ["await", "left"],
+        ["fulfilled", "left", "left", false],
+        ["event", "left", "open", 3],
+        ["event", "left", "credit", 8],
+        ["closed", "left", 2, true],
+        ["closure", "left", 8, 8, 1],
+        ["boundary", "after:left"],
+        ["await", "right"],
+        ["fulfilled", "right", "right", false],
+        ["event", "right", "replace", 6],
+        ["event", "right", "settle", 13],
+        ["closed", "right", 2, true],
+        ["closure", "right", 8, 13, 2],
+        ["boundary", "after:right"],
+        ["closed", "numeric", 3, false],
+        ["closed", "empty-seeded", 0, false],
+        ["closed", "empty-unseeded", 0, false]
+      ]
+    },
+    "snapshot": {
+      "version": 1,
+      "sourceHash": "fbe849ce",
+      "executionSemantics": "jobs-v7",
+      "bindings": {
+        "JSON": {
+          "parse": {
+            "kind": "fn",
+            "name": "parse"
+          },
+          "stringify": {
+            "kind": "fn",
+            "name": "stringify"
+          }
+        },
+        "console": {
+          "error": {
+            "kind": "fn",
+            "name": "error"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          }
+        },
+        "Map": {
+          "kind": "fn",
+          "name": "Map"
+        },
+        "Set": {
+          "kind": "fn",
+          "name": "Set"
+        },
+        "Error": {
+          "kind": "fn",
+          "name": "Error"
+        },
+        "TypeError": {
+          "kind": "fn",
+          "name": "TypeError"
+        },
+        "RangeError": {
+          "kind": "fn",
+          "name": "RangeError"
+        },
+        "ReferenceError": {
+          "kind": "fn",
+          "name": "ReferenceError"
+        },
+        "SyntaxError": {
+          "kind": "fn",
+          "name": "SyntaxError"
+        },
+        "AggregateError": {
+          "kind": "fn",
+          "name": "AggregateError"
+        },
+        "Infinity": {
+          "kind": "number",
+          "value": "Infinity"
+        },
+        "Math": {
+          "E": 2.718281828459045,
+          "LN2": 0.6931471805599453,
+          "LN10": 2.302585092994046,
+          "LOG2E": 1.4426950408889634,
+          "LOG10E": 0.4342944819032518,
+          "PI": 3.141592653589793,
+          "SQRT1_2": 0.7071067811865476,
+          "SQRT2": 1.4142135623730951,
+          "random": {
+            "kind": "fn",
+            "name": "random"
+          },
+          "abs": {
+            "kind": "fn",
+            "name": "abs"
+          },
+          "acos": {
+            "kind": "fn",
+            "name": "acos"
+          },
+          "acosh": {
+            "kind": "fn",
+            "name": "acosh"
+          },
+          "asin": {
+            "kind": "fn",
+            "name": "asin"
+          },
+          "asinh": {
+            "kind": "fn",
+            "name": "asinh"
+          },
+          "atan": {
+            "kind": "fn",
+            "name": "atan"
+          },
+          "atan2": {
+            "kind": "fn",
+            "name": "atan2"
+          },
+          "atanh": {
+            "kind": "fn",
+            "name": "atanh"
+          },
+          "ceil": {
+            "kind": "fn",
+            "name": "ceil"
+          },
+          "cbrt": {
+            "kind": "fn",
+            "name": "cbrt"
+          },
+          "clz32": {
+            "kind": "fn",
+            "name": "clz32"
+          },
+          "cos": {
+            "kind": "fn",
+            "name": "cos"
+          },
+          "cosh": {
+            "kind": "fn",
+            "name": "cosh"
+          },
+          "exp": {
+            "kind": "fn",
+            "name": "exp"
+          },
+          "expm1": {
+            "kind": "fn",
+            "name": "expm1"
+          },
+          "floor": {
+            "kind": "fn",
+            "name": "floor"
+          },
+          "fround": {
+            "kind": "fn",
+            "name": "fround"
+          },
+          "hypot": {
+            "kind": "fn",
+            "name": "hypot"
+          },
+          "imul": {
+            "kind": "fn",
+            "name": "imul"
+          },
+          "log": {
+            "kind": "fn",
+            "name": "log"
+          },
+          "log1p": {
+            "kind": "fn",
+            "name": "log1p"
+          },
+          "log10": {
+            "kind": "fn",
+            "name": "log10"
+          },
+          "log2": {
+            "kind": "fn",
+            "name": "log2"
+          },
+          "max": {
+            "kind": "fn",
+            "name": "max"
+          },
+          "min": {
+            "kind": "fn",
+            "name": "min"
+          },
+          "pow": {
+            "kind": "fn",
+            "name": "pow"
+          },
+          "round": {
+            "kind": "fn",
+            "name": "round"
+          },
+          "sign": {
+            "kind": "fn",
+            "name": "sign"
+          },
+          "sin": {
+            "kind": "fn",
+            "name": "sin"
+          },
+          "sinh": {
+            "kind": "fn",
+            "name": "sinh"
+          },
+          "sqrt": {
+            "kind": "fn",
+            "name": "sqrt"
+          },
+          "tan": {
+            "kind": "fn",
+            "name": "tan"
+          },
+          "tanh": {
+            "kind": "fn",
+            "name": "tanh"
+          },
+          "trunc": {
+            "kind": "fn",
+            "name": "trunc"
+          }
+        },
+        "NaN": {
+          "kind": "number",
+          "value": "NaN"
+        },
+        "Object": {
+          "keys": {
+            "kind": "fn",
+            "name": "keys"
+          },
+          "values": {
+            "kind": "fn",
+            "name": "values"
+          },
+          "entries": {
+            "kind": "fn",
+            "name": "entries"
+          },
+          "hasOwn": {
+            "kind": "fn",
+            "name": "hasOwn"
+          },
+          "is": {
+            "kind": "fn",
+            "name": "is"
+          },
+          "fromEntries": {
+            "kind": "fn",
+            "name": "fromEntries"
+          },
+          "freeze": {
+            "kind": "fn",
+            "name": "freeze"
+          },
+          "isFrozen": {
+            "kind": "fn",
+            "name": "isFrozen"
+          },
+          "assign": {
+            "kind": "fn",
+            "name": "assign"
+          }
+        },
+        "Array": {
+          "kind": "fn",
+          "name": "Array"
+        },
+        "String": {
+          "kind": "fn",
+          "name": "String"
+        },
+        "Number": {
+          "kind": "fn",
+          "name": "Number"
+        },
+        "Boolean": {
+          "kind": "fn",
+          "name": "Boolean"
+        },
+        "structuredClone": {
+          "kind": "fn",
+          "name": "structuredClone"
+        },
+        "parseInt": {
+          "kind": "fn",
+          "name": "parseInt"
+        },
+        "parseFloat": {
+          "kind": "fn",
+          "name": "parseFloat"
+        },
+        "isNaN": {
+          "kind": "fn",
+          "name": "isNaN"
+        },
+        "isFinite": {
+          "kind": "fn",
+          "name": "isFinite"
+        },
+        "Promise": {
+          "kind": "fn",
+          "name": "Promise"
+        },
+        "RegExp": {
+          "kind": "fn",
+          "name": "RegExp"
+        },
+        "boundary": {
+          "kind": "fn",
+          "name": "boundary",
+          "async": true
+        },
+        "default": {
+          "kind": "fn",
+          "async": true
+        }
+      },
+      "hostCalls": [
+        {
+          "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:1",
+          "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+          "sourceHash": "fbe849ce",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"primary\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "name": "left",
+              "events": [
+                {
+                  "name": "open",
+                  "delta": 3
+                },
+                {
+                  "name": "credit",
+                  "delta": 5
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:2",
+          "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+          "sourceHash": "fbe849ce",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"again\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "name": "left",
+              "events": [
+                {
+                  "name": "open",
+                  "delta": 3
+                },
+                {
+                  "name": "credit",
+                  "delta": 5
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:3",
+          "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+          "sourceHash": "fbe849ce",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"nested\",\"promise\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "settled",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "name": "left",
+              "events": [
+                {
+                  "name": "open",
+                  "delta": 3
+                },
+                {
+                  "name": "credit",
+                  "delta": 5
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:4",
+          "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+          "sourceHash": "fbe849ce",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"remote\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "name": "right",
+              "events": [
+                {
+                  "name": "replace",
+                  "delta": -2,
+                  "replace": true
+                },
+                {
+                  "name": "settle",
+                  "delta": 7
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:5",
+          "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+          "sourceHash": "fbe849ce",
+          "moduleId": "<inputs>",
+          "operation": "[\"entryPointArgs\",\"0\",\"remoteAgain\"]",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "read-side-effect",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "value": {
+              "name": "right",
+              "events": [
+                {
+                  "name": "replace",
+                  "delta": -2,
+                  "replace": true
+                },
+                {
+                  "name": "settle",
+                  "delta": 7
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "replay": {
+        "version": 1,
+        "calls": [
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:1",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"primary\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "left",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "events": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 1
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "array",
+                    "nullPrototype": false,
+                    "extensible": true,
+                    "properties": {
+                      "0": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 2
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "1": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 3
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "length": {
+                        "value": 2,
+                        "configurable": false,
+                        "enumerable": false,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "open",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 3,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "credit",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 5,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:2",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"again\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "left",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "events": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 1
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "array",
+                    "nullPrototype": false,
+                    "extensible": true,
+                    "properties": {
+                      "0": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 2
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "1": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 3
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "length": {
+                        "value": 2,
+                        "configurable": false,
+                        "enumerable": false,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "open",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 3,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "credit",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 5,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:3",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"nested\",\"promise\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "settled",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "left",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "events": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 1
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "array",
+                    "nullPrototype": false,
+                    "extensible": true,
+                    "properties": {
+                      "0": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 2
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "1": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 3
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "length": {
+                        "value": 2,
+                        "configurable": false,
+                        "enumerable": false,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "open",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 3,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "credit",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 5,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:4",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"remote\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "right",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "events": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 1
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "array",
+                    "nullPrototype": false,
+                    "extensible": true,
+                    "properties": {
+                      "0": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 2
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "1": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 3
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "length": {
+                        "value": 2,
+                        "configurable": false,
+                        "enumerable": false,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "replace",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": -2,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "replace": {
+                        "value": true,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "settle",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:5",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<inputs>",
+            "operation": "[\"entryPointArgs\",\"0\",\"remoteAgain\"]",
+            "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "policy": "read-side-effect",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "right",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "events": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 1
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "array",
+                    "nullPrototype": false,
+                    "extensible": true,
+                    "properties": {
+                      "0": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 2
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "1": {
+                        "value": {
+                          "tag": "ref",
+                          "id": 3
+                        },
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "length": {
+                        "value": 2,
+                        "configurable": false,
+                        "enumerable": false,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "replace",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": -2,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "replace": {
+                        "value": true,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "name": {
+                        "value": "settle",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      },
+                      "delta": {
+                        "value": 7,
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:6",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<bindings>",
+            "operation": "boundary",
+            "argumentDigest": "c5d77d1407ae5efa877a0e9ed00a1c22cd1b43e023a304fd65f8d3b8b2082d2d",
+            "policy": "re-issue",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "boundary": {
+                        "value": "both-pending",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:7",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<bindings>",
+            "operation": "boundary",
+            "argumentDigest": "ad3f4f7ba88b8f81c1c417901c911c68d55a06e1f297a3f52890c3e43913ec1b",
+            "policy": "re-issue",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "boundary": {
+                        "value": "after:left",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940:8",
+            "runId": "ee11a8d8-b064-4c27-bd0a-d7b377a1c940",
+            "sourceHash": "fbe849ce",
+            "moduleId": "<bindings>",
+            "operation": "boundary",
+            "argumentDigest": "43367e8517b2f19029a20b82a92578ca2e16aeeefa0cfda76db5b294096d7512",
+            "policy": "re-issue",
+            "lifecycle": "consumed",
+            "asynchronous": true,
+            "outcome": {
+              "status": "fulfilled",
+              "data": {
+                "root": {
+                  "tag": "ref",
+                  "id": 0
+                },
+                "nodes": [
+                  {
+                    "kind": "object",
+                    "nullPrototype": true,
+                    "extensible": true,
+                    "properties": {
+                      "boundary": {
+                        "value": "after:right",
+                        "configurable": true,
+                        "enumerable": true,
+                        "writable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "initialInputs": {
+        "root": {
+          "tag": "ref",
+          "id": 0
+        },
+        "nodes": [
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "bindings": {
+                "value": {
+                  "tag": "ref",
+                  "id": 1
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "imports": {
+                "value": {
+                  "tag": "ref",
+                  "id": 4
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "entryPointArgs": {
+                "value": {
+                  "tag": "ref",
+                  "id": 5
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "importMeta": {
+                "value": {
+                  "tag": "ref",
+                  "id": 9
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "boundary": {
+                "value": {
+                  "tag": "ref",
+                  "id": 2
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "capability",
+            "id": "[\"bindings\",\"boundary\"]",
+            "properties": {
+              "tag": "ref",
+              "id": 3
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": false,
+            "extensible": false,
+            "properties": {}
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          },
+          {
+            "kind": "array",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "0": {
+                "value": {
+                  "tag": "ref",
+                  "id": 6
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "length": {
+                "value": 1,
+                "configurable": false,
+                "enumerable": false,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {
+              "order": {
+                "value": {
+                  "tag": "ref",
+                  "id": 7
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "primary": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"primary\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "again": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"again\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "nested": {
+                "value": {
+                  "tag": "ref",
+                  "id": 8
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "remote": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"remote\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "remoteAgain": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"remoteAgain\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "array",
+            "nullPrototype": false,
+            "extensible": true,
+            "properties": {
+              "0": {
+                "value": "left",
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "1": {
+                "value": "right",
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              },
+              "length": {
+                "value": 2,
+                "configurable": false,
+                "enumerable": false,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {
+              "promise": {
+                "value": {
+                  "tag": "promise-capability",
+                  "id": "[\"entryPointArgs\",\"0\",\"nested\",\"promise\"]"
+                },
+                "configurable": true,
+                "enumerable": true,
+                "writable": true
+              }
+            }
+          },
+          {
+            "kind": "object",
+            "nullPrototype": true,
+            "extensible": true,
+            "properties": {}
+          }
+        ]
+      },
+      "promiseReplay": {
+        "version": 1,
+        "steps": 1004,
+        "promises": 31,
+        "settlements": [
+          {
+            "id": 1,
+            "step": 2
+          },
+          {
+            "id": 2,
+            "step": 2
+          },
+          {
+            "id": 3,
+            "step": 2
+          },
+          {
+            "id": 4,
+            "step": 2
+          },
+          {
+            "id": 5,
+            "step": 2
+          },
+          {
+            "id": 7,
+            "step": 59
+          },
+          {
+            "id": 9,
+            "step": 160
+          },
+          {
+            "id": 11,
+            "step": 180
+          },
+          {
+            "id": 10,
+            "step": 207
+          },
+          {
+            "id": 12,
+            "step": 227
+          },
+          {
+            "id": 14,
+            "step": 247
+          },
+          {
+            "id": 13,
+            "step": 274
+          },
+          {
+            "id": 8,
+            "step": 303
+          },
+          {
+            "id": 15,
+            "step": 354
+          },
+          {
+            "id": 17,
+            "step": 452
+          },
+          {
+            "id": 19,
+            "step": 477
+          },
+          {
+            "id": 18,
+            "step": 504
+          },
+          {
+            "id": 20,
+            "step": 524
+          },
+          {
+            "id": 22,
+            "step": 544
+          },
+          {
+            "id": 21,
+            "step": 571
+          },
+          {
+            "id": 16,
+            "step": 600
+          },
+          {
+            "id": 23,
+            "step": 651
+          },
+          {
+            "id": 25,
+            "step": 690
+          },
+          {
+            "id": 26,
+            "step": 715
+          },
+          {
+            "id": 27,
+            "step": 734
+          },
+          {
+            "id": 28,
+            "step": 750
+          },
+          {
+            "id": 29,
+            "step": 769
+          },
+          {
+            "id": 24,
+            "step": 799
+          },
+          {
+            "id": 30,
+            "step": 847
+          },
+          {
+            "id": 31,
+            "step": 891
+          },
+          {
+            "id": 6,
+            "step": 1004
+          }
+        ]
+      },
+      "random": {
+        "seed": 3351960924,
+        "initialState": 3351960924,
+        "state": 3351960924
+      }
+    }
+  }
+]

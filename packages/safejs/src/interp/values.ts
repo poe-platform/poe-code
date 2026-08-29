@@ -524,11 +524,14 @@ function copyToSandbox(
   }
 
   if (isHostPromise(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
     const promise = Promise.resolve(value).then(
       (resolved) => copyToSandbox(resolved, { seen: new WeakMap() }),
       (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap() }))
     );
     const sandboxPromise = createSandboxPromise(promise);
+    state.seen.set(value, sandboxPromise);
     const span = getBoundOtelSpan(value);
     if (span !== undefined) {
       bindOtelSpan(promise, span);

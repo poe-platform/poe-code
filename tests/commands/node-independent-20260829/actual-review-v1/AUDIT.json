@@ -1,0 +1,258 @@
+{
+  "schema": "independent-node-actual-audit-v1",
+  "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+  "preseals": {
+    "original": "cc6eb305",
+    "continuation": "c43879c6da37e1b87e2cb9dc126b29f2916134d0"
+  },
+  "qualifiedRecommendation": "No product defect shown in bounded versionmapped module review; no default/public integration or broad Node compatibility acceptance.",
+  "layouts": {
+    "source": {
+      "authorVersionMapped": 61,
+      "newBOM": 2,
+      "authorPassed": 63,
+      "independentRaw": 12,
+      "independentSelected": 10,
+      "independentPassed": 22
+    },
+    "installed": {
+      "authorVersionMapped": 61,
+      "newBOM": 2,
+      "authorPassed": 63,
+      "independentRaw": 12,
+      "independentSelected": 10,
+      "independentPassed": 22
+    },
+    "moved": {
+      "authorVersionMapped": 61,
+      "newBOM": 2,
+      "authorPassed": 63,
+      "independentRaw": 12,
+      "independentSelected": 10,
+      "independentPassed": 22
+    }
+  },
+  "counts": {
+    "authorVersionMapped": 183,
+    "newBOM": 6,
+    "authorTotal": 189,
+    "independentMain": 66,
+    "independentOriginalPreParserStopAdditional": 22,
+    "typesPositive": 36,
+    "typesNegative": 36,
+    "strictBuilds": 2,
+    "offlinePacks": 1,
+    "offlineInstalls": 1,
+    "mutants": 6,
+    "restores": 6,
+    "loaderAndConsumerControls": 6,
+    "judgeControlExecutions": 16,
+    "judgeUnique": 8
+  },
+  "resources": {
+    "workers": 161,
+    "guestEntries": 149,
+    "originalOwnerOmittedIndependent": {
+      "workers": 16,
+      "guestEntries": 16
+    },
+    "ownedCaseCompilerPackageChildren": 122,
+    "owners": 2,
+    "outerLaunchers": 2,
+    "recordedExecutionProcesses": 126,
+    "administration": "Separately bounded reserved54 OS slots; shell/edit/git/DATA tool invocations are not target-child journal events. No full-transitive administrative process measurement claim.",
+    "peakRecordedOwnerChildren": 1,
+    "declaredWholePeakIncludingShell": 4,
+    "captureBytes": 6708433,
+    "cumulativeOwnerWrites": 328973503,
+    "maxScratchBytes": 172080657,
+    "allChildrenClosed": true,
+    "allOwnedWorkersExited": true,
+    "parentCleanupJoined": true,
+    "workRootsRemoved": true,
+    "firstStart": "2026-08-29T05:40:40.038Z",
+    "lastClose": "2026-08-29T05:51:49.013Z"
+  },
+  "package": {
+    "sha256": "f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092",
+    "bytes": 869722,
+    "members": 958,
+    "baselineProjection": 898,
+    "emissions": 956,
+    "emissionManifestSha256": "43fee830c0cc73f01485af9b79ea7285b88223176b86bd21096b5ca7ba4c4bff",
+    "originAbsent": true
+  },
+  "loaded": {
+    "records": 21674,
+    "distinctPackagePathHashPairs": 300,
+    "distinctEnginePathHashPairs": 93,
+    "note": "Includes mutant hashes and same modules repeated per isolated Worker. Not distinct shipped module counts."
+  },
+  "types": [
+    {
+      "layout": "source",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M01",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M02",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M03",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M04",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M05",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    },
+    {
+      "id": "M06",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    }
+  ],
+  "knownMutantFailures": [
+    {
+      "layout": "M01-mutant",
+      "id": "W07"
+    },
+    {
+      "layout": "M02-mutant",
+      "id": "W06"
+    },
+    {
+      "layout": "M03-mutant",
+      "id": "W12"
+    },
+    {
+      "layout": "M04-mutant",
+      "id": "W17"
+    },
+    {
+      "layout": "M05-mutant",
+      "id": "F01"
+    },
+    {
+      "layout": "M05-mutant",
+      "id": "F33"
+    },
+    {
+      "layout": "M05-mutant",
+      "id": "F34"
+    },
+    {
+      "layout": "M06-mutant",
+      "id": "W09"
+    }
+  ],
+  "controls": [
+    {
+      "id": "source-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "builtin-edge",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "package-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "pass-nonzero",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "missing-receipt",
+      "loaded": true,
+      "code": 0,
+      "pass": true
+    },
+    {
+      "id": "tamper",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    }
+  ],
+  "rawArchives": [
+    {
+      "path": "capsule-v2/validation-v2/evidence/r1-RAW.json.gz.base64",
+      "bytes": 659005,
+      "sha256": "8f3c8c2837c2fafdc7b4c6500b58817110bef8982b7c18a2a7a7fb210cff5384",
+      "mode": 384,
+      "originalOwnerPass": false
+    },
+    {
+      "path": "capsule-v3/validation-v2/evidence/r1-RAW.json.gz.base64",
+      "bytes": 1646165,
+      "sha256": "6cd17c473bfdb8ee51664fc91e967f1a2df820d2c22182d06bb0e7e821283733",
+      "mode": 384,
+      "originalOwnerPass": true
+    }
+  ],
+  "qualifications": [
+    "63/layout is61 versionmapped plus2 new BOM cases, not original author v4/v5 cohorts rescored",
+    "Original source63/types24 plus same-emission continuation; initial owner receipt parser HOLD remains",
+    "22 selected independent rows map38 semantic families with disclosed unexecuted variants, not38 fully covered families",
+    "W23 old infinite-loop telemetry remains unqualified; v2 diagnostic detail UNKNOWN",
+    "Fake-provider/raw-parent controls are not actual Worker retirement proof; W/E roles remain distinct",
+    "E09 checks abort false within catch but does not independently require pending invoke rejection; exact raw cancellation covered separately, not claimed from this one assertion",
+    "No full Node, Promise constructor, ESM, npm/npx, async fs, alljobs/RSS/wholeguest8MiB guarantee",
+    "8type families map12positive12negative strict identities/layout; internal installed imports only, no root export claim",
+    "Prior7 capture/startup controls inherited, not newly replayed"
+  ],
+  "auditInputBytes": 9310029
+}

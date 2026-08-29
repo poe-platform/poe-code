@@ -1,0 +1,97 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+
+const outerStarted = Number(process.hrtime.bigint() / 1000000n);
+const issuedEpoch = Date.now();
+const issuedAt = new Date(issuedEpoch).toISOString();
+const latestStart = new Date(issuedEpoch + 300000).toISOString();
+const expiresAt = new Date(issuedEpoch + 1200000).toISOString();
+const root = path.resolve('tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v2');
+const r2 = path.dirname(root);
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const read = (filename, maximum = 4 * 1024 * 1024) => { const stat = fs.lstatSync(filename); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum); const bytes = fs.readFileSync(filename); assert.equal(bytes.length, stat.size); return bytes; };
+if (issuedEpoch + 1200000 > Date.parse('2026-08-29T17:50:00.000Z')) {
+  const stop = { status: 'STOP_EXPIRY_AFTER_ROOT_ABSOLUTE_LIMIT', issuedAt, latestStart, expiresAt, outerStarted, absoluteLimit: '2026-08-29T17:50:00.000Z', activationPathsCreated: false };
+  fs.writeFileSync(path.join(root, 'BINDING-RECEIPT.json'), JSON.stringify(stop, null, 2) + '\n', { flag: 'wx' });
+  console.log(JSON.stringify(stop)); process.exitCode = 1;
+} else {
+  let checkedFiles = 0;
+  const bind = row => {
+    const stat = fs.lstatSync(row.path); assert(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.size, row.size);
+    if (row.mode !== undefined) assert.equal(stat.mode & 0o777, row.mode);
+    const descriptor = fs.openSync(row.path, 'r'); const digest = crypto.createHash('sha256'); const buffer = Buffer.alloc(65536);
+    try { const opened = fs.fstatSync(descriptor); assert.equal(opened.dev, stat.dev); assert.equal(opened.ino, stat.ino); let count; while ((count = fs.readSync(descriptor, buffer))) digest.update(buffer.subarray(0, count)); } finally { fs.closeSync(descriptor); }
+    assert.equal(digest.digest('hex'), row.sha256, row.path); checkedFiles++;
+  };
+  const profilePath = path.join(r2, 'PROFILE.json'); const profileBytes = read(profilePath);
+  const profileSha256 = hash(profileBytes); assert.equal(profileSha256, 'bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05');
+  const profile = JSON.parse(profileBytes);
+  const reviewPath = path.resolve('tests/compatibility/bash-ere-core-public-pilot-independent-20260829/runtime-review-r2/RESULT.json');
+  const reviewBytes = read(reviewPath); assert.equal(hash(reviewBytes), 'f5499bbffd18ef06483b26c256bd989d2124abe0fa8afb261d00aa7936becd7b');
+  const template = JSON.parse(read(path.join(r2, 'GRANT-TEMPLATE.json'), 16384)); assert.equal(Object.keys(template).length, 18);
+  const oldGrantBytes = read(path.resolve(root, '../final-binding-v1/PENDING-GRANT.json'), 16384);
+  assert.equal(hash(oldGrantBytes), '113c7c2d8334710bc114ae5225dbd1876ae149e75e61362b5e36f26d55434256');
+  const oldCommand = read(path.resolve(root, '../final-binding-v1/RESOLVED-COMMAND.txt'), 16384).toString('utf8');
+  assert.equal(hash(Buffer.from(oldCommand)), 'e7ccc9891438f326b12829b2664a27612d8010d26d0f7f11211daecfe5bd0bc5');
+  for (const row of profile.assets) bind(row);
+  for (const row of profile.tools) bind(row);
+  bind(profile.archive); assert.equal(profile.archive.size, 909885);
+  const layoutRows = [];
+  for (const layout of profile.layouts) {
+    const names = [];
+    const walk = directory => { for (const name of fs.readdirSync(directory)) { const filename = path.join(directory, name); const stat = fs.lstatSync(filename); assert(!stat.isSymbolicLink()); if (stat.isDirectory()) walk(filename); else { assert(stat.isFile()); names.push(path.relative(layout.source, filename)); } } };
+    walk(layout.source); assert.deepEqual(names.sort(), layout.shipping.map(row => row.path).sort());
+    for (const row of layout.shipping) bind({ ...row, path: path.join(layout.source, row.path) });
+    layoutRows.push({ name: layout.name, productFiles: names.length });
+  }
+  for (const cell of profile.cells) bind(cell.inheritedCell);
+  assert.equal(profile.cells.length, 24);
+  const futureGrantPath = path.join(root, 'ROOT-GRANT.json');
+  const futureStdout = path.join(root, 'actual-outer.stdout'); const futureStderr = path.join(root, 'actual-outer.stderr');
+  const unused = [profile.root, futureGrantPath, futureStdout, futureStderr, ...profile.cells.flatMap(cell => [cell.config, cell.stdout, cell.stderr])];
+  for (const filename of unused) assert(!fs.existsSync(filename), `occupied activation path: ${filename}`);
+  assert(!fs.existsSync(path.resolve(root, '../final-binding-v1/ROOT-GRANT.json')));
+  const grant = { ...template, authorized: true, pilotReview: 'fc188075658ef573da605bf11055460ca0b85112', issuedAt, latestStart, expiresAt, outerStarted };
+  assert.deepEqual(Object.keys(grant), Object.keys(template));
+  assert.equal(grant.sourceReview, 'f17d8dec11190ef40ecac6c175b208a2e29c7fbf');
+  assert.equal(grant.producerReview, '5c2ef0795ca402344b5b0d28869b64db46d73b86');
+  assert.equal(grant.profileSha256, profileSha256);
+  const source = read(path.join(r2, 'core.mjs')).toString('utf8');
+  const matched = /record\(grant, \[([^\]]+)\]\)/.exec(source); assert(matched);
+  const keys = [...matched[1].matchAll(/'([^']+)'/g)].map(match => match[1]); assert.deepEqual(keys, Object.keys(template));
+  const spanClause = 'assert(times[2] - times[0] <= 1200000 && wallNow < times[2]);'; assert(source.includes(spanClause));
+  assert(source.includes('assert(times[0] <= wallNow && wallNow <= times[1] && times[1] < times[2]);'));
+  assert(source.includes('const deadline = started + 1200000;'));
+  assert(source.includes('duration + cleanup + 180000 <= deadline - sample()'));
+  const body = source.slice(source.indexOf('export function validateGrant'), source.indexOf('export function judgeCell'));
+  assert(!body.includes('expiresAt - wallNow') && !body.includes('times[2] - wallNow >= 1200000'));
+  assert.equal(Date.parse(expiresAt) - Date.parse(issuedAt), 1200000);
+  assert.equal(Date.parse(latestStart) - Date.parse(issuedAt), 300000);
+  const grantBytes = Buffer.from(JSON.stringify(grant, null, 2) + '\n'); const grantSha256 = hash(grantBytes);
+  fs.writeFileSync(path.join(root, 'PENDING-GRANT.json'), grantBytes, { flag: 'wx' });
+  const oldGrant = JSON.parse(oldGrantBytes);
+  const oldGrantPath = path.resolve(root, '../final-binding-v1/ROOT-GRANT.json');
+  const oldGrantSha256 = hash(oldGrantBytes);
+  for (const value of [oldGrantPath, oldGrantSha256, String(oldGrant.outerStarted)]) assert.equal(oldCommand.split(value).length, 2);
+  const command = oldCommand.replace(oldGrantPath, futureGrantPath).replace(oldGrantSha256, grantSha256).replace(String(oldGrant.outerStarted), String(outerStarted));
+  const commandBytes = Buffer.from(command); assert.equal(commandBytes.length, 995);
+  fs.writeFileSync(path.join(root, 'RESOLVED-COMMAND.txt'), commandBytes, { flag: 'wx' });
+  const launch = JSON.parse(read(path.resolve(root, '../final-binding-v1/RESOLVED-LAUNCH.json'), 16384));
+  launch.argv = [path.join(r2, 'coordinator.mjs'), profilePath, profileSha256, futureGrantPath, grantSha256, String(outerStarted)];
+  launch.activationGrantPath = futureGrantPath; launch.stdout = futureStdout; launch.stderr = futureStderr;
+  launch.commandMeaning = 'ready pending byte candidate, not issued or launched; no origin reset on final GO';
+  fs.writeFileSync(path.join(root, 'RESOLVED-LAUNCH.json'), JSON.stringify(launch, null, 2) + '\n', { flag: 'wx' });
+  assert.equal(hash(read(profilePath)), profileSha256);
+  assert.equal(hash(read(reviewPath)), hash(reviewBytes));
+  for (const row of profile.assets) bind(row);
+  for (const filename of unused) assert(!fs.existsSync(filename));
+  const sampledMonotonic = Number(process.hrtime.bigint() / 1000000n); const sampledEpoch = Date.now();
+  assert(sampledEpoch >= issuedEpoch && sampledEpoch <= issuedEpoch + 300000 && sampledEpoch < issuedEpoch + 1200000);
+  const remainingMilliseconds = Math.max(0, outerStarted + 1200000 - sampledMonotonic);
+  const currentCaptureOwnership = { helperPid: process.pid, parentPid: process.ppid, declaredCommandShellPid: Number(process.env.BINDING_COMMAND_SHELL_PID), descriptors: [1, 2].map(descriptor => { const stat = fs.fstatSync(descriptor); return { descriptor, regular: stat.isFile(), device: stat.dev, inode: stat.ino, sizeAtSample: stat.size }; }), qualification: 'current finite DATA helper captures established before startup; reserved/postchecked, not future owner PID or universal prewrite proof' };
+  const receipt = { schema: 1, status: 'READY_PENDING_ROOT_FINAL_GO', issuedAt, latestStart, expiresAt, spanMilliseconds: 1200000, latestStartOffsetMilliseconds: 300000, absoluteExpiryLimit: '2026-08-29T17:50:00.000Z', profileSha256, sourceCommit: '0f8684d8eea2042cef6ab194ad2f9be165b31698', sourceReview: grant.sourceReview, producerReview: grant.producerReview, pilotReview: grant.pilotReview, pilotReceiptSha256: hash(reviewBytes), exactGrantFieldCount: keys.length, grant: { path: path.join(root, 'PENDING-GRANT.json'), bytes: grantBytes.length, sha256: grantSha256, prospectiveAuthorizedTrueNotIssued: true }, command: { path: path.join(root, 'RESOLVED-COMMAND.txt'), bytes: commandBytes.length, sha256: hash(commandBytes) }, launchSha256: hash(read(path.join(root, 'RESOLVED-LAUNCH.json'))), monotonic: { source: 'Number(process.hrtime.bigint() / 1000000n)', outerStarted, sampledMonotonic, sampledUtc: new Date(sampledEpoch).toISOString(), elapsedBindingMilliseconds: sampledMonotonic - outerStarted, remainingMillisecondsAtSample: remainingMilliseconds, publicationReservationMilliseconds: 180000, caseAndSetupMillisecondsAfterPublicationReserve: Math.max(0, remainingMilliseconds - 180000), noResetOrExtensionOnActualGo: true }, validatorSource: { spanClause, fullFresh1200AfterEveryDelayedStartRequired: false, minCaseCleanupPublicationFitElseUnrun: true, productOrCoordinatorEvaluated: false }, checkedFileBindings: checkedFiles, layoutRows, tools: profile.tools.length, assets: profile.assets.length, unusedSlots: unused, sourcePostguard: true, currentCaptureOwnership, futureCapturePlan: { ownerPid: null, coordinatorPid: null, reason: 'not launched', stdout: futureStdout, stderr: futureStderr, outerAdministrativeReservation: 8388608, innerPrewriteMaximum: 58720256, allCaptureMaximum: 67108864, startupQualification: 'ROOT accepted trusted initial startup reservation/postcheck; managed capture prewrite caps unchanged', ownership: 'retain actual handles; independent exit/close/both EOF; no Worker retirement inferred from process close; UNKNOWN remains owned', nativeAndGitQualificationsUnchanged: true }, currentScope: { dataHelpers: 1, actualWorkers: 0, runtimeChildren: 0, productImports: 0, archiveInflations: 0, activationPathsCreated: false }, oldInvalidGrantPreservedNeverIssued: true, conditionalWorkBytes: profile.budget.logicalBytes, headroomBytes: profile.budget.workingBytes - profile.budget.logicalBytes };
+  fs.writeFileSync(path.join(root, 'BINDING-RECEIPT.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
+  console.log(JSON.stringify({ status: receipt.status, issuedAt, latestStart, expiresAt, grant: receipt.grant, command: receipt.command, monotonic: receipt.monotonic, checkedFileBindings: checkedFiles, unusedSlots: unused.length, currentCaptureOwnership, sourcePostguard: true, activationPathsCreated: false }, null, 2));
+}

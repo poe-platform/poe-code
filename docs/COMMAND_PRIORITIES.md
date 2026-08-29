@@ -37,6 +37,24 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
+## ROOT-qualified strict-mode Unit2 resolved profile — 2026-08-29
+
+ROOT accepts source `928be5585f05c15867fbbb5f4b5debe153b0734e`, derived
+`26215b99cb379a9f825f803454f758fab5a3c8e9`, full950 SHA256
+`1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4`,
+on accepted public80 plus Unit1. Signed `e`/`u` clusters, supported terminal `o`
+forms, lazy missing-versus-empty nounset behavior and scoped fatal unwinding
+are accepted only within the resolved profile; nounset remains off by default.
+Each source-build/installed/moved layout passes50 author +16 novel +151 retained
+regressions (651 total);6 type groups/18 exact negative diagnostics and
+3 mutant detections/3 restores/2 binding refusals are separate evidence.
+The11 open design IDs remain unexecuted/unqualified, including arithmetic nounset,
+aggregate lengths, invalid-option partial mutation and exact GNU diagnostics/status.
+Status1 remains provisional project policy. Default80, command priorities and
+Node-pending status do not change; no full strict-mode/Bash/native/global-HEAD claim.
+Historical failures and internal-loader-exit qualifications remain. See
+[ROOT acceptance](../tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md).
+
 ## ROOT-qualified redirectionUnit1 — 2026-08-29
 
 Separate from the public80 acceptance below, ROOT accepts source

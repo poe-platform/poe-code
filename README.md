@@ -51,6 +51,22 @@ supports SOURCE interpretation, not a new140/140 run. Inherited SOURCEONLY/MIXED
 loader/Worker and AST-cloning limits remain. No native Bash/GNU-byte parity,
 full Bash, strict-mode, Node, live-HEAD or global-gate acceptance follows.
 
+**ROOT-qualified strict-mode Unit2 resolved profile (August 29, 2026):** source
+`928be5585f05c15867fbbb5f4b5debe153b0734e`, derived
+`26215b99cb379a9f825f803454f758fab5a3c8e9`, full950 SHA256
+`1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4`
+is accepted on exact public80 plus accepted Unit1; default80 remains unchanged.
+The resolved profile covers signed `e`/`u` option clusters, supported terminal
+`o` forms, nounset off by default, lazy presence-sensitive expansions and
+scope-boundary fatal unwinding while preserving existing errexit/pipefail rules.
+Independent evidence passes 50 author +16 novel +151 regressions per layout
+(651 across source-build/installed/moved), with separate type and loaded controls.
+Eleven design IDs remain open: arithmetic nounset, aggregate lengths, invalid-option
+partial mutation and exact GNU diagnostic/status/line bytes are unqualified.
+Fatal status1 is provisional project policy, not a native golden. No complete
+strict-mode/full-Bash, native, live-HEAD or Node acceptance follows. See the
+[exact ROOT acceptance and inherited limits](tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md).
+
 **Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
 finite 31-case × three-layout membership on selected `8437e4ed` and its exact
 858-file package `6b5863d5`: 15 original source passes plus 78 RUN02 passes

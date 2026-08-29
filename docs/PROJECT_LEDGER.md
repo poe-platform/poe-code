@@ -3865,3 +3865,35 @@ that any implementation, command, fixture, or test currently exists.
   full Bash, strict-mode, Node, live HEAD, whole gate or comparator acceptance.
   Documentation publication only; no runtime/native/Workers or raw-staging cleanup.
   Exact record: `tests/compatibility/bash-redirection-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.
+
+## 2026-08-29 — ROOT-qualified strict-mode Unit2 resolved profile
+
+- ROOT accepts exact source `928be5585f05c15867fbbb5f4b5debe153b0734e`, derived
+  `26215b99cb379a9f825f803454f758fab5a3c8e9`, full950 SHA256
+  `1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4`.
+  This is accepted c83 public80 plus accepted Unit1 and exactly Unit2;292 build
+  inputs, Unit2 parser/runtime changes only. No moving HEAD/Unit3/Node overlay.
+- Evidence `fab0c0994caf287a125cb98bb75a23a3424bf742`, manifest SHA256
+  `fa86b6ca4f168c9696b5546a7df9cb419aa1fe235a23c67ac305f93357589073`:
+  each source-build/installed/moved layout passes50 author +16 independent novel
+  +151 retained regressions,651/651 overall. Separate6 type groups preserve18
+  exact negative diagnostics;3 loaded mutants detected,3 restores pass,2 binding
+  refusals. These counts are not a whole canonical gate or new nounset public-API proof.
+- Accepted resolved behavior: signed e/u clusters and supported terminal-o forms,
+  nounset off by default, lazy presence-sensitive missing-versus-empty expansion,
+  same-logical-boundary function/source unwinding and owned subshell/pipeline/
+  substitution boundaries. Existing errexit/pipefail and caller/limit/sink/cleanup
+  precedence remain; no new free diagnostic bytes or public budget.
+- U06/U07/U17/U27/U28/U31–U36 remain11 OPEN/UNEXECUTED/UNQUALIFIED. Arithmetic
+  nounset, aggregate lengths, invalid-option partial mutation and exact GNU
+  diagnostics/status/line bytes are not accepted. Fatal status1 is provisional
+  project policy, not a GNU golden. No native Bash or other oracle was run.
+- Review lifecycle:39 direct children plus coordinator/capture owner =41 known
+  runtime processes; including publication50 known/52 conservative slots.29 fixed
+  loader admissions,0 RegexWorkers; individual internal-worker exits unobserved,
+  only hosting-process retirement established, not global OS/RSS/native lifetime.
+- Default80 remains unchanged. Prior failures, prep HOLD and inherited provider/
+  module/private-writer/source-only limits remain literal. No complete strict-mode,
+  full Bash/Git, Node, live HEAD, global gate or comparator acceptance. This root
+  acceptance publication is docs-only: no runtime/native/Workers or historical rewrite.
+  Exact record: `tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md`.

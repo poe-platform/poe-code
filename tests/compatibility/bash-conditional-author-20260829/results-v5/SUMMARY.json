@@ -1,0 +1,279 @@
+{
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "productionOverlay": [
+    {
+      "path": "src/shell/conditional.ts",
+      "mode": "100644",
+      "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "bytes": 8890,
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0"
+    }
+  ],
+  "sourceManifestSha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+  "package": {
+    "bytes": 871045,
+    "sha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+    "members": 954
+  },
+  "main": {
+    "pass": 531,
+    "cases": 531,
+    "perLayout": {
+      "conditional": 67,
+      "strict": 50,
+      "redirections": 48,
+      "arrays": 12
+    }
+  },
+  "restored": [
+    {
+      "label": "accept-aggregate-restored",
+      "pass": 1
+    },
+    {
+      "label": "ducktype-provider-restored",
+      "pass": 1
+    },
+    {
+      "label": "metadata-denial-escapes-restored",
+      "pass": 1
+    }
+  ],
+  "lifecycle": [
+    {
+      "layout": "source-conditional",
+      "id": "H02-v4",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "closed": false,
+        "exactCallerReason": true
+      },
+      "afterRelease": {
+        "closed": true
+      },
+      "events": [
+        "acquired",
+        "abort",
+        "public-rejected",
+        "test-release",
+        "provider-finalized"
+      ],
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    },
+    {
+      "layout": "source-conditional",
+      "id": "S01-registered",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "settled": false,
+        "closed": false
+      },
+      "events": [
+        "registered",
+        "acquired",
+        "cleanup-enter",
+        "test-release",
+        "provider-finalized",
+        "cleanup-finished",
+        "public-rejected"
+      ],
+      "afterRelease": {
+        "settled": true,
+        "closed": true,
+        "exactCallerReason": true
+      },
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    },
+    {
+      "layout": "installed-conditional",
+      "id": "H02-v4",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "closed": false,
+        "exactCallerReason": true
+      },
+      "afterRelease": {
+        "closed": true
+      },
+      "events": [
+        "acquired",
+        "abort",
+        "public-rejected",
+        "test-release",
+        "provider-finalized"
+      ],
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    },
+    {
+      "layout": "installed-conditional",
+      "id": "S01-registered",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "settled": false,
+        "closed": false
+      },
+      "events": [
+        "registered",
+        "acquired",
+        "cleanup-enter",
+        "test-release",
+        "provider-finalized",
+        "cleanup-finished",
+        "public-rejected"
+      ],
+      "afterRelease": {
+        "settled": true,
+        "closed": true,
+        "exactCallerReason": true
+      },
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    },
+    {
+      "layout": "moved-conditional",
+      "id": "H02-v4",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "closed": false,
+        "exactCallerReason": true
+      },
+      "afterRelease": {
+        "closed": true
+      },
+      "events": [
+        "acquired",
+        "abort",
+        "public-rejected",
+        "test-release",
+        "provider-finalized"
+      ],
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    },
+    {
+      "layout": "moved-conditional",
+      "id": "S01-registered",
+      "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+      "pass": true,
+      "beforeRelease": {
+        "settled": false,
+        "closed": false
+      },
+      "events": [
+        "registered",
+        "acquired",
+        "cleanup-enter",
+        "test-release",
+        "provider-finalized",
+        "cleanup-finished",
+        "public-rejected"
+      ],
+      "afterRelease": {
+        "settled": true,
+        "closed": true,
+        "exactCallerReason": true
+      },
+      "created": 1,
+      "disposed": 1,
+      "cleanupFailure": false
+    }
+  ],
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    }
+  ],
+  "controls": [
+    {
+      "name": "accept-aggregate",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "189219cea528bfac82bb0ca367b0f5f6f4f5ef74b470aba69d829dbc30337126"
+    },
+    {
+      "name": "ducktype-provider",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "7059024955a250b8c9247504092974e3c0b2441a12b539c4a3bc41c494a57ed4"
+    },
+    {
+      "name": "metadata-denial-escapes",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "0204414c014fd3dea7c80d0f058e38627446711e8d790c5fdbca932c22682666"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    }
+  ],
+  "cleanup": {
+    "directChildren": 30,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 20,
+    "boundedOwnedTotal": 50,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "elapsedMs": 32975,
+  "captureBytes": 3052781,
+  "scratchBytes": 70139236,
+  "archive": {
+    "records": 131,
+    "rawBytes": 8729583,
+    "compressedBytes": 3864130,
+    "sha256": "7b6c1e3e704f475f8157c60d94dd9c90725d3ad407305c753ea8286ffcb7733d"
+  },
+  "qualification": "Versioned author checks, not historical H02 rescore or independent/native acceptance. V4 launcher syntax failure retained; V5 same source and grant origin. Selected110 retained identities/layout, other91 not rerun. No private/native/engine execution."
+}

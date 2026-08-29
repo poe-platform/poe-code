@@ -1,0 +1,5 @@
+# Captured harmless process callback order
+
+C2 stopped after the first harmless child, PID34371, which exited0 and fully retired. The new gate rejected its valid trace: stdoutClose callback, process close callback, stderrClose callback, retired. The native ChildProcess internal listener can emit its close before our later pipe-close listener runs. This is a harness ordering error, not a product failure, lost capture or unknown retirement.
+
+Versioned correction: require process admission/spawn and matching exit before process close; require both EOFs, both observer pipe-close callbacks AND process close before retired. Do not require the observer callbacks to precede process close. All events remain on their own observer's monotonic clock and sequence. Preserve C2 raw failure. Validate its exact captured normal receipt as DATA after correction; do not spawn another normal child. C4 runs ONLY the remaining three harmless fixtures, keeping the four-child ceiling. C3 seals/replays pure controls and final DATA preparation; no fifth controller is authorized.

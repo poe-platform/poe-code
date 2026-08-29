@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "role": "DATA/controller helpers only",
+  "cases": [
+    {
+      "id": "D01-exact-package",
+      "pass": true
+    },
+    {
+      "id": "D02-text-tamper",
+      "pass": true
+    },
+    {
+      "id": "D03-compressed-hash",
+      "pass": true
+    },
+    {
+      "id": "D04-size-before-inflate",
+      "pass": true
+    },
+    {
+      "id": "D05-three-layout-census",
+      "pass": true
+    },
+    {
+      "id": "D06-first-open",
+      "pass": true
+    },
+    {
+      "id": "D07-second-open",
+      "pass": true
+    },
+    {
+      "id": "D08-both-closes",
+      "pass": true
+    },
+    {
+      "id": "D09-short-write",
+      "pass": true
+    },
+    {
+      "id": "D10-zero-write",
+      "pass": true
+    },
+    {
+      "id": "D11-write-error",
+      "pass": true
+    },
+    {
+      "id": "D12-grant-inactive",
+      "pass": true
+    },
+    {
+      "id": "D13-grant-no-getter",
+      "pass": true
+    },
+    {
+      "id": "D14-census-fresh",
+      "pass": true
+    }
+  ],
+  "passed": 14,
+  "total": 14,
+  "productImports": 0,
+  "Workers": 0
+}

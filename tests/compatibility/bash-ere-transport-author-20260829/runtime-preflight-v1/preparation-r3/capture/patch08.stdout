@@ -1,0 +1,10 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/bridge-state.mjs.data
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/worker-bridge.mjs.data
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/validation-observer.mjs.data
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/case-runner.mjs.data
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/child-bootstrap.mjs.data
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/materializer.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/supervisor.mjs
+M /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/receipt-gate.mjs
+M /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/receipt-fixture.mjs

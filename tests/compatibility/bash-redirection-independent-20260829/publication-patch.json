@@ -1,0 +1,9 @@
+{
+  "pid": 98467,
+  "closed": true,
+  "bytes": 8919843,
+  "sha256": "1d861c04ce4cd624469163d4e22386c28776b3c105dad0e057aac6649e66934e",
+  "transport": "stdin-after-E2BIG-no-spawn",
+  "code": 0,
+  "signal": null
+}

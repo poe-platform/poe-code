@@ -1,0 +1,46 @@
+{
+  "archiveParts": 6,
+  "records": 268,
+  "seals": [
+    {
+      "path": ".",
+      "files": 24,
+      "sha256": "a8c363254cfdacdcfeff270d5d14028b799295674d37949c0c5710bb23352266"
+    },
+    {
+      "path": "continuation-v2",
+      "files": 20,
+      "sha256": "631e825f282f323a3987fd51b572381fd3c2c822680a40116dd3838ad777b1d7"
+    },
+    {
+      "path": "n11-v3",
+      "files": 20,
+      "sha256": "07601d6c489443c34c28bb5c9836d4f6b67e0f1e03616027cc5ed53e338d836f"
+    }
+  ],
+  "checkedAt": "2026-08-29T04:58:44.855Z",
+  "originalClockElapsedMs": 1598062,
+  "originalSourceAndCapturesUnchanged": true,
+  "deletedFiles": 0,
+  "helperPublicationHistory": [
+    {
+      "event": "report-assembly template syntax error",
+      "spawned": false,
+      "writes": false
+    },
+    {
+      "event": "apply_patch argument E2BIG",
+      "spawned": false,
+      "writes": false
+    },
+    {
+      "event": "same evidence via apply_patch stdin",
+      "pid": 98467,
+      "closed": true,
+      "code": 0,
+      "bytes": 8919843,
+      "sha256": "1d861c04ce4cd624469163d4e22386c28776b3c105dad0e057aac6649e66934e"
+    }
+  ],
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296"
+}

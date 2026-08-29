@@ -1,0 +1,42 @@
+[main 374c7a0b] test: seal declared-root parser fixture continuation without rebuilding
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 27 files changed, 21690 insertions(+)
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/CASES.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/EXECUTION-SEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/HELPER-SYNTAX.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/RECIPE.md
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/REUSE.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/SOURCE.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/TOOL-CENSUS.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-launch.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-launch.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-novel.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-novel.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-run.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/check-run.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/close-observer.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/hash-regular-file.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/internal-loader-arguments.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/launch.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/loader.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/novel.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/prepare.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/redirections-v2.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/resources.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/run.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/tool-closure.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/continuation-v2/worker-policy.mjs

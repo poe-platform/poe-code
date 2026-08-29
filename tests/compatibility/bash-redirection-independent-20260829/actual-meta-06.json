@@ -1,0 +1,13 @@
+{
+  "args": [
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=no"
+  ],
+  "pid": 96669,
+  "closed": true,
+  "originalGlobalStart": 1787977926793,
+  "code": 0,
+  "signal": null
+}

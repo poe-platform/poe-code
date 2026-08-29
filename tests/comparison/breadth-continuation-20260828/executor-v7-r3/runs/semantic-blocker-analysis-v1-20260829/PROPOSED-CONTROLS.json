@@ -1,0 +1,140 @@
+{
+  "schema": "PROPOSED_FINITE_PREEXECUTION_CONTROLS_V1",
+  "status": "DESIGN_ONLY_ALL_UNRUN_NO_EXECUTABLE_FREEZE",
+  "requires": "Root selects changed profile, author implements versioned successor, seals exact bodies/tools/fixtures and different review before any real-engine execution. These controls do not reuse consumed grant.",
+  "scope": "14 bounded DATA/harmless-stub families for option A plus telemetry; no real engine/Worker/C11/native/network in preexecution controls",
+  "rows": [
+    {
+      "id": "P01",
+      "subject": "Public configuration literal",
+      "checks": [
+        "exact comparator defenseInDepth:false recorded by harmless constructor stub",
+        "missing/true/auto/object-getter/inherited/extra option route rejected by new binding",
+        "target configuration byte-identical"
+      ]
+    },
+    {
+      "id": "P02",
+      "subject": "Frozen operation/adapters",
+      "checks": [
+        "all99 identities and input/expectedoutput/flags/stdin bytes preserved",
+        "new profileID and recipe required",
+        "old AUTH/grant and old profile cannot authorize successor"
+      ]
+    },
+    {
+      "id": "P03",
+      "subject": "Real external guard retained with harmless stubs",
+      "checks": [
+        "actual offline module and loader guard bodies not replaced by stub guard",
+        "hook/Socket/network/native/unbound CJS and asset actions still refuse",
+        "caught refusal cannot yield safety acceptance; zero target/comparator loads"
+      ]
+    },
+    {
+      "id": "P04",
+      "subject": "Counterfactual public-option branch",
+      "checks": [
+        "pinned SOURCE predicates show default/auto/audit/exclusions are not a hook bypass",
+        "harmless constructor options observer proves exact false forwarded once",
+        "does NOT assert actual just-bash success; separate future nonempty engine qualification needed"
+      ]
+    },
+    {
+      "id": "T01",
+      "subject": "Fulfilled result and semantic credit separation",
+      "checks": [
+        "fulfilled0 and fulfilled7 both count fulfilled",
+        "wrong stdout/status still fails designated semantic predicate"
+      ]
+    },
+    {
+      "id": "T02",
+      "subject": "Synchronous and asynchronous rejection",
+      "checks": [
+        "throw/reject undefined,null,false,0,empty string preserve presence",
+        "one attempted/one rejected, no fulfilled credit"
+      ]
+    },
+    {
+      "id": "T03",
+      "subject": "Empty setup isolation",
+      "checks": [
+        "setup fulfilled/rejected/unresolved counted separately from semantic",
+        "failed setup forbids semantic dispatch",
+        "C11 label denied in cohort"
+      ]
+    },
+    {
+      "id": "T04",
+      "subject": "Later conversion/snapshot/cleanup failure",
+      "checks": [
+        "await fulfilled followed by conversion throw remains fulfilled but semantically unqualified",
+        "primary and later cleanup reasons both retained"
+      ]
+    },
+    {
+      "id": "T05",
+      "subject": "Pre-dispatch preparation",
+      "checks": [
+        "input/method-getter failure yields no invocation",
+        "method getter once and original receiver preserved",
+        "source/identity failure before user call retains exact failure"
+      ]
+    },
+    {
+      "id": "T06",
+      "subject": "Record publication fault",
+      "checks": [
+        "attempt-record write failure prevents call",
+        "outcome-record loss creates unresolved/unsafe, not inferred fulfillment",
+        "partial/truncated raw capture remains fatal"
+      ]
+    },
+    {
+      "id": "T07",
+      "subject": "Finite own-data schema",
+      "checks": [
+        "reject getter/inherited/extra/missing keys,holes,bad primitives",
+        "reject wrong operation/specimen/layout/call ordinal",
+        "reject duplicate/reordered/second settlement"
+      ]
+    },
+    {
+      "id": "T08",
+      "subject": "Worker disposition orthogonality",
+      "checks": [
+        "nonzero or signal never substitutes invocation result",
+        "reaped false/unknown retirement stops tail",
+        "attempt recorded but no outcome remains unresolved"
+      ]
+    },
+    {
+      "id": "T09",
+      "subject": "Budget limits",
+      "checks": [
+        "event count above330/call-role cap/2048bytes refuses",
+        "remainingFD3/document/aggregate evidence limits not increased",
+        "overflow retains bounded raw disposition and stops safely"
+      ]
+    },
+    {
+      "id": "T10",
+      "subject": "Composed reporting/count reconciliation",
+      "checks": [
+        "worker events -> supervisor raw -> partial coordinator -> report -> assessor all match attempted/fulfilled/rejected/setup",
+        "actual observed2semantic+1setup is distinct from retained old completed1+1 fixture",
+        "all-pass exitnonzero and caught-guard-violation must still refuse"
+      ]
+    }
+  ],
+  "optionalBPrerequisitesNotIncluded": [
+    "exact resolve-only owned callback/registration, no load rewrite/shortCircuit bypass",
+    "reject repeats,wrong phase,wrong source,getters,late captured registration",
+    "retain/deregister only owned hook without removing original loader guards; sticky singleton lifecycle proved",
+    "ownedstdio fd1/fd2 preparation separate from any Socket permit; wrongfd/external connect blocked",
+    "capture failure and cleanup error retain primary and known reaping",
+    "whole actual guard + harmless stub composition before any changed-capability real-engine proposal"
+  ],
+  "futureActualBarrier": "If root selects A, first newly authorized real nonempty execution must prove defense-disabled configuration with unchanged full external guards and complete capture/retirement; no automatic99rerun. Scope and cases require fresh root authorization."
+}

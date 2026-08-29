@@ -1,0 +1,114 @@
+{
+  "schema": "SEMANTIC_BLOCKER_SOURCE_ANALYSIS_V1",
+  "date": "2026-08-29",
+  "permission": "SOURCE_DATA_ONLY_NO_IMPLEMENTATION_OR_RUNTIME",
+  "priorAttempt": {
+    "evidence": "91d75f2bb48b037a51b484f740f01f13be6c4fce",
+    "publication": "2084983a74124638e10e8cc78ba775e4c4a7fb9a",
+    "consumed": true,
+    "retries": 0,
+    "qualifiedRows": 1,
+    "unsafeStopped": 1,
+    "unlaunched": 97,
+    "unqualified": 98,
+    "captureBytes": 219083,
+    "captureLost": 0,
+    "captureQualified": false,
+    "failedWorkerNatural": false
+  },
+  "profile": {
+    "target": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "comparator": "just-bash3.4.2",
+    "bootstrap": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "stockNodeCapabilities": false
+  },
+  "established": {
+    "phase": "After module import, bootstrap retirement, constructor and fixture setup; first nonempty Bash.exec activates DefenseInDepthBox before parser/interpreter command execution.",
+    "bootstrapDistinct": "Defense chunk statically imports node:module. The ordered getBuiltinModule unavailable-return window does not remove that imported module namespace.",
+    "sourceCallChain": [
+      "adapter.mjs:102 shell.exec",
+      "bundle/index.js:797 exec",
+      "bundle/index.js:798 execInScope",
+      "chunk-ZBUZKIPX.js:6 activate",
+      "chunk-ZBUZKIPX.js:6 applyPatches",
+      "chunk-ZBUZKIPX.js:6 protectDynamicImport",
+      "offline.mjs:65 denied registerHooks"
+    ],
+    "emptySetupLimitation": "execInScope returns on empty trimmed source before activate. Successful import and empty setup cannot establish nonempty defense activation compatibility. No old admission result rescored.",
+    "frozenConfiguration": {
+      "executionLimitProfile": "normal",
+      "executionLimits": {
+        "maxExecutionTimeMs": 30000,
+        "maxOutputSize": 4194304,
+        "maxInputBytes": 33554432,
+        "maxCommandCount": 100,
+        "maxLoopIterations": 100
+      }
+    },
+    "defaultDefense": "Constructor uses provided defenseInDepth or true when nullish; frozen comparator options omit it.",
+    "requiredHook": "With enabled/auto and callable module.registerHooks, applyPatches calls protectDynamicImport. Harness replaces registerHooks by a callable denying wrapper, so typeof capability detection is true but use refuses.",
+    "noNarrowToggle": "auditMode:true and exclusions do not bypass unconditional hook setup. auto does not test whether callable registerHooks permits invocation.",
+    "hookLifetime": "Pinned source sets static importHooksRegistered flag, ignores returned hook handle, and does not deregister that hook in resetInstance/deactivate. Callback consults current instance; process exit is the unambiguous existing lifetime boundary."
+  },
+  "socket": {
+    "actualTrace": {
+      "sequence": 60,
+      "operation": "Socket",
+      "argument": "object"
+    },
+    "known": "The guard throws before delegation. No URL, fd, property values or Socket-origin stack were captured. The following sequence61 hook error stack does not supply the earlier Socket stack.",
+    "sourceSupportedHypothesis": "Blocked-global enumeration includes process.stdout/stderr and evaluates target[prop] inside a catching filter before applyPatches excludes process_stdout/process_stderr from actual patches. Node22.22.2 lazily constructs net.Socket({fd,readable:false,writable:true}) for pipe/TCP stdio; either stdio getter is a plausible route.",
+    "notEstablished": [
+      "which getter or caller initiated the denied Socket",
+      "whether object described fd1/fd2, another descriptor, handle, or network configuration",
+      "a real network request",
+      "that lazy stdio was definitely the source",
+      "that disabling defense removes every possible later Socket use"
+    ],
+    "noReconstruction": true
+  },
+  "alternatives": [
+    {
+      "id": "A",
+      "status": "SUPPORTED_PUBLIC_OPTION_SOURCE_ONLY_ROOT_DECISION_REQUIRED",
+      "option": {
+        "defenseInDepth": false
+      },
+      "equivalentObject": {
+        "defenseInDepth": {
+          "enabled": false
+        }
+      },
+      "minimalFutureDelta": "Versioned comparator constructor configuration only adds authoritative defenseInDepth:false; retain candidate, fixtures, script/stdin/expectedoutputs, limits, all external offline/loader/source/capture guards, unavailable bootstrap and no optional network/JS.",
+      "newProfileProposed": "JUST_BASH_3_4_2_EXTERNAL_GUARDED_DID_DISABLED_V1",
+      "fairness": "Functional comparison under explicitly reduced comparator secondary host-realm defense. NOT stock/default security configuration, no security/safety equivalence, no performance claim. New identity/seals/grant; never rescore old failure.",
+      "sourceExpectation": "Boolean false skips DefenseInDepthBox entirely; object enabled:false avoids applyPatches. Thus the identified defense hook path and its getter-enumeration path are not reached. No empirical readiness/all33 success claim."
+    },
+    {
+      "id": "B",
+      "status": "NOT_READY_REQUIRES_NEW_OWNERSHIP_AND_SECURITY_DESIGN",
+      "supportedPrimitive": "Node22.22.2 synchronous registerHooks returns a ModuleHooks object with deregister(); hooks share the main realm and compose LIFO.",
+      "unprovidedLibraryAPI": "Pinned Bash/DefenseInDepthConfig has no host-injected registration callback or registration-handle ownership option. Library discards handle. No directly supported narrow public hook-only opt-out.",
+      "requiredBeforeProposalCanRun": [
+        "retain all current external guard functions active before consumer evaluation; no raw node:module allowance",
+        "host-owned exact trusted activation phase, exact one resolve-only registration, reject load hook/extra/accessor/inherited inputs/repeats/late calls; phase is not caller authentication",
+        "an outer policy wrapper must force existing admitted resolve/load chain and reject callback short-circuit/rewrites; callback cannot bypass immutable file/hash/mode/parent/CJS/asset guards",
+        "retain handle only in trusted owner, preserve prior hook order, cleanup before settlement or qualify process-lifetime retirement; resetInstance does not unregister it",
+        "for stdio, separately bind host-only initialization of already-owned fd1/fd2 before guard/evaluation, not any postguard Socket allowance; capture/open/drain/close ownership and zero external connect required",
+        "composed adversaries and different review before root might permit any new capability"
+      ],
+      "fairness": "New nonstock trusted integration, not a blanket hook/Socket permit and not established safe by this source review."
+    },
+    {
+      "id": "C",
+      "status": "CURRENT_VALID_DISPOSITION",
+      "decision": "Leave comparator nonempty semantic rows unqualified under unchanged frozen profile; no negative column-semantic score. Preserve consumed attempt and unrun tail."
+    }
+  ],
+  "recommendedRootChoice": "A is the minimal supported public configuration alternative if root accepts explicit loss of comparator secondary defense for functional-only comparison. Otherwise C. B is not a small permission exception and is not recommended as the immediate repair.",
+  "actualNewEngineImports": 0,
+  "actualNewCases": 0,
+  "actualNewWorkers": 0,
+  "actualNewControls": 0
+}

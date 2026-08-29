@@ -1,0 +1,83 @@
+{
+  "schema": "PROPOSED_INVOCATION_ACCOUNTING_V2_DESIGN_ONLY",
+  "oldArtifactsImmutable": true,
+  "diagnosis": {
+    "body": "Counter increment follows await launch and safe-disposition validation, before qualifier; it counts safely completed workers, not all engine invocation attempts.",
+    "adapter": "Existing exec-start is before byteInput and member-call evaluation, so it alone does not prove actual invocation. This particular rejected invocation is proved by its captured Bash.exec/execInScope stack.",
+    "actualPrior": {
+      "rawCompleted": {
+        "semantic": 1,
+        "emptySetup": 1,
+        "total": 2
+      },
+      "observedAttempts": {
+        "semantic": 2,
+        "fulfilled": 1,
+        "rejected": 1,
+        "emptySetup": 1,
+        "total": 3
+      }
+    }
+  },
+  "proposedChanges": [
+    "New schema/recipe identity; never add fields to frozen original own-data schema in place. Keep legacyCompletedCounts separately labeled.",
+    "Resolve/authenticate operation, input, callable method and receiver once before call-attempt; failures in argument/method preparation are not product invocation. Preserve exact method receiver and getters-once behavior.",
+    "Emit bounded operation/call-ID-correlated attempt record immediately before invoking the selected function. Attempt means reaching the dispatch boundary; an abrupt exit between event and call cannot establish callee entry.",
+    "Record fulfilled immediately after awaited resolution, before output conversion/snapshot/qualification; record rejected on synchronous throw or promise rejection, preserving explicit reason presence including undefined/null/false/0/empty string. Do not use truthiness or serialization/coercion to choose primary.",
+    "Emit setup and semantic records separately. Empty setup uses existing zero-dispatch/namespace-preservation/barrier assertions; C11 remains disallowed in semantic mode.",
+    "Supervisor derives counts from retained ordered records before rejecting worker disposition; incomplete/lost/outcome-missing records produce unresolved/unknown and unsafe stop, not inferred success or zero.",
+    "Keep physical worker spawn/exit/close/reap, call settlement, resource/capture errors and semantic qualifier orthogonal. A fulfilled status7 can match an expected outcome; fulfilled never implies semantic pass.",
+    "Count every observed rejection even if worker later exits nonzero. Caught offline violation still fails admission/safety even if an outer call fulfilled. Preserve primary plus cleanup errors independently."
+  ],
+  "finiteOwnDataRecord": {
+    "keys": [
+      "schema",
+      "sequence",
+      "operationId",
+      "operationOrdinal",
+      "launchOrdinal",
+      "specimenSha256",
+      "callOrdinal",
+      "role",
+      "event",
+      "reason"
+    ],
+    "schema": "INVOCATION_EVENT_V2",
+    "role": [
+      "semantic",
+      "empty-setup"
+    ],
+    "event": [
+      "attempted",
+      "fulfilled",
+      "rejected"
+    ],
+    "reason": "null except rejected: exact bounded own-data discriminant with explicit presence; no arbitrary object getters/toString, no raw secrets",
+    "census": "exact IDs from frozen99operations; comparator one semantic call, target one empty setup then one semantic call; no repeated ordinal; fulfilled/rejected requires prior attempt and no prior settlement"
+  },
+  "counts": {
+    "perRole": [
+      "attempted",
+      "fulfilled",
+      "rejected",
+      "unresolved"
+    ],
+    "invariant": "attempted = fulfilled + rejected + unresolved for complete observed attempt stream; missing capture separately unknown, not fabricated0",
+    "semanticCreditsSeparate": true,
+    "fullCohortPlanned": {
+      "semanticAttempted": 99,
+      "emptySetupAttempted": 66,
+      "C11": 0,
+      "totalAttempted": 165
+    }
+  },
+  "budget": {
+    "maxCallEvents": 330,
+    "maxEventBytes": 2048,
+    "perWorkerMaximumNewCallEvents": 4,
+    "maxAddedPerWorkerBytes": 8192,
+    "limitsUnchanged": true,
+    "qualification": "These are proposed finite per-event ceilings, not guaranteed fit. Charge existing262144record/FD3,32MiBdocument and248+8MiB evidence partitions; exhaustion remains unsafe. No new retry/case/budget."
+  },
+  "unknownPolicy": "An attempted event records dispatch attempt, not guaranteed callee entry. Missing durable outcome remains unresolved even if outcome existed transiently; missing/truncated attempt transport is unknown. Never reconstruct from process exit or success-only final counts."
+}

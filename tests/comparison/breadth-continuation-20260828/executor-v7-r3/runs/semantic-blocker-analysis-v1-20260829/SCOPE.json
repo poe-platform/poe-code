@@ -1,0 +1,30 @@
+{
+  "schema": "ROOT_BLOCKER_ANALYSIS_SCOPE_V1",
+  "startedAt": "2026-08-29T06:08:15.066Z",
+  "authority": "Latest ROOT SOURCE/DATA-only blocker analysis GO after consumed semantic attempt; not an execution grant",
+  "limits": {
+    "totalMs": 1500000,
+    "allOwnedOSProcesses": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "includesPublication": true
+  },
+  "actualActions": {
+    "sourceDataInspection": true,
+    "officialPrimaryWeb": true,
+    "productImports": 0,
+    "comparatorImports": 0,
+    "engineExecutions": 0,
+    "Workers": 0,
+    "C11": 0,
+    "cases": 0,
+    "nativeOracles": 0,
+    "privateAccess": false,
+    "networkActivation": false,
+    "guardChanges": false,
+    "oldArtifactEdits": false
+  },
+  "proposalTiming": "After inspecting exact source and old traces; proposed control families have no executable preseal and remain all unrun",
+  "futureAuthority": "Root selection and different review required for any versioned implementation or execution"
+}

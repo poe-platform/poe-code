@@ -1,0 +1,43 @@
+{
+  "controller": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/acquire.mjs",
+    "bytes": 9683,
+    "mode": "644",
+    "sha256": "4f191bb469acf4c946d70c4465cba6289c0d903150cb570365632fc01fab5a4a",
+    "dev": "16777232",
+    "ino": "184502214"
+  },
+  "plan": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/plan.json",
+    "bytes": 2679,
+    "mode": "644",
+    "sha256": "2ea8bdb3a6851a01018fb8fbc2b4281dc288a3769166807e50643803031c2bc2",
+    "dev": "16777232",
+    "ino": "184502213"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": "755",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "dev": "16777232",
+    "ino": "3707231"
+  },
+  "nodeVersion": "v22.22.2",
+  "bash": {
+    "path": "/bin/bash",
+    "bytes": 1293840,
+    "mode": "555",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "dev": "16777232",
+    "ino": "1152921500312570708"
+  },
+  "gpgvMetadataOnly": {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "bytes": 538432,
+    "mode": "555",
+    "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4",
+    "dev": "16777232",
+    "ino": "167393616"
+  }
+}

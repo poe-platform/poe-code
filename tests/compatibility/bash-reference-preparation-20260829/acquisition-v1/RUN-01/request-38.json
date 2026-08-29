@@ -1,0 +1,15 @@
+{
+  "url": "https://www.gnu.org/licenses/gpl-3.0.txt",
+  "name": "gpl-3.0.txt",
+  "maxBytes": 65536,
+  "role": "PUBLIC_GPL_LICENSE_TEXT",
+  "startedAt": "2026-08-29T04:43:03.982Z",
+  "bytes": 0,
+  "error": {
+    "name": "TypeError",
+    "message": "fetch failed",
+    "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+  },
+  "disposition": "REQUEST_FAILED",
+  "endedAt": "2026-08-29T04:43:14.491Z"
+}

@@ -1,0 +1,26 @@
+{
+  "executable": {
+    "path": "/bin/bash",
+    "bytes": 1293840,
+    "mode": "555",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "dev": "16777232",
+    "ino": "1152921500312570708"
+  },
+  "argv": [
+    "--noprofile",
+    "--norc",
+    "--version"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/empty-path"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/cwd",
+  "signalDeadlineMs": 3000,
+  "role": "ONE_METADATA_PROBE_NOT_FENCE_OR_ORACLE_ADMISSION"
+}

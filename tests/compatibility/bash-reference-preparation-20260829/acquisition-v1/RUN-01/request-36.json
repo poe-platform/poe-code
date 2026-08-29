@@ -1,0 +1,15 @@
+{
+  "url": "https://www.gnu.org/software/security/",
+  "name": "gnu-security.html",
+  "maxBytes": 131072,
+  "role": "PUBLISHER_VERIFICATION_GUIDANCE",
+  "startedAt": "2026-08-29T04:42:42.974Z",
+  "bytes": 0,
+  "error": {
+    "name": "TypeError",
+    "message": "fetch failed",
+    "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+  },
+  "disposition": "REQUEST_FAILED",
+  "endedAt": "2026-08-29T04:42:53.475Z"
+}

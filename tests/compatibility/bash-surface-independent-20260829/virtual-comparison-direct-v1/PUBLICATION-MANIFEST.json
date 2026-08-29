@@ -1,0 +1,59 @@
+{
+  "schema": "direct-profile-publication-manifest-v1",
+  "sourceCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "controlSealSha256": "99586c8ec062b54f41430facf9a388bd68c450db44c08d65cc98b07036dc5198",
+  "controlResultSha256": "ee5d11db55a1d8eb7cc7fedfc1f18910540c65e622d87788224654d021b4963c",
+  "evidence": [
+    {
+      "path": "CONTROL-RESULT.json",
+      "bytes": 27539,
+      "sha256": "ee5d11db55a1d8eb7cc7fedfc1f18910540c65e622d87788224654d021b4963c"
+    },
+    {
+      "path": "CONTROL-SUMMARY.json",
+      "bytes": 3875,
+      "sha256": "ea1188b662bd5e106d8f92fd9cf5384f5c920ccdb787a7924159554885441ba7"
+    },
+    {
+      "path": "COMPOSITION-BINDING.json",
+      "bytes": 136344,
+      "sha256": "b980a4c014ff6068df8a9028b808436a3f5d4929d82679c31f0c7c40ea957651"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2247,
+      "sha256": "72b56e9a6d97a31f9e2fcd6946fb5b3a8814c96a3a24d6c3b2840759a399ae9f"
+    },
+    {
+      "path": "PUBLICATION-ERROR.json",
+      "bytes": 231,
+      "sha256": "5d0e02637e35c22c14c652a24f713d172e91eb8dae4f03b1516476b1f06cdb90"
+    }
+  ],
+  "rawCapture": {
+    "file": "RAW-CAPTURE.json.gz.base64",
+    "compressedBytes": 1393697,
+    "compressedSha256": "16eb89b5436329a6f153df98257f3a06f164a9b39b2ee7849e76b80d36880f74",
+    "decodedBytes": 4824494,
+    "decodedSha256": "adabe4596b21d6d2c0e7549ac1e6578c44e1cfe9e11d219cee75b76ea5d2159f",
+    "cutAfterOuterChild": 17
+  },
+  "resourcesAtCut": {
+    "outerKnownStarts": 17,
+    "nestedHarmlessStarts": 4,
+    "knownTotal": 21,
+    "knownDirectRetired": 21,
+    "maximumSimultaneousNewKnownOSRoles": 2,
+    "includingExistingTrustedToolOwner": 3,
+    "outerCaptureBytes": 2722022,
+    "nestedCaptureBytes": 3935,
+    "totalObservedCaptureBytes": 2725957,
+    "actualExtraFailCleanupChildren": 0,
+    "actualExtraFailCleanupWorkers": 0,
+    "customLoaderThreads": 0
+  },
+  "disposition": "6DATA+4harmless controls passed on immutable source; different review pending.111 product calls UNRUN, product launcher closure remains HOLD. No source/native/build/Worker target beyond authorized harmless Node roles.",
+  "history": "Old M08 groupUNKNOWN retained, no group probes/signals or old reservation reuse. Earlier invalid bf:path is a locator mistake, not drift; exact293 input bytes now authenticated through Dirac individual blob recipe.",
+  "qualifications": "Known direct roles only; no processgroup/complete descendant/thread census/OS containment/RSS guarantee. Actual forced/fail-cleanup paths not exercised. Publication archive includes stated cut; later administrative tail retained in capture directory.",
+  "captureDirectory": "/tmp/bash-surface-direct-profile-v1-W8SgWF"
+}

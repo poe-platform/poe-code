@@ -1,0 +1,133 @@
+{
+  "schema": "direct-profile-author-control-summary-v1",
+  "sourceCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "sealSha256": "99586c8ec062b54f41430facf9a388bd68c450db44c08d65cc98b07036dc5198",
+  "controlResultSha256": "ee5d11db55a1d8eb7cc7fedfc1f18910540c65e622d87788224654d021b4963c",
+  "data": {
+    "passed": 6,
+    "total": 6
+  },
+  "harmless": {
+    "passed": 4,
+    "total": 4,
+    "unrun": [],
+    "rows": [
+      {
+        "id": "H01",
+        "pid": 12476,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "signals": [],
+        "observation": {
+          "id": "H01",
+          "denials": [
+            {
+              "api": "spawn",
+              "code": "ERR_ACCESS_DENIED",
+              "permission": "ChildProcess"
+            }
+          ],
+          "extraOwnedChildren": 0,
+          "extraWorkers": 0,
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false
+          },
+          "profile": "bash-surface-direct-owned-child-functional-v1"
+        }
+      },
+      {
+        "id": "H02",
+        "pid": 12477,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "signals": [],
+        "observation": {
+          "id": "H02",
+          "denial": {
+            "code": "ERR_ACCESS_DENIED",
+            "permission": "WorkerThreads"
+          },
+          "extraOwnedChildren": 0,
+          "extraWorkers": 0,
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false
+          },
+          "profile": "bash-surface-direct-owned-child-functional-v1"
+        }
+      },
+      {
+        "id": "H03",
+        "pid": 12478,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "signals": [],
+        "observation": {
+          "id": "H03",
+          "refusals": [
+            "AUTH_HASH",
+            "EDGE_REFUSED"
+          ],
+          "extraOwnedChildren": 0,
+          "extraWorkers": 0,
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false
+          },
+          "profile": "bash-surface-direct-owned-child-functional-v1"
+        }
+      },
+      {
+        "id": "H04",
+        "pid": 12480,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "signals": [],
+        "observation": {
+          "id": "H04",
+          "events": [
+            "cleanup-registered",
+            "resource-acquired",
+            "cleanup-settled"
+          ],
+          "reason": 0,
+          "extraOwnedChildren": 0,
+          "extraWorkers": 0,
+          "qualification": "harmless fixture lifecycle, not product private cleanup census",
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false
+          },
+          "profile": "bash-surface-direct-owned-child-functional-v1"
+        }
+      }
+    ]
+  },
+  "extraOwnedChildren": 0,
+  "extraWorkers": 0,
+  "customLoaderThreads": 0,
+  "qualification": "Observed ERR_ACCESS_DENIED for one native Node child_process.spawn and one Worker constructor; no guard monkeypatch. Other APIs configured scope/source contract, not empirically exhausted. Sync load positive/hash/edge negatives and harmless cleanup only; no Shell/installed/moved/build acceptance.",
+  "actualProductCalls": 0,
+  "oldHistory": "M08 UNKNOWN/STOP and old controls/native37 unchanged; no stale group actions"
+}

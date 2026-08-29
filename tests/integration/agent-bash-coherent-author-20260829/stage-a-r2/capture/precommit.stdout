@@ -1,0 +1,18 @@
+[main ab976f5e] test: seal Stage A r2 physical-root-only producer delta
+ 16 files changed, 1580 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/ACTIVATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/DELTA.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/MATERIALIZE.patch
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PREFLIGHT.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PROFILE.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/plan.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/plan.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/precommit.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/precommit.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/seal.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/capture/seal.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/outer.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/produce.mjs

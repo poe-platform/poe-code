@@ -1,4 +1,5 @@
 import { Worker } from "node:worker_threads";
+import { types } from "node:util";
 import { acquire, channel, decodeMetadata, encodeMetadata, phases, publish, stop, type NodeChannel, type NodeFrame } from "./channel.js";
 import { readNodeHostRequest } from "./host.js";
 import { completion } from "./lifecycle.js";
@@ -17,6 +18,7 @@ class WorkerSession {
   #exitCode: number | undefined;
   #terminal: NodeCompletion | undefined;
   #primary: NodeReason | undefined;
+  #escaping: NodeReason | undefined;
   #cleanup: NodeReason | undefined;
   #resolve!: (value: NodeCompletion) => void;
   #reject!: (reason: unknown) => void;
@@ -25,6 +27,8 @@ class WorkerSession {
   #chain = Promise.resolve();
   #retiring: Promise<NodeRetirement> | undefined;
   #termination: Promise<number> | undefined;
+  #nativeJobs: Promise<void>[] = [];
+  #nativeBytes = 0;
   #baseRelease: (() => void) | undefined;
   #credits: (() => void)[] = [];
   #incoming: { request: NodeHostRequest; total: number; offset: number; bytes: Uint8Array } | undefined;
@@ -42,13 +46,36 @@ class WorkerSession {
     catch (error) { this.#failure(error); throw error; }
   }
   #failure = (reason: unknown): void => {
-    this.#primary ??= { present: true, value: reason };
-    this.#reject?.(this.#primary.value);
-    this.services.fail(this.#primary);
-    this.cancel(this.#primary);
+    this.#escaping ??= { present: true, value: reason };
+    this.#reject?.(this.#escaping.value);
+    this.services.fail(this.#escaping);
+    this.cancel(this.#escaping);
   };
   #protocolFailure = (reason: unknown): void => { this.#resolve?.({ kind: "profileFailure", observation: observeNodeFailure(reason) }); this.cancel({ present: true, value: reason }); };
   #abort = (): void => this.cancel({ present: true, value: this.services.signal.reason });
+  #drain(stream: NonNullable<Worker["stdout"]>): void {
+    let finish!: () => void;
+    let ended = false;
+    const job = new Promise<void>(resolve => { finish = resolve; });
+    this.#nativeJobs.push(job);
+    stream.once("end", () => { ended = true; finish(); });
+    stream.once("close", () => {
+      if (!ended) this.#cleanup ??= { present: true, value: new Error("node Worker diagnostic channel closed before EOF") };
+      finish();
+    });
+    stream.once("error", reason => { this.#cleanup ??= { present: true, value: reason }; stream.destroy(); });
+    stream.on("data", (value: unknown) => {
+      if (types.isProxy(value) || !types.isUint8Array(value)) { this.#protocolFailure(new NodeProfileError("native diagnostic chunk")); return; }
+      this.#nativeBytes += value.byteLength;
+      if (this.#nativeBytes > nodeLimits.diagnosticReserve) this.#protocolFailure(new NodeProfileError("native diagnostic bytes"));
+    });
+  }
+  #finish(result: NodeCompletion): void {
+    void Promise.resolve().then(this.retire).then(
+      () => this.#resolve(result),
+      () => this.#resolve({ kind: "profileFailure", observation: { state: "unknown", fault: true, name: null, message: null, code: null } }),
+    );
+  }
   #reply(input: NodeFrame, phase: number, total = 0, offset = 0, bytes: Uint8Array = empty): void { publish(this.#channel!, 2, { frame: input.frame, sequence: input.sequence, phase, total, offset, bytes }); }
   #reserve(label: string, bytes: number): void { if (bytes > nodeLimits.memoryBytes) throw new NodeProfileError("transport reservation"); this.#credits.push(this.services.reserve(label + "-" + this.#sequence, bytes)); }
   async #request(input: NodeFrame): Promise<void> {
@@ -105,7 +132,7 @@ class WorkerSession {
     if (item.kind === "entryReturn") {
       if (Object.keys(item).length !== 1 || this.#terminal || this.#entries !== 1 || this.#incoming || this.#result || this.#sequence !== this.#delivered) throw new NodeProfileError("entry-return cutoff ordering");
       this.#terminal = { kind: "entryReturned", observation: { state: "unknown", fault: false, name: null, message: null, code: null } };
-      this.services.cutoff(); this.#closed = true; this.#event("entryReturn"); this.#event("terminal"); this.#resolve(this.#terminal); return;
+      this.services.cutoff(); this.#closed = true; this.#event("entryReturn"); this.#event("terminal"); this.#finish(this.#terminal); return;
     }
     if (item.kind === "observation") {
       if (Object.keys(item).length !== 2) throw new TypeError("observation message shape");
@@ -131,7 +158,7 @@ class WorkerSession {
       if (Object.keys(item).length !== 2 || this.#terminal) throw new NodeProfileError("duplicate terminal");
       const result = completion(item.completion);
       if (result.kind === "entryReturned" && (this.#entries !== 1 || this.#incoming || this.#result || this.#sequence !== this.#delivered)) throw new NodeProfileError("terminal contradicts pending work/entry");
-      this.#terminal = result; this.services.cutoff(); this.#closed = true; this.#event("terminal"); this.#resolve(result); return;
+      this.#terminal = result; this.services.cutoff(); this.#closed = true; this.#event("terminal"); this.#finish(result); return;
     }
     throw new NodeProfileError("unrecognized Worker message");
   }
@@ -146,11 +173,12 @@ class WorkerSession {
       const sab = new SharedArrayBuffer(nodeLimits.sabBytes); this.#channel = channel(sab);
       this.#exited = new Promise<void>(resolve => { this.#exit = resolve; });
       this.#acquisitionAttempted = true;
-      try { this.#worker = new Worker(new URL("./worker-main.js", import.meta.url), { workerData: { request: this.request, entry: this.entry, identity: this.identity, sab }, env: {}, argv: [], resourceLimits: { maxOldGenerationSizeMb: nodeLimits.oldGenerationMiB, maxYoungGenerationSizeMb: nodeLimits.youngGenerationMiB, codeRangeSizeMb: nodeLimits.codeMiB, stackSizeMb: nodeLimits.stackMiB } }); }
+      try { this.#worker = new Worker(new URL("./worker-main.js", import.meta.url), { workerData: { request: this.request, entry: this.entry, identity: this.identity, sab }, env: {}, argv: [], stdout: true, stderr: true, resourceLimits: { maxOldGenerationSizeMb: nodeLimits.oldGenerationMiB, maxYoungGenerationSizeMb: nodeLimits.youngGenerationMiB, codeRangeSizeMb: nodeLimits.codeMiB, stackSizeMb: nodeLimits.stackMiB } }); }
       catch (error) { this.#failure(error); return result; }
       this.#worker.once("error", this.#failure);
       this.#worker.once("exit", code => { this.#exitCode = code; this.#exit(); try { this.#event("workerExit", null, code); } catch (error) { this.#failure(error); } void this.#chain.then(() => { if (!this.#terminal && !this.#primary) this.#failure(new NodeProfileError("Worker exited without terminal")); }); });
       this.#worker.on("message", value => { this.#chain = this.#chain.then(() => this.#message(value)).catch(error => { this.#protocolFailure(error); }); });
+      this.#drain(this.#worker.stdout); this.#drain(this.#worker.stderr);
       this.services.signal.addEventListener("abort", this.#abort, { once: true });
       this.#event("workerCreated"); this.services.signal.throwIfAborted();
       this.#worker.postMessage({ kind: "start" });
@@ -176,12 +204,14 @@ class WorkerSession {
         try { this.#termination = this.#worker.terminate(); } catch (error) { this.#cleanup ??= { present: true, value: error }; }
       }
       if (this.#worker) await this.#exited;
+      await Promise.all(this.#nativeJobs);
       if (this.#termination) try { await this.#termination; } catch (error) { this.#cleanup ??= { present: true, value: error }; }
       await this.#chain;
       if (this.#acquisitionAttempted && this.#exitCode === undefined) throw new NodeProfileError("Worker acquisition/exit unconfirmed");
       if (this.#cleanup) throw this.#cleanup.value;
       this.services.signal.removeEventListener("abort", this.#abort);
       this.#incoming = undefined; this.#result = undefined; this.#outgoing = undefined; this.#channel = undefined; this.#worker = undefined;
+      this.#nativeJobs = [];
       for (const release of this.#credits.splice(0)) release(); this.#baseRelease?.(); this.#baseRelease = undefined;
       const retirement: NodeRetirement = this.#exitCode === undefined ? { acquisition: "none", exitCode: null } : { acquisition: "exited", exitCode: this.#exitCode };
       this.#event("retired", null, retirement.exitCode);

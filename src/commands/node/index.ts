@@ -38,7 +38,7 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
       let cleanup: NodeReason | undefined;
       context.registerCleanup?.(owner.close);
       const diagnose = async (message: string): Promise<void> => {
-        if (!allowed.stderrWrite || owner.isClosed() || context.signal.aborted) return;
+        if (!allowed.stderrWrite || owner.retiring || owner.signal.aborted || context.signal.aborted) return;
         const bounded = text(message, nodeLimits.errorBytes, "diagnostic");
         const output = "node: " + bounded + "\n";
         if (host) await host.diagnostic(output);

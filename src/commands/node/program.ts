@@ -51,6 +51,7 @@ ${nodeValueRules}
         if (envelope.error.syscall !== null) failure.syscall = envelope.error.syscall;
         if (envelope.error.dest !== null) failure.dest = envelope.error.dest;
       }
+      remember(failure, 'error', false);
     }
     __vnodeRaw('delivered', 'postcopy-v1', nativeString(envelope.sequence), envelope.kind, null, null);
     if (failure !== undefined) throw failure;

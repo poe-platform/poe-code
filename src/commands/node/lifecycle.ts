@@ -42,6 +42,7 @@ export class NodeOwner implements HostOwner {
   get signal(): AbortSignal { return this.#controller.signal; }
   isClosed = (): boolean => this.#closed || this.#cutoff;
   get started(): boolean { return this.#started; }
+  get retiring(): boolean { return this.#closed; }
   get primary(): NodeReason | undefined { return this.#primary; }
   get primaryIsProfile(): boolean { return this.#primaryOrigin === "profile"; }
   get cleanupFailure(): NodeReason | undefined { return this.#cleanup; }

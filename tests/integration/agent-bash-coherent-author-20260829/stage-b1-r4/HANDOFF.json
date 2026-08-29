@@ -1,0 +1,420 @@
+{
+  "schema": "B1-r4-review-handoff-v1",
+  "utc": "2026-08-29T14:47:32.533Z",
+  "pid": 30942,
+  "sourceCommit": "14be114b99bd4df2e275ee5d1f59db45bb2085d9",
+  "presealCommit": "78ea583944726028dad30e5d0146b614772cfa65",
+  "runtimePreseal": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PRESEAL.json",
+    "bytes": 20804,
+    "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+  },
+  "publicationBinding": {
+    "bytes": 3872,
+    "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+  },
+  "controls": {
+    "groups": 8,
+    "passed": 8,
+    "controllerProcesses": 1,
+    "productCalls": 0,
+    "Workers": 0,
+    "receipt": {
+      "bytes": 1110,
+      "sha256": "50e2d284d9fcd0fbe82c84019f1c9be8fb4e8feaf210e41acea1d77d9f981e8f"
+    }
+  },
+  "C18": {
+    "versioned": true,
+    "originalFailureCounterUnmeasured": true,
+    "registeredSnapshotIdentity": true,
+    "setupFailureExactIdentityOnce": true,
+    "disposalFulfillmentAbsentCleanupFailure": true,
+    "replacementStillRequiresOnePrepare": true,
+    "futureSemanticCalls": "UNRUN"
+  },
+  "unchanged": {
+    "sourceInputs": 309,
+    "emitted": 1012,
+    "package": {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    "original": "8 PASS / 2 FAIL / 5 UNRUN; publication78;32roles",
+    "otherWorkflowBodies": 17,
+    "productionEdits": 0,
+    "frozenR3Layout": true,
+    "PUBLIC95": true
+  },
+  "staticDelta": "consumer -> failure -> node:util; explicit new origins, no full historical graph re-audit or nested-load proof",
+  "postguards": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r3/layout.mjs",
+      "bytes": 721,
+      "sha256": "a9ba5c360eff82d7052fbbada2f42945b9aec949612ca9c06a48ad4d6322dddd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/run.mjs",
+      "bytes": 12890,
+      "sha256": "725de3f5fc2a9822e62d68cd5d305d08cfe1c80356cc1475f9b40874fd5aa193"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/bootstrap.mjs",
+      "bytes": 1369,
+      "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/launch.sh",
+      "bytes": 395,
+      "sha256": "89a49ce65ae4648ffd1d1cdce1874fddf442a03404d4558a5a1291def95af5cd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/consumer.mjs",
+      "bytes": 3933,
+      "sha256": "6063918e5ac63db02389283796f8196598f7833868769c2c7617ea08b1f4204d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/workflows.mjs",
+      "bytes": 16736,
+      "sha256": "9f391d19046fa4817c9d425c263d4ee4a8611909f89a59cf9f752de56ae08f8d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/failure.mjs",
+      "bytes": 1449,
+      "sha256": "cd1f0aef3345669d1176d32a9637f6b94ff2748615289fb3ab7001a282005cb3"
+    }
+  ],
+  "captures": [
+    {
+      "path": "/private/tmp/coherent-b1-r4-inspect.stdout",
+      "bytes": 28621,
+      "sha256": "0dbde761da07fada3893ad7582dc0099561a6c0ce690a5cdf1a7b4eab64fe317",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-inspect.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-publication-inspection.stdout",
+      "bytes": 9495,
+      "sha256": "780ffecdb5ca868dbf0c0f2ada76dae45d1ccdc179abdf421bde27bd7ec75763",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-publication-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-prepare.stdout",
+      "bytes": 73,
+      "sha256": "2b7973d2175ff44f7842a362f39663ba8bf23c052dbc91bf3e626e3c6c9bac4b",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-prepare.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-materialize.stdout",
+      "bytes": 679,
+      "sha256": "834c2fc355d439e61f0b890e4cac703204c91ca1a148d1d13b8256b196e59e45",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-materialize.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-source-commit.stdout",
+      "bytes": 1642,
+      "sha256": "29769466757efeef39d97f4465fddb9c44238188a65682e87ca18746b2dfacb3",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-source-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-seal.stdout",
+      "bytes": 430,
+      "sha256": "5fae545164eec0add17e2da6bc6c9f4868f98289b339b94fbb9cdbb27665a7bb",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-seal.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-preseal-commit.stdout",
+      "bytes": 780,
+      "sha256": "4399504feb8158d231996c4829c9900d17db7ada6ce083faa738c111a89ecc67",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-controls.stdout",
+      "bytes": 143,
+      "sha256": "2d82f6c4c81e0270981f1ffffed17596d24940d3a91160258fc09480e49c1ade",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-final.stdout",
+      "bytes": 39,
+      "sha256": "6d7c5e95e9e653518114499c5574923daa6dc690148f16e4701d7b476a8ae975",
+      "live": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r4-final.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "live": true
+    }
+  ],
+  "inventory": [
+    {
+      "path": "COMMANDS.json",
+      "bytes": 1821,
+      "sha256": "f8173f73d017aa0e518de52e7fa91611a9d7b6e0f1d95b7e639cbbf99ae535aa"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 2602,
+      "sha256": "460c90fa20414c2f12e837194cd19ca04d01e895efc9daef82fc0ae728d37ec5"
+    },
+    {
+      "path": "CONTROL-RESULT-RECEIPT.json",
+      "bytes": 100,
+      "sha256": "9ab4659dca9d18f1d5234a563471d92ee9554f20d3832949157991139f8b8880"
+    },
+    {
+      "path": "CONTROL-RESULT.json",
+      "bytes": 1110,
+      "sha256": "50e2d284d9fcd0fbe82c84019f1c9be8fb4e8feaf210e41acea1d77d9f981e8f"
+    },
+    {
+      "path": "CONTROL-RETIREMENT.json",
+      "bytes": 258,
+      "sha256": "eea08ab23f3fa4ef91e31566477450a60dac7ab61231706aa1b17af1bfe9d050"
+    },
+    {
+      "path": "EXPECTED-SOURCE.json",
+      "bytes": 1093,
+      "sha256": "8e44803481a59b35bec02c84f71af3016d8e96e2a45f7048008fbc54e0727628"
+    },
+    {
+      "path": "FIXTURE-DELTA.json",
+      "bytes": 567,
+      "sha256": "69c58f8cc6029965dbf9bf8ae50337e8bbe0d01b0bb919dad804ffbfc011f414"
+    },
+    {
+      "path": "ORIGIN-DELTA.json",
+      "bytes": 3792,
+      "sha256": "026669803fbb0a1ba6c291ed2dbc8abc0fca66b6beaa8a33743e327930e4b90d"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 20804,
+      "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+    },
+    {
+      "path": "PUBLICATION-BINDING.json",
+      "bytes": 3872,
+      "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4026,
+      "sha256": "aaef29fecaa1d45639662a628640cc8a4365b5e21f44fe6a4574b01e667a29db"
+    },
+    {
+      "path": "SEAL-RECEIPT.json",
+      "bytes": 504,
+      "sha256": "8a6091f9aee82c68e35eb9ea4f504d6b7022121ae0720924ba0fccbb655d9a86"
+    },
+    {
+      "path": "STAGED.json",
+      "bytes": 5350,
+      "sha256": "58bffa5603c5d370fd24a112a0e513f11d64285e441ede90a19a35a13931d1ad"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "bytes": 1369,
+      "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+    },
+    {
+      "path": "consumer.mjs",
+      "bytes": 3933,
+      "sha256": "6063918e5ac63db02389283796f8196598f7833868769c2c7617ea08b1f4204d"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 5584,
+      "sha256": "564f6bc93a488c59fb9555a2facc314ddf5b406c07a4deb9728d87a5690fac20"
+    },
+    {
+      "path": "failure.mjs",
+      "bytes": 1449,
+      "sha256": "cd1f0aef3345669d1176d32a9637f6b94ff2748615289fb3ab7001a282005cb3"
+    },
+    {
+      "path": "finalize.mjs",
+      "bytes": 5153,
+      "sha256": "df05792da7cca8f4a4c57425b8201bc672bfef3a6dfbdb56c90a2b8e3165387e"
+    },
+    {
+      "path": "foreign-index-before.z",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-status.z",
+      "bytes": 70,
+      "sha256": "1f60542037834e9ae8b6b5319554a7b88c218cbc0795cebe26353d53c4375f8a"
+    },
+    {
+      "path": "inspect-BINDING-v2.json.json",
+      "bytes": 243,
+      "sha256": "d47cdb577aef58c9385c5eae910109123ad58572e4e964153336f5778268397f"
+    },
+    {
+      "path": "inspect-consumer.mjs.json",
+      "bytes": 227,
+      "sha256": "e9b0d421ce0942318dfc658901db6af45201004b3b70d4662c37c696bf4aaea2"
+    },
+    {
+      "path": "inspect-publication.sh.json",
+      "bytes": 241,
+      "sha256": "945b447d864b926939607ae3bf837acf251a6a704127d82249f8ea0422cdffef"
+    },
+    {
+      "path": "inspect-publish.mjs.json",
+      "bytes": 240,
+      "sha256": "942a9f893a72621bc5a4d60b08318e83420c5c7479d374a617449dc11922c140"
+    },
+    {
+      "path": "launch.sh",
+      "bytes": 395,
+      "sha256": "89a49ce65ae4648ffd1d1cdce1874fddf442a03404d4558a5a1291def95af5cd"
+    },
+    {
+      "path": "policy.mjs",
+      "bytes": 4556,
+      "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 12148,
+      "sha256": "0229ee71cf2749b9f9d93568c79658121581350da053edc2ce1c2ba9efa90003"
+    },
+    {
+      "path": "publication.sh",
+      "bytes": 297,
+      "sha256": "4262c6d46e8410d3ecccfd34f796b3895da1c727d1ed7e21deeb35e9365da403"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 13280,
+      "sha256": "380900151ecc5fa2b05cbba157d9fe3eb65401d88b62a26e7824b8a8742d1281"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 12890,
+      "sha256": "725de3f5fc2a9822e62d68cd5d305d08cfe1c80356cc1475f9b40874fd5aa193"
+    },
+    {
+      "path": "source.patch",
+      "bytes": 54869,
+      "sha256": "ec712e774b60ba7b36d31ed4a02b52bea5dce4d24cb37acf775d88ebd2ddd9b5"
+    },
+    {
+      "path": "workflows.mjs",
+      "bytes": 16736,
+      "sha256": "9f391d19046fa4817c9d425c263d4ee4a8611909f89a59cf9f752de56ae08f8d"
+    }
+  ],
+  "accounting": {
+    "capturedBytes": 41902,
+    "ownedBytes": 179579,
+    "finalCaptureReserve": 1048576,
+    "finalWorkReserve": 4194304,
+    "units": "logical owned bytes, not RSS; Git internal physical storage excluded",
+    "finalSelfWritesNotYetObserved": true
+  },
+  "knownRoles": {
+    "throughFinalNode": 29,
+    "remaining": [
+      "git-index-observation",
+      "git-add",
+      "git-commit"
+    ],
+    "maximumFinal": 32,
+    "qualification": "Known-role accounting; final roles become actual only upon recorded wait/tool completion. No full descendants/group census."
+  },
+  "prospective": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "actualAuthority": false,
+  "activationWindow": null,
+  "pending": "Different review, final-slot preimport/root authorization binding and measured runtime ledger; no actual 15 yet"
+}

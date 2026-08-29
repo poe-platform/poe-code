@@ -1,0 +1,20 @@
+async function prepareNodeStartupV3(expectedSource) {
+  const fs = await import('node:fs');
+  const crypto = await import('node:crypto');
+  const util = await import('node:util');
+  const anchor = '/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2';
+  const descriptors = [];const cleanup=[];const created=[];let primary;
+  const write = (index,value) => {const body=Buffer.from(JSON.stringify(value)+'\n');if(body.length>65536)throw Error('prep capture frame');let offset=0;while(offset<body.length){const count=fs.writeSync(descriptors[index],body,offset,body.length-offset);if(count<=0)throw Error('prep capture short write');offset+=count;}};
+  try {
+    descriptors.push(fs.openSync(anchor+'/v3-prep.stdout','wx',0o600));
+    descriptors.push(fs.openSync(anchor+'/v3-prep.stderr','wx',0o600));
+    if(crypto.createHash('sha256').update(prepareNodeStartupV3.toString()+'\n').digest('hex')!==expectedSource)throw Error('prep executable source identity');
+    write(0,{kind:'outerPrepCaptureOwned',descriptors:2});
+    for(const relative of ['author-v3','author-v3/validation-v2','author-v3/validation-v2/capture','author-v3/validation-v2/evidence','author-v3/validation-v2/outer','author-v3/validation-v2/bootstrap','author-v3/startup-controls']){
+      const file=anchor+'/'+relative;fs.mkdirSync(file);const stat=fs.lstatSync(file);if(!stat.isDirectory()||stat.isSymbolicLink()||fs.realpathSync(file)!==file)throw Error('prep parent identity');created.push({path:file,mode:stat.mode&511,device:stat.dev,inode:stat.ino});write(0,{kind:'parentProvisioned',...created.at(-1)});
+    }
+    const body=Buffer.from(JSON.stringify({schema:'node-startup-v3-parent-binding',created})+'\n');fs.writeFileSync(anchor+'/author-v3/PARENTS.json',body,{flag:'wx',mode:0o600});write(0,{kind:'parentManifest',bytes:body.length,sha256:crypto.createHash('sha256').update(body).digest('hex')});
+  }catch(value){primary={present:true,isUndefined:value===undefined};if(value!==null&&typeof value==='object'&&!util.types.isProxy(value)){for(const key of ['name','message','code']){const item=Object.getOwnPropertyDescriptor(value,key);if(item&&Object.hasOwn(item,'value')&&typeof item.value==='string')primary[key]=item.value.slice(0,2048);}}if(descriptors.length>1)try{write(1,primary);}catch{cleanup.push({captureFailure:true});}}
+  finally{for(const descriptor of descriptors)try{fs.closeSync(descriptor);}catch(value){cleanup.push({present:true,isUndefined:value===undefined});}}
+  return {role:'node-startup-v3-preparation',created,primary:primary??null,cleanup,children:0};
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "F01",
+    "severity": "ACTIVATION_HOLD",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v3/preimport.mjs",
+    "sha256": "4bcd89b4f43e51380f0f12baccc1e7d25f39e0b44541cb2e7f721d4dc044dd76",
+    "line": 29,
+    "source": "for (const entry of [...packet.publisherFiles, packet.preimportFiles]) read(entry.path, entry.sha256, entry.bytes, 131072);",
+    "exactPacketShape": {
+      "publisherRecords": 5,
+      "preimportFilesArrayLength": 1,
+      "iterations": 6,
+      "lastIsArray": true,
+      "lastPathPresent": false
+    },
+    "cause": "Preparation spread fixed, but the immutable future preimport helper still appends the whole preimportFiles array. Its sixth entry.path/sha256/bytes are undefined. The read helper calls fs.lstatSync(file) before type admission, so a valid future grant/ledger reaches a path-type failure before authority publication.",
+    "proof": "source and authenticated DATA composition; real preimport protocol NOT executed",
+    "minimumRepair": "Author a separate preimport helper revision using ...packet.preimportFiles plus finite shape validation before subject reads; rebind helper hash/origin, FINAL-PACKET and command slots, then different review. Do not mutate this sealed packet or issue actual GO."
+  },
+  {
+    "id": "S02",
+    "scope": "source-only validation claim limit",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/identity.mjs",
+    "line": 10,
+    "note": "Object.keys ignores nonenumerable and symbol own keys. Required enumerable own-data fields are checked, but the stronger exact-all-own-keys claim is not established. No extra dynamic probe executed beyond the four authorized groups."
+  }
+]

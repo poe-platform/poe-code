@@ -1,0 +1,1268 @@
+{
+  "schema": "virtual37B-authorization-binding-v1",
+  "status": "PREPARED_ONLY_NOT_RUNTIME_ACTIVATION",
+  "sourceCommit": "83f750e57470546a95782cb9ce54a81d4900127a",
+  "evidenceCommit": "8ca64de8e1bf68c949a2c52a58d00cda99165320",
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "review": {
+    "commit": "5bc05a7de1e844313860e1cb4e7756972274055a",
+    "origin": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-activation-review-v2/REVIEW-ACCEPTANCE.json",
+    "installedPath": "INDEPENDENT-ACCEPTANCE.json",
+    "bytes": 972,
+    "sha256": "2d69073c07de80c7bd64419e7cf0b773167a22d30deae1b722fc64450ac002e3",
+    "copy": "raw byte identical"
+  },
+  "grant": {
+    "path": "GO.json",
+    "bytes": 1208,
+    "sha256": "ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e",
+    "mode": "0600",
+    "templateSha256": "2de0f3a88cf3b091b6b5ce44a4e36415bc394cd6a79276e05d61f1a1a5d9a25b",
+    "changedFields": [
+      "decision",
+      "reviewSha256",
+      "notBeforeEpochMs",
+      "notAfterEpochMs"
+    ]
+  },
+  "command": {
+    "path": "COMMAND.resolved.txt",
+    "bytes": 615,
+    "sha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+    "templateSha256": "4ccb6fa0adb5d523c6effe874ce1ced0ef732c626aec8b561adcfb1376fbb077",
+    "changedSlot": "ROOT_GRANTED_RAW_SHA256 only",
+    "workdir": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2",
+    "login": false
+  },
+  "window": {
+    "issuedAt": "2026-08-29T11:17:50.372Z",
+    "expiresAt": "2026-08-29T12:07:50.372Z",
+    "latestStart": "2026-08-29T11:37:50.372Z",
+    "issuedAtEpochMs": 1788002270372,
+    "expiresAtEpochMs": 1788005270372,
+    "latestStartEpochMs": 1788003470372,
+    "grantFieldMapping": {
+      "issuedAt": "notBeforeEpochMs",
+      "expiresAt": "notAfterEpochMs",
+      "latestStart": "notAfterEpochMs minus unchanged 1800000ms required full window"
+    },
+    "activation": "PENDING separate DATA-only resolved-slot ACCEPT and fresh ROOT actual activation",
+    "oneAttempt": true,
+    "noRetry": true,
+    "noRenewal": true
+  },
+  "scope": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "sourceInputs": 293,
+    "shippingMembers": 954,
+    "nativeOracleRootPublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+    "identities": 37,
+    "layouts": 3,
+    "productCalls": 111,
+    "fixtures": 4,
+    "excluded": "Curie separate B0 39-call campaign; no grant transfer",
+    "withheldNative": [
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "status": "all111 product calls UNRUN"
+  },
+  "bindings": {
+    "commandPlan": {
+      "bytes": 276365,
+      "sha256": "38b71a12a800e1c3ff07a2db33aabeace73b15620ff0fad8032becd13028d38f"
+    },
+    "matrix": {
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    "sourceMembers": {
+      "bytes": 68225,
+      "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+    },
+    "sourceCapsule": {
+      "bytes": 1516833,
+      "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+    },
+    "shippingMembers": {
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    "staticEdges": {
+      "bytes": 31738,
+      "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+    },
+    "tools": {
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    "archive": {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "bytes": 872281,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+    },
+    "closure": {
+      "bytes": 1037,
+      "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+    },
+    "preprovision": {
+      "path": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/PREPROVISIONED.json",
+      "bytes": 335,
+      "sha256": "369ee5a991a6d14d6c4e1bfd9daf5c4d5046d9a1c38f4072f12822e93cee73a8"
+    }
+  },
+  "roles": [
+    {
+      "id": "source-built-B01",
+      "caseId": "B01",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "a94313817d6aa42b09f43ed117f4663c098055238e20e3fb10d96fe8af762cd7",
+      "argsSha256": "54c8257e7c1df24c19989a2410f999c0c6d2cd2646a0344799c4e4e4b7cfb03d",
+      "envSha256": "3826dad36804cbac83bd14178e679a078cfe010233cbeb5137c1c42dfdeedee2"
+    },
+    {
+      "id": "source-built-B02",
+      "caseId": "B02",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "cbf601dd2f972c26b7f1aa3b381ce6a1f465fb906ae36389c415aa027c02445c",
+      "argsSha256": "6303616efecf1ccdca2a82eb72f5624e719e4b819b547cd9251f83a18e434dc4",
+      "envSha256": "f9f543347d418ed66bc159cd98ed76c7088f42f750be4257d11e8111edde2b62"
+    },
+    {
+      "id": "source-built-B03",
+      "caseId": "B03",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "521310f13e5bd9032bcac4854382f1f8726f098a8491ac23a6f413fbf9fecf8d",
+      "argsSha256": "6a7d7e55ddb8f78c6dc6c4297e99ed147c3710b7db699e56103226080bc10dfd",
+      "envSha256": "802ae80ab9223012c8f13bfb6dddc4c1a139cfa7a8180338f1d44d2bc720b964"
+    },
+    {
+      "id": "source-built-B04",
+      "caseId": "B04",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "35864bc3befe95d1c866d18abf653dd5ef0169faa734df5964173ae64336ad72",
+      "argsSha256": "1a6b3738b2fbdb1b2c3d6534939d2d3b26dcec60500bfe14b92ea61098f6dc5d",
+      "envSha256": "ff18b90c235e0ab43be81a0431d6abd2bc315fd466149d10dddc96c333b87a2f"
+    },
+    {
+      "id": "source-built-B05",
+      "caseId": "B05",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "366fcf89927428ae8ae5ae221472f622dbe7dbeb03292bc9e31eae5761038815",
+      "argsSha256": "eeb2a08fed2eaaf7b68e87b755e734e64b72378d799cf7630b9453788931c803",
+      "envSha256": "4df2c3fc32c23c1239d86bb1f7a3d1d8d6dc29417fd64ef21a3b8d626e63fe16"
+    },
+    {
+      "id": "source-built-B06",
+      "caseId": "B06",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "f23bd4eb58bbb10e7cb7aea59d15358abd47a162a1f55b516558888f9f5e2be9",
+      "argsSha256": "7c419a9bcf7ed9465c0fb1d67e0be65774cffb889c25e5f0125aad6457882b77",
+      "envSha256": "5f695045e1abeafa0a9ef15075503b192f97cc6a2c5e932ea9303d2f2e030faf"
+    },
+    {
+      "id": "source-built-B07",
+      "caseId": "B07",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "5a4aad00725a40358c3bc0870cdb59ba68950beae2ae98e04e6aba72f58d81ea",
+      "argsSha256": "7725d368ea3f99d57a965817ee77ab3631a9831dab3848ceecec823c345e8a74",
+      "envSha256": "4c879dd59bdc5c8070fbe9bdc5d736b93ab34e035167702f4a3b2a7c32ca761e"
+    },
+    {
+      "id": "source-built-B08",
+      "caseId": "B08",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "e7291aaf2cc79c5d3c73497e92c5e3d76c401efe01a20045a885ba06c24e9326",
+      "argsSha256": "ed9a592132482320420d4e5281c3e06d58f9422cecf6cf368ac3de6f7818fbe7",
+      "envSha256": "99d35e3b5ec400eef114985e57143ece39d6969e0329cce96e6cdc73131ed56a"
+    },
+    {
+      "id": "source-built-B09",
+      "caseId": "B09",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "3c46665b1f5710d798cc421bb511f156a4ec59ad1ed4618e0a38b39667b6be77",
+      "argsSha256": "1458fcf4e9af5d66f8c7e8384e2f79e117090b7735bc9231c8adce3c027cc2e1",
+      "envSha256": "11d04b94c7f4454353d15457f8259bee99fe044ca093b3aacdbda5f67fbaa720"
+    },
+    {
+      "id": "source-built-B10",
+      "caseId": "B10",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "756940a3874a65e6f66cc4c0d85ff0d8bd8d89c5c8c9997b58e3f6a41e81cc21",
+      "argsSha256": "aa06095482ae0d7309c6d58017bbe61cab05dd54142f5f035dd278d4bb907a25",
+      "envSha256": "7210ace7e40c38e2cce8d4ab84fe014a4bea326ec5729963cf20df29bc6d470a"
+    },
+    {
+      "id": "source-built-B11",
+      "caseId": "B11",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "2cbb0021d62ebe46b5bbd69927991c08f8316e30d29acd3928240aca63799752",
+      "argsSha256": "f364480937fdd3eac69efe4822978cb731888eceea67ccc436c9087fbef70577",
+      "envSha256": "7a5a7e7f1aa106872ee8992e684ba871e354e41d3f828b2be068991e313d4b3c"
+    },
+    {
+      "id": "source-built-B12",
+      "caseId": "B12",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "e524d80367a2ae3e0a5dd762929eae528f12f532e0f80717a0c517cf1f20fe5e",
+      "argsSha256": "c6567720de6d5aa478d06e0b6cffaa02e149379682a6ddfc9622b1033c116d4b",
+      "envSha256": "2306e5a00d6e2e9bd8cab1133ad721d338f5d8721bfa7b2f005ffa0e9b7c290b"
+    },
+    {
+      "id": "source-built-B13",
+      "caseId": "B13",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "1780023ed9a8d55e52b9f8e3068145eefe9087ce815a06e6acc2b6f00445657b",
+      "argsSha256": "e7dcb45fb82966a0853f3077f73c3609f70e2ed44d64f8900cb874f3448bb296",
+      "envSha256": "44aeb9b011c7c338d76d1fb2e3b8a2ff69cf1c6a8406e3113ea853628ab275b3"
+    },
+    {
+      "id": "source-built-B14",
+      "caseId": "B14",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "a0c75548452b5815b4b73c76d607b49047a3c8ea850f33cb0c14c5bfe4199d68",
+      "argsSha256": "64ff651bd5bfe11a5bda61f48f3b6d0f60e63d9689310a93d24396c1a591a2f5",
+      "envSha256": "1e33b901ebf1c2b89c1885efb9b3e7c1897bff8192e64f33d437804f510d0893"
+    },
+    {
+      "id": "source-built-B15",
+      "caseId": "B15",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "e41303bbda11ccaa410bc9a9927ec57672da375c6102e2e300e56a067a991c33",
+      "argsSha256": "658a87d182ef7b3b03fafcc7e5aff82922c9ef6b4236b455db0e46de9ee87175",
+      "envSha256": "36a4814638960b331f94257d0eb7622a78ef529a6731ab4bb6ad5f2fc5e45251"
+    },
+    {
+      "id": "source-built-B16",
+      "caseId": "B16",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "67ca3c8943fdd31e42d252a7b805be7b3c6b94ac734286ee73f7b17678866647",
+      "argsSha256": "ff08e1f38239f1302431d64ff3bf47332f617e4cdc58db98a65abda828dc3326",
+      "envSha256": "b22d0739a9e30c99f5036bc206a9ff33ed6bc59343d275621fcb2e5e81c2eb10"
+    },
+    {
+      "id": "source-built-B17",
+      "caseId": "B17",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "a193568c4689ecc4930e7f52f87e752a639b502141bab63a03b6e3dbc8d803d2",
+      "argsSha256": "774d87662e3e3c0bd814351a5e3a70a01446318795d6d38238f73d8f1530744e",
+      "envSha256": "f5633ae68922c1bc64c43f57f02c27e17e3a6240d9bcc8145018e574440994fa"
+    },
+    {
+      "id": "source-built-B18",
+      "caseId": "B18",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "af1cbe4ae96b213f2a34845a9101dd51b9c3c04604760f78669f36347b87906a",
+      "argsSha256": "3bc23be8052298ad5f13fcaedccccea86df2a19a4d548db4f6410360f0852682",
+      "envSha256": "4cbd7df44d70ffb468c03df6b6a9ded4edf964858a054fe72b4b6f25b5b881d9"
+    },
+    {
+      "id": "source-built-B19",
+      "caseId": "B19",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "76ab4f38abf5bc5808928b23391a5927aea18469550eba01eab44e4161cd2947",
+      "argsSha256": "f14e72ce72df3310e1ae2713d517a9d4e81c593b289faeb905a5bf34a740ebdd",
+      "envSha256": "af170771b0f57cae41c6e19b04595397aea619cc910537d345349a6160abe57e"
+    },
+    {
+      "id": "source-built-B20",
+      "caseId": "B20",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "c202b8d8fdb1696dc8194a332f8679c8694440653263ed3835d6bca10e666f59",
+      "argsSha256": "31b8cea098851f0b627d676c73f47d6cea0a42f53d56de9b3f041fc2623c5b80",
+      "envSha256": "7b4c616c0d85b7b4fde9c9ace9dd530bb956aed457a05b833df8e2d90e629043"
+    },
+    {
+      "id": "source-built-B21",
+      "caseId": "B21",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "c5d3df8d1f50f6d3e258fa92de0cebac2d771b8facf1f6121f398669c392dcd0",
+      "argsSha256": "db1b93d26994916e0ac02a7c5c59e2beb15f2729ae44a4627f774f004d7fec9f",
+      "envSha256": "5d6b428ba04030014072f1039afe87bf9ff7a47cf67333913ed560ad01c42241"
+    },
+    {
+      "id": "source-built-B22",
+      "caseId": "B22",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "411f70985bd1fa7023a96c268e9ee9600a8a6652611fed26b3eff4983a60d346",
+      "argsSha256": "0090497521cf13df002924843b5a1be4bfd702db384afac6c97f5090e64ed773",
+      "envSha256": "4f7feead730b79666f7e65ea7d0ababfca7654607ab7257f46ad91107b7da65b"
+    },
+    {
+      "id": "source-built-B23",
+      "caseId": "B23",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "bef8dc9724ee1ee5ab99ec048e736e073166826755f39892772ba318fb36bb25",
+      "argsSha256": "c324bc5586ec7ba34949546af76e3cba210218b10fc5daeea275cdada14c12ac",
+      "envSha256": "80f23c140d4b0863e1ac4e45783ca4423737133c0c5913cbd82e43a972a972b4"
+    },
+    {
+      "id": "source-built-B24",
+      "caseId": "B24",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "b3077308293572afaff38fbc8ff0e3498c2c0457960d12c7fefd5561e38f185f",
+      "argsSha256": "e9f4e0e32cd189efd1238ace6eccb5f3fa40ef487248744a28569fc48ef8af36",
+      "envSha256": "96373de39ce2dfc30d72d31f0a94d8aec5b6bf8055cbd41bad22d19b5f07674c"
+    },
+    {
+      "id": "source-built-B25",
+      "caseId": "B25",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "037588f7970b8d1c9e90aba37b1eb16e1847322ae9151bf5e9cff5ff4ad53c33",
+      "argsSha256": "7504598cefb984b0eb7a6621a4d8453b55ace01850b6e3c9f6fb168595976dd7",
+      "envSha256": "c1106fcf719279b7f1ff85bcf6ae0ba5880a1e7797b9388691ecd1f3aef80023"
+    },
+    {
+      "id": "source-built-B29",
+      "caseId": "B29",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "a731df8abbae0d319f0234297890f4e9d7f1c9f5065002ba81a893be7348ab63",
+      "argsSha256": "d7b8f490c3caa7344cfe12d10ab1d7431e16944e9d3d45c7fad30e30064e8d21",
+      "envSha256": "fa45a90bed179a68dd0f61d1ae039b44a1151c736a276940242de8bde54b1764"
+    },
+    {
+      "id": "source-built-B30",
+      "caseId": "B30",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "5fad4422ec74ce399ee07c30821ffd50cf38e586c7c8731a9dc8e21f696dac20",
+      "argsSha256": "ccee6b1f344cc5ad4636aa671c95e31cc485f930d36c095c5ef2af0a07c604be",
+      "envSha256": "fbda30e02961cad26182ce9a8c9b3ae54a3e5cbe314a95b8c4d062fb47a24599"
+    },
+    {
+      "id": "source-built-B31",
+      "caseId": "B31",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "6a5e05ab05dafea540669606ec058db38e9b12239c7b148f8b481556698a162d",
+      "argsSha256": "40db81f0242ade943fc58ef9695424d7a991331b1886f51a40d6b723fe5b11fe",
+      "envSha256": "193509698f4ad7e7d461d330eb94b774003146b9614d6c022589c42eb7f82d65"
+    },
+    {
+      "id": "source-built-B32",
+      "caseId": "B32",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "ac551153a11f30cac9f5c32a3de8e9f0f44829df5ca480b2581cbdee491ae679",
+      "argsSha256": "8d72cd120789df9c3a3c02f8a54a1aafc2ae98b55bb785725e0907857af9a21b",
+      "envSha256": "6b682e91686b18d638241e878c3deef5404bf99832d921d68a7edffa0cf546d1"
+    },
+    {
+      "id": "source-built-B33",
+      "caseId": "B33",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "515ceafd1bfa56a222e616f90326ab20bab5c69a70a0a1ee2296f7988548a0cb",
+      "argsSha256": "fc3ba1b298b4924c0951039dbbf3972d0584abbd9e760f1e33a67044c7737031",
+      "envSha256": "a4b4d291577faa2b776fcc08b327b36d59b0ea26493d49da7afbfedb8c9cc8a7"
+    },
+    {
+      "id": "source-built-B34",
+      "caseId": "B34",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "9fd6dd340ef9627234a3c29c38529f91d9ea7c9eb10dbbba3907d35a4df708cc",
+      "argsSha256": "6e3519d281c9cc055b880fd288ee9d5a81f9ca60d23255d1ac11dc94d83d3216",
+      "envSha256": "2eb0102045eb339faf9789d9475aa8213e5f35bcfc958870bdd49962b0930a64"
+    },
+    {
+      "id": "source-built-B35",
+      "caseId": "B35",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "3a43a085c55f7b01351990de7e2307b829ed7ec878c9271b03631a55677737c4",
+      "argsSha256": "39e442d439ed438a44533d75bc9b9c5961e128d52abdf49dcf3809b7a8b9df26",
+      "envSha256": "180f60527d71e3b70506ce9eadfa9f7ac96310c78fa101e016e4e9fe7651d2c4"
+    },
+    {
+      "id": "source-built-B36",
+      "caseId": "B36",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "e4a314b5ab322eb9cd97dfafea54dc9cd1b051338722bf72ecbcc7a2b634b627",
+      "argsSha256": "f5f90ad6d3b97289865c68fea9b42235ee917aa9dfa3704241524f343f581da0",
+      "envSha256": "dbfdbb7acf1d13bcf911ab79eead271719f3b3f2ea3c2819e6329f144af419ab"
+    },
+    {
+      "id": "source-built-B37",
+      "caseId": "B37",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "ce9e64c2986ba5251bd98acc315a02209c050649e47dd1788943848b8cd5c78f",
+      "argsSha256": "f3b244988299cbe7212ea2920fc6ad7cced42cf9121a19d9270640cb3f849dfb",
+      "envSha256": "d68b6e780e685bfaf0c990e4f8e9cb092eeae651764298fd996758d3754e3f0b"
+    },
+    {
+      "id": "source-built-B38",
+      "caseId": "B38",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "a2acc69255b9f2e2be04cbaf305b7f8dfb5cd9eabfb94af04077079704b2f614",
+      "argsSha256": "6121de5ae711e20543c13851f16191eec0a727bac4d3e953d3de10020ff981ae",
+      "envSha256": "e2d15a84cd7b316855338f139baa08939e2e0f3a96c7136ffe174b72c38abed1"
+    },
+    {
+      "id": "source-built-B39",
+      "caseId": "B39",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "7883a6e01c72aeac98c45dda5b79932fe9669ade47801b4ba86f20b39cbbc4c1",
+      "argsSha256": "eb2212623ce14a67377dc5a21fad1488b56fdbb3b441f742393daf944813fd3a",
+      "envSha256": "282495a5c3acd92a61dd9aaee38ba7b4dc256fa4a8e4bf03f2ac044982b35722"
+    },
+    {
+      "id": "source-built-B40",
+      "caseId": "B40",
+      "layout": "source-built",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app/case-driver.mjs",
+      "roleBytes": 103578,
+      "roleSha256": "bc470ed2f37b548e4dbd343567a1182ddbdbed2203a1ad6e9d1cfdab632224e5",
+      "argsSha256": "3e1a5f7e12e4eb1b8e91e920010e1f00f8eb9a2ad2c1ab3ef904e95f5c5461c1",
+      "envSha256": "e72a47db4621cbfe51aa58ee0942547247ce4c7f44c262861973a135b29bd608"
+    },
+    {
+      "id": "installed-B01",
+      "caseId": "B01",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "db00d6169ce4ac3f18f7359e02d78233b4334dca3a47bb6b01c308a18f647ea7",
+      "argsSha256": "47d9bfce413afa33fae7105badd31a3174b01d815dd7120b10852f52cd8c5708",
+      "envSha256": "49084731a1f687956ce94396465aea6a45e1b9d691a99e37a4981eee73fa6457"
+    },
+    {
+      "id": "installed-B02",
+      "caseId": "B02",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "0898bee42fa622db6adcf54011d71c8b191d8fb9ba8c2c8ac5a354902a79c085",
+      "argsSha256": "19ebf91052384fa2cf7ab79fa11a7d85439faa02cef9b98ae00135e7c2daecf0",
+      "envSha256": "26f646b20a7627b3aa7258d1d3bab2770a4d20bf667c02ebe560f879bba9ae88"
+    },
+    {
+      "id": "installed-B03",
+      "caseId": "B03",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "fa5d85534177b0c85dfa9ea3d82ee204addc669719ddfcfaee046e2b92dbcffe",
+      "argsSha256": "5e3406797a00191ac0b136ecb8cea00fd4485c9ab0755dd142230afde8cb1895",
+      "envSha256": "119de00afd43cc6e8021ed055a8aecfba61c7872cd3066547f350d3dd8412eb2"
+    },
+    {
+      "id": "installed-B04",
+      "caseId": "B04",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "a3349e69cb6a3ac8914149177588fa28fdd23c6f1b4683adec577bc386f0c46d",
+      "argsSha256": "cb4cc2321a895ccfac82518d0031ecfff4c8c7b135f1524b7fc175333c7d0c2d",
+      "envSha256": "2eed398dd7d7af62f0527bfc6bf6103e3c1aa4212b0c58022c919f9414593ccc"
+    },
+    {
+      "id": "installed-B05",
+      "caseId": "B05",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "3668da1d29f0cc90e69f999ba48179b29ab83f20dc8576fbe443153e6ceb6f50",
+      "argsSha256": "d0ffc4276a3af598156c8d97b7e667227054e9da8492d3447609eb3217cf9f2b",
+      "envSha256": "d7d36eae54b0c5822cb4bb679e3ff657ee017c024e218a4dbde5714d0fbac4cc"
+    },
+    {
+      "id": "installed-B06",
+      "caseId": "B06",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "852cf21c9d0d0c61636ef516a8e257d7d47c9e34cdfd555c1501581cdd4a99e6",
+      "argsSha256": "6025a1215c65bd6b271a6ddcf3d8a6430312665bf6c2c5595ef9f03634ed6073",
+      "envSha256": "0855fc2b58a578f78e3eca9c3896cd1269457b0590780280897afc9a12a3d2dc"
+    },
+    {
+      "id": "installed-B07",
+      "caseId": "B07",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "1603382a80b594091f845fdb90b3ecf3af4986896d3172d4e5d83daf7ac69e94",
+      "argsSha256": "3b6a2215209cd3a0b0731f31f6e9eecda791f198a2aaca1be9c94c14168729c0",
+      "envSha256": "1099f7bc1808f0829bd33d06f1c0d568a6c4ef41195621f9001b40def8841e1e"
+    },
+    {
+      "id": "installed-B08",
+      "caseId": "B08",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "2a50607a7b53a8173b5bd37fc26e40ee118eb060bbc91b06fb1399332fdcb540",
+      "argsSha256": "259d1fd2331160cb23cef1d4f64851d4fea0efc8cb3fc8ac08e46505f43363f5",
+      "envSha256": "fe5f015d94bbb97d6fcfe368c4ddb18a1fe9973144eb651597cb23a84d53b3da"
+    },
+    {
+      "id": "installed-B09",
+      "caseId": "B09",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "01808438f5cbaf2d52714c6010e0c48698bb974d093b1b89e508e0fc1807176c",
+      "argsSha256": "f40a518cb6d8b5843c341bef8dec22a5c9be0622d2fabf11afbd899c2d824132",
+      "envSha256": "1313bfc19eb5c54db5916e032ec266e3bee6f730d0adee8aeb9e95e0db0d7dda"
+    },
+    {
+      "id": "installed-B10",
+      "caseId": "B10",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "7dfeccf19d410d5cb3085983e6814dd5c496ccdd2333533cb96e9b3909fa30ac",
+      "argsSha256": "a804d0a59380e2a09f6f0f031dee53d21becd2ca1f7b1e13f52ea4274a035d7f",
+      "envSha256": "e5783bde4b8e1db7911dd0f11cb33f75ef8d72ba8a8be6a610c4c29dccb94fa2"
+    },
+    {
+      "id": "installed-B11",
+      "caseId": "B11",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "e78b96310c0a2b7f9edccc2c33c0e99aabf0f3a7e41dc9f0c9510b129e9fbb90",
+      "argsSha256": "da2f83b4c6625762477acd5fcfba62ae85e689ca192e82e95a1e7305a5bc1f3f",
+      "envSha256": "f373880272e8c5b9640eb470deb82280a58db10758cb89212b3e9f87e22a62c3"
+    },
+    {
+      "id": "installed-B12",
+      "caseId": "B12",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "42e668fab1ca19762834da5967317b0f2682c852ac13ebcd6d60b292a33a738b",
+      "argsSha256": "16acde4b21a6fd200415292f071036958e40c7f9ddd4d909445c80166ad4b932",
+      "envSha256": "0b160b8c97717f4cec55c7d44ca0051a68eed2a13e61bdb1f189731e832d97f0"
+    },
+    {
+      "id": "installed-B13",
+      "caseId": "B13",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "d4e627b31cc6cae7dfe3a40679320b3ea1afae4a287d35bb23ca7fcc41cc2b7e",
+      "argsSha256": "e2bd402fd7823283f62b2c8656cef9813fb05044e261980d767aa3b142b02677",
+      "envSha256": "90a04395b2e40df3acbb78b6e2fa8f6a899bfc03b6c1b7260a7fba017ed95ab5"
+    },
+    {
+      "id": "installed-B14",
+      "caseId": "B14",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "71cdb365c3ecca9d9cc9f07eeb76f9d4ffd21fc95f8d162137ec964dc4e472ce",
+      "argsSha256": "09f547d9949a6aa607df2a59608e20c0b35073c4d04fd0258a5a1986588c67fc",
+      "envSha256": "7fde51b59142923c6e60f1079e93cddd2b34e0e1edab45390c8e540c198d6a50"
+    },
+    {
+      "id": "installed-B15",
+      "caseId": "B15",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "d17d908da7d419bf132fb034618de87f9483ecddced8e9ce73e8c2cc5ba4ea64",
+      "argsSha256": "e91b742d000a89e5b5eb44a1c52c083bb75a0cd4b5fc571974c49b23ab502ac8",
+      "envSha256": "cf1b048c53abcd7a2b962ec2cb71f3d791fd09480de47879402e11b3e026ee03"
+    },
+    {
+      "id": "installed-B16",
+      "caseId": "B16",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "42bb201b0eb0a9af43191f8f9fa0e8ee3681ae2e9928f6bd935028d71c4ddcd6",
+      "argsSha256": "7978ad640917620b76f82bb688c9d729d6210b36a82cb1463be6b1488aa85e0d",
+      "envSha256": "93377817d97aa2b07500a2e606b41cb8a4702905943bf2734c51b4adfc267ccf"
+    },
+    {
+      "id": "installed-B17",
+      "caseId": "B17",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "227be94c4f91b736677b3cd7ad7b5721b5db6507110ead3a72a065322c5caf40",
+      "argsSha256": "cc4b4d68f23f62a8993c7e2a27b4be302bd7ac450317a6a68df4873c1e5ff14d",
+      "envSha256": "6c3f819b9aea4723d3d577d0a74f7c3205b710ce1beaddaa2ed443d42045acf3"
+    },
+    {
+      "id": "installed-B18",
+      "caseId": "B18",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "16287645920027b8e816ed84155ed472a8d35a71044e57357a67b567c1e0fd81",
+      "argsSha256": "91f940f84e9862147c36683b5bba5d892599c8fd1773f8848df2d222c86e93a3",
+      "envSha256": "6e3f81c6da6a5442ea44440eaf55df41bff053c51f272dd9aa6a4eefd7ec7232"
+    },
+    {
+      "id": "installed-B19",
+      "caseId": "B19",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "64374c4295b8aafcd6566a5c5132d4948c4d5a983b53f8c703cdea6925184e46",
+      "argsSha256": "83c163fcb33e51000aed5dfafdc85141e66136711f80a8c81acbabc5f15330fc",
+      "envSha256": "2039eb7a05de4f0abfdd9e60a6153c357800feacecb7dc1daa2e92cd2b1d4d1d"
+    },
+    {
+      "id": "installed-B20",
+      "caseId": "B20",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "45a4d59ad426f06ec7c26de112d6d236eb09569566d431415915316f444f0cc5",
+      "argsSha256": "bdbec9f253a832c5565c28387d34a1854f693cbf6362d74b17a2bc29e3567ed5",
+      "envSha256": "6cf5c22b66823c40c4b42c45b96c4f22ec499ce25e5ee8a40c81e8008a181620"
+    },
+    {
+      "id": "installed-B21",
+      "caseId": "B21",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "d9372f3e98a8915baa373de679d1a99cf1a607452c345ba8189dd9780b222660",
+      "argsSha256": "b97d3826a9712bd0bd0f123bf0d1236b767422249d8b654786b014f836e6925f",
+      "envSha256": "34f216f866ca06baf42677b9324fca989fe58b27684478c6ae9059b52bb2e61a"
+    },
+    {
+      "id": "installed-B22",
+      "caseId": "B22",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "192a74f2fe3b22c457f178311ccd995d915dc33022c96c3f38a25fe6d1894a62",
+      "argsSha256": "357c8ffffec43a6cc7c1b3c20dc356b4c4470f05ec734fdcfa04dfde18453627",
+      "envSha256": "9cde5fb3946f66c41296e8f188bf8dee7cb26e7c160ad805a2b6ee7f6c8f164c"
+    },
+    {
+      "id": "installed-B23",
+      "caseId": "B23",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "b83ebaff8b999b0045bca0862caa29354db907d635afeac32aa8ff0ea1c13b7e",
+      "argsSha256": "01cc22d6fd87a4425133bd8367564d3653e9783073b0223c0f1bb63ab54f1247",
+      "envSha256": "2c92fb0e48c29db33883f0c365a4f07f9417eb4a661d973a5abb5e52021bf882"
+    },
+    {
+      "id": "installed-B24",
+      "caseId": "B24",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "77947305bfad94dbf9364ae9c57137726fb889b5875cfcf1c9b713a7af31d2f4",
+      "argsSha256": "833596b3454a20585ee3a956018893980c8395e694193df702f4373fd4b88e87",
+      "envSha256": "1506d7c0f3c8d47bacff8b7662145b024f3f0fd456e6970733b1ce139dcac8f5"
+    },
+    {
+      "id": "installed-B25",
+      "caseId": "B25",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "a9fdb78020acc11799fd99e49e63a378249b5f6ec7f78fc4ff2a00634c7594a7",
+      "argsSha256": "a25e44f376c9e9ef2fe8860c791b89f75e1eccbcecb16c56a6336cd307bc45af",
+      "envSha256": "6aaf9ba4d2044637b5658ff5cf1e758055b928caabab78fcdf7c60b143570aff"
+    },
+    {
+      "id": "installed-B29",
+      "caseId": "B29",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "ccbdf150d6ca78ba0c13dc7fc70c2ad9ac42696dc03677b8beee358762db1cac",
+      "argsSha256": "00cbdbae87a89f50294bff7d2e470ea70b6f8eafbdff7f6661f103ccfd5e62f3",
+      "envSha256": "61c49087d64284447bc885f7fb5f8c1b55f58970eb8f4c96dcd5b7c664b548f5"
+    },
+    {
+      "id": "installed-B30",
+      "caseId": "B30",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "c00c90ba5281ca52dfedd2f225ec65f24684b339e089d67ce2d54cad707e59b3",
+      "argsSha256": "ddadfe822f8ea3519b3df3087717b8b151e4b343204d5af6000c7e3c270f60e0",
+      "envSha256": "6d8cd6d2c2637346ba735c32b300073cff1b766b3e19764a0cfbfb07ef60e531"
+    },
+    {
+      "id": "installed-B31",
+      "caseId": "B31",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "d053b0da4ffe07c24033cbecd236635288b08a801c38d5a97fe09ffcbfbc4074",
+      "argsSha256": "059670878a8a92fbb217c9f64e735247a4e54f335c5826deeea7368bf7f0f84a",
+      "envSha256": "4f006c329d8a41b66b19e665bdcdf861d92e0b6e71fc36ca83b12ed30bb3b888"
+    },
+    {
+      "id": "installed-B32",
+      "caseId": "B32",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "cd6b2f2b021ee5c5264e7c86fdf03c69f5df525b4018b3eab2a8670c5e9aa149",
+      "argsSha256": "56810fbfcd7e9bf91261d2d9e41febfee844462f3c71c7f4a28dfc43399e8dce",
+      "envSha256": "f12e99bce97fd776dd1335d5a83eade151cd5df8c5884db6fe132d0869a1b0b2"
+    },
+    {
+      "id": "installed-B33",
+      "caseId": "B33",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "25c4d81ff717dda641a70c60289c100a895e3afd36c9260ef34b459ed6150394",
+      "argsSha256": "cd2667631b31025c8bcd218907aa2842c39ae5515d2058f9d401359db5284561",
+      "envSha256": "1c0cf9c765fbf568bda187ddb09fb07693b3e22e738f88c3ff51f3ffe0a406ce"
+    },
+    {
+      "id": "installed-B34",
+      "caseId": "B34",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "9c55c772a19e21d1f72652a841e3aabb201702d55fb98c7c5bc2262b42d3510e",
+      "argsSha256": "162e136df90cc4fb636f392580fec4abaa35c00f58280d309761cc8c0806b978",
+      "envSha256": "14506dbc2b6c71ee047b8a7dd90652b42627e4098fe8971c3f07fbb713c7ed58"
+    },
+    {
+      "id": "installed-B35",
+      "caseId": "B35",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "5393aa28c218eef2672b26042dff407154a76f5913c64baf7af62e712ed44d98",
+      "argsSha256": "ff06416e440552a818c66e6c368954a11d0dfcf065dd76393f98dd1bd244fd5e",
+      "envSha256": "e8bcc13c5d3205f0e9e5767a7c5ce956352ab78220ed07ff9bc7b4d69629da7a"
+    },
+    {
+      "id": "installed-B36",
+      "caseId": "B36",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "130b63bd308a13c3482de870551a95385ac35690b737bb75cbc637f383d4b591",
+      "argsSha256": "7728bb1789ab20780cb941670926a9a00151d16f835506dc5a17dbe8e93dd1fd",
+      "envSha256": "de9c40c7c61fda8f7134481dbafcfccc18955bc6cb1300e47a0fa431dbe0ea45"
+    },
+    {
+      "id": "installed-B37",
+      "caseId": "B37",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "bc2073b6aea79666867c45f885ad4c4f1d50f02ddbc2ee7ebc080a6fdfacae23",
+      "argsSha256": "2f2858c97e09ee6095df85e6bda4fe0b4953dbc835e011eddc2d02b7fc031e07",
+      "envSha256": "a3e5f62e3a670ff6bcc61c3945c2b263d04b2219246c65d390c37000b9765aeb"
+    },
+    {
+      "id": "installed-B38",
+      "caseId": "B38",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "bfac4e4a86040797bec55ba2bb3b8fac9ebd104503361ed2cdf8b457dce247a3",
+      "argsSha256": "71434afaa824fc188186fd2a2fa0d8a03778b7ce897b8b160433e15b7879dd3f",
+      "envSha256": "8bbcb1a605a96a9d50c5e21e293bef2944cf78ff0303314a34e9f287e15cec7a"
+    },
+    {
+      "id": "installed-B39",
+      "caseId": "B39",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "df72be2442b17cdfd81fe73c6d2d60a1be38d07e02f4bca9fa45d1f51c2c6655",
+      "argsSha256": "f82a67878cdb1fbaa1db1a6a3c54ae88d437663775639e2f885ca67f6934fcef",
+      "envSha256": "4811a04beba4dcb56e463f81da70ab4f69acdce837ace3264f8db3c4647c89e7"
+    },
+    {
+      "id": "installed-B40",
+      "caseId": "B40",
+      "layout": "installed",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app/case-driver.mjs",
+      "roleBytes": 117464,
+      "roleSha256": "a327b99d23ba1a85ea8f19f36da2d866acf40e7bd397282f2b50c472068fc52d",
+      "argsSha256": "4796f9d973ea8e3c31580d4d39a73194bd0a4d3ca93de431c7edea3c42f3022d",
+      "envSha256": "8d265b48d2d565fe218e2c4db293e7cd06c605d843d0208b0d82ac516e391326"
+    },
+    {
+      "id": "physically-moved-B01",
+      "caseId": "B01",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "13962c816a75a111ef98802baecd379c6cdd1a97d024bdc2f5fb20e81a66244f",
+      "argsSha256": "10ca4d51f8978e4a16f3133ed4a3a5a3aa1d20d9b02f286dcf95869a43dc0830",
+      "envSha256": "d6642ad60cb78c5b33d6cfc34b4d233de67ecad418e7462894ca40843861a757"
+    },
+    {
+      "id": "physically-moved-B02",
+      "caseId": "B02",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "849cc7c644562e7bc8c37673d560e7fb56b0840e39924294f04f5a16e0c737a3",
+      "argsSha256": "b9f13785688144922957b81d65eafd4823d8030f9bde751cf5fc533da15513cb",
+      "envSha256": "85c2ab131fcbd9987af541e2e267472afebafe2c85b8410b86da16c17ed4ed0d"
+    },
+    {
+      "id": "physically-moved-B03",
+      "caseId": "B03",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "e0e6eb665f893eb31a93f02f272c39d310b43fd607f9cff9094c7c6b717a79f1",
+      "argsSha256": "8ba3b748a0ef6c57b80d894bf35f97f58eec3a886fc9002acf6cca2b0419530b",
+      "envSha256": "e1adc7a524023613b0c052482b5c1f9b0d297acc448695d8b5e196f0010a9656"
+    },
+    {
+      "id": "physically-moved-B04",
+      "caseId": "B04",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "833763bf2b615d60e3b1df19347013b16ea52115351854f898bf1d64f201fe54",
+      "argsSha256": "cf0a1fc10fc0b1d1307ba1f1defee2e0c12d82e2bc444a2e8a3334f61e47602c",
+      "envSha256": "5336f6767f220b0c24534f92f6e503c5b247773c34fc224be555cc3cf685a95e"
+    },
+    {
+      "id": "physically-moved-B05",
+      "caseId": "B05",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "a03b0675ad80385d671d20b7470e209857c7002b1f762b433685d86fa2c5aa24",
+      "argsSha256": "5ee709a1ff74cd2968308c32d1f5ed4eaf5e29f85f9727dfda16d4694710a08f",
+      "envSha256": "d9ddba0c8706812f1ce31e1eeda6f2137bbada71a8ee103441147295e0b6ed39"
+    },
+    {
+      "id": "physically-moved-B06",
+      "caseId": "B06",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "775e6baf707089caad90ce051596f581c126762cf2d3733d146a5b9e7eb1b839",
+      "argsSha256": "5ae995df003c887e395b651cf3d77f7a2ef6e8c29ce1c31666a741f47e093dcb",
+      "envSha256": "b85188e40a9b995156853db427d9374807a253faf5cbb2af02331267815648a4"
+    },
+    {
+      "id": "physically-moved-B07",
+      "caseId": "B07",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "06d4acc09fe69dfeae1869ad207c7df90959b0ff1f0db68700d96d53ff8ffeb4",
+      "argsSha256": "eb5b73c50ea80cfaf210a17af17857b1946359a3662d61aa57841b8f70ed68c2",
+      "envSha256": "81fd5bf917c58f0919c7fb2239162ef12d0624e03ba164b08e15a9a980a24536"
+    },
+    {
+      "id": "physically-moved-B08",
+      "caseId": "B08",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "1bddfc49844f04efd3dc5d79c55d65e7d17907b1da53e7bdc177c64388a787d9",
+      "argsSha256": "63592e8682f3e92303aa91444ef26c7d6628ed7f2146e4bb065005fa55f0208c",
+      "envSha256": "ddeefb878b8e2be417085d481552781663d6794264089cb24d6bd5df1353ca6d"
+    },
+    {
+      "id": "physically-moved-B09",
+      "caseId": "B09",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "752ecc8a23f18bbb4afb0b2c7c29e5d7f0463c38a79c4ef7c5002c20e0c6c7d9",
+      "argsSha256": "d8ce65c04e4c9a71ac187599418af875c4f57b5208efa4c43df01f0d6e4659e9",
+      "envSha256": "6c2d262b631bf9906cc1d175e60a8a9180bb5bdee3803515cdc1cb759f89ccd9"
+    },
+    {
+      "id": "physically-moved-B10",
+      "caseId": "B10",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "9fbc6670de2df51797dc55e25edc5084677e49b51810a8d2bac8aa340b8a4905",
+      "argsSha256": "458348a4db80c48fd3dedd41d8e71319da5873c65922b850f3eab1db6dfcfe18",
+      "envSha256": "27fc428ff9b6fb837aaa0600162588ac2ff089ff5f22964e58712acdf804c8d9"
+    },
+    {
+      "id": "physically-moved-B11",
+      "caseId": "B11",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "aec543cee9031d9049a9213b7a646e8eee108512b56701ae36b6c7aa0c27a65a",
+      "argsSha256": "c48916c1c9c71e5d965e78ec7d3e20ee8dac12ebd88e0cc2d56e771ade163eed",
+      "envSha256": "14a401d9cd65424ba4f5fbfbf35687db68ab9b245f3364c7a89f3d1bdae39535"
+    },
+    {
+      "id": "physically-moved-B12",
+      "caseId": "B12",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "68e913fc572c2a6fe1f7345a1202b20d0e197f52eaf649468107e3e8b3f36494",
+      "argsSha256": "47cf1ae5dc5ebcd401cd41d603926a704fe764182336fb8e6958eeaf40752e5c",
+      "envSha256": "94ed830b87b613cbd22aab3fc3de1fb6405d6f93180f5e5085cdd050bda49017"
+    },
+    {
+      "id": "physically-moved-B13",
+      "caseId": "B13",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "20770dda6c3d5715e476bb92c5f1f264d1dd8fda5a47b8d83b7317a385d1f6d0",
+      "argsSha256": "111a6cdbc853378899bfdedc799cdae4d746c9d2b4aab7da876262bbd890e655",
+      "envSha256": "172b5b58e743e2fa7b70bfc49ecb741d7d47bba0caa9e368013ce241c41016de"
+    },
+    {
+      "id": "physically-moved-B14",
+      "caseId": "B14",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "ce1051760204d7cec2821fd3c116bbffc6e8275186e45a88c227540d422d0736",
+      "argsSha256": "d635b385103120745b1df0a239058b980c1668a7ee31586219fa371ab18f0884",
+      "envSha256": "313755f60b80cc24ce87207a344f155ea695531fcfe657c2575c4ff890895a49"
+    },
+    {
+      "id": "physically-moved-B15",
+      "caseId": "B15",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "6d5b1036ed39f8d0831942568cf31926f61e44f0dbef4bf4d8a94002fc61f502",
+      "argsSha256": "d265155c560cfcde59bd501bbe65515c592b7762e8a4b88e7dc4e776eea2cc9e",
+      "envSha256": "2b608d0a3002f534f2e93be22ae29cd38ad7db8329a8f930330904fcef020a21"
+    },
+    {
+      "id": "physically-moved-B16",
+      "caseId": "B16",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "073b7dec85fcb8a32eb865ff72ee4072ed6707784bb2b54260a9f35dcda687ee",
+      "argsSha256": "f0ee69f6241129b25ab469a3a1065e8b40b1f9dcd2d50fc13f928f655c5413cb",
+      "envSha256": "437d26563249ba6949dc83f21a82130174fc9f180f5cfc6c61c6720e46ef6a86"
+    },
+    {
+      "id": "physically-moved-B17",
+      "caseId": "B17",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "04516c58904364bb11bc87462fc35e921668593df015e901f290bb63850fc252",
+      "argsSha256": "282d8d8b0cf65945a56a64717324084c419ed3f8ac2003d5ddd71b63d85ca513",
+      "envSha256": "6c1db5d25abc956f2826f43eaf89074ae92f7d2ac49685eb4e8a0c91f97f8f35"
+    },
+    {
+      "id": "physically-moved-B18",
+      "caseId": "B18",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "45894a5fbbdb0d498625b5ec982977db88cb519afdebc90fdd651dc69ab4b7a9",
+      "argsSha256": "92e80f30051e9eaf5fc0dfaaadbd3102c70813351f512cd5a39cd368d400e1ef",
+      "envSha256": "f252772435b076ac94a51b159d7b30a350712c997aecb8c30891a76cb0c77545"
+    },
+    {
+      "id": "physically-moved-B19",
+      "caseId": "B19",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "58e9d50f6be4794bab92fcccffa0b94de1703669ca8357aa85dd60e288ada64d",
+      "argsSha256": "9776bc66f24c43dd6932ec0a217049964907e855ae83f78405075308bf3ec7f9",
+      "envSha256": "91eb5c0912395b262bf0c7127de94fbc119aceeb008f1b5499752e3385c446c6"
+    },
+    {
+      "id": "physically-moved-B20",
+      "caseId": "B20",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "e456ffd76db4f97fd6c1d07c1f4f406c5d612056e919a31b27bdd3f9d126f9c0",
+      "argsSha256": "314f62a339f41590004f7a1a527f4482afcb0e41ded9311d6aa3e90a14a2b930",
+      "envSha256": "1d0409654079f391241c8ccbda9a276489e76992feb1f043616b2f9db128b0fc"
+    },
+    {
+      "id": "physically-moved-B21",
+      "caseId": "B21",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "9845d725df4275ec3bc93fdb8ee7aad2db528dfc218e38e2829be6ffb6689f0f",
+      "argsSha256": "fda7e9b48408dd02aef5c01011d50674e98273cdefc4aed7d9803ff280c19927",
+      "envSha256": "6b8ce5de3c46e413b0b21f9a3978c583ac49bd50ca484cbd02c5774ab4c7028b"
+    },
+    {
+      "id": "physically-moved-B22",
+      "caseId": "B22",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "24083fdc47258821a92570c416e8ed092b4919cc6382b7defbf84d2213673ee7",
+      "argsSha256": "ebf92103622708edfa1291c72f4ffe4bffdecc8e046a59f5964febf4be81a5e4",
+      "envSha256": "d029feaeec864e067b784211e44c0140df635559e37572da98313a5a34bf7ad5"
+    },
+    {
+      "id": "physically-moved-B23",
+      "caseId": "B23",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "8d2894302ef78401dad58f814f92023e4e35c266c122a23c488e9960437e14eb",
+      "argsSha256": "8fc257c1ed2901fed4774a842efbd67502c515b9bef003ab5a2ff571890bbc3b",
+      "envSha256": "d6a03634279b51d996efebfa0ea23c70722b569fcdc13ef6127402bb036dfd40"
+    },
+    {
+      "id": "physically-moved-B24",
+      "caseId": "B24",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "e81d508289ee6036da3856969acdaf693ffffb2662312f7b1630d7ca61f4ec59",
+      "argsSha256": "cdc8d1a52f0bdfd012e0c3c5f024e28e2a3ae6fee397b817f697dd92eece4b08",
+      "envSha256": "82d508a183124a0be071382b250cfddc092d219f66f7876fa7187bfa1a97975f"
+    },
+    {
+      "id": "physically-moved-B25",
+      "caseId": "B25",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "964e31f3ec7a35e6ea8a90198aa99f5340068ba958878f99aaada54d81a3ca8c",
+      "argsSha256": "1709f0cf3cd8167034f2fac6dfdd2b9011d20982fa4dce840677c9879dcf0fe8",
+      "envSha256": "e3d825973fdd20cc2373f2bf13ed9c629a406ebe6dfdbfd659b6fd8e1f99bee4"
+    },
+    {
+      "id": "physically-moved-B29",
+      "caseId": "B29",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "2d7f458b885eaac7a95db5090c2cbdff946790392396bb7606fcd43e8926d015",
+      "argsSha256": "d66ea872c45fc7c332211fbf27a5754f1c874c00384bbc64fc5720dedd1c61e6",
+      "envSha256": "c8150b7a401e275e231574ca6aa980b9b32c8583ffc567d814239141740bcbe7"
+    },
+    {
+      "id": "physically-moved-B30",
+      "caseId": "B30",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "e11b0de6ba89c88ef0368b44ccbab57ddfe3d9efb8ed5251205ae079efba0ba3",
+      "argsSha256": "bc05e5efd0a075ccacf1c798cd639b7f2ce6207815f1929eb02b01def010ef97",
+      "envSha256": "6df427974a9e98a8f5e146531533f20c20e4d269df30037087fcc0a5e703f5a0"
+    },
+    {
+      "id": "physically-moved-B31",
+      "caseId": "B31",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "a530ca35dbd3cd664ae984dc82bb60cc68fec6be8c21ee46e846c494ad3396da",
+      "argsSha256": "e23bffe7a6496d7b37094454263c1a5e1cd78735d3f87467a7c921e374fe97a0",
+      "envSha256": "882a5bd3811b6b7e42b8c683b7b41bc70450ea3c637ee08fba059d61cd4c9912"
+    },
+    {
+      "id": "physically-moved-B32",
+      "caseId": "B32",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "86b85d326780b26ef015c3444b2cc9b889bb6004f5c8e0dc2f2940dd3f72adc1",
+      "argsSha256": "83d2680c454f299862a88b55b1bba1492875c8cc35d8e435c804185e6e2f87c6",
+      "envSha256": "cbee86e0f3395a88952c428e7bcaa64228180dccad33aee9da8021f3395736b0"
+    },
+    {
+      "id": "physically-moved-B33",
+      "caseId": "B33",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "084494ddb68c05ba9985d936f9775c0b9c206e4d8473d54bd4f2b37b160fb40d",
+      "argsSha256": "f9341029bb7e7f3b2a3f3d4eba84aee4eb82d968b5e3b4894f63b392a83ee145",
+      "envSha256": "4a74344e1cea100f98352543fbedfc12b384eedd3f83637c99193f43e2db0b38"
+    },
+    {
+      "id": "physically-moved-B34",
+      "caseId": "B34",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "5aa38d77d105ea700312bc81d5c5d4249eaa0294c698ef18f0eb71fea36b2705",
+      "argsSha256": "b3ad428310e861d0e6ee038bf467fef5ef5b422ac5800fa4e95fe1dacb475576",
+      "envSha256": "a1440ca80c1c85bf082f0b63e8ab7ba7f689b82a7ef549c0554b27e2b068de80"
+    },
+    {
+      "id": "physically-moved-B35",
+      "caseId": "B35",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "cd07a1726504cdd8cd282ee1ebc7e7540db5d5124ca11282179af3d80fe734d1",
+      "argsSha256": "3e886d986b536e0cbc2010629cc8f256d491c93092adb6b3774b9166b6a84a67",
+      "envSha256": "d7935b9637a9e14349835f418b1bda39fcf302585f128e371a7631be6f1c77a0"
+    },
+    {
+      "id": "physically-moved-B36",
+      "caseId": "B36",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "9b490bc6878bef5af14fe6f4241ae4bba150048feb05c939680a03543da37377",
+      "argsSha256": "abe65da1b88f0307fd2650c29b1413a758d51c57b07503c9d299b7691446c73f",
+      "envSha256": "79e46f5ea1bf66f9a0656440a18d4b7cecc02b54e554ab6c6856b4aab5451049"
+    },
+    {
+      "id": "physically-moved-B37",
+      "caseId": "B37",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "241697c4385b0d9ec8d4ccce9b90454a349cb87a435aa200a0fa2310c288a144",
+      "argsSha256": "7422695df3619fd2dde4bc3f324d4c6faf8ca00393b450cb1ff5cda2835f998c",
+      "envSha256": "ecba54d4889b70d4d8a83b38538acb8d10e790511c8bab0ea3a37a91d7c225ac"
+    },
+    {
+      "id": "physically-moved-B38",
+      "caseId": "B38",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "981ed56fbe392121f427a4f84b6ea91708fe7aa7aa2ad445e597114fc8ec5e3a",
+      "argsSha256": "7e084deb1e9870d1d0ed402eaeadacdb88b9b292fd74380934e4447584e9baa1",
+      "envSha256": "8256c6e174745164da70f1ea11c7be62f37a8ab7a522f29887a87e50e76002d0"
+    },
+    {
+      "id": "physically-moved-B39",
+      "caseId": "B39",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "b6da0f22299544fa1ef7e4ed91afaf294b32f01f19c09699f357d8f70dc12a70",
+      "argsSha256": "ef0b3155569689b0da79a821cb41b9e3d886523ae371e4fec4fc1efdf8d013a5",
+      "envSha256": "a225eeb06b5d6a03d71f456a99f120ff98592577af435a35b5d0b7c7bdf8202a"
+    },
+    {
+      "id": "physically-moved-B40",
+      "caseId": "B40",
+      "layout": "physically-moved",
+      "entry": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app/case-driver.mjs",
+      "roleBytes": 115538,
+      "roleSha256": "acaee218a9a33c13771e28aaaff91c7c2c161c1cc693a8b57be38da7fbf98490",
+      "argsSha256": "cce2a7e827534536c0ed928cf97c72672e2551eef61ec97064d8898ffdfead58",
+      "envSha256": "63df71f41a1957e2b044de72d3e8b0cddb1bf43c651f9b93e7597e51584ce911"
+    }
+  ],
+  "limits": {
+    "inclusiveMs": 1800000,
+    "knownOSMaximum": 144,
+    "knownPeak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "setupAggregateMs": 180000,
+    "typecheckAggregateMs": 180000,
+    "finalizationTailMs": 120000,
+    "caseDriverAbortMs": 3000,
+    "caseProcessMs": 8000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "perStreamBytes": 65536,
+    "customLoaderThreads": 0,
+    "productWorkers": 0,
+    "caseSubprocessPermission": 0,
+    "administrativeRoleAllowance": 28,
+    "ownerRoles": 1,
+    "buildRoles": 1,
+    "typecheckRoles": 3,
+    "caseRoles": 111
+  },
+  "qualifications": [
+    "Functional-direct-owned only; no OS containment/group absence/universal descendant census/RSS guarantee",
+    "Trusted initial tool-shell startup is outside case fresh-env/raw-capture qualification",
+    "Zero expected case OS subprocesses/Workers/asynchronous-loader threads; no new permissions or cleanup ceilings added",
+    "Unresolved known work/abandonment/capture/integrity/cap/deadline STOP consumes the actual attempt; no retry",
+    "No runtime/build/compiler/install/native/engine execution in this preparation",
+    "Historical holds/failures unchanged"
+  ],
+  "preparation": {
+    "startedAt": "2026-08-29T11:15:16.188Z",
+    "deadline": "2026-08-29T11:25:16.188Z",
+    "maximumKnownOS": 24,
+    "knownPeak": 2,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728,
+    "toolArchiveAuthentications": 250,
+    "authenticatedSealedFiles": 34
+  }
+}

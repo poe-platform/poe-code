@@ -1,0 +1,24 @@
+{
+  "schema": "authorization-binding-data-check-v1",
+  "decision": "PASS_DATA_ONLY",
+  "checkedAt": "2026-08-29T11:18:44.587Z",
+  "grantSha256": "ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e",
+  "receiptSha256": "2d69073c07de80c7bd64419e7cf0b773167a22d30deae1b722fc64450ac002e3",
+  "commandSha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+  "sealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "checks": {
+    "exactFourGrantSlots": true,
+    "unchangedGrantKeysAndLimits": true,
+    "goMode0600": true,
+    "rawReviewReceiptIdentity": true,
+    "reviewCommitIdentity": true,
+    "exactCommandHashSlotOnly": true,
+    "threeLayoutsSame37Identities": true,
+    "sealedSourceToolFixtureIdentity": true,
+    "workPreprovisionFresh": true,
+    "fixedFiftyMinuteExpiryAndThirtyMinuteFullWindow": true
+  },
+  "scope": "source/data binding only, no outer/supervisor/compiler/product execution; not independent resolved-slot ACCEPT",
+  "runtimeActivation": "PENDING",
+  "productCalls": 0
+}

@@ -1,0 +1,195 @@
+{
+  "schema": "b35-v4-actual-publication-stop-v1",
+  "disposition": "STOP_DURING_ADMINISTRATIVE_ARCHIVE_PUBLICATION_NOT_RUNTIME_RETRY",
+  "actualAttemptConsumed": true,
+  "source": "52b6711e888361015acc38017be2a6b08509d8a7",
+  "harnessSource": "18e4c9a717809edd10230e3e5187111d9ed304b1",
+  "presealSha256": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3",
+  "rootGoSha256": "d483bbd28c5686e844b25bf56689538ad0a2720220d1cf1e18a8f065be9fef55",
+  "commandSha256": "477f1c1f142a40c906a4a7c666502e3fa07a23f9c2fd8910d12262c1f1900f8f",
+  "finalSlot": {
+    "commit": "b8e16ccbc49d27eecbc54d94c4c5cb0e39489868",
+    "receiptSha256": "8395b6fd1ffb7680b53b6c9b357b1b6f4b8a058b2c8b51e6e6f02d850bb13c73",
+    "qualification": "ROOT-received authority; not an additional runtime role"
+  },
+  "dispatch": {
+    "session": 95014,
+    "preflightUTC": "2026-08-29T14:06:37.488Z",
+    "toolResult": {
+      "exitCode": 0,
+      "streams": "empty tool streams because fixed bootstrap redirects collector output"
+    },
+    "ownerStartedUTC": "2026-08-29T14:06:45.052Z",
+    "ownerFinishedUTC": "2026-08-29T14:07:52.201Z"
+  },
+  "runtime": {
+    "status": "COMPLETED_WITH_ASSERTION_FAILURES",
+    "primaryPresent": false,
+    "secondary": [],
+    "primaryCases": 54,
+    "primaryPass": 51,
+    "primaryFail": 3,
+    "failedIdentity": "K08 in all three layouts",
+    "legacyCalls": 24,
+    "legacyExactObservationPairsEqual": 24,
+    "mutantCalls": 5,
+    "mutantsDetected": [
+      {
+        "id": "M01",
+        "detected": true
+      },
+      {
+        "id": "M02",
+        "detected": true
+      },
+      {
+        "id": "M03",
+        "detected": true
+      }
+    ],
+    "bindingRefusals": [
+      {
+        "id": "N01-physically-moved-K01",
+        "refused": true
+      },
+      {
+        "id": "N02-physically-moved-K01",
+        "refused": true
+      }
+    ],
+    "types": [
+      {
+        "layout": "source-built",
+        "status": 0,
+        "qualified": true
+      },
+      {
+        "layout": "installed",
+        "status": 0,
+        "qualified": true
+      },
+      {
+        "layout": "physically-moved",
+        "status": 0,
+        "qualified": true
+      }
+    ],
+    "regexWorkers": 0,
+    "asyncLoaders": 0
+  },
+  "measuredRolesBeforeStopPublication": {
+    "runtimeSubordinates": 63,
+    "allSubordinateDirectExitCloseEOFQualified": true,
+    "ownerClosed": true,
+    "collectorToolProcessClosed": true,
+    "runtimeKnownStarts": 65,
+    "runtimeKnownClosed": 65,
+    "administrativeStarts": 1,
+    "administrativeClosed": 1,
+    "totalKnownStarts": 66,
+    "publicationTailMaximumRemaining": 6,
+    "qualification": "Counts from 63 subordinate rows, collector-owned owner receipt and tool exit; planned counts are not substituted. No universal descendant or process-group census."
+  },
+  "accounting": {
+    "retainedCaptureFiles": 375,
+    "retainedCaptureBytes": 24291650,
+    "supervisorLedgerBeforeResultSerialization": 17531945,
+    "ownerCaptureBytes": 383,
+    "supervisorFinalSample": {
+      "root": "/private/tmp/safe-bash-b35-v4-PLN3cC/future",
+      "at": 1788012472201,
+      "bytes": 83813478,
+      "entries": 7614,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "ownerSample": {
+      "root": "/private/tmp/safe-bash-b35-v4-PLN3cC/future",
+      "at": 1788012472309,
+      "bytes": 90766108,
+      "entries": 7615,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "preArchiveSample": {
+      "root": "/private/tmp/safe-bash-b35-v4-PLN3cC/future",
+      "at": 1788012527758,
+      "bytes": 90769791,
+      "entries": 7617,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "qualification": "Distinct contemporaneous samples/counters, not RSS or continuous disk enforcement; sampled work is not a cumulative capture counter."
+  },
+  "publicationPrimary": {
+    "present": true,
+    "reason": {
+      "name": "Error",
+      "message": "PACK_COMPRESSED"
+    },
+    "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs",
+    "sourceSha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2",
+    "operation": "pack(retained capture directory inventory)",
+    "compressedHelperLimitBytes": 2097152,
+    "inputFiles": 375,
+    "inputBytes": 24291650,
+    "actualCompressedBytes": "NOT_RECORDED",
+    "archiveWritten": false,
+    "retry": false,
+    "qualification": "Runtime was completed before this separate preservation-helper cap refusal. No workaround, alternate archive or rescore performed."
+  },
+  "rawReceipts": [
+    {
+      "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/RESULT.json",
+      "bytes": 6952630,
+      "sha256": "2e9842c598157c832b9a92b03195f14e926ecffebd456f8cec64014a5229aacf"
+    },
+    {
+      "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/COLLECTOR.json",
+      "bytes": 2894,
+      "sha256": "42ddafa42ed5ce9ad46c448d2f48b2f6b1e176ce844d6d9c5a391b07e1193559"
+    },
+    {
+      "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/OWNER-FINALIZATION.json",
+      "bytes": 373,
+      "sha256": "613d767532bb26421a90bd53d37dd654ca153e1e2ea2e5bd879102a0e478fbfa"
+    }
+  ],
+  "rawCaptureManifest": "CAPTURE-MANIFEST.json",
+  "retainedPackage": {
+    "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/virtual-bash-b35.tgz",
+    "bytes": 978791,
+    "sha256": "d51e5d04daddb9f5523e87bd2dc2630a0c687c48307b92d5eda96ad29774fec9",
+    "decodedLimit": 33554432,
+    "events": [
+      "lstat-type-size",
+      "bounded-read",
+      "postread-identity",
+      "exact-hash",
+      "descriptor-closed",
+      "concurrent-buffers-reserved",
+      "decoded",
+      "parsed"
+    ],
+    "admitted": {
+      "result": {
+        "members": 1002,
+        "payloadBytes": 5022429,
+        "decodedBytes": 5785088,
+        "extractionCalls": 0
+      },
+      "compressedBytes": 978791,
+      "decodedBytes": 5785088,
+      "sha256": "d51e5d04daddb9f5523e87bd2dc2630a0c687c48307b92d5eda96ad29774fec9"
+    },
+    "admissionLedger": {
+      "current": 0,
+      "peak": 36630376,
+      "maximum": 67108864
+    },
+    "format": "deterministic regular-file ustar/gzip author pack, not npm pack"
+  },
+  "qualifications": [
+    "Campaign publication is STOP/qualified, not wholly green. 51/54 are author assertions, not independent acceptance.",
+    "OWNER-FINALIZATION.json publicationSucceeded:false is the snapshot inside its own publication callback; the subsequently captured owner stdout records publicationSucceeded:true. Both remain unchanged.",
+    "Case public exec/dispose settlement is not a private-job census. No OS containment/group-absence/RSS claim.",
+    "Historical 0/54 startup STOP and all preexec holds remain unchanged. No source change or retry authorized."
+  ]
+}

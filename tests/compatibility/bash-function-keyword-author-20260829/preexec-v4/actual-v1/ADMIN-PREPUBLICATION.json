@@ -1,0 +1,43 @@
+{
+  "started": 1788012574436,
+  "deadline": 1788013897488,
+  "starts": [
+    {
+      "index": 1,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+        "src/shell/parser.ts"
+      ],
+      "started": 1788012574437,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788012574540,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/01.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/01.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captureBytes": 0,
+  "runtimeKnownStarts": 65,
+  "administrativeMaximum": 7,
+  "aggregateMaximum": 72,
+  "primaryPublicationStop": "PACK_COMPRESSED",
+  "purpose": "minimal STOP preservation only; no archive retry or product execution"
+}

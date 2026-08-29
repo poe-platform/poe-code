@@ -1,0 +1,19 @@
+{
+  "schema": "EXACT_TOOL_TERMINAL_CAPTURE_TRANSCRIPTION",
+  "source": "Current functions.exec_command receipts, verbatim visible complete stdout; not reconstructed historical raw",
+  "probe": {
+    "exitCode": 0,
+    "stdout": "{\"qualified\":true,\"primary\":null,\"observation\":{\"schema\":\"ONE_HOST_NODE_ENV_PROBE_V1\",\"pid\":28660,\"parentPid\":28659,\"platform\":\"darwin\",\"uid\":501,\"names\":[\"__CF_USER_TEXT_ENCODING\"],\"key\":\"__CF_USER_TEXT_ENCODING\",\"present\":true,\"type\":\"string\",\"value\":\"0x1F5:0x0:0x0\",\"valueBytes\":13,\"qualified\":true,\"origin\":\"UNKNOWN\",\"guestEnvironmentChanged\":false},\"childRetired\":true,\"helpers\":2}\n",
+    "stderr": ""
+  },
+  "data": {
+    "exitCode": 0,
+    "stdout": "{\"qualified\":26,\"total\":26,\"unrun\":0,\"ownerEvaluations\":0}\n",
+    "stderr": ""
+  },
+  "tails": {
+    "exitCode": 0,
+    "stdout": "{\"status\":\"MODE_PREPARATION_QUALIFIED\",\"qualified\":3,\"failed\":0,\"unrun\":0,\"processes\":10,\"unsafe\":false}\n",
+    "stderr": ""
+  }
+}

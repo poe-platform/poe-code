@@ -1,0 +1,183 @@
+RETAINED_FILES [{"path":"tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs","bytes":9613,"sha256":"5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"},{"path":"tests/compatibility/bash-redirection-author-20260829/CASES.json","bytes":2790,"sha256":"ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"},{"path":"tests/compatibility/bash-redirection-author-20260829/close-observer.mjs","bytes":957,"sha256":"06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"},{"path":"tests/compatibility/bash-strict-mode-author-20260829/strict.mjs","bytes":11148,"sha256":"c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"},{"path":"tests/compatibility/bash-strict-mode-design-20260829/CASES.json","bytes":9222,"sha256":"99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"},{"path":"tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs","bytes":14524,"sha256":"0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"},{"path":"tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs","bytes":14101,"sha256":"3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"},{"path":"tests/compatibility/bash-strict-extension-design-20260829/CASES.json","bytes":14968,"sha256":"ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"},{"path":"tests/integration/coherent78-arrays-author-20260828/arrays.mjs","bytes":2507,"sha256":"ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"},{"path":"tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json","bytes":3019,"sha256":"37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"},{"path":"tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs","bytes":5599,"sha256":"5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"},{"path":"tests/integration/git-public-20260829/resources.mjs","bytes":1978,"sha256":"ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"},{"path":"tests/integration/git-public-20260829/loader.mjs","bytes":1180,"sha256":"a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"},{"path":"tests/integration/git-public-20260829/names.mjs","bytes":879,"sha256":"7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"}]
+EXTRACT tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import * as api from "virtual-bash";
+import { expectedNames } from "./names.mjs";
+const cases = JSON.parse(await fs.readFile(new URL("redirection-cases.json", import.meta.url)));
+  if (process.env.REDIRECTION_CASE && process.env.REDIRECTION_CASE !== id) return;
+  const timer = setTimeout(() => { console.error("CASE_DEADLINE", id); process.exit(78); }, 30000);
+for (const row of cases.cases) await record(row.id, async () => {
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+summary.fail = summary.cases - summary.pass;
+EXTRACT tests/compatibility/bash-redirection-author-20260829/CASES.json
+  "cases": [
+EXTRACT tests/compatibility/bash-redirection-author-20260829/close-observer.mjs
+import assert from "node:assert/strict";
+import * as api from "virtual-bash";
+console.log(JSON.stringify(row)); console.log(JSON.stringify({ summary: { cases: 1, pass: Number(row.pass), fail: Number(!row.pass) } }));
+EXTRACT tests/compatibility/bash-strict-mode-author-20260829/strict.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import * as api from 'virtual-bash';
+const design = JSON.parse(await fs.readFile(new URL('strict-design.json', import.meta.url)));
+  if (process.env.STRICT_CASE && process.env.STRICT_CASE !== id) return;
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+for (const item of design.cases) {
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+summary.fail = summary.cases - summary.pass;
+EXTRACT tests/compatibility/bash-strict-mode-design-20260829/CASES.json
+  "expectedRuntimeForEveryCase": null,
+  "cases": [
+    {"id":"U08","program":"set -eu; printf '%s\\n' \"$-\"; set +u; printf '%s\\n' \"$-\"","question":"Actual e/u visibility; native extra flags retained as differences","basis":"P1"},
+    {"id":"U50","protocol":"UNWIND_RESOURCES","question":"Controlled source/function/array/input owners unwind once on nounset; required cleanup awaited; failures retained, sibling lease untouched; no opaque host preemption"}
+EXTRACT tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs
+import assert from 'node:assert/strict';
+import * as api from 'virtual-bash';
+  if (process.env.CONDITIONAL_CASE && process.env.CONDITIONAL_CASE !== id) return;
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));
+EXTRACT tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as api from 'virtual-bash';
+const design = JSON.parse(fs.readFileSync(new URL('./extension-design.json', import.meta.url)));
+  if (process.env.EXT_CASE && process.env.EXT_CASE !== id) return;
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+for (const item of design.cases) {
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));
+EXTRACT tests/compatibility/bash-strict-extension-design-20260829/CASES.json
+  "cases": [
+      "protocol": "Original caller stderr rejects a tagged falsy value during strict diagnostic; retain exact thrown value and observe completion/cleanup. Do not use truthiness to detect rejection.",
+EXTRACT tests/integration/coherent78-arrays-author-20260828/arrays.mjs
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { Shell, MemoryFileSystem, agentCommands, ShellLimitError } from 'virtual-bash';
+const data = JSON.parse(fs.readFileSync(new URL('./ARRAY-CASES.json', import.meta.url)));
+const rows = data.cases.filter(row => !process.env.ARRAY_CASE || row.id === process.env.ARRAY_CASE);
+assert.equal(rows.length, process.env.ARRAY_CASE ? 1 : 12);
+const summary = { profile: 'coherent78-array-author-v1', cases: rows.length, pass: observations.filter(row => row.pass).length, disposed: observations.filter(row => row.disposed).length };
+if (summary.pass !== summary.cases || summary.disposed !== summary.cases) process.exitCode = 1;
+EXTRACT tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json
+  "cases": [
+EXTRACT tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs
+import assert from 'node:assert/strict';
+import * as api from 'virtual-bash';
+  if (process.env.N14_CASE && process.env.N14_CASE !== id) return;
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length } }));
+EXTRACT tests/integration/git-public-20260829/resources.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import workerThreads from 'node:worker_threads';
+import { syncBuiltinESMExports } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+    const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');
+    assert.equal(entry, expected, 'only selected RegexWorker is admitted');
+    const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');
+EXTRACT tests/integration/git-public-20260829/loader.mjs
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+export async function load(url, context, next) {
+EXTRACT tests/integration/git-public-20260829/names.mjs
+export const expectedNames = [
+ADAPTERS [{"path":"tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs","bytes":1484,"sha256":"2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d","gitBlob":"18cf64b44ccdcc9ccfcfc015293d6feb13146181"},{"path":"tests/integration/node-public-author-20260829/runner-node.mjs.data","bytes":8276,"sha256":"ae47df981d47ed6ec2e93e8ab0ca671b2dd8bfee152c9408c92968562b4f3957","gitBlob":"ce862ad3746f5dc24091503186f71facf02b9f10"},{"path":"tests/compatibility/bash-strict-mode-independent-20260829/internal-loader-arguments.mjs","bytes":1391,"sha256":"5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1","gitBlob":"f833c2d2924e523fc2a841cc750c6e9dc5162b05"},{"path":"tests/integration/node-public-author-20260829/node-policy.mjs","bytes":3534,"sha256":"c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123","gitBlob":"c5521498401f809bb2ba90ec51fd691ac25b00e6"},{"path":"tests/integration/node-public-author-20260829/node-load-guard.mjs","bytes":2613,"sha256":"7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1","gitBlob":"e51cdc7002b40411cce299098a28e35047c1d2d2"}]
+EDGES [{"importer":"compiled/engine/dist/interp/host-call.js","kind":"static","specifier":"node:crypto","resolved":"node:crypto","inEmission":false},{"importer":"compiled/engine/dist/interp/jobs.js","kind":"static","specifier":"node:async_hooks","resolved":"node:async_hooks","inEmission":false},{"importer":"compiled/engine/dist/interp/promise-replay.js","kind":"static","specifier":"node:async_hooks","resolved":"node:async_hooks","inEmission":false},{"importer":"compiled/engine/dist/interp/promise-tracker.js","kind":"static","specifier":"node:async_hooks","resolved":"node:async_hooks","inEmission":false},{"importer":"compiled/engine/dist/random.js","kind":"static","specifier":"node:crypto","resolved":"node:crypto","inEmission":false},{"importer":"compiled/engine/dist/snapshot/backend.js","kind":"static","specifier":"node:crypto","resolved":"node:crypto","inEmission":false},{"importer":"compiled/engine/dist/snapshot/backend.js","kind":"static","specifier":"node:fs/promises","resolved":"node:fs/promises","inEmission":false},{"importer":"compiled/engine/dist/snapshot/backend.js","kind":"static","specifier":"node:path","resolved":"node:path","inEmission":false},{"importer":"compiled/engine/dist/snapshot/validation.js","kind":"static","specifier":"node:util","resolved":"node:util","inEmission":false},{"importer":"compiled/support/errors.js","kind":"static","specifier":"node:util","resolved":"node:util","inEmission":false}]
+ENGINE_HANDOFF_REMAINDER    `bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e`, `files[]` has `path`, `mode`,
+   `blob`, `bytes`, `sha256`, **`base64`**, and `proof.commitBase64` plus
+   `proof.trees[] {sha,rawBase64}`. Paths are **packages/safejs-relative**, not
+   monorepo-root-relative. This review checks the commit,15 proof trees and all98
+   file/blob paths through that prefix. The source counterpart of the support
+   emission is the separate `preparation-v3/inputs/errors.ts.data`, not an
+   upstream engine file. No private checkout is involved.
+
+## Exact staged closure and public provider
+
+Let `$FIXTURE` mean the future owner's declared, fresh, regular-file-only
+fixture root (not a path already admitted by this review):
+
+- Each engine record goes to `$FIXTURE/` + `target.slice('compiled/'.length)`.
+  This yields `engine/dist/**`, `engine/package.json`, `support/errors.js`.
+  Do not flatten the support directory. Do not symlink to old author scratch.
+- Normal adapter, at30ac:
+  `tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs`,
+ 1484bytes, SHA256
+  `2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d`,
+  goes to `$FIXTURE/engine-adapter-v1.mjs`. Its exact static import is
+  `./engine/dist/core.js` (`run`, `Budget`), the public ./core export target,
+  not an inferred private ABI. The source entry is `src/core.ts`.
+- The adapter's frozen ABI is `NP1-ENGINE-PUBLIC-SYNC-1`, identity
+  `author-public-bb23-node-adapter-v1`. Public construction already exercised:
+  `createNodeWorkerProvider({entry:pathToFileURL(adapterPath).href,
+  identity:'author-public-bb23-node-adapter-v1',observe})`.
+  `entry` is the **adapter URL**, not product worker-main.js. Identity and URL
+  are trusted configuration, **not byte authentication or host authorization**.
+  Explicit command grants remain separate and default denied.
+- The actual application Worker entry comes from the fresh selected package:
+  `$PACKAGE/dist/commands/node/worker-main.js`. Bind its emitted hash from that
+  package, not an old source/directory. The static adapter is test-side only,
+  never a package dependency or vendored engine.
+- The adapter uses existing Budget maxSteps100000/maxCallDepth128 and a262144
+  byte combined context-prefix/program admission. It does not change the
+  command's fixed limits. Promise constructor, ESM/.js/TLA/npm/npx/async fs/
+  process.exit/package search remain unsupported; Worker-L is not all-jobs/RSS.
+
+PUBLIC95-BINDINGS.json records all95 source/emission mappings, package metadata,
+adapter/guard hashes and10 exact external importer edges from the compiler graph.
+They are host-only scoped edges (`node:crypto`, `node:async_hooks`,
+`node:fs/promises`, `node:path`, `node:util`), **not a guest/global allowlist**.
+SOURCE-EDGES.json retains the whole95-module static graph. Fresh product and
+fixture imports also need admission; authenticating only the engine is insufficient.
+
+## Existing instrumentation: reuse rules, not old execution scope
+
+At30ac, `tests/integration/node-public-author-20260829/` contains:
+`node-policy.mjs`, `node-load-guard.mjs`, `internal-loader-arguments.mjs`,
+`node-batch.mjs`, `public-node-v2.mjs`, `run-v3.mjs`, `run-v4.mjs`.
+Their exact executor pins and selected bodies are captured in this sidecar.
+The internal-loader helper is byte-identical at several accepted executor paths;
+the generated content-pin table names the first matching strict-mode locator.
+Use the explicitly named public-author locator above when staging that recipe;
+do not infer a different required subtree from a duplicate-content hash.
+The old runner-node.mjs.data fragment still has the original engine-only path
+test; **run-v3.mjs:136** is the corrected actual inclusion of
+`compiled/support/errors.js`. Do not execute or transplant that obsolete fragment.
+
+Existing `node-policy.json` fields are `log`, `maximum`, `workerEntry`, `adapters`.
+The policy observes create/exit, refuses nested application Workers and verifies:
+empty env/argv; stdout/stderr true; resourceLimits old32/young8/code8/stack4MiB;
+workerData exact `request,entry,identity,sab`; SAB197056bytes; request exact
+`profile,selector,source,program,filename,cwd,argv,env,grants,limits` and
+NP1-CJS-WRQ-L-SYNC-1. Rebind log/entry/adapter paths to each owned layout.
+The raw adapter identity check alone is not a file hash guard.
+
+Existing `load-manifest.json` is `{files,aliases}`. `files[]` contains absolute
+`path`, `bytes`, `sha256`, `builtins` (plus inventory metadata); aliases map the
+root and exact commands/node import to that layout's actual emitted files.
+`node-load-guard.mjs` uses registerHooks, requires regular non-symlink files,
+checks size/hash before import (262144bytes/file), checks per-importer builtin
+edges, rejects unlisted bare package fallback/query/fragment, and emits
+`@@NODE_LOAD` records. The manifest itself is bounded2MiB, loads2048. The
+guard/policy bootstrap files and their config must first be outer-authenticated;
+self-declared identity is not admission. Refresh and compare complete membership,
+not only previously present paths, after materialization and every move.
+
+The old application consumer argv is exactly shaped as:
+`NODE --experimental-permission --allow-fs-read=OWNED_ROOT
+--allow-fs-write=OWNED_ROOT --allow-worker --import POLICY --import LOAD_GUARD
+ENTRY INPUT_JSON`. This is historical scaffolding, not an executable GO here.
+Policy/guard startup and inherited Worker imports need the exact bounded paths.
+Do not duplicate a permission prefix when adapting an already wrapped loader.
+`internalLoaderArguments` separately recognizes a fixed `--loader` consumer
+shape; fixed loader admissions are not application Worker starts or observed
+individual loader exits.
+
+Using old node-batch.mjs also imports focused-v5/workers-v5/public-node.mjs
+regardless of role, so that complete helper closure must be copied and bound;
+the corrected public-node-v2 bytes are staged under the imported public-node
+basename in the versioned recipe. Curie's five workflows need not invoke that

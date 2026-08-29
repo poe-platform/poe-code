@@ -1,0 +1,656 @@
+1ac000527038540d8597b85df37c3db88db3f160 blob 14639
+# PUBLIC95 coherent preflight bindings
+
+2026-08-29. **SOURCE/DATA handoff, not runtime acceptance or execution GO.**
+No compiler/build/product/Worker/engine/guest/network/private execution. No
+Curie fixture edits or expected-index-hash investigation. Current coherent
+composition remains309 inputs / tree3adc676a0ab638c9788ef007e465931d65d2c6fe;
+1014 package members are predicted, not built.16 unchanged Node files do not
+qualify their interaction with the accepted new core.
+
+## Immediate answer for Curie
+
+Use the **existing committed, accepted author INPUTS archive**, not a guessed
+compiled directory or a new engine build. Select exactly its `engine` array:
+**96 entries =95 emitted JavaScript files +1 package.json**.95 means94 engine
+emissions plus the required host FsError support emission. Keep
+`compiled/support/errors.js`; filtering only `compiled/engine/` reproduces the
+old author setup refusal. Copy those96 entries into a fresh owned fixture root,
+removing only the literal `compiled/` prefix, and place the authenticated normal
+adapter at that root. See PUBLIC95-BINDINGS.json for every exact file/hash/edge.
+
+At immutable `aed62f65`, no file named PUBLIC-ENGINE-RECEIPT.json exists anywhere
+in the coherent author subtree: m05-INVENTORY.json records the full subtree.
+The v3 handoff's description is therefore not a usable existing receipt locator.
+This sidecar supplies exact provenance and field bindings; Curie still needs
+to publish its own selected closure/materialization receipt. This does not
+diagnose or change Curie's separate fixture-expected-hash issue.
+
+## Durable records and hash domains
+
+All paths in this section are repository-relative, not live scratch locators.
+
+1. Accepted public Node evidence commit
+   `30ac56acbf12a69b90e1923810958bcbcf367fe0`:
+   `tests/integration/node-public-author-20260829/HANDOFF.md` and
+   `EXECUTOR-v4.json`. The executor has `files[]` records with `path`, `bytes`,
+   `sha256`, plus `acceptedNodeInputs[]` with explicit authority strings.
+   It is not an engine-file array and does not contain emitted bodies.
+   Independent actual acceptance provenance is
+   `27f557ad6a18e06da5438e0d08d8b7ec2a703d94`, same-named independent REPORT.md;
+   ROOT public opt-in acceptance6f449bf4 remains qualified, not new-core proof.
+2. At that same30ac commit, the exact reusable body is
+   `tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64`:
+   **1939657 encoded-file bytes**, SHA256
+   `18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4`.
+   After authenticating that same Buffer, base64 decoding yields1454742 gzip
+   bytes, SHA256
+   `014ebf5c1f325c9f7288e8cb55970bd41bf02604ee727089d0bdb07655692c3c`.
+   Bounded gunzip uses16MiB maximum output. JSON schema is
+   `node-author-input-archive-v1`; fields include `baseline`, `engine`, `tools`,
+   `toolVerification`. **Do not overlay baseline278 onto coherent309.**
+3. `engine[]` records contain `target`, `source`, `bytes`, `sha256`, `inputRole`,
+   optional `commit`, and base64 **`body`**. `source` is historical provenance,
+   not a path to open now. `target` is the exact staged namespace. Package
+   metadata lacks the emission `commit`; do not invent one. This sidecar checks
+   every decoded body against its byte/hash pin and all95 against the original
+   compiler publication and its Git inventory.
+4. Compiler publication `463a945125b900cbb98436b9e9292d78ca6c98aa`:
+   `tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/EMISSION-RECIPE.json`
+   and `run/EMITTED.json`. Recipe SHA256
+   `edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c`.
+   `modules[]` binds `source`, `sourceBytes`, `sourceSha256`, `output`, with
+   `support:true` on the separate FsError source. EMITTED has `files[]` with
+   `path`, `source`, `sourceSha256`, `bytes`, `sha256`, `sourceMapText`, and a
+   `graph[]` of exact imports. Actual95 inputs/1076164 emitted bytes/zero syntax
+   or options diagnostics; **TS5.9.3 transpileModule, NOT strict program checking**.
+   No engine compilation is needed to reuse these immutable emissions.
+5. Public source at the same463 commit:
+   `tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64`,
+   **461669 encoded-file bytes**, SHA256
+   `8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637`.
+   Eight-MiB bounded gunzip after encoded-byte authentication. Schema
+   `public98-exact-core-source-v1`, commit
+   `bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e`, `files[]` has `path`, `mode`,
+   `blob`, `bytes`, `sha256`, **`base64`**, and `proof.commitBase64` plus
+   `proof.trees[] {sha,rawBase64}`. Paths are **packages/safejs-relative**, not
+   monorepo-root-relative. This review checks the commit,15 proof trees and all98
+   file/blob paths through that prefix. The source counterpart of the support
+   emission is the separate `preparation-v3/inputs/errors.ts.data`, not an
+   upstream engine file. No private checkout is involved.
+
+## Exact staged closure and public provider
+
+Let `$FIXTURE` mean the future owner's declared, fresh, regular-file-only
+fixture root (not a path already admitted by this review):
+
+- Each engine record goes to `$FIXTURE/` + `target.slice('compiled/'.length)`.
+  This yields `engine/dist/**`, `engine/package.json`, `support/errors.js`.
+  Do not flatten the support directory. Do not symlink to old author scratch.
+- Normal adapter, at30ac:
+  `tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs`,
+ 1484bytes, SHA256
+  `2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d`,
+  goes to `$FIXTURE/engine-adapter-v1.mjs`. Its exact static import is
+  `./engine/dist/core.js` (`run`, `Budget`), the public ./core export target,
+  not an inferred private ABI. The source entry is `src/core.ts`.
+- The adapter's frozen ABI is `NP1-ENGINE-PUBLIC-SYNC-1`, identity
+  `author-public-bb23-node-adapter-v1`. Public construction already exercised:
+  `createNodeWorkerProvider({entry:pathToFileURL(adapterPath).href,
+  identity:'author-public-bb23-node-adapter-v1',observe})`.
+  `entry` is the **adapter URL**, not product worker-main.js. Identity and URL
+  are trusted configuration, **not byte authentication or host authorization**.
+  Explicit command grants remain separate and default denied.
+- The actual application Worker entry comes from the fresh selected package:
+  `$PACKAGE/dist/commands/node/worker-main.js`. Bind its emitted hash from that
+  package, not an old source/directory. The static adapter is test-side only,
+  never a package dependency or vendored engine.
+- The adapter uses existing Budget maxSteps100000/maxCallDepth128 and a262144
+  byte combined context-prefix/program admission. It does not change the
+  command's fixed limits. Promise constructor, ESM/.js/TLA/npm/npx/async fs/
+  process.exit/package search remain unsupported; Worker-L is not all-jobs/RSS.
+
+PUBLIC95-BINDINGS.json records all95 source/emission mappings, package metadata,
+adapter/guard hashes and10 exact external importer edges from the compiler graph.
+They are host-only scoped edges (`node:crypto`, `node:async_hooks`,
+`node:fs/promises`, `node:path`, `node:util`), **not a guest/global allowlist**.
+SOURCE-EDGES.json retains the whole95-module static graph. Fresh product and
+fixture imports also need admission; authenticating only the engine is insufficient.
+
+## Existing instrumentation: reuse rules, not old execution scope
+
+At30ac, `tests/integration/node-public-author-20260829/` contains:
+`node-policy.mjs`, `node-load-guard.mjs`, `internal-loader-arguments.mjs`,
+`node-batch.mjs`, `public-node-v2.mjs`, `run-v3.mjs`, `run-v4.mjs`.
+Their exact executor pins and selected bodies are captured in this sidecar.
+The internal-loader helper is byte-identical at several accepted executor paths;
+the generated content-pin table names the first matching strict-mode locator.
+Use the explicitly named public-author locator above when staging that recipe;
+do not infer a different required subtree from a duplicate-content hash.
+The old runner-node.mjs.data fragment still has the original engine-only path
+test; **run-v3.mjs:136** is the corrected actual inclusion of
+`compiled/support/errors.js`. Do not execute or transplant that obsolete fragment.
+
+Existing `node-policy.json` fields are `log`, `maximum`, `workerEntry`, `adapters`.
+The policy observes create/exit, refuses nested application Workers and verifies:
+empty env/argv; stdout/stderr true; resourceLimits old32/young8/code8/stack4MiB;
+workerData exact `request,entry,identity,sab`; SAB197056bytes; request exact
+`profile,selector,source,program,filename,cwd,argv,env,grants,limits` and
+NP1-CJS-WRQ-L-SYNC-1. Rebind log/entry/adapter paths to each owned layout.
+The raw adapter identity check alone is not a file hash guard.
+
+Existing `load-manifest.json` is `{files,aliases}`. `files[]` contains absolute
+`path`, `bytes`, `sha256`, `builtins` (plus inventory metadata); aliases map the
+root and exact commands/node import to that layout's actual emitted files.
+`node-load-guard.mjs` uses registerHooks, requires regular non-symlink files,
+checks size/hash before import (262144bytes/file), checks per-importer builtin
+edges, rejects unlisted bare package fallback/query/fragment, and emits
+`@@NODE_LOAD` records. The manifest itself is bounded2MiB, loads2048. The
+guard/policy bootstrap files and their config must first be outer-authenticated;
+self-declared identity is not admission. Refresh and compare complete membership,
+not only previously present paths, after materialization and every move.
+
+The old application consumer argv is exactly shaped as:
+`NODE --experimental-permission --allow-fs-read=OWNED_ROOT
+--allow-fs-write=OWNED_ROOT --allow-worker --import POLICY --import LOAD_GUARD
+ENTRY INPUT_JSON`. This is historical scaffolding, not an executable GO here.
+Policy/guard startup and inherited Worker imports need the exact bounded paths.
+Do not duplicate a permission prefix when adapting an already wrapped loader.
+`internalLoaderArguments` separately recognizes a fixed `--loader` consumer
+shape; fixed loader admissions are not application Worker starts or observed
+individual loader exits.
+
+Using old node-batch.mjs also imports focused-v5/workers-v5/public-node.mjs
+regardless of role, so that complete helper closure must be copied and bound;
+the corrected public-node-v2 bytes are staged under the imported public-node
+basename in the versioned recipe. Curie's five workflows need not invoke that
+whole legacy runner. Do not call nodeLayout and silently add61/24 cohorts or
+their Worker allowance. Existing full-suite source/installed/moved results are
+inherited evidence, not a fresh coherent replay.
+
+## Layouts, tools and remaining preflight work
+
+The accepted recipe builds selected source, packs fully, installs offline with
+scripts disabled, and physically renames the installed parent. Source-built
+means product emissions from the selected source, not TS fallback. Each layout
+must get a fresh packageRoot/moduleRoot, Worker entry, load manifest/aliases,
+static adapter URL and fresh captures. Owned engine regular-file copies may
+remain under a separately declared fixture root; their unchanged hashes must
+still be checked. No symlink or old installed path may rescue moved resolution.
+Alias-loader evidence is not native package-export selection: preserve the
+separate native package resolution/type checks from the accepted public review.
+
+Archive `tools.node` gives the existing v22.22.2 path,112989184bytes/SHA
+`5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`.
+Other `tools` values bind TS5.9.3/npm10.9.7/@types/node22.20.1/undici-types6.21.0,
+with tuple `rows=[relativePath,modeNumber,bytes,sha256]` and `origin` paths.
+They are metadata, not embedded tool bodies or promises those paths still exist.
+Curie's fresh object-row inventory has a different serialization domain: compare
+individual file pins, not tuple-array JSON hash against object-array JSON hash.
+Fresh bounded type/size/hash checks of every actual tool copy are still required.
+
+Smallest remaining author work, without changing engine/version/profile:
+
+1. Publish the selected96+adapter closure and precise archive/encoded/gzip pins;
+   materialize only in a fresh authorized owned namespace, with exact path/mode/
+   byte census. Mode is not an engine-array field: declare staged modes rather
+   than claiming an absent pin. Keep coherent309 source separate from baseline278.
+2. Complete Curie's own outer supervisor, builder and dispatch; bind all actual
+   tools/fixtures/Worker/guard/config/importer paths before any import. Regenerate
+   manifests from authenticated selected inputs, never a permissive HEAD glob.
+3. Produce and authenticate the fresh full1014 package if it actually has1014
+   members. Its SHA/member count remain UNKNOWN until built. Check exact encoded
+   bytes before same-buffer inflate; preserve the old N14 admission-order caveat.
+4. Obtain the separately required engine GO. The proposal has15 planned launches
+   (five workflows×three layouts),18 Node Worker ceiling and12 fixed loader
+   admissions, no RegexWorkers. That proposal is not current authority and does
+   not include E07/E08 or61/24 reruns. Count raw Worker creates/exits, guest-entry
+   observations, loader admissions and OS admin roles separately; no universal
+   process/peak claim. Preserve primary falsy reasons and cleanup-before-credit.
+5. Retain all50 Unit2 identities/layout once, C17's nonasync exact invoke Promise,
+  13 engine-free workflows and the explicit engine slice. Unchanged Node files
+   do not replace these new-core interaction tests. Stop on integrity/capture/
+   unknown retirement; no absent-engine success or unbounded timer workaround.
+
+## This sidecar's evidence and qualifications
+
+DATA extraction v2 authenticates98 public source paths through15 proof trees,
+95 carried emissions and all96 archive entries, plus exact coherent source hash
+`ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae`.
+It does not freshly execute/typecheck/recompile the engine or prove local tool
+availability. No new public API, builtin grant, provider implementation or guest
+feature is proposed. Static accepted engine provenance is reusable; new-core
+runtime acceptance is not inherited.
+
+Original locator/presentation/extractor helper errors remain in LOCATOR-HISTORY
+and EXTRACTION-HISTORY with captures and exact reversible namespace correction.
+No author record is repaired or rescored. The missing coherent receipt is a
+concrete materialization/binding task, not evidence that PUBLIC95 bytes are lost.
+
+c2fd250aa87370d508156631b3c2305e3e7260ca blob 8922
+{
+  "role": "SOURCE_FIXTURE_PRESEAL_NOT_EXECUTION_READY",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+  "sourceInputCount": 309,
+  "sourceChanged": false,
+  "predictedPackageMembers": 1014,
+  "actualPackageSha256": null,
+  "fixtureFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "bytes": 1390,
+      "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/INHERITED-TOOL-BINDINGS.json",
+      "bytes": 1052,
+      "sha256": "724b7c54ec353a5a80d8c3d94f4eb03b0f1235c029e0bec4488979c6178b6d96"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RECEIPTS.json",
+      "bytes": 2274,
+      "sha256": "2c7651f22143179e371d10fc00837d6282254c389702977d3932988678a3f4bb"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RETAINED-FIXTURES.json",
+      "bytes": 6145,
+      "sha256": "e33d38a330051778877e28fccec1b5a08a4cd4639c9671be3ca70f7dfa3c54fe"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SHIPPING-PATHS.nul",
+      "bytes": 9444,
+      "sha256": "8bf61c57d048285d356b60de94089d7b4e96b66d5806b6fa2236417e269000ef"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-AUTHORITIES.json",
+      "bytes": 2009,
+      "sha256": "1cf6c9e09271edb43f64a77191d1a5a94bd2bacee4ffa7f3bbd314f5ce9ac156"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-TREE.json",
+      "bytes": 40195,
+      "sha256": "31b01421fb67dac779d4238ffafb03720a7610430f0295b7407a5f740abdf911"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS-PREP.json",
+      "bytes": 371,
+      "sha256": "eb945189a5106a6bd0658b562b15dfad62f177bc006bb9d5e81b7c1004afa989"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TREE-WITNESSES.json",
+      "bytes": 163171,
+      "sha256": "a51d6e917e43161cc059522e236292ebc5a4d0d2b70c341726d602a6661b23f4"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs",
+      "bytes": 1629,
+      "sha256": "e3e1b120fa4f97c18be4603d731c8c4639789139c8114125038796f7ac89f6a1"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/consumer.ts.fixture",
+      "bytes": 870,
+      "sha256": "6694676de2c93256dc3895a066b0a950aa4b4a6e9a2889fa04dd142995b6b5ab"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/negative.ts.fixture",
+      "bytes": 805,
+      "sha256": "db35c361825e452f0d80b3c5dbb12cf85fe76078cef76238279319b01dabc750"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs",
+      "bytes": 24171,
+      "sha256": "fbfe05cd3b41abdf8fb49ab3b1b42b4bbd21c11e615a60325fb1b61ff862c86b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.sh",
+      "bytes": 388,
+      "sha256": "aa007522f6ee2500678529208870739edf8a02396627c46fbc7dbc6c328ca3e2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs",
+      "bytes": 3593,
+      "sha256": "eb66a961ae08b04133c55e591a53b3e82540fe037b3c5d3ff9ca96d3d2fb8e77"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    }
+  ],
+  "packetFiles": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/prepare.mjs",
+      "bytes": 16053,
+      "sha256": "d708263a57d00656f1b764d379885c704aecf995ef2bdfb5eeb5b402a5580a7b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/outer.sh",
+      "bytes": 518,
+      "sha256": "02cd73e0e58c20fc5195516e39db08601d445dfea677f234237ebcbbda9b55f6"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/HANDOFF.md",
+      "bytes": 4867,
+      "sha256": "bd68d35cb77a17c43cdcc22d531729a7a571edab900c97a2a9be0c0de6a1b5e9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/ADJUDICATION.json",
+      "bytes": 1692,
+      "sha256": "103cf3010a53ca0930d07f371710955ee849806a8854850a9c6c00e74e6f0b3d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/AUTHORITIES.json",
+      "bytes": 4451,
+      "sha256": "f656704a4b2a0a4b5a25efe7505ce282421020de5d66547888b0a8a4ceb6e92a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/CORRECTION-PLAN.json",
+      "bytes": 498,
+      "sha256": "4b555fcbc9eef1583cbef8f8c774aec130c853858a7e0bb13b3f5e97f526a46d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/CORRECTION.patch",
+      "bytes": 16024,
+      "sha256": "0c7f3e0e0b843052af327dd6d6713480be55aa3a841b3e997a2d8b08c1d88a50"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/TOOLS.json",
+      "bytes": 348,
+      "sha256": "b2cc8843d31ed494b86fb5d1e280e5d3e0472228e113bf85b91af1089783974d"
+    }
+  ],
+  "planned": {
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "retainedPerLayout": {
+      "unit1": 48,
+      "unit2": 50,
+      "conditional": 67,
+      "extension": 35,
+      "arrays": 12
+    },
+    "retainedTotal": 636,
+    "n14Separate": 36,
+    "authorWorkflows": {
+      "engineFree": 39,
+      "publicEngineSeparateGrant": 15,
+      "totalFuture": 54
+    },
+    "independentProposals": {
+      "engineFree": 18,
+      "publicEngine": 6,
+      "total": 24,
+      "implementedHere": false
+    },
+    "unit2Rule": "All50 exact IDs/layout; collector rejects duplicate IDs; do not add a second Unit2 corpus.",
+    "node61AndPublic24": "Separate future engine regression recipes with exact version maps; not included in engine-free count or claimed executed."
+  },
+  "proposedActual": {
+    "seconds": 2700,
+    "knownOSStarts": 112,
+    "peak": 4,
+    "captureBytes": 201326592,
+    "workingBytes": 1073741824,
+    "caseSeconds": 30,
+    "buildSeconds": 120,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8,
+    "publicEngineWorkers": 0,
+    "privateInputs": 0
+  },
+  "inheritedDataControls": {
+    "count": 12,
+    "rerun": false,
+    "authority": {
+      "commit": "cf23ba11",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+      "blob": "270c3c8e4734d983d339df24b9ba3b0310b330e6",
+      "mode": "100644",
+      "bytes": 1390,
+      "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+    }
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "developmentGit": {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  },
+  "correction": {
+    "expectedSha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+    "bytes": 15763,
+    "exactIntendedBufferEquality": true,
+    "historicalActualSha256": "298fce206c0c4abf5a9960e9140d5b430267cf9819089a0bbfbb3936af9dabbc",
+    "historicalStopUnchanged": true
+  },
+  "public95": "EXTERNAL_HANDOFF_PENDING_POINCARE_NO_DISCOVERY",
+  "blockers": [
+    "Integrated bounded product supervisor/capture/teardown controls not implemented",
+    "Complete staged retained-helper/import and mutation/restore dispatch not sealed",
+    "PUBLIC95 exact closure pending Poincare for five separate workflows",
+    "Build/full package and actual membership UNRUN; 1014 remains prediction",
+    "Maintained smoke selector writepaths remain proposal only"
+  ],
+  "runAuthority": "NONE: all eighteen workflows UNRUN; no build/compiler/product/Worker/engine/native/private execution"
+}
+
+dbf865426edc438611ac664c137fbf2e7dea8d26 blob 6329
+{
+  "role": "PRODUCER_ONLY_ARTIFACT_BINDINGS_NOT_RUNTIME_LOAD_OBSERVATION",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "sourceManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+  "fixtureSealSha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+  "presealSha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+  "package": {
+    "path": "package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "actualMembers": 1014,
+  "emittedFiles": 1012,
+  "producerReceiptCreated": "2026-08-29T10:10:44.562Z",
+  "sourceAndToolPostguards": true,
+  "sealedHarnessPostguardAtPublication": true,
+  "children": [
+    {
+      "role": "git-metadata",
+      "pid": 33384,
+      "args": [
+        "cat-file",
+        "--batch-check=%(objectname) %(objecttype) %(objectsize)"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 15828,
+      "stderrBytes": 0
+    },
+    {
+      "role": "git-metadata",
+      "pid": 33387,
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 2851826,
+      "stderrBytes": 0
+    },
+    {
+      "role": "strict-build",
+      "pid": 33415,
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/typescript/lib/tsc.js",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "role": "offline-pack",
+      "pid": 33482,
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/npm/bin/npm-cli.js",
+        "pack",
+        "--json",
+        "--offline",
+        "--ignore-scripts",
+        "--pack-destination",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/pack",
+        "--cache",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/cache"
+      ],
+      "cwd": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 113933,
+      "stderrBytes": 0
+    }
+  ],
+  "signals": 0,
+  "sourceInputsFromMutableHead": false,
+  "records": [
+    {
+      "path": "package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "path": "ROOT-IDENTITY.json",
+      "bytes": 178,
+      "sha256": "a84a19be9f6a98987c961998493fd9d94dfa778c5ba52d05f20d9c6eba6ddae2"
+    },
+    {
+      "path": "SOURCE-BEFORE.json",
+      "bytes": 53085,
+      "sha256": "f0a798c5f5e7bf0e3e13554cc3110174a54a54ae080c94c4488600095e4f4e51"
+    },
+    {
+      "path": "TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153"
+    },
+    {
+      "path": "EMITTED.json",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "path": "PACKAGE-OUTPUT-RECEIPT.json",
+      "bytes": 507,
+      "sha256": "1333c9c3261298d49a0d2c0a1dd09bdb96c93bb347b6eb9a9121f37c23eab83d"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1219,
+      "sha256": "baac642d0c6e29b4f47a8a6ec98635b5ff865e17d2f621785c80f1ee94d76c82"
+    },
+    {
+      "path": "capture/00-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/00-git-metadata.stdout",
+      "bytes": 15828,
+      "sha256": "4cd8fae7d79898fd633c673d692b35b7790ab3a2f65af33b20b87414a6507ec2"
+    },
+    {
+      "path": "capture/01-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/01-git-metadata.stdout",
+      "bytes": 2851826,
+      "sha256": "d28c5ecf3668f03a79033396bb1792008534b2f363c8256e162b6e839f06b379"
+    },
+    {
+      "path": "capture/02-strict-build.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/02-strict-build.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stdout",
+      "bytes": 113933,
+      "sha256": "a82ea3b38348050edda371664fd32221617973339af4763046ff330f83e6a936"
+    },
+    {
+      "path": "capture/events.jsonl",
+      "bytes": 5240,
+      "sha256": "5a640dfdfed4d063a400d0b184e6e18ab53a9b39236a86bec9aa51fe1c9fead9"
+    },
+    {
+      "path": "SELECTED-SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    }
+  ],
+  "productImports": 0,
+  "semanticCalls": 0,
+  "stageB": "UNRUN_FRESH_REVIEW_AND_GO_REQUIRED",
+  "public95": "Not loaded/copied; later sidecar3681c910 remains separate",
+  "runtimeLoadTrace": "NONE: manifests are prospective StageB admission data, not observed product loads",
+  "published": "2026-08-29T10:12:38.801Z"
+}
+

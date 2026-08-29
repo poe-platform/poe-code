@@ -1,0 +1,192 @@
+{
+  "role": "PRODUCER_ONLY_ARTIFACT_BINDINGS_NOT_RUNTIME_LOAD_OBSERVATION",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "sourceManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+  "fixtureSealSha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+  "presealSha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+  "package": {
+    "path": "package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "actualMembers": 1014,
+  "emittedFiles": 1012,
+  "producerReceiptCreated": "2026-08-29T10:10:44.562Z",
+  "sourceAndToolPostguards": true,
+  "sealedHarnessPostguardAtPublication": true,
+  "children": [
+    {
+      "role": "git-metadata",
+      "pid": 33384,
+      "args": [
+        "cat-file",
+        "--batch-check=%(objectname) %(objecttype) %(objectsize)"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 15828,
+      "stderrBytes": 0
+    },
+    {
+      "role": "git-metadata",
+      "pid": 33387,
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 2851826,
+      "stderrBytes": 0
+    },
+    {
+      "role": "strict-build",
+      "pid": 33415,
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/typescript/lib/tsc.js",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "role": "offline-pack",
+      "pid": 33482,
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/safe-bash-coherent-stage-a-20260829-r2",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/npm/bin/npm-cli.js",
+        "pack",
+        "--json",
+        "--offline",
+        "--ignore-scripts",
+        "--pack-destination",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/pack",
+        "--cache",
+        "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/cache"
+      ],
+      "cwd": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source",
+      "exitStatus": 0,
+      "closeStatus": 0,
+      "groupAbsent": true,
+      "stdoutBytes": 113933,
+      "stderrBytes": 0
+    }
+  ],
+  "signals": 0,
+  "sourceInputsFromMutableHead": false,
+  "records": [
+    {
+      "path": "package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "path": "ROOT-IDENTITY.json",
+      "bytes": 178,
+      "sha256": "a84a19be9f6a98987c961998493fd9d94dfa778c5ba52d05f20d9c6eba6ddae2"
+    },
+    {
+      "path": "SOURCE-BEFORE.json",
+      "bytes": 53085,
+      "sha256": "f0a798c5f5e7bf0e3e13554cc3110174a54a54ae080c94c4488600095e4f4e51"
+    },
+    {
+      "path": "TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153"
+    },
+    {
+      "path": "EMITTED.json",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "path": "PACKAGE-OUTPUT-RECEIPT.json",
+      "bytes": 507,
+      "sha256": "1333c9c3261298d49a0d2c0a1dd09bdb96c93bb347b6eb9a9121f37c23eab83d"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1219,
+      "sha256": "baac642d0c6e29b4f47a8a6ec98635b5ff865e17d2f621785c80f1ee94d76c82"
+    },
+    {
+      "path": "capture/00-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/00-git-metadata.stdout",
+      "bytes": 15828,
+      "sha256": "4cd8fae7d79898fd633c673d692b35b7790ab3a2f65af33b20b87414a6507ec2"
+    },
+    {
+      "path": "capture/01-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/01-git-metadata.stdout",
+      "bytes": 2851826,
+      "sha256": "d28c5ecf3668f03a79033396bb1792008534b2f363c8256e162b6e839f06b379"
+    },
+    {
+      "path": "capture/02-strict-build.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/02-strict-build.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stdout",
+      "bytes": 113933,
+      "sha256": "a82ea3b38348050edda371664fd32221617973339af4763046ff330f83e6a936"
+    },
+    {
+      "path": "capture/events.jsonl",
+      "bytes": 5240,
+      "sha256": "5a640dfdfed4d063a400d0b184e6e18ab53a9b39236a86bec9aa51fe1c9fead9"
+    },
+    {
+      "path": "SELECTED-SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    }
+  ],
+  "productImports": 0,
+  "semanticCalls": 0,
+  "stageB": "UNRUN_FRESH_REVIEW_AND_GO_REQUIRED",
+  "public95": "Not loaded/copied; later sidecar3681c910 remains separate",
+  "runtimeLoadTrace": "NONE: manifests are prospective StageB admission data, not observed product loads",
+  "published": "2026-08-29T10:12:38.801Z"
+}

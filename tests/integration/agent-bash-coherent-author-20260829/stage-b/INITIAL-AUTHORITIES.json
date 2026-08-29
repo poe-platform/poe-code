@@ -1,0 +1,23 @@
+[
+  {
+    "commit": "3681c910f485673051f59a35c68fcde32c01dbe7",
+    "path": "tests/integration/agent-bash-coherent-independent-20260829/public-engine-preflight/HANDOFF.md",
+    "blob": "1ac000527038540d8597b85df37c3db88db3f160",
+    "bytes": 14639,
+    "sha256": "d20d3f41b04d6673442d1f221249ba87b9d5d9e1802435bfb880be16c3134ad9"
+  },
+  {
+    "commit": "955e7eb7d7f49feb4cf288fcb58a6ba6125073f0",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+    "blob": "c2fd250aa87370d508156631b3c2305e3e7260ca",
+    "bytes": 8922,
+    "sha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c"
+  },
+  {
+    "commit": "d8524695c472cdea1e506bc234f426b4e6829cce",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/BINDINGS.json",
+    "blob": "dbf865426edc438611ac664c137fbf2e7dea8d26",
+    "bytes": 6329,
+    "sha256": "1b9f9f6a01f192cbd8a9f8b94716522ca7aff7ee2c7f679994f72e98256f0b7c"
+  }
+]

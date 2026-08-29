@@ -1,0 +1,108 @@
+{"receiptSha256":"a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de","engineEntries":96,"emissions":95,"sourceEntries":98,"decodedBytes":5238350,"adapterFiles":[{"path":"tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs","bytes":1484,"sha256":"2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"},{"path":"tests/integration/node-public-author-20260829/runner-node.mjs.data","bytes":8276,"sha256":"ae47df981d47ed6ec2e93e8ab0ca671b2dd8bfee152c9408c92968562b4f3957"},{"path":"tests/compatibility/bash-strict-mode-independent-20260829/internal-loader-arguments.mjs","bytes":1391,"sha256":"5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"},{"path":"tests/integration/node-public-author-20260829/node-policy.mjs","bytes":3534,"sha256":"c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123"},{"path":"tests/integration/node-public-author-20260829/node-load-guard.mjs","bytes":2613,"sha256":"7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1"}],"worker":{"path":"dist/commands/node/worker-main.js","bytes":8744,"sha256":"2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d","mode":420}}
+
+ADAPTER_SOURCE tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs
+import {run, Budget} from './engine/dist/core.js';
+export default Object.freeze({
+  abi:'NP1-ENGINE-PUBLIC-SYNC-1', identity:'author-public-bb23-node-adapter-v1',
+  async execute(input) {
+    class InvocationBudget extends Budget {
+      visitNode(){try{return super.visitNode();}catch(reason){input.limited(reason);throw reason;}}
+      enterCall(){try{return super.enterCall();}catch(reason){input.limited(reason);throw reason;}}
+      enterAwait(){try{return super.enterAwait();}catch(reason){input.limited(reason);throw reason;}}
+    }
+    const request=input.request;
+    const context={selector:request.selector,argv:request.argv,env:request.env,cwd:request.cwd,filename:request.filename,directory:request.selector==='file'?request.filename.slice(0,request.filename.lastIndexOf('/'))||'/':request.cwd};
+    const prefix='const __vnodeContext=JSON.parse('+JSON.stringify(JSON.stringify(context))+');\n';
+    if(Buffer.byteLength(prefix)+Buffer.byteLength(request.program)>262144)throw new Error('combined engine source admission');
+    const budget=new InvocationBudget({maxSteps:100000,maxCallDepth:128});
+    try {
+      const result=await run(prefix+request.program,{filename:request.filename,bindings:{__vnodeBridge:input.bridge},budget,sink:{log(){throw new Error('unexpected engine console');},error(){throw new Error('unexpected engine console');}}});
+      return result.ok?{ok:true}:{ok:false,error:result.error};
+    } catch(error) { return {ok:false,error}; }
+  }
+});
+
+
+ADAPTER_SOURCE tests/compatibility/bash-strict-mode-independent-20260829/internal-loader-arguments.mjs
+import assert from 'node:assert/strict';
+export function exactStrings(value) {
+  assert.ok(Array.isArray(value), 'argument array required');
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  assert.ok(Object.hasOwn(descriptors.length, 'value'));
+  const length = descriptors.length.value;
+  assert.ok(Number.isSafeInteger(length) && length >= 0 && length <= 16);
+  const keys = ['length', ...Array.from({ length }, (_, index) => String(index))];
+  assert.deepEqual(Reflect.ownKeys(descriptors).sort(), keys.sort());
+  return Array.from({ length }, (_, index) => {
+    const descriptor = descriptors[String(index)];
+    assert.ok(Object.hasOwn(descriptor, 'value'), 'argument accessor refused');
+    assert.equal(typeof descriptor.value, 'string');
+    return descriptor.value;
+  });
+}
+export function internalLoaderArguments(value, paths) {
+  const args = exactStrings(value);
+  const expected = ['--test-reporter=tap', ...(args.length === 5 ? ['--test-timeout=30000'] : []), '--loader', paths.loader, paths.consumer];
+  assert.deepEqual(args, expected, 'exact loader/consumer arguments required');
+  for (const field of ['root', 'loader', 'bootstrap', 'consumer']) assert.equal(typeof paths[field], 'string');
+  return ['--experimental-permission', '--allow-fs-read=' + paths.root, '--allow-fs-write=' + paths.root, '--allow-worker', '--import', paths.bootstrap, ...args];
+}
+
+
+ADAPTER_SOURCE tests/integration/node-public-author-20260829/node-policy.mjs
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import threads from 'node:worker_threads';
+import {types} from 'node:util';
+import {syncBuiltinESMExports} from 'node:module';
+import childProcess from 'node:child_process';
+import net from 'node:net';import http from 'node:http';import https from 'node:https';import dgram from 'node:dgram';
+const configPath=fileURLToPath(new URL('../node-policy.json',import.meta.url));const stat=fs.lstatSync(configPath);if(!stat.isFile()||stat.size>16384)throw Error('Node policy input');
+const config=JSON.parse(fs.readFileSync(configPath,'utf8'));const main=threads.isMainThread;const NativeWorker=threads.Worker;let count=0;
+const keys=(value,names)=>{if(value===null||typeof value!=='object'||types.isProxy(value))throw Error('Node policy data record');const descriptors=Object.getOwnPropertyDescriptors(value);if(Reflect.ownKeys(descriptors).length!==names.length||names.some(name=>!Object.hasOwn(descriptors,name)||!Object.hasOwn(descriptors[name],'value')))throw Error('Node policy exact own keys');return descriptors;};
+const log=event=>{const text=Buffer.from(JSON.stringify(event)+'\n');const fd=fs.openSync(config.log,'a');try{let offset=0;while(offset<text.length){const size=fs.writeSync(fd,text,offset,text.length-offset);if(size===0)throw Error('policy capture zero');offset+=size;}}finally{fs.closeSync(fd);}};
+if(main)log({kind:'node-policy-bootstrap'});
+threads.Worker=class extends NativeWorker{constructor(entry,options){
+ if(!main)throw Error('nested application Worker refused');
+ const target=fileURLToPath(entry);if(target!==config.workerEntry||fs.realpathSync(target)!==target)throw Error('unbound Node Worker entry');
+ keys(options,['workerData','env','argv','stdout','stderr','resourceLimits']);keys(options.env,[]);
+ if(!Array.isArray(options.argv)||options.argv.length!==0||Reflect.ownKeys(options.argv).length!==1||options.stdout!==true||options.stderr!==true)throw Error('Node Worker stdio/argv');
+ keys(options.resourceLimits,['maxOldGenerationSizeMb','maxYoungGenerationSizeMb','codeRangeSizeMb','stackSizeMb']);
+ for(const [key,value]of Object.entries({maxOldGenerationSizeMb:32,maxYoungGenerationSizeMb:8,codeRangeSizeMb:8,stackSizeMb:4}))if(options.resourceLimits[key]!==value)throw Error('Node Worker limits');
+ keys(options.workerData,['request','entry','identity','sab']);const data=options.workerData;
+ if(!config.adapters.includes(data.entry)||typeof data.identity!=='string'||!types.isSharedArrayBuffer(data.sab)||data.sab.byteLength!==197056)throw Error('Node Worker authority/SAB');
+ keys(data.request,['profile','selector','source','program','filename','cwd','argv','env','grants','limits']);
+ if(data.request.profile!=='NP1-CJS-WRQ-L-SYNC-1'||typeof data.request.program!=='string'||Buffer.byteLength(data.request.program)>262144)throw Error('Node Worker request');
+ if(++count>config.maximum)throw Error('Node Worker cumulative limit');
+ super(entry,options);const identity=count;this.once('exit',code=>log({kind:'node-worker-exit',id:identity,code}));log({kind:'node-worker-create',id:identity,entry:target});
+ }};
+const denied=()=>{throw Error('NODE_PUBLIC_NO_SUBPROCESS_OR_NETWORK');};
+for(const key of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork'])childProcess[key]=denied;
+for(const target of [net,http,https])for(const key of ['connect','createConnection','createServer','request','get'])if(key in target)target[key]=denied;
+dgram.createSocket=denied;globalThis.fetch=denied;syncBuiltinESMExports();
+
+
+ADAPTER_SOURCE tests/integration/node-public-author-20260829/node-load-guard.mjs
+import {readFileSync,lstatSync,writeSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {registerHooks} from 'node:module';
+const manifestPath=fileURLToPath(new URL('../load-manifest.json',import.meta.url));
+const stat=lstatSync(manifestPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>2097152)throw new Error('AUTHOR_LOAD_MANIFEST_ADMISSION');
+const manifest=JSON.parse(readFileSync(manifestPath,'utf8'));const files=new Map(manifest.files.map(row=>[row.path,row]));let records=0;
+function bound(url){const path=fileURLToPath(url);const row=files.get(path);if(!row)throw new Error('AUTHOR_LOAD_UNLISTED '+path);const stat=lstatSync(path);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==row.bytes||stat.size>262144)throw new Error('AUTHOR_LOAD_SIZE '+path);const body=readFileSync(path);const sha=createHash('sha256').update(body).digest('hex');if(sha!==row.sha256)throw new Error('AUTHOR_LOAD_HASH '+path);return {path,row,body};}
+function resolve(specifier,context,next){
+  if(Object.hasOwn(manifest.aliases??{},specifier)){const url=pathToFileURL(manifest.aliases[specifier]);bound(url.href);return {url:url.href,shortCircuit:true};}
+  if(specifier.startsWith('node:')){if(!context.parentURL?.startsWith('file:'))throw new Error('AUTHOR_LOAD_BUILTIN_ORIGIN');const importer=bound(context.parentURL);if(!importer.row.builtins.includes(specifier))throw new Error('AUTHOR_LOAD_BUILTIN_EDGE');return next(specifier,context);}
+  if(!(specifier.startsWith('./')||specifier.startsWith('../')||specifier.startsWith('/')||specifier.startsWith('file:')))throw new Error('AUTHOR_LOAD_PACKAGE_FALLBACK');
+  const url=specifier.startsWith('file:')?new URL(specifier):specifier.startsWith('/')?pathToFileURL(specifier):new URL(specifier,context.parentURL);
+  if(url.search||url.hash)throw new Error('AUTHOR_LOAD_QUERY');bound(url.href);return next(specifier,context);
+}
+function load(url,context,next){
+  if(url.startsWith('node:'))return next(url,context);
+  const item=bound(url);if(++records>2048)throw new Error('AUTHOR_LOAD_COUNT');const line='@@NODE_LOAD '+JSON.stringify({path:item.path,bytes:item.row.bytes,sha256:item.row.sha256})+'\n';const buffer=Buffer.from(line);let offset=0;while(offset<buffer.length){const written=writeSync(2,buffer,offset,buffer.length-offset);if(written===0)throw new Error('AUTHOR_LOAD_CAPTURE_ZERO');offset+=written;}
+  return {format:'module',source:item.body,shortCircuit:true};
+}
+if(typeof registerHooks!=='function')throw new Error('AUTHOR_SYNC_HOOK_UNAVAILABLE');
+registerHooks({resolve,load});
+

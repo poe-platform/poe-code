@@ -1,0 +1,125 @@
+{
+  "role": "SOURCE_ONLY_NOT_EXECUTED",
+  "rows": [
+    {
+      "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+      "relevant": [
+        {
+          "line": 5,
+          "text": "import { expectedNames } from \"./names.mjs\";"
+        },
+        {
+          "line": 48,
+          "text": "  assert.deepEqual((await memory.readdir(\"/\")).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name))), Object.keys(row.files ?? {}).sort().map(name => ({ name, type: \"file\" })));"
+        },
+        {
+          "line": 49,
+          "text": "  for (const [name, content] of Object.entries(row.files ?? {})) assert.deepEqual(Buffer.from(await memory.readFile(\"/\" + name)), bytes(content));"
+        },
+        {
+          "line": 53,
+          "text": "  assert.deepEqual(api.createAgentCommands().map(command => command.name).sort(), expectedNames);"
+        }
+      ]
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+      "relevant": [
+        {
+          "line": 45,
+          "text": "    for (const [name, text] of Object.entries(item.files ?? {})) await memory.writeFile('/' + name, new TextEncoder().encode(text));"
+        },
+        {
+          "line": 55,
+          "text": "    for (const [name, text] of Object.entries(item.files ?? {})) assert.equal(Buffer.from(await memory.readFile('/' + name)).toString(), text);"
+        }
+      ]
+    },
+    {
+      "path": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+      "relevant": []
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+      "relevant": [
+        {
+          "line": 15,
+          "text": "    for (const [name, text] of Object.entries(data.files)) await filesystem.writeFile(name, encoder.encode(text));"
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+      "relevant": []
+    },
+    {
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+      "relevant": []
+    },
+    {
+      "path": "tests/integration/git-public-20260829/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+      "relevant": []
+    },
+    {
+      "path": "tests/integration/git-public-20260829/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+      "relevant": []
+    },
+    {
+      "path": "tests/integration/git-public-20260829/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+      "relevant": [
+        {
+          "line": 1,
+          "text": "export const expectedNames = ["
+        }
+      ]
+    }
+  ]
+}

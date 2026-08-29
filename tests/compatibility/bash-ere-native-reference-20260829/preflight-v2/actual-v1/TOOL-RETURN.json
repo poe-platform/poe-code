@@ -1,0 +1,20 @@
+{
+  "schema": "agent-recorded-tool-return-v1",
+  "role": "transcript tool result, not a fabricated native receipt",
+  "requestTool": "functions.exec_command",
+  "requestChunk": "67c13d",
+  "sessionId": 71922,
+  "pollTool": "functions.write_stdin",
+  "terminalChunk": "7ee52d",
+  "reportedExitCode": 0,
+  "reportedState": "Process exited",
+  "toolSignalField": "NOT_EXPOSED",
+  "toolOutput": "",
+  "runtimeOutputLocation": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer",
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "sandboxPermissions": "require_escalated",
+  "login": false,
+  "prefixRule": "ABSENT",
+  "attempts": 1,
+  "retry": false
+}

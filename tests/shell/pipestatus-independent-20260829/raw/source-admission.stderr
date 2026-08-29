@@ -1,0 +1,12 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/admit-source.mjs:13
+  const digest = hash(bytes); if (bytes.length !== stat.size || (pin && (bytes.length !== pin.bytes || digest !== pin.sha256))) throw Error(`HASH:${file}`);
+                                                                                                                                      ^
+
+Error: HASH:/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/prepare.mjs
+    at read (file:///Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/admit-source.mjs:13:135)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/admit-source.mjs:33:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

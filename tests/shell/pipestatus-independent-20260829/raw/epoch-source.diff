@@ -1,0 +1,22 @@
+diff --git a/src/shell/pipestatus.ts b/src/shell/pipestatus.ts
+index ec859bf75..e4b769a8d 100644
+--- a/src/shell/pipestatus.ts
++++ b/src/shell/pipestatus.ts
+@@ -30,6 +30,8 @@ export async function publishPipelineStatus(
+   const target = pipelineStatusTarget(state);
+   if (target !== "absent" && target !== "indexed") return;
+   const store = requireArrays(state);
++  const monitor = stateMonitor(state)!;
++  const epoch = monitor.epoch;
+   const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+   const holding = store.owner.hold();
+   let staged: IndexedBinding | undefined;
+@@ -50,7 +52,7 @@ export async function publishPipelineStatus(
+     }
+     signal.throwIfAborted();
+     scope.assertOpen();
+-    if (pipelineStatusTarget(state) !== target || !watch.valid()) throw new ArrayFailure("stale PIPESTATUS binding");
++    if (pipelineStatusTarget(state) !== target || monitor.epoch !== epoch || !watch.valid()) throw new ArrayFailure("stale PIPESTATUS binding");
+     let released: Promise<void> | undefined;
+     stateMonitor(state)!.publish(tickets, name, () => {
+       supersede();

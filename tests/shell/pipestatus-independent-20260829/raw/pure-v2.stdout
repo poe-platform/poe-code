@@ -1,0 +1,167 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/PURE-PRESEAL-v2.md
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/pure-v2.mjs
+{
+  "at": "2026-08-29T15:42:27.528Z",
+  "deadline": 1788018925069.1863,
+  "author": [
+    {
+      "id": "G01",
+      "status": "PASS"
+    },
+    {
+      "id": "G02",
+      "status": "PASS"
+    },
+    {
+      "id": "G03",
+      "status": "PASS"
+    },
+    {
+      "id": "G04",
+      "status": "PASS"
+    },
+    {
+      "id": "G05",
+      "status": "PASS"
+    },
+    {
+      "id": "G06",
+      "status": "PASS"
+    },
+    {
+      "id": "G07",
+      "status": "PASS"
+    },
+    {
+      "id": "G08",
+      "status": "PASS"
+    },
+    {
+      "id": "G09",
+      "status": "PASS"
+    },
+    {
+      "id": "G10",
+      "status": "PASS"
+    },
+    {
+      "id": "G11",
+      "status": "PASS"
+    },
+    {
+      "id": "G12",
+      "status": "PASS"
+    },
+    {
+      "id": "G13",
+      "status": "PASS"
+    },
+    {
+      "id": "G14",
+      "status": "PASS"
+    },
+    {
+      "id": "G15",
+      "status": "PASS"
+    },
+    {
+      "id": "G16",
+      "status": "PASS"
+    },
+    {
+      "id": "G17",
+      "status": "PASS"
+    },
+    {
+      "id": "G18",
+      "status": "PASS"
+    },
+    {
+      "id": "G19",
+      "status": "PASS"
+    },
+    {
+      "id": "G20",
+      "status": "PASS"
+    },
+    {
+      "id": "G21",
+      "status": "PASS"
+    },
+    {
+      "id": "G22",
+      "status": "PASS"
+    },
+    {
+      "id": "G23",
+      "status": "PASS"
+    },
+    {
+      "id": "G24",
+      "status": "PASS"
+    }
+  ],
+  "novel": [
+    {
+      "id": "N01",
+      "status": "PASS"
+    },
+    {
+      "id": "N02",
+      "status": "PASS"
+    },
+    {
+      "id": "N03",
+      "status": "PASS"
+    },
+    {
+      "id": "N04",
+      "status": "PASS"
+    },
+    {
+      "id": "N05",
+      "status": "PASS"
+    },
+    {
+      "id": "N06",
+      "status": "PASS"
+    },
+    {
+      "id": "N07",
+      "status": "PASS"
+    },
+    {
+      "id": "N08",
+      "status": "PASS"
+    },
+    {
+      "id": "N09",
+      "status": "PASS"
+    },
+    {
+      "id": "N10",
+      "status": "PASS"
+    },
+    {
+      "id": "N11",
+      "status": "PASS"
+    },
+    {
+      "id": "N12",
+      "status": "PASS"
+    }
+  ],
+  "passed": 36,
+  "total": 36,
+  "closedScopes": 38,
+  "sourceCount": 307,
+  "derivedTree": "74fec4d4e26d9c0b2d27613c15af7a88cb56f628",
+  "productPublicExec": 0,
+  "Workers": 0,
+  "native": 0,
+  "compiler": 0,
+  "correctedReviewerPinRole": "fixtures.size only; source/closure.bytes strict",
+  "originalReviewerSchemaRefusalPreserved": true,
+  "resultSha256": "89afeb5ef182ef68ea9cce256f87f2e2c2186c9749022cff25e43d850ed6c0f3"
+}

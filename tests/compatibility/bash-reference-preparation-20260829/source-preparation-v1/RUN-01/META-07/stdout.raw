@@ -1,0 +1,8 @@
+/Library/Developer/CommandLineTools/usr/bin/libtool (architecture x86_64):
+	@rpath/libLTO.dylib (compatibility version 1.0.0, current version 5100.1.1)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.39.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
+/Library/Developer/CommandLineTools/usr/bin/libtool (architecture arm64):
+	@rpath/libLTO.dylib (compatibility version 1.0.0, current version 5100.1.1)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.39.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)

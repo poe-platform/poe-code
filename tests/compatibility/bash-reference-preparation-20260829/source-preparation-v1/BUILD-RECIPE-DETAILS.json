@@ -1,0 +1,322 @@
+{
+  "source": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+  "sourceInventorySha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+  "selected": [
+    {
+      "filename": "Makefile.in",
+      "sha256": "fe439ebe8ed9eea641f8538881be5b29bbfc7129d5f8e9fd25d04885f52762db",
+      "declarations": [
+        {
+          "line": 19,
+          "code": "all: .made"
+        },
+        {
+          "line": 71,
+          "code": "CC = @CC@"
+        },
+        {
+          "line": 72,
+          "code": "CC_FOR_BUILD = @CC_FOR_BUILD@"
+        },
+        {
+          "line": 74,
+          "code": "SHELL = @MAKE_SHELL@"
+        },
+        {
+          "line": 78,
+          "code": "AR = @AR@"
+        },
+        {
+          "line": 80,
+          "code": "RANLIB = @RANLIB@"
+        },
+        {
+          "line": 116,
+          "code": "Program = bash$(EXEEXT)"
+        },
+        {
+          "line": 148,
+          "code": "LIBS = $(BUILTINS_LIB) $(LIBRARIES) @LIBS@"
+        },
+        {
+          "line": 283,
+          "code": "READLINE_LIB = @READLINE_LIB@"
+        },
+        {
+          "line": 286,
+          "code": "READLINE_DEP = @READLINE_DEP@"
+        },
+        {
+          "line": 356,
+          "code": "TERMCAP_LIB = @TERMCAP_LIB@"
+        },
+        {
+          "line": 403,
+          "code": "INTL_DEP = @INTL_DEP@"
+        },
+        {
+          "line": 412,
+          "code": "LIBINTL = @LIBINTL@"
+        },
+        {
+          "line": 595,
+          "code": "SUPPORT_SRC = $(srcdir)/support/"
+        },
+        {
+          "line": 599,
+          "code": "CREATED_SUPPORT = signames.h recho$(EXEEXT) zecho$(EXEEXT) printenv$(EXEEXT) \\"
+        },
+        {
+          "line": 617,
+          "code": "CREATED_HEADERS = signames.h config.h pathnames.h version.h \\"
+        },
+        {
+          "line": 621,
+          "code": "OTHER_DOCS = $(srcdir)/CHANGES $(srcdir)/COMPAT $(srcdir)/NEWS $(srcdir)/POSIX \\"
+        },
+        {
+          "line": 695,
+          "code": "version.h:  $(SOURCES) config.h Makefile patchlevel.h"
+        },
+        {
+          "line": 783,
+          "code": "mksignames.o:\t$(SUPPORT_SRC)mksignames.c"
+        },
+        {
+          "line": 789,
+          "code": "mksignames$(EXEEXT):\tmksignames.o buildsignames.o"
+        },
+        {
+          "line": 793,
+          "code": "mksyntax$(EXEEXT):\t${srcdir}/mksyntax.c buildconf.h syntax.h ${BASHINCDIR}/chartypes.h"
+        },
+        {
+          "line": 804,
+          "code": "signames.h: $(SIGNAMES_H)"
+        },
+        {
+          "line": 807,
+          "code": "syntax.c:\tmksyntax${EXEEXT} $(srcdir)/syntax.h "
+        }
+      ],
+      "codeReferenceTokens": [
+        "./mksignames",
+        "./mksyntax",
+        "./mkversion",
+        "config.status",
+        "gettext",
+        "libiconv",
+        "libintl",
+        "support/Makefile",
+        "support/mkdist",
+        "support/mkdist.",
+        "termcap"
+      ],
+      "tokensNotProofOfExecutedDependency": true
+    },
+    {
+      "filename": "builtins/Makefile.in",
+      "sha256": "d89046dcb1604c10ed7ae2a1c211b7dc791d2201d70c18c55b67664015d00755",
+      "declarations": [
+        {
+          "line": 25,
+          "code": "SHELL = @MAKE_SHELL@"
+        },
+        {
+          "line": 26,
+          "code": "RANLIB = @RANLIB@"
+        },
+        {
+          "line": 27,
+          "code": "CC = @CC@"
+        },
+        {
+          "line": 28,
+          "code": "CC_FOR_BUILD = @CC_FOR_BUILD@"
+        },
+        {
+          "line": 29,
+          "code": "AR = @AR@"
+        },
+        {
+          "line": 71,
+          "code": "LIBS = @LIBS@"
+        },
+        {
+          "line": 90,
+          "code": "INTL_DEP = @INTL_DEP@"
+        },
+        {
+          "line": 112,
+          "code": "MKBUILTINS = mkbuiltins$(EXEEXT)"
+        },
+        {
+          "line": 173,
+          "code": "all: $(MKBUILTINS) libbuiltins.a $(HELPFILES_TARGET)"
+        },
+        {
+          "line": 228,
+          "code": "mkbuiltins.o: ../config.h"
+        },
+        {
+          "line": 229,
+          "code": "mkbuiltins.o: mkbuiltins.c"
+        },
+        {
+          "line": 233,
+          "code": "mkbuiltins$(EXEEXT): mkbuiltins.o"
+        },
+        {
+          "line": 237,
+          "code": "mkbuiltins.o: mkbuiltins.c"
+        },
+        {
+          "line": 388,
+          "code": "mkbuiltins.o: ../config.h $(topdir)/bashtypes.h $(BASHINCDIR)/posixstat.h"
+        },
+        {
+          "line": 389,
+          "code": "mkbuiltins.o: ${BASHINCDIR}/filecntl.h"
+        },
+        {
+          "line": 390,
+          "code": "mkbuiltins.o: $(topdir)/bashansi.h $(BASHINCDIR)/ansi_stdlib.h"
+        },
+        {
+          "line": 750,
+          "code": "mkbuiltins.o: ${topdir}/bashintl.h ${LIBINTL_H} $(BASHINCDIR)/gettext.h"
+        }
+      ],
+      "codeReferenceTokens": [
+        "gettext",
+        "libintl",
+        "support/mkdirs"
+      ],
+      "tokensNotProofOfExecutedDependency": true
+    },
+    {
+      "filename": "lib/readline/Makefile.in",
+      "sha256": "e776c591d19ff81eac95bb0c96dadf7e2f3f4a3e744038ebca7c2806352c0b1c",
+      "declarations": [
+        {
+          "line": 41,
+          "code": "CC = @CC@"
+        },
+        {
+          "line": 42,
+          "code": "RANLIB = @RANLIB@"
+        },
+        {
+          "line": 43,
+          "code": "AR = @AR@"
+        },
+        {
+          "line": 49,
+          "code": "SHELL = @MAKE_SHELL@"
+        },
+        {
+          "line": 128,
+          "code": "all: libreadline.a libhistory.a"
+        }
+      ],
+      "codeReferenceTokens": [],
+      "tokensNotProofOfExecutedDependency": true
+    },
+    {
+      "filename": "lib/sh/Makefile.in",
+      "sha256": "65bed62026b559ab851a5ed3c6d1d3f41262da28ec19cc212f165f9a167df5ef",
+      "declarations": [
+        {
+          "line": 49,
+          "code": "CC = @CC@"
+        },
+        {
+          "line": 50,
+          "code": "RANLIB = @RANLIB@"
+        },
+        {
+          "line": 51,
+          "code": "AR = @AR@"
+        },
+        {
+          "line": 57,
+          "code": "SHELL = @MAKE_SHELL@"
+        },
+        {
+          "line": 124,
+          "code": "all: $(LIBRARY_NAME)"
+        }
+      ],
+      "codeReferenceTokens": [
+        "gettext"
+      ],
+      "tokensNotProofOfExecutedDependency": true
+    },
+    {
+      "filename": "configure",
+      "sha256": "0067a8ec3bd2e6a0f9a5c1f6bf81fef653b48f7be21661b3dc931b0d72f1f4cd",
+      "declarations": [],
+      "codeReferenceTokens": [
+        "bison",
+        "config.guess",
+        "config.status",
+        "config.sub",
+        "conftest",
+        "conftest.",
+        "conftest.beam",
+        "conftest.c",
+        "conftest.chown",
+        "conftest.dSYM",
+        "conftest.dir",
+        "conftest.er1",
+        "conftest.err",
+        "conftest.exe",
+        "conftest.i",
+        "conftest.in",
+        "conftest.make",
+        "conftest.mmap",
+        "conftest.nl",
+        "conftest.o",
+        "conftest.obj",
+        "conftest.one",
+        "conftest.out",
+        "conftest.rlv",
+        "conftest.sed",
+        "conftest.sh",
+        "conftest.sym",
+        "conftest.tmp",
+        "conftest.two",
+        "conftest.txt",
+        "conftest.val",
+        "conftest.y",
+        "conftest1.c",
+        "conftest2.c",
+        "conftest_c11_globals",
+        "conftest_c11_main",
+        "conftest_c11_program",
+        "conftest_c89_globals",
+        "conftest_c89_main",
+        "conftest_c89_program",
+        "conftest_c99_globals",
+        "conftest_c99_main",
+        "conftest_c99_program",
+        "conftest_ipa8_conftest.oo",
+        "gettext",
+        "libiconv",
+        "libintl",
+        "msgfmt",
+        "ncurses",
+        "support/Makefile",
+        "support/bash.pc",
+        "support/bashbug.sh",
+        "support/knowledgecenter",
+        "support/shobj-conf",
+        "termcap",
+        "tinfo",
+        "yacc"
+      ],
+      "tokensNotProofOfExecutedDependency": true
+    }
+  ],
+  "scope": "STATIC_CODE_REFERENCES_ONLY_NO_HELPER_EXECUTION"
+}

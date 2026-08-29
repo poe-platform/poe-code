@@ -1,0 +1,24 @@
+{
+  "tool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  "argv": [
+    "-L",
+    "/Library/Developer/CommandLineTools/usr/bin/ld"
+  ],
+  "cwd": "/tmp/safe-bash-reference-source-20260829-fn91Rw",
+  "env": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/META-05/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/META-05/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/META-05/empty-bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "deadlineMs": 10000,
+  "streamCap": 1048576
+}

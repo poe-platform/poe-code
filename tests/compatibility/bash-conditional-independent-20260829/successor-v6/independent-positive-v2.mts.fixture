@@ -1,0 +1,23 @@
+import { parseShell, type ShellLimits } from 'virtual-bash';
+type Script = ReturnType<typeof parseShell>;
+type Command = Script['lists'][number]['pipelines'][number]['commands'][number];
+type Conditional = Extract<Command, { kind: 'conditional' }>;
+const conditionalKind: Conditional['kind'] = 'conditional';
+const limits: Partial<ShellLimits> = { maxExpansionBytes: 128, maxOutputBytes: 128 };
+function neverCommand(value: never): never { throw new Error(String(value)); }
+function inspect(command: Command): string {
+  switch (command.kind) {
+    case 'conditional': return command.kind + ':' + command.redirects.length;
+    case 'simple': case 'subshell': case 'group': case 'if': case 'case':
+    case 'while': case 'until': case 'for': case 'function': case 'arithmetic': return command.kind;
+    default: return neverCommand(command);
+  }
+}
+for (const list of parseShell('[[ x ]]').lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) inspect(command);
+void conditionalKind; void limits;
+
+import { FsError as leafError } from "virtual-bash/contracts";
+import { FsError } from "virtual-bash";
+const leafErrorValue: FsError = new leafError("ENOENT"); void leafErrorValue;
+
+

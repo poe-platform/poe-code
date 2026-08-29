@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-29T13:16:52.832Z",
+  "bytes": 31461,
+  "entries": 6,
+  "files": [
+    {
+      "path": "HANDOFF.raw",
+      "bytes": 3243,
+      "sha256": "eb085693d582c484e2d46a222a86490e0fab1b6073ced1e08a30b33c663d0974"
+    },
+    {
+      "path": "INSPECTION.json",
+      "bytes": 4553,
+      "sha256": "303e77929c555470ee80dc0dcb5cfd8882af93fc5113dbafc8a7de895e4a7b89"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 6440,
+      "sha256": "8b90b85c6ebd2ec02f3b113bc8dad25d161f8877ad1f907a1facf506ceda04c5"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 1067,
+      "sha256": "f335fce9be2befc6f6619ab4fab12e82417d83f85b6692d7a5c99e380a689deb"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 735,
+      "sha256": "fb58d502cc392f9cbe805dbf9772637d018fadbb518d242c9f37d4e038ed930b"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 15423,
+      "sha256": "0fd2e07aa86442c73500aa905f75c9d7da239e6987a48aab8288ef344e326a3d"
+    }
+  ],
+  "capture": "/tmp/native26-slot-publish-o1Xs4e"
+}

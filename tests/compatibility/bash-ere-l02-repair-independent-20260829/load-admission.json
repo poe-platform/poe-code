@@ -1,0 +1,602 @@
+{
+  "admitted": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-l02-repair-independent-20260829/evidence-tree.txt",
+      "bytes": 11445,
+      "sha256": "cb68476e1cecc3a807d7093af411a8d43dd492c4efbfa11366ec4aa269de08c6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD-PRESEAL.json",
+      "bytes": 94676,
+      "sha256": "65c7431b0c9fad8853bf5c36e23d50ddbad97a6e4e5bd61bb37ac2321d702333"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/RESULT.json",
+      "bytes": 18545,
+      "sha256": "27d2ace260e16b5bacf106b4171eafc9f22206b429f466d7ed5d53435ceea293"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/compiler.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/compiler.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/host-doubles.stderr",
+      "bytes": 1542,
+      "sha256": "4c9468e30d6675b8f516bd15395a6112a2b31e4926d4d9d928ff602bbf02f2ce"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/host-doubles.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/owner.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/owner.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/COMMAND.txt",
+      "bytes": 605,
+      "sha256": "828823c09146480b386dfda669abc78e83b4a76a22881ac1744a7b272ae543e7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-OWNER-v2.json",
+      "bytes": 1984,
+      "sha256": "29a3a5d3a766b8f135fb50e5dde58985dc63a1553cd044f4c427fc66b5fef871"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-PRESEAL-v2.json",
+      "bytes": 10221,
+      "sha256": "e22bb35e987e2be7f41293b216bf301c348dd5fe3f760183304e25844e198b9b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-RESULT-v2.json",
+      "bytes": 2612,
+      "sha256": "f52a13cdcc298f760abe2cbc2dbf721426b11eed30273e546d450f9dc47904af"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/FOLLOWUP-13.json",
+      "bytes": 5646,
+      "sha256": "260e8c086be1fe6979830de584dca380720dcb051513dce94b88448d071e30a3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/HANDOFF.md",
+      "bytes": 4588,
+      "sha256": "2df27a9449fd9eaa3f9c226494b01cb964dba4dc6cd7c3fceac2a017ef45a8e8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PACKAGE.tgz.base64.data",
+      "bytes": 24001,
+      "sha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRESEAL.json",
+      "bytes": 981,
+      "sha256": "cb22714952da9fb5dc3a4cd58db89f13cb20e73e7c5c9b88fcdab2043f767359"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRODUCER.json",
+      "bytes": 5127,
+      "sha256": "019575d863dbc99abcdcb3bb2a0aeb7f712c3812822f2ff90a21e7d4be7b6dbc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PUBLICATION-PRESEAL.json",
+      "bytes": 1449,
+      "sha256": "f16d5c90a7f9f6ad6ac431ddcd2b044b7e4b68182d13dfde7b817265cefbd4d0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PUBLICATION-QUALIFICATION.md",
+      "bytes": 2322,
+      "sha256": "348c302b01318fcc35f230377c589d49ab5a728f89caf8940fa53ff8d05743a3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/REMAINING-COVERAGE.json",
+      "bytes": 6495,
+      "sha256": "046bdbb6e6527e7c436598165d5246a4ed0a710288ced2698015095f5aadb188"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/RESULTS.json",
+      "bytes": 11648,
+      "sha256": "d8d48cf49bb4edc32ea69c449b9d8200fc6b1fb896d933c1eb7f76c145e2688e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/SOURCES.json",
+      "bytes": 108823,
+      "sha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/build-and-doubles.mjs",
+      "bytes": 10111,
+      "sha256": "068a97932a5280b9790c5e132e9584bb5b9a85ed7a523ec05193b231ed63f303"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/activation.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/activation.stdout",
+      "bytes": 89,
+      "sha256": "4d402082351326b562b4ed4e808af3c5e3ec22a8537283af68b15c67a3dc93bd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/commits.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/commits.stdout",
+      "bytes": 82,
+      "sha256": "e8ca50df46440239d202f7c9c5770c14c56b11eda4a07530703db07f28a20b97"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/data-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/data-patch.stdout",
+      "bytes": 260,
+      "sha256": "5016944f2a79f3e75c900d53fdaa254d3fedd2e8197b27e22c1c4a961c82a929"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/diff-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/diff-check.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/doubles-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/doubles-v2.stdout",
+      "bytes": 38,
+      "sha256": "282a0909b8573e74d56dc06ac979a2a5765b244166d4c7a0a6022ddc22e525c5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/final-note-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/final-note-patch.stdout",
+      "bytes": 159,
+      "sha256": "6a295177da04a11e2288fca355234baa25fecd7ed27cdf690b528202d3594a29"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/fixture-v2-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/fixture-v2-patch.stdout",
+      "bytes": 262,
+      "sha256": "1981825ebfe5009783b7f1d3e605b35ff7aa47018604e77ce480b298e5608659"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/patch.stdout",
+      "bytes": 145,
+      "sha256": "0cb1f265548e61cacf5d3002a339c263a7dfba63c350bdcfa319f2e15236c4b8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation-patch.stdout",
+      "bytes": 369,
+      "sha256": "264ce6c45e9bd7831f70180c68ba8fb2380ab1224d5e80629fff3ca08298b7ec"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation.jsonl",
+      "bytes": 237,
+      "sha256": "319d40087a5f895e5636f8859dfbbe7951a819f42300f3350e8772466f5ad793"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-commit.stdout",
+      "bytes": 1026,
+      "sha256": "137d81f0ae5a0203f203f391ee0c81498c764e65cfec5b65df07dfc7a98b0fd4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stderr",
+      "bytes": 4293,
+      "sha256": "0f3ab511dd52025930bdf4221d9ec165c8ff094fa38d60a57b1a00a21abb41d8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-patch.stdout",
+      "bytes": 272,
+      "sha256": "f16c8b5ad3f32ed89fedca1a6e59baad183ffcfb6fe580598314965c36607adf"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-commit.stdout",
+      "bytes": 915,
+      "sha256": "cdaeb8cc11b1abbe14f7a475236557d2bbe82fc6d1649c254e0485361b77c11c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/status-initial.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/status-initial.stdout",
+      "bytes": 94,
+      "sha256": "77ec5b9069aaab8b687fcb8694b466b046fb88e85ab8da5e34495b5b2e918271"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-activation.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-activation.stdout",
+      "bytes": 44,
+      "sha256": "da64338151c12338bf38a9255740961de392dcecaf40764e32dce005d15ae53c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-commit.stdout",
+      "bytes": 516,
+      "sha256": "f5abb156db79251038cc5a2207b757c1100c53397520427a9470045bb7bc6783"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/double-owner-v2.mjs",
+      "bytes": 2241,
+      "sha256": "7a621c8dfe4fb29e8f45897887c567afa2fc4f1d7cca0ed9e21be8084f2dfb27"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs",
+      "bytes": 1479,
+      "sha256": "9a07119b77259db123aed83368da7e4a24f3f659112d2ab3dff4bf973c35c27c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs",
+      "bytes": 7838,
+      "sha256": "d22ab1125f14f5a47250fbcbc31ca1a4f7597fb7f582dd3360bcd10d56f9ee65"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs",
+      "bytes": 7834,
+      "sha256": "729a9e631941fd6ac5f3d32611b45dfe2aedf848b1f3a73842890558f8eb4c3f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/publication-data.mjs",
+      "bytes": 3032,
+      "sha256": "160deaebe1e23828f244cb758e9d6f5ad6555c9cf21e80a8f70769421dde45b8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/worker-bridge-single-fault-v2.mjs.data",
+      "bytes": 2866,
+      "sha256": "c41984bb63435c9e59597692e42f8fd380b78a0e8af70bc3089aa08d047f91a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRODUCER.json",
+      "bytes": 5127,
+      "sha256": "019575d863dbc99abcdcb3bb2a0aeb7f712c3812822f2ff90a21e7d4be7b6dbc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/SOURCES.json",
+      "bytes": 108823,
+      "sha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-owner.txt",
+      "bytes": 8747,
+      "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-root.txt",
+      "bytes": 13958,
+      "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PACKAGE.tgz.base64.data",
+      "bytes": 24001,
+      "sha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.d.ts",
+      "bytes": 691,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.js",
+      "bytes": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.d.ts",
+      "bytes": 671,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.js",
+      "bytes": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.d.ts",
+      "bytes": 231,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.js",
+      "bytes": 9747,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.d.ts",
+      "bytes": 445,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.js",
+      "bytes": 14270,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.d.ts",
+      "bytes": 1925,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.js",
+      "bytes": 7003,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.d.ts",
+      "bytes": 658,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+      "bytes": 9897,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.d.ts",
+      "bytes": 2658,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.js",
+      "bytes": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.d.ts",
+      "bytes": 645,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js",
+      "bytes": 14619,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.d.ts",
+      "bytes": 1462,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.js",
+      "bytes": 12831,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.d.ts",
+      "bytes": 164,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.js",
+      "bytes": 2514,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.d.ts",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.js",
+      "bytes": 1502,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.d.ts",
+      "bytes": 1606,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-PRESEAL-v2.json",
+      "bytes": 10221,
+      "sha256": "e22bb35e987e2be7f41293b216bf301c348dd5fe3f760183304e25844e198b9b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs",
+      "bytes": 7838,
+      "sha256": "d22ab1125f14f5a47250fbcbc31ca1a4f7597fb7f582dd3360bcd10d56f9ee65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs",
+      "bytes": 1479,
+      "sha256": "9a07119b77259db123aed83368da7e4a24f3f659112d2ab3dff4bf973c35c27c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-l02-repair-independent-20260829/fixed-host.mjs",
+      "bytes": 2343,
+      "sha256": "e7030de0e5bf88988084526ce14ed1d1186e52939a9d67f9960337c374bf9eb1"
+    }
+  ],
+  "sourcePins": [
+    {
+      "name": "errors.ts",
+      "bytes": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542"
+    },
+    {
+      "name": "limits.ts",
+      "bytes": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542"
+    },
+    {
+      "name": "matcher.ts",
+      "bytes": 9759,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542"
+    },
+    {
+      "name": "syntax.ts",
+      "bytes": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542"
+    },
+    {
+      "name": "transport/accounting.ts",
+      "bytes": 7115,
+      "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570"
+    },
+    {
+      "name": "transport/owner.ts",
+      "bytes": 8747,
+      "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098",
+      "sourceCommit": "CURRENT_PRESEALED_SUCCESSOR"
+    },
+    {
+      "name": "transport/protocol.ts",
+      "bytes": 2815,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570"
+    },
+    {
+      "name": "transport/root.ts",
+      "bytes": 13958,
+      "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb",
+      "sourceCommit": "CURRENT_PRESEALED_SUCCESSOR"
+    },
+    {
+      "name": "transport/validation.ts",
+      "bytes": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570"
+    },
+    {
+      "name": "transport/wire-engine.ts",
+      "bytes": 2481,
+      "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570"
+    },
+    {
+      "name": "transport/worker-entry.ts",
+      "bytes": 1460,
+      "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570"
+    },
+    {
+      "name": "types.ts",
+      "bytes": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542"
+    }
+  ],
+  "compressedBytes": 18000,
+  "compressedSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "archiveInflations": 0,
+  "emittedFiles": 24,
+  "packageEntries": 25,
+  "replayBodySha256": "acb2913e3b5babef3e016854bceb1d9c69207b90bcf1b466d233dce489f3935f",
+  "replayAdaptations": [
+    "replace author loader bootstrap with stricter outer allowlist",
+    "redirect output to independent owned subtree"
+  ],
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  }
+}

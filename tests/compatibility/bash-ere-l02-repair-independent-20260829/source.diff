@@ -1,0 +1,236 @@
+diff --git a/src/commands/regex-execution/ere/transport/owner.ts b/src/commands/regex-execution/ere/transport/owner.ts
+index 547a529f9..7ca56c0bc 100644
+--- a/src/commands/regex-execution/ere/transport/owner.ts
++++ b/src/commands/regex-execution/ere/transport/owner.ts
+@@ -30,8 +30,28 @@ export class EreWorkerOwner {
+   #exitListenerInstalled = false;
+   #notificationFailed = false;
+   #notificationFailure: unknown;
++  #retirementState: "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" = "NOT_ACQUIRED";
++  #cleanupPresent = false;
++  #cleanupReason: unknown;
++  #exitObserved = false;
++  #stdoutObserved = false;
++  #stderrObserved = false;
+   constructor(readonly onFailure: (reason: unknown) => void, readonly transport: TransportAccounting) {}
+ 
++  get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" { return this.#retirementState; }
++  get cleanupFailurePresent(): boolean { return this.#cleanupPresent; }
++  get cleanupFailureReason(): unknown { return this.#cleanupReason; }
++
++  #cleanupFailure(reason: unknown): void {
++    if (!this.#cleanupPresent) { this.#cleanupPresent = true; this.#cleanupReason = reason; }
++  }
++
++  #throwFailure(): void {
++    if (this.#failed) throw this.#failure;
++    if (this.#cleanupPresent) throw this.#cleanupReason;
++    if (this.#notificationFailed) throw this.#notificationFailure;
++  }
++
+   #settle(reason: unknown): void {
+     clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+     this.#readyReject?.(reason);
+@@ -49,13 +69,17 @@ export class EreWorkerOwner {
+     void this.close().catch(() => {});
+   }
+ 
+-  #stream(stream: Readable): Promise<void> {
+-    const ended = new Promise<void>(resolve => {
+-      stream.once("end", resolve); stream.once("close", resolve);
+-      stream.on("error", (reason: unknown) => this.#fail(reason));
+-      stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+-      if (stream.readableEnded || stream.closed) resolve();
+-    });
++  #stream(stream: Readable, channel: "stdout" | "stderr"): Promise<void> {
++    let resolveEnd: () => void = () => {};
++    const ended = new Promise<void>(resolve => { resolveEnd = resolve; });
++    const observe = (): void => {
++      if (channel === "stdout") this.#stdoutObserved = true; else this.#stderrObserved = true;
++      resolveEnd();
++    };
++    stream.once("end", observe); stream.once("close", observe);
++    stream.on("error", (reason: unknown) => this.#fail(reason));
++    stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
++    if (stream.readableEnded || stream.closed) observe();
+     return ended;
+   }
+ 
+@@ -71,16 +95,24 @@ export class EreWorkerOwner {
+           workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
+           resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
+         });
+-        this.#worker = worker;
+-        worker.once("exit", () => {
+-          this.#exitResolve?.();
+-          if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+-        });
+-        this.#exitListenerInstalled = true;
+-        worker.on("error", (reason: unknown) => this.#fail(reason));
+-        worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+-        this.#stdout = this.#stream(worker.stdout);
+-        this.#stderr = this.#stream(worker.stderr);
++        this.#worker = worker; this.#retirementState = "PENDING";
++        let setupFailed = false;
++        let setupFailure: unknown;
++        try {
++          worker.once("exit", () => {
++            this.#exitObserved = true; this.#exitResolve?.();
++            if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
++          });
++          this.#exitListenerInstalled = true;
++          worker.on("error", (reason: unknown) => this.#fail(reason));
++          worker.on("messageerror", (reason: unknown) => this.#fail(reason));
++        } catch (reason) { setupFailed = true; setupFailure = reason; }
++        try { this.#stdout = this.#stream(worker.stdout, "stdout"); }
++        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
++        try { this.#stderr = this.#stream(worker.stderr, "stderr"); }
++        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
++        if (setupFailed) throw setupFailure;
++        if (this.#failed) throw this.#failure;
+         worker.on("message", (message: unknown) => {
+           if (this.#closing || this.#failed) return;
+           try {
+@@ -127,16 +159,25 @@ export class EreWorkerOwner {
+     const request = this.#request;
+     this.#closing = Promise.resolve().then(async () => {
+       const worker = this.#worker;
+-      const termination = Promise.resolve().then(async () => {
+-        if (!worker) return;
+-        await worker.terminate();
+-        if (!this.#exitListenerInstalled) this.#exitResolve?.();
+-      });
+-      const retired = await Promise.allSettled([termination, this.#exited, this.#stdout, this.#stderr]);
+-      await Promise.allSettled([ready, request]);
+-      for (const result of retired) if (result.status === "rejected") throw result.reason;
+-      if (this.#notificationFailed) throw this.#notificationFailure;
++      let terminationFailed = false;
++      try {
++        if (worker) {
++          await worker.terminate();
++          this.#exitObserved = true;
++          if (!this.#exitListenerInstalled) this.#exitResolve?.();
++        }
++      } catch (reason) { terminationFailed = true; this.#cleanupFailure(reason); }
++      if (worker && ((terminationFailed && !(this.#exitObserved && this.#stdoutObserved && this.#stderrObserved)) ||
++          (!this.#stdout && !this.#stdoutObserved) || (!this.#stderr && !this.#stderrObserved))) {
++        this.#retirementState = "UNCONFIRMED";
++        await Promise.allSettled([ready, request]);
++        this.#throwFailure();
++        return;
++      }
++      await Promise.allSettled([this.#exited, this.#stdout, this.#stderr, ready, request]);
++      this.#retirementState = "RETIRED";
+       this.#worker = undefined;
++      this.#throwFailure();
+     });
+     this.#settle(this.#failed ? this.#failure : new EreTransportError("CLOSED", "ERE Worker closed"));
+     void this.#closing.catch(() => {});
+diff --git a/src/commands/regex-execution/ere/transport/root.ts b/src/commands/regex-execution/ere/transport/root.ts
+index 0e7c7ab6f..fb608736e 100644
+--- a/src/commands/regex-execution/ere/transport/root.ts
++++ b/src/commands/regex-execution/ere/transport/root.ts
+@@ -69,7 +69,9 @@ export class EreTransportRoot {
+     const close = (): Promise<void> => {
+       if (closing) return closing;
+       closed = true;
+-      closing = this.#closeSession(id).finally(() => { this.#sessions.delete(id); metadata.retire(); });
++      closing = this.#closeSession(id).finally(() => {
++        if (this.#worker?.retirementState !== "UNCONFIRMED") { this.#sessions.delete(id); metadata.retire(); }
++      });
+       return closing;
+     };
+     try { registerCleanup(close); }
+@@ -145,6 +147,11 @@ export class EreTransportRoot {
+     if (!ticket) return;
+     this.#active = ticket;
+     const complete = (outcome: { ok: true; value: EreTransportResult } | { ok: false; reason: unknown }): void => {
++      if (this.#worker?.retirementState === "UNCONFIRMED") {
++        this.#closed = true;
++        ticket.reject(outcome.ok ? this.#failurePresent ? this.#failure : this.#worker.cleanupFailureReason : outcome.reason);
++        return;
++      }
+       try {
+         if (!this.#retiring || this.#retired) this.#release(ticket);
+         else if (ticket.cancelListener) { ticket.signal?.removeEventListener("abort", ticket.cancelListener); ticket.cancelListener = undefined; }
+@@ -164,7 +171,10 @@ export class EreTransportRoot {
+ 
+   #retireWorker(): Promise<void> {
+     if (!this.#retiring) {
+-      this.#retiring = Promise.resolve().then(async () => { await this.#worker?.close(); this.#retired = true; });
++      this.#retiring = Promise.resolve().then(async () => {
++        try { await this.#worker?.close(); }
++        finally { this.#retired = !this.#worker || this.#worker.retirementState === "RETIRED"; }
++      });
+       void this.#retiring.catch(() => {});
+     }
+     return this.#retiring;
+@@ -181,7 +191,7 @@ export class EreTransportRoot {
+       if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
+       replyStorage = this.#transport.reserve(479);
+       if (!this.#worker) {
+-        this.#workerMetadata = this.#transport.owned(metadataUnits.worker);
++        this.#workerMetadata = this.#transport.owned(metadataUnits.worker + 6);
+         this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);
+         observed = true;
+       }
+@@ -230,11 +240,31 @@ export class EreTransportRoot {
+     }
+   }
+ 
++  get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" {
++    return this.#worker?.retirementState ?? (this.#retired ? "RETIRED" : "NOT_ACQUIRED");
++  }
++
++  #throwCloseFailure(active: Ticket | undefined, cleanupPresent: boolean, cleanupReason: unknown): void {
++    if (active?.signal?.aborted) throw active.signal.reason;
++    if (active?.cancelled) throw active.cancelReason;
++    if (this.#failurePresent) throw this.#failure;
++    if (cleanupPresent) throw cleanupReason;
++  }
++
+   async #closeSession(id: number): Promise<void> {
+     this.#rejectQueued(id);
+-    const active = this.#active;
+-    if (active?.session === id) { this.#cancel(active, new EreTransportError("CLOSED", "ERE session closed")); await active.done; }
+-    if (this.#retiring) await this.#retiring;
++    const active = this.#active?.session === id ? this.#active : undefined;
++    if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE session closed"));
++    let cleanupPresent = false;
++    let cleanupReason: unknown;
++    try { if (this.#retiring) await this.#retiring; }
++    catch (reason) { cleanupPresent = true; cleanupReason = reason; }
++    if (this.#worker?.retirementState === "UNCONFIRMED") {
++      this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
++      return;
++    }
++    if (active) await active.done;
++    this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+   }
+ 
+   close(): Promise<void> {
+@@ -242,13 +272,21 @@ export class EreTransportRoot {
+     this.#closed = true;
+     this.#rejectQueued();
+     const active = this.#active;
+-    if (active) this.#cancel(active, new EreTransportError("CLOSED", "ERE invocation root closed"));
++    if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE invocation root closed"));
+     this.#closing = Promise.resolve().then(async () => {
+-      const results = await Promise.allSettled([this.#retireWorker(), active?.done]);
+-      for (const result of results) if (result.status === "rejected") throw result.reason;
++      let cleanupPresent = false;
++      let cleanupReason: unknown;
++      try { await this.#retireWorker(); }
++      catch (reason) { cleanupPresent = true; cleanupReason = reason; }
++      if (this.#worker?.retirementState === "UNCONFIRMED") {
++        this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
++        return;
++      }
++      if (active) await active.done;
+       this.#workerMetadata?.retire();
+       for (const metadata of this.#sessions.values()) metadata.retire();
+       this.#sessions.clear(); this.#metadata.retire();
++      this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+     });
+     void this.#closing.catch(() => {});
+     return this.#closing;

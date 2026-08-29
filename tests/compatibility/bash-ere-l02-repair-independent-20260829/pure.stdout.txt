@@ -1,0 +1,15 @@
+{"groups":16,"passed":16,"workers":0}
+{
+  "at": "2026-08-29T15:24:08.753Z",
+  "replay": {
+    "count": 16,
+    "passed": 16
+  },
+  "novel": {
+    "count": 10,
+    "passed": 10
+  },
+  "failures": [],
+  "loadedPrivateModules": 14,
+  "actualWorkers": 0
+}

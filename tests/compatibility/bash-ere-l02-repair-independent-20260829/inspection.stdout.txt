@@ -1,0 +1,1718 @@
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD-PRESEAL.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/RESULT.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/compiler.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/compiler.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/host-doubles.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/host-doubles.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/owner.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/owner.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/COMMAND.txt
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-OWNER-v2.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-PRESEAL-v2.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-RESULT-v2.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/FOLLOWUP-13.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/HANDOFF.md
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PACKAGE.tgz.base64.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRESEAL.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRODUCER.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PUBLICATION-PRESEAL.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PUBLICATION-QUALIFICATION.md
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/REMAINING-COVERAGE.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/RESULTS.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/SOURCES.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/build-and-doubles.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/activation.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/activation.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/commits.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/commits.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/data-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/data-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/diff-check.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/diff-check.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/doubles-v2.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/doubles-v2.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/final-note-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/final-note-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/fixture-v2-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/fixture-v2-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preparation.jsonl
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-add.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-add.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-commit.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/preseal-commit.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-data.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-add.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-add.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-commit.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/publication-preseal-commit.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/status-initial.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/status-initial.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-activation.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-activation.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-add.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-add.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-commit.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/capture/v2-commit.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/double-owner-v2.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/publication-data.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/worker-bridge-single-fault-v2.mjs.data
+{"requests":1,"bytesRead":11445}
+1: diff --git a/src/commands/regex-execution/ere/transport/owner.ts b/src/commands/regex-execution/ere/transport/owner.ts
+2: index 547a529f9..7ca56c0bc 100644
+3: --- a/src/commands/regex-execution/ere/transport/owner.ts
+4: +++ b/src/commands/regex-execution/ere/transport/owner.ts
+5: @@ -30,8 +30,28 @@ export class EreWorkerOwner {
+6:    #exitListenerInstalled = false;
+7:    #notificationFailed = false;
+8:    #notificationFailure: unknown;
+9: +  #retirementState: "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" = "NOT_ACQUIRED";
+10: +  #cleanupPresent = false;
+11: +  #cleanupReason: unknown;
+12: +  #exitObserved = false;
+13: +  #stdoutObserved = false;
+14: +  #stderrObserved = false;
+15:    constructor(readonly onFailure: (reason: unknown) => void, readonly transport: TransportAccounting) {}
+16:  
+17: +  get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" { return this.#retirementState; }
+18: +  get cleanupFailurePresent(): boolean { return this.#cleanupPresent; }
+19: +  get cleanupFailureReason(): unknown { return this.#cleanupReason; }
+20: +
+21: +  #cleanupFailure(reason: unknown): void {
+22: +    if (!this.#cleanupPresent) { this.#cleanupPresent = true; this.#cleanupReason = reason; }
+23: +  }
+24: +
+25: +  #throwFailure(): void {
+26: +    if (this.#failed) throw this.#failure;
+27: +    if (this.#cleanupPresent) throw this.#cleanupReason;
+28: +    if (this.#notificationFailed) throw this.#notificationFailure;
+29: +  }
+30: +
+31:    #settle(reason: unknown): void {
+32:      clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+33:      this.#readyReject?.(reason);
+34: @@ -49,13 +69,17 @@ export class EreWorkerOwner {
+35:      void this.close().catch(() => {});
+36:    }
+37:  
+38: -  #stream(stream: Readable): Promise<void> {
+39: -    const ended = new Promise<void>(resolve => {
+40: -      stream.once("end", resolve); stream.once("close", resolve);
+41: -      stream.on("error", (reason: unknown) => this.#fail(reason));
+42: -      stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+43: -      if (stream.readableEnded || stream.closed) resolve();
+44: -    });
+45: +  #stream(stream: Readable, channel: "stdout" | "stderr"): Promise<void> {
+46: +    let resolveEnd: () => void = () => {};
+47: +    const ended = new Promise<void>(resolve => { resolveEnd = resolve; });
+48: +    const observe = (): void => {
+49: +      if (channel === "stdout") this.#stdoutObserved = true; else this.#stderrObserved = true;
+50: +      resolveEnd();
+51: +    };
+52: +    stream.once("end", observe); stream.once("close", observe);
+53: +    stream.on("error", (reason: unknown) => this.#fail(reason));
+54: +    stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+55: +    if (stream.readableEnded || stream.closed) observe();
+56:      return ended;
+57:    }
+58:  
+59: @@ -71,16 +95,24 @@ export class EreWorkerOwner {
+60:            workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
+61:            resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
+62:          });
+63: -        this.#worker = worker;
+64: -        worker.once("exit", () => {
+65: -          this.#exitResolve?.();
+66: -          if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+67: -        });
+68: -        this.#exitListenerInstalled = true;
+69: -        worker.on("error", (reason: unknown) => this.#fail(reason));
+70: -        worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+71: -        this.#stdout = this.#stream(worker.stdout);
+72: -        this.#stderr = this.#stream(worker.stderr);
+73: +        this.#worker = worker; this.#retirementState = "PENDING";
+74: +        let setupFailed = false;
+75: +        let setupFailure: unknown;
+76: +        try {
+77: +          worker.once("exit", () => {
+78: +            this.#exitObserved = true; this.#exitResolve?.();
+79: +            if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+80: +          });
+81: +          this.#exitListenerInstalled = true;
+82: +          worker.on("error", (reason: unknown) => this.#fail(reason));
+83: +          worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+84: +        } catch (reason) { setupFailed = true; setupFailure = reason; }
+85: +        try { this.#stdout = this.#stream(worker.stdout, "stdout"); }
+86: +        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+87: +        try { this.#stderr = this.#stream(worker.stderr, "stderr"); }
+88: +        catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+89: +        if (setupFailed) throw setupFailure;
+90: +        if (this.#failed) throw this.#failure;
+91:          worker.on("message", (message: unknown) => {
+92:            if (this.#closing || this.#failed) return;
+93:            try {
+94: @@ -127,16 +159,25 @@ export class EreWorkerOwner {
+95:      const request = this.#request;
+96:      this.#closing = Promise.resolve().then(async () => {
+97:        const worker = this.#worker;
+98: -      const termination = Promise.resolve().then(async () => {
+99: -        if (!worker) return;
+100: -        await worker.terminate();
+101: -        if (!this.#exitListenerInstalled) this.#exitResolve?.();
+102: -      });
+103: -      const retired = await Promise.allSettled([termination, this.#exited, this.#stdout, this.#stderr]);
+104: -      await Promise.allSettled([ready, request]);
+105: -      for (const result of retired) if (result.status === "rejected") throw result.reason;
+106: -      if (this.#notificationFailed) throw this.#notificationFailure;
+107: +      let terminationFailed = false;
+108: +      try {
+109: +        if (worker) {
+110: +          await worker.terminate();
+111: +          this.#exitObserved = true;
+112: +          if (!this.#exitListenerInstalled) this.#exitResolve?.();
+113: +        }
+114: +      } catch (reason) { terminationFailed = true; this.#cleanupFailure(reason); }
+115: +      if (worker && ((terminationFailed && !(this.#exitObserved && this.#stdoutObserved && this.#stderrObserved)) ||
+116: +          (!this.#stdout && !this.#stdoutObserved) || (!this.#stderr && !this.#stderrObserved))) {
+117: +        this.#retirementState = "UNCONFIRMED";
+118: +        await Promise.allSettled([ready, request]);
+119: +        this.#throwFailure();
+120: +        return;
+121: +      }
+122: +      await Promise.allSettled([this.#exited, this.#stdout, this.#stderr, ready, request]);
+123: +      this.#retirementState = "RETIRED";
+124:        this.#worker = undefined;
+125: +      this.#throwFailure();
+126:      });
+127:      this.#settle(this.#failed ? this.#failure : new EreTransportError("CLOSED", "ERE Worker closed"));
+128:      void this.#closing.catch(() => {});
+129: diff --git a/src/commands/regex-execution/ere/transport/root.ts b/src/commands/regex-execution/ere/transport/root.ts
+130: index 0e7c7ab6f..fb608736e 100644
+131: --- a/src/commands/regex-execution/ere/transport/root.ts
+132: +++ b/src/commands/regex-execution/ere/transport/root.ts
+133: @@ -69,7 +69,9 @@ export class EreTransportRoot {
+134:      const close = (): Promise<void> => {
+135:        if (closing) return closing;
+136:        closed = true;
+137: -      closing = this.#closeSession(id).finally(() => { this.#sessions.delete(id); metadata.retire(); });
+138: +      closing = this.#closeSession(id).finally(() => {
+139: +        if (this.#worker?.retirementState !== "UNCONFIRMED") { this.#sessions.delete(id); metadata.retire(); }
+140: +      });
+141:        return closing;
+142:      };
+143:      try { registerCleanup(close); }
+144: @@ -145,6 +147,11 @@ export class EreTransportRoot {
+145:      if (!ticket) return;
+146:      this.#active = ticket;
+147:      const complete = (outcome: { ok: true; value: EreTransportResult } | { ok: false; reason: unknown }): void => {
+148: +      if (this.#worker?.retirementState === "UNCONFIRMED") {
+149: +        this.#closed = true;
+150: +        ticket.reject(outcome.ok ? this.#failurePresent ? this.#failure : this.#worker.cleanupFailureReason : outcome.reason);
+151: +        return;
+152: +      }
+153:        try {
+154:          if (!this.#retiring || this.#retired) this.#release(ticket);
+155:          else if (ticket.cancelListener) { ticket.signal?.removeEventListener("abort", ticket.cancelListener); ticket.cancelListener = undefined; }
+156: @@ -164,7 +171,10 @@ export class EreTransportRoot {
+157:  
+158:    #retireWorker(): Promise<void> {
+159:      if (!this.#retiring) {
+160: -      this.#retiring = Promise.resolve().then(async () => { await this.#worker?.close(); this.#retired = true; });
+161: +      this.#retiring = Promise.resolve().then(async () => {
+162: +        try { await this.#worker?.close(); }
+163: +        finally { this.#retired = !this.#worker || this.#worker.retirementState === "RETIRED"; }
+164: +      });
+165:        void this.#retiring.catch(() => {});
+166:      }
+167:      return this.#retiring;
+168: @@ -181,7 +191,7 @@ export class EreTransportRoot {
+169:        if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
+170:        replyStorage = this.#transport.reserve(479);
+171:        if (!this.#worker) {
+172: -        this.#workerMetadata = this.#transport.owned(metadataUnits.worker);
+173: +        this.#workerMetadata = this.#transport.owned(metadataUnits.worker + 6);
+174:          this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);
+175:          observed = true;
+176:        }
+177: @@ -230,11 +240,31 @@ export class EreTransportRoot {
+178:      }
+179:    }
+180:  
+{"requests":2,"bytesRead":23343}
+1: import { Worker } from "node:worker_threads";
+2: import type { Readable } from "node:stream";
+3: import type { TransportAccounting } from "./accounting.js";
+4: import { EreTransportError, operation } from "./protocol.js";
+5: import type { EreTransportRequest } from "./protocol.js";
+6: import { record } from "./validation.js";
+7: 
+8: interface Pending {
+9:   readonly resolve: (value: unknown) => void;
+10:   readonly reject: (reason: unknown) => void;
+11:   readonly timer: ReturnType<typeof setTimeout>;
+12: }
+13: 
+14: export class EreWorkerOwner {
+15:   #worker: Worker | undefined;
+16:   #exited: Promise<void> | undefined;
+17:   #exitResolve: (() => void) | undefined;
+18:   #ready: Promise<void> | undefined;
+19:   #readyResolve: (() => void) | undefined;
+20:   #readyReject: ((reason: unknown) => void) | undefined;
+21:   #startupTimer: ReturnType<typeof setTimeout> | undefined;
+22:   #pending: Pending | undefined;
+23:   #request: Promise<unknown> | undefined;
+24:   #stdout: Promise<void> | undefined;
+25:   #stderr: Promise<void> | undefined;
+26:   #closing: Promise<void> | undefined;
+27:   #failed = false;
+28:   #failure: unknown;
+29:   #readySeen = false;
+30:   #exitListenerInstalled = false;
+31:   #notificationFailed = false;
+32:   #notificationFailure: unknown;
+33:   #retirementState: "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" = "NOT_ACQUIRED";
+34:   #cleanupPresent = false;
+35:   #cleanupReason: unknown;
+36:   #exitObserved = false;
+37:   #stdoutObserved = false;
+38:   #stderrObserved = false;
+39:   constructor(readonly onFailure: (reason: unknown) => void, readonly transport: TransportAccounting) {}
+40: 
+41:   get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" { return this.#retirementState; }
+42:   get cleanupFailurePresent(): boolean { return this.#cleanupPresent; }
+43:   get cleanupFailureReason(): unknown { return this.#cleanupReason; }
+44: 
+45:   #cleanupFailure(reason: unknown): void {
+46:     if (!this.#cleanupPresent) { this.#cleanupPresent = true; this.#cleanupReason = reason; }
+47:   }
+48: 
+49:   #throwFailure(): void {
+50:     if (this.#failed) throw this.#failure;
+51:     if (this.#cleanupPresent) throw this.#cleanupReason;
+52:     if (this.#notificationFailed) throw this.#notificationFailure;
+53:   }
+54: 
+55:   #settle(reason: unknown): void {
+56:     clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+57:     this.#readyReject?.(reason);
+58:     this.#readyReject = undefined; this.#readyResolve = undefined;
+59:     const pending = this.#pending; this.#pending = undefined;
+60:     if (pending) { clearTimeout(pending.timer); pending.reject(reason); }
+61:   }
+62: 
+63:   #fail(reason: unknown): void {
+64:     if (this.#failed) return;
+65:     this.#failed = true; this.#failure = reason;
+66:     this.#settle(reason);
+67:     try { this.onFailure(reason); }
+68:     catch (notificationFailure) { this.#notificationFailed = true; this.#notificationFailure = notificationFailure; }
+69:     void this.close().catch(() => {});
+70:   }
+71: 
+72:   #stream(stream: Readable, channel: "stdout" | "stderr"): Promise<void> {
+73:     let resolveEnd: () => void = () => {};
+74:     const ended = new Promise<void>(resolve => { resolveEnd = resolve; });
+75:     const observe = (): void => {
+76:       if (channel === "stdout") this.#stdoutObserved = true; else this.#stderrObserved = true;
+77:       resolveEnd();
+78:     };
+79:     stream.once("end", observe); stream.once("close", observe);
+80:     stream.on("error", (reason: unknown) => this.#fail(reason));
+81:     stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+82:     if (stream.readableEnded || stream.closed) observe();
+83:     return ended;
+84:   }
+85: 
+86:   start(): Promise<void> {
+87:     if (this.#failed) return Promise.reject(this.#failure);
+88:     if (this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker is closing"));
+89:     if (!this.#ready) {
+90:       this.#ready = new Promise<void>((resolve, reject) => { this.#readyResolve = resolve; this.#readyReject = reject; });
+91:       void this.#ready.catch(() => {});
+92:       this.#exited = new Promise<void>(resolve => { this.#exitResolve = resolve; });
+93:       try {
+94:         const worker = new Worker(new URL("./worker-entry.js", import.meta.url), {
+95:           workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
+96:           resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
+97:         });
+98:         this.#worker = worker; this.#retirementState = "PENDING";
+99:         let setupFailed = false;
+100:         let setupFailure: unknown;
+101:         try {
+102:           worker.once("exit", () => {
+103:             this.#exitObserved = true; this.#exitResolve?.();
+104:             if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+105:           });
+106:           this.#exitListenerInstalled = true;
+107:           worker.on("error", (reason: unknown) => this.#fail(reason));
+108:           worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+109:         } catch (reason) { setupFailed = true; setupFailure = reason; }
+110:         try { this.#stdout = this.#stream(worker.stdout, "stdout"); }
+111:         catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+112:         try { this.#stderr = this.#stream(worker.stderr, "stderr"); }
+113:         catch (reason) { this.#cleanupFailure(reason); if (!setupFailed) { setupFailed = true; setupFailure = reason; } }
+114:         if (setupFailed) throw setupFailure;
+115:         if (this.#failed) throw this.#failure;
+116:         worker.on("message", (message: unknown) => {
+117:           if (this.#closing || this.#failed) return;
+118:           try {
+119:             if (!this.#readySeen) {
+120:               const ready = record(message, ["version", "operation", "kind"], units => this.transport.visit(units), this.transport);
+121:               if (ready.version !== 1 || ready.operation !== operation || ready.kind !== "ready") throw new EreTransportError("PROTOCOL", "invalid ERE startup frame");
+122:               this.transport.visit(14);
+123:               this.#readySeen = true; clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+124:               this.#readyResolve?.(); this.#readyResolve = undefined; this.#readyReject = undefined; return;
+125:             }
+126:             const pending = this.#pending;
+127:             if (!pending) throw new EreTransportError("PROTOCOL", "unsolicited ERE frame");
+128:             this.#pending = undefined; clearTimeout(pending.timer); pending.resolve(message);
+129:           } catch (reason) { this.#fail(reason); }
+130:         });
+131:         this.#startupTimer = setTimeout(() => this.#fail(new EreTransportError("STARTUP_TIMEOUT", "ERE startup timeout")), 3000);
+132:       } catch (reason) {
+133:         if (!this.#worker) this.#exitResolve?.();
+134:         this.#fail(reason);
+135:       }
+136:     }
+137:     return this.#ready;
+138:   }
+139: 
+140:   request(request: EreTransportRequest, posted: () => void): Promise<unknown> {
+141:     if (this.#failed) return Promise.reject(this.#failure);
+142:     if (!this.#worker || !this.#readySeen || this.#pending || this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker request unavailable"));
+143:     const pending = new Promise<unknown>((resolve, reject) => {
+144:       const timer = setTimeout(() => this.#fail(new EreTransportError("REQUEST_TIMEOUT", "ERE request timeout")), 1000);
+145:       this.#pending = { resolve, reject, timer };
+146:     });
+147:     this.#request = pending;
+148:     void pending.catch(() => {});
+149:     try { posted(); this.#worker.postMessage(request); }
+150:     catch (reason) { this.#fail(reason); }
+{"requests":3,"bytesRead":32090}
+150:     catch (reason) { this.#fail(reason); }
+151:     const forget = (): void => { if (this.#request === pending) this.#request = undefined; };
+152:     void pending.then(forget, forget);
+153:     return pending;
+154:   }
+155: 
+156:   close(): Promise<void> {
+157:     if (this.#closing) return this.#closing;
+158:     const ready = this.#ready;
+159:     const request = this.#request;
+160:     this.#closing = Promise.resolve().then(async () => {
+161:       const worker = this.#worker;
+162:       let terminationFailed = false;
+163:       try {
+164:         if (worker) {
+165:           await worker.terminate();
+166:           this.#exitObserved = true;
+167:           if (!this.#exitListenerInstalled) this.#exitResolve?.();
+168:         }
+169:       } catch (reason) { terminationFailed = true; this.#cleanupFailure(reason); }
+170:       if (worker && ((terminationFailed && !(this.#exitObserved && this.#stdoutObserved && this.#stderrObserved)) ||
+171:           (!this.#stdout && !this.#stdoutObserved) || (!this.#stderr && !this.#stderrObserved))) {
+172:         this.#retirementState = "UNCONFIRMED";
+173:         await Promise.allSettled([ready, request]);
+174:         this.#throwFailure();
+175:         return;
+176:       }
+177:       await Promise.allSettled([this.#exited, this.#stdout, this.#stderr, ready, request]);
+178:       this.#retirementState = "RETIRED";
+179:       this.#worker = undefined;
+180:       this.#throwFailure();
+181:     });
+182:     this.#settle(this.#failed ? this.#failure : new EreTransportError("CLOSED", "ERE Worker closed"));
+183:     void this.#closing.catch(() => {});
+184:     return this.#closing;
+185:   }
+186: }
+187: 
+{"requests":4,"bytesRead":40837}
+1: import { EreProfileLimitError } from "../errors.js";
+2: import type { EreExpansionBounds, EreLimits, EreUsage } from "../types.js";
+3: import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from "./accounting.js";
+4: import { EreWorkerOwner } from "./owner.js";
+5: import { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from "./protocol.js";
+6: import type { EreCleanupRegistration, EreTransportInput, EreTransportRequest, EreTransportResult, EreTransportSession } from "./protocol.js";
+7: import { copyInput, copyReplyResult, inspectInput, validateReply } from "./validation.js";
+8: 
+9: interface Ticket {
+10:   readonly session: number;
+11:   readonly id: number;
+12:   readonly input: EreTransportInput;
+13:   readonly patternBytes: number;
+14:   readonly requestUnits: number;
+15:   readonly storage: StorageReservation;
+16:   readonly metadata: StorageReservation;
+17:   readonly signal: AbortSignal | undefined;
+18:   readonly resolve: (result: EreTransportResult) => void;
+19:   readonly reject: (reason: unknown) => void;
+20:   readonly done: Promise<void>;
+21:   readonly finish: () => void;
+22:   cancelListener: (() => void) | undefined;
+23:   cancelled: boolean;
+24:   cancelReason: unknown;
+25: }
+26: 
+27: export class EreTransportRoot {
+28:   readonly #bounds: EreExpansionBounds;
+29:   readonly #engine: EngineAccounting;
+30:   readonly #transport: TransportAccounting;
+31:   readonly #metadata: StorageReservation;
+32:   #workerMetadata: StorageReservation | undefined;
+33:   #worker: EreWorkerOwner | undefined;
+34:   #queue: Ticket[];
+35:   #active: Ticket | undefined;
+36:   #closed = false;
+37:   #failurePresent = false;
+38:   #failure: unknown;
+39:   #closing: Promise<void> | undefined;
+40:   #retiring: Promise<void> | undefined;
+41:   #retired = false;
+42:   #nextId = 0;
+43:   #nextSession = 0;
+44:   #sessions: Map<number, StorageReservation>;
+45: 
+46:   constructor(bounds: EreExpansionBounds, registerCleanup: EreCleanupRegistration) {
+47:     assertBootstrapStorage(bounds, metadataUnits.root);
+48:     this.#engine = new EngineAccounting(bounds);
+49:     this.#transport = new TransportAccounting(this.#engine.limits);
+50:     this.#metadata = this.#transport.owned(metadataUnits.root);
+51:     this.#bounds = Object.freeze({ maxExpansionBytes: bounds.maxExpansionBytes, maxExpansionFields: bounds.maxExpansionFields });
+52:     this.#queue = []; this.#sessions = new Map();
+53:     try { registerCleanup(() => this.close()); }
+54:     catch (reason) { this.#closed = true; this.#metadata.retire(); throw reason; }
+55:   }
+56: 
+57:   get usage(): Readonly<{ engine: EreUsage; transport: TransportAccounting["usage"] }> {
+58:     const storage = this.#transport.owned(metadataUnits.usage);
+59:     try { return Object.freeze({ engine: this.#engine.usage, transport: this.#transport.usage }); }
+60:     finally { storage.retire(); }
+61:   }
+62: 
+63:   openSession(registerCleanup: EreCleanupRegistration): EreTransportSession {
+64:     this.#assertOpen();
+65:     if (this.#nextSession === Number.MAX_SAFE_INTEGER) throw new EreTransportError("CLOSED", "ERE session identity exhausted");
+66:     const metadata = this.#transport.owned(metadataUnits.session);
+67:     const id = ++this.#nextSession;
+68:     let closed = false; let closing: Promise<void> | undefined;
+69:     const close = (): Promise<void> => {
+70:       if (closing) return closing;
+71:       closed = true;
+72:       closing = this.#closeSession(id).finally(() => {
+73:         if (this.#worker?.retirementState !== "UNCONFIRMED") { this.#sessions.delete(id); metadata.retire(); }
+74:       });
+75:       return closing;
+76:     };
+77:     try { registerCleanup(close); }
+78:     catch (reason) { closed = true; metadata.retire(); throw reason; }
+79:     if (closed || this.#closed) { metadata.retire(); throw new EreTransportError("CLOSED", "ERE session closed during registration"); }
+80:     this.#sessions.set(id, metadata);
+81:     return Object.freeze({
+82:       execute: (input: EreTransportInput, signal?: AbortSignal) => closed ? Promise.reject(new EreTransportError("CLOSED", "ERE session closed")) : this.#submit(id, input, signal),
+83:       close,
+84:     });
+85:   }
+86: 
+87:   #assertOpen(): void {
+88:     if (this.#failurePresent) throw this.#failure;
+89:     if (this.#closed) throw new EreTransportError("CLOSED", "ERE invocation root closed");
+90:   }
+91: 
+92:   async #submit(session: number, input: EreTransportInput, signal?: AbortSignal): Promise<EreTransportResult> {
+93:     if (signal?.aborted) throw signal.reason;
+94:     this.#assertOpen();
+95:     if (this.#queue.length >= 64) throw new EreTransportProfileLimitError("queueTickets", 64);
+96:     if (this.#nextId === Number.MAX_SAFE_INTEGER) throw new EreTransportError("CLOSED", "ERE job identity exhausted");
+97:     const metadata = this.#transport.owned(metadataUnits.ticket);
+98:     let storage: StorageReservation | undefined;
+99:     let owned: EreTransportInput;
+100:     let patternBytes: number;
+101:     let requestUnits: number;
+102:     try {
+103:       const inspected = inspectInput(input, this.#engine.limits, this.#transport, signal);
+104:       patternBytes = inspected.patternBytes; requestUnits = inspected.units;
+105:       storage = this.#transport.reserve(multiply(inspected.units, 2));
+106:       storage.consume(inspected.units); owned = copyInput(inspected, this.#transport);
+107:     } catch (reason) { storage?.releaseUnused(); storage?.retire(); metadata.retire(); throw reason; }
+108:     const admittedStorage = storage;
+109:     let finish!: () => void;
+110:     const done = new Promise<void>(resolve => { finish = resolve; });
+111:     return new Promise<EreTransportResult>((resolve, reject) => {
+112:       const ticket: Ticket = { session, id: ++this.#nextId, input: owned, patternBytes, requestUnits, storage: admittedStorage, metadata, signal, resolve, reject, done, finish, cancelListener: undefined, cancelled: false, cancelReason: undefined };
+113:       try {
+114:         this.#queue.push(ticket);
+115:         if (signal) {
+116:           ticket.cancelListener = () => this.#cancel(ticket, signal.reason);
+117:           signal.addEventListener("abort", ticket.cancelListener, { once: true });
+118:           if (signal.aborted) this.#cancel(ticket, signal.reason);
+119:         }
+120:         this.#pump();
+121:       } catch (reason) { this.#cancel(ticket, reason); }
+122:     });
+123:   }
+124: 
+125:   #release(ticket: Ticket): void {
+126:     if (ticket.cancelListener) ticket.signal?.removeEventListener("abort", ticket.cancelListener);
+127:     ticket.cancelListener = undefined;
+128:     ticket.storage.releaseUnused(); ticket.storage.retire(); ticket.metadata.retire();
+129:   }
+130: 
+131:   #cancel(ticket: Ticket, reason: unknown): void {
+132:     if (ticket.cancelled) return;
+133:     ticket.cancelled = true; ticket.cancelReason = reason;
+134:     const index = this.#queue.indexOf(ticket);
+135:     if (index >= 0) {
+136:       this.#queue.splice(index, 1); this.#release(ticket); ticket.finish(); ticket.reject(reason);
+137:       return;
+138:     }
+139:     if (this.#active === ticket && this.#worker) {
+140:       this.#fail(new EreTransportError("CLOSED", "ERE Worker retired by active request cancellation"));
+141:     }
+142:   }
+143: 
+144:   #pump(): void {
+145:     if (this.#active || this.#closed || this.#failurePresent) return;
+{"requests":5,"bytesRead":54795}
+144:   #pump(): void {
+145:     if (this.#active || this.#closed || this.#failurePresent) return;
+146:     const ticket = this.#queue.shift();
+147:     if (!ticket) return;
+148:     this.#active = ticket;
+149:     const complete = (outcome: { ok: true; value: EreTransportResult } | { ok: false; reason: unknown }): void => {
+150:       if (this.#worker?.retirementState === "UNCONFIRMED") {
+151:         this.#closed = true;
+152:         ticket.reject(outcome.ok ? this.#failurePresent ? this.#failure : this.#worker.cleanupFailureReason : outcome.reason);
+153:         return;
+154:       }
+155:       try {
+156:         if (!this.#retiring || this.#retired) this.#release(ticket);
+157:         else if (ticket.cancelListener) { ticket.signal?.removeEventListener("abort", ticket.cancelListener); ticket.cancelListener = undefined; }
+158:       } catch (reason) { this.#fail(reason); if (outcome.ok) outcome = { ok: false, reason }; }
+159:       this.#active = undefined; ticket.finish();
+160:       if (outcome.ok) ticket.resolve(outcome.value); else ticket.reject(outcome.reason);
+161:       this.#pump();
+162:     };
+163:     void this.#execute(ticket).then(value => complete({ ok: true, value }), reason => complete({ ok: false, reason })).catch(reason => this.#fail(reason));
+164:   }
+165: 
+166:   #check(ticket: Ticket): void {
+167:     if (ticket.signal?.aborted) { this.#cancel(ticket, ticket.signal.reason); throw ticket.signal.reason; }
+168:     if (ticket.cancelled) throw ticket.cancelReason;
+169:     this.#assertOpen();
+170:   }
+171: 
+172:   #retireWorker(): Promise<void> {
+173:     if (!this.#retiring) {
+174:       this.#retiring = Promise.resolve().then(async () => {
+175:         try { await this.#worker?.close(); }
+176:         finally { this.#retired = !this.#worker || this.#worker.retirementState === "RETIRED"; }
+177:       });
+178:       void this.#retiring.catch(() => {});
+179:     }
+180:     return this.#retiring;
+181:   }
+182: 
+183:   async #execute(ticket: Ticket): Promise<EreTransportResult> {
+184:     let replyStorage: StorageReservation | undefined;
+185:     let grant: EreLimits | undefined;
+186:     let observed = false;
+187:     let reconciled = false;
+188:     try {
+189:       this.#check(ticket);
+190:       grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);
+191:       if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
+192:       replyStorage = this.#transport.reserve(479);
+193:       if (!this.#worker) {
+194:         this.#workerMetadata = this.#transport.owned(metadataUnits.worker + 6);
+195:         this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);
+196:         observed = true;
+197:       }
+198:       await this.#worker.start();
+199:       this.#check(ticket);
+200:       const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };
+201:       this.#transport.visit(ticket.requestUnits);
+202:       const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); observed = true; });
+203:       const validated = validateReply(message, request, units => this.#transport.visit(units), this.#transport);
+204:       this.#engine.commit(grant, validated.reply.usage); reconciled = true;
+205:       replyStorage.settle(2 * validated.replyUnits + validated.resultUnits);
+206:       this.#check(ticket);
+207:       const reply = validated.reply;
+208:       if (reply.kind === "failure") {
+209:         if (reply.category === "profile-limit") throw new EreProfileLimitError(reply.resource!, grant[reply.resource!]);
+210:         throw new EreTransportSemanticError(reply.category, reply.offset);
+211:       }
+212:       this.#transport.visit(validated.resultUnits);
+213:       return copyReplyResult(reply, this.#transport);
+214:     } catch (reason) {
+215:       if (grant && !reconciled) {
+216:         this.#engine.abandon(grant, observed);
+217:         if (observed) { replyStorage?.unknown(); this.#fail(reason); }
+218:       }
+219:       if (this.#worker && (this.#failurePresent || ticket.cancelled)) await this.#retireWorker().catch(() => {});
+220:       if (ticket.signal?.aborted) throw ticket.signal.reason;
+221:       if (ticket.cancelled) throw ticket.cancelReason;
+222:       throw reason;
+223:     } finally {
+224:       if (!this.#retiring || this.#retired) { replyStorage?.releaseUnused(); replyStorage?.retire(); }
+225:     }
+226:   }
+227: 
+228:   #fail(reason: unknown): void {
+229:     if (!this.#failurePresent) { this.#failurePresent = true; this.#failure = reason; }
+230:     this.#rejectQueued();
+231:     if (this.#worker) void this.#retireWorker().catch(() => {});
+232:   }
+233: 
+234:   #rejectQueued(session?: number): void {
+235:     for (let index = this.#queue.length - 1; index >= 0; index--) {
+236:       const ticket = this.#queue[index]!;
+237:       if (session !== undefined && ticket.session !== session) continue;
+238:       const reason = ticket.signal?.aborted ? ticket.signal.reason : this.#failurePresent ? this.#failure : new EreTransportError("CLOSED", "ERE queued job closed");
+239:       this.#cancel(ticket, reason);
+240:     }
+241:   }
+242: 
+243:   get retirementState(): "NOT_ACQUIRED" | "PENDING" | "RETIRED" | "UNCONFIRMED" {
+244:     return this.#worker?.retirementState ?? (this.#retired ? "RETIRED" : "NOT_ACQUIRED");
+245:   }
+246: 
+247:   #throwCloseFailure(active: Ticket | undefined, cleanupPresent: boolean, cleanupReason: unknown): void {
+248:     if (active?.signal?.aborted) throw active.signal.reason;
+249:     if (active?.cancelled) throw active.cancelReason;
+250:     if (this.#failurePresent) throw this.#failure;
+251:     if (cleanupPresent) throw cleanupReason;
+252:   }
+253: 
+254:   async #closeSession(id: number): Promise<void> {
+255:     this.#rejectQueued(id);
+256:     const active = this.#active?.session === id ? this.#active : undefined;
+257:     if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE session closed"));
+258:     let cleanupPresent = false;
+259:     let cleanupReason: unknown;
+260:     try { if (this.#retiring) await this.#retiring; }
+261:     catch (reason) { cleanupPresent = true; cleanupReason = reason; }
+262:     if (this.#worker?.retirementState === "UNCONFIRMED") {
+263:       this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+264:       return;
+265:     }
+266:     if (active) await active.done;
+267:     this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+268:   }
+269: 
+270:   close(): Promise<void> {
+271:     if (this.#closing) return this.#closing;
+272:     this.#closed = true;
+273:     this.#rejectQueued();
+274:     const active = this.#active;
+275:     if (active && !this.#failurePresent) this.#cancel(active, new EreTransportError("CLOSED", "ERE invocation root closed"));
+276:     this.#closing = Promise.resolve().then(async () => {
+277:       let cleanupPresent = false;
+278:       let cleanupReason: unknown;
+279:       try { await this.#retireWorker(); }
+280:       catch (reason) { cleanupPresent = true; cleanupReason = reason; }
+281:       if (this.#worker?.retirementState === "UNCONFIRMED") {
+282:         this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+283:         return;
+284:       }
+285:       if (active) await active.done;
+286:       this.#workerMetadata?.retire();
+287:       for (const metadata of this.#sessions.values()) metadata.retire();
+288:       this.#sessions.clear(); this.#metadata.retire();
+289:       this.#throwCloseFailure(active, cleanupPresent, cleanupReason);
+290:     });
+291:     void this.#closing.catch(() => {});
+292:     return this.#closing;
+293:   }
+294: }
+295: 
+{"requests":6,"bytesRead":68753}
+1: import assert from 'node:assert/strict';import {registerHooks} from 'node:module';import {writeFileSync} from 'node:fs';import {configure} from './fake-worker.mjs';
+2: const ownerURL=new URL('./BUILD/emitted/transport/owner.js',import.meta.url).href;const fakeURL=new URL('./fake-worker.mjs',import.meta.url).href;const loaded=[];registerHooks({resolve(specifier,context,next){if(specifier==='node:worker_threads'){assert.equal(context.parentURL,ownerURL);return {url:fakeURL,shortCircuit:true};}if(specifier.includes('worker-entry')||specifier.endsWith('/matcher.js'))throw Error('forbidden matching/Worker load');return next(specifier,context);},load(url,context,next){loaded.push(url);return next(url,context);}});
+3: const {EreWorkerOwner}=await import(ownerURL);const {TransportAccounting}=await import('./BUILD/emitted/transport/accounting.js');const {EreTransportRoot}=await import('./BUILD/emitted/transport/root.js');const rows=[];const outcome=async promise=>{try{return {present:false,value:await promise};}catch(value){return {present:true,value};}};const bounds={maxExpansionBytes:4096,maxExpansionFields:64};const limits={patternBytes:4096,subjectBytes:4096,work:131072,states:512,allocationUnits:40960,captureBytes:4096,captureSlots:64};
+4: async function test(id,body){try{await body();rows.push({id,pass:true});}catch(error){rows.push({id,pass:false,message:error instanceof Error?error.message:String(error)});}}
+5: function owner(config){const control=configure(config);const instance=new EreWorkerOwner(()=>{},new TransportAccounting(limits));return {control,instance};}
+6: await test('D01-normal',async()=>{const {instance,control}=owner({});await instance.start();await instance.close();assert.equal(instance.retirementState,'RETIRED');assert(control.events.includes('stdout:end'));assert(control.events.includes('stderr:end'));});
+7: await test('D02-single-false',async()=>{const {instance,control}=owner({single:true,reason:false});assert.equal((await outcome(instance.start())).value,false);const closed=await outcome(instance.close());assert(closed.present);assert.equal(closed.value,false);assert.equal(instance.retirementState,'RETIRED');assert(control.events.includes('stdout:end')&&control.events.includes('stderr:end'));});
+8: await test('D03-persistent-Promise-reject-false',async()=>{const {instance,control}=owner({persistent:true,reason:false});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert.equal(instance.retirementState,'UNCONFIRMED');assert.equal(instance.cleanupFailurePresent,true);assert.equal(instance.cleanupFailureReason,false);assert.equal((await outcome(control.termination)).value,false);assert.equal(control.workers[0].exitRegistrations,2);});
+9: await test('D04-primary-false-cleanup-undefined',async()=>{const {instance}=owner({single:true,reason:false,rejectCleanup:true,cleanup:undefined});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert.equal(instance.cleanupFailurePresent,true);assert.equal(instance.cleanupFailureReason,undefined);assert.equal(instance.retirementState,'UNCONFIRMED');});
+10: await test('D05-cleanup-only-undefined',async()=>{const {instance}=owner({rejectCleanup:true,cleanup:undefined});await instance.start();const result=await outcome(instance.close());assert(result.present);assert.equal(result.value,undefined);assert.equal(instance.retirementState,'UNCONFIRMED');});
+11: await test('D06-constructor-false',async()=>{const {instance,control}=owner({constructorFault:true,reason:false});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert.equal(instance.retirementState,'RETIRED');assert.equal(control.workers.length,0);});
+12: await test('D07-both-stream-attempts',async()=>{const {instance,control}=owner({single:true,reason:false,streamFault:'stdout',streamReason:undefined});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert(control.events.includes('stdout:end'));assert(control.events.includes('stderr:end'));assert.equal(instance.retirementState,'UNCONFIRMED');});
+13: await test('D08-idempotent-close',async()=>{const {instance}=owner({});await instance.start();const first=instance.close();assert.equal(first,instance.close());await first;});
+14: await test('D09-sync-termination-throw-distinct',async()=>{const {instance,control}=owner({single:true,reason:false,syncThrow:true,cleanup:undefined});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert.equal(control.termination,undefined);assert.equal(instance.cleanupFailurePresent,true);});
+15: await test('D10-late-exit-no-upgrade',async()=>{const {instance,control}=owner({persistent:true,reason:false});await outcome(instance.start());await outcome(instance.close());control.workers[0].emit('exit',0);control.workers[0].stdout.finish();control.workers[0].stderr.finish();assert.equal(instance.retirementState,'UNCONFIRMED');});
+16: async function rootUnknown(signal){const control=configure({persistent:true,reason:false});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});const request=session.execute({pattern:[{text:'a',literal:false}],subject:'a'},signal);await outcome(request);return {control,root,session};}
+17: await test('D11-root-unknown-close',async()=>{const {root,session}=await rootUnknown();assert.equal(root.retirementState,'UNCONFIRMED');assert.equal((await outcome(root.close())).value,false);assert.equal((await outcome(session.close())).value,false);});
+18: await test('D12-root-retains-charge',async()=>{const {root}=await rootUnknown();const before=root.usage.transport;await outcome(root.close());const after=root.usage.transport;assert(before.live>0);assert.equal(after.live,before.live);assert.equal(after.reserved,before.reserved);});
+19: await test('D13-root-no-new-work',async()=>{const {root,session,control}=await rootUnknown();await outcome(root.close());const result=await outcome(session.execute({pattern:[{text:'a',literal:false}],subject:'a'}));assert(result.present);assert.equal(control.workers.length,1);assert.throws(()=>root.openSession(()=>{}));});
+20: await test('D14-caller-false-priority',async()=>{const control=configure({persistent:true,reason:{setup:true}});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});const abort=new AbortController();const request=session.execute({pattern:[{text:'a',literal:false}],subject:'a'},abort.signal);abort.abort(false);assert.equal((await outcome(request)).value,false);assert.equal((await outcome(root.close())).value,false);assert.equal(control.workers.length,1);});
+21: await test('D15-known-retired-root-primary',async()=>{configure({single:true,reason:false});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});assert.equal((await outcome(session.execute({pattern:[{text:'a',literal:false}],subject:'a'}))).value,false);assert.equal((await outcome(root.close())).value,false);assert.equal(root.retirementState,'RETIRED');});
+22: await test('D16-primary-raw-object',async()=>{const reason={identity:true};const {instance}=owner({single:true,reason,rejectCleanup:true,cleanup:false});assert.equal((await outcome(instance.start())).value,reason);assert.equal((await outcome(instance.close())).value,reason);assert.equal(instance.cleanupFailureReason,false);});
+23: const result={schema:1,role:'actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof',groups:rows,passed:rows.filter(r=>r.pass).length,workers:0,matchingCalls:0,loaded:[...new Set(loaded)].sort()};writeFileSync(new URL('./DOUBLE-RESULT.json',import.meta.url),JSON.stringify(result,null,2)+'
+24: ',{flag:'wx'});console.log(JSON.stringify({groups:rows.length,passed:result.passed,workers:0}));if(result.passed!==16)process.exitCode=1;
+25: 
+{"requests":7,"bytesRead":76587}
+1: import {EventEmitter} from 'node:events';
+2: export let current;export function configure(config){current={...config,workers:[],events:[]};return current;}
+3: class Stream extends EventEmitter{constructor(name){super();this.name=name;this.closed=false;this.readableEnded=false;}once(event,handler){current.events.push(this.name+':'+event);if(current.streamFault===this.name)throw current.streamReason;return super.once(event,handler);}finish(){this.readableEnded=true;this.closed=true;this.emit('end');this.emit('close');}}
+4: export class Worker extends EventEmitter{constructor(){super();if(current.constructorFault)throw current.reason;this.stdout=new Stream('stdout');this.stderr=new Stream('stderr');this.exitRegistrations=0;current.workers.push(this);queueMicrotask(()=>this.emit('message',{version:1,operation:'shell-ere',kind:'ready'}));}once(event,handler){if(event==='exit'){this.exitRegistrations++;current.events.push('exit-registration:'+this.exitRegistrations);if(current.persistent||current.single&&this.exitRegistrations===1)throw current.reason;}return super.once(event,handler);}terminate(){current.events.push('terminate');if(current.syncThrow)throw current.cleanup;const promise=new Promise((resolve,reject)=>{if(current.rejectCleanup){reject(current.cleanup);return;}this.once('exit',resolve);queueMicrotask(()=>{this.emit('exit',0);this.stdout.finish();this.stderr.finish();});});current.termination=promise;return promise;}postMessage(){throw current.postReason;}}
+5: 
+{"requests":8,"bytesRead":78066}
+{
+  "*": [
+    "schema",
+    "role",
+    "presealSha256",
+    "sourceManifestSha256",
+    "sourceModules",
+    "emissions",
+    "entries",
+    "tarBytes",
+    "tarSha256",
+    "compressedBytes",
+    "compressedSha256",
+    "textBytes",
+    "textSha256",
+    "format"
+  ]
+}
+{"requests":9,"bytesRead":83193}
+{
+  "*": [
+    "schema",
+    "role",
+    "node",
+    "inputs",
+    "compilerRepeat",
+    "actualWorkers",
+    "matching",
+    "controlGroups",
+    "permission",
+    "loadReplacement",
+    "limits"
+  ]
+}
+{"requests":10,"bytesRead":93414}
+{
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs",
+      "size": 7838,
+      "sha256": "d22ab1125f14f5a47250fbcbc31ca1a4f7597fb7f582dd3360bcd10d56f9ee65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs",
+      "size": 1479,
+      "sha256": "9a07119b77259db123aed83368da7e4a24f3f659112d2ab3dff4bf973c35c27c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/double-owner-v2.mjs",
+      "size": 2241,
+      "sha256": "7a621c8dfe4fb29e8f45897887c567afa2fc4f1d7cca0ed9e21be8084f2dfb27"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/package.json",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  ],
+  "limits": {
+    "helperMilliseconds": 15000,
+    "term": 2000,
+    "observe": 1000,
+    "captureBytes": 8388608,
+    "grantDeadlineUTC": "2026-08-29T15:17:56.156Z"
+  },
+  "loadReplacement": {
+    "specifier": "node:worker_threads",
+    "onlyImporter": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+    "replacement": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs"
+  }
+}
+{"requests":11,"bytesRead":103635}
+1: {
+2:   "schema": 1,
+3:   "role": "strict emitted internal USTAR package producer, not npm/full public package",
+4:   "presealSha256": "65c7431b0c9fad8853bf5c36e23d50ddbad97a6e4e5bd61bb37ac2321d702333",
+5:   "sourceManifestSha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5",
+6:   "sourceModules": 12,
+7:   "emissions": 24,
+8:   "entries": [
+9:     {
+10:       "name": "ere/errors.d.ts",
+11:       "size": 691,
+12:       "mode": 420,
+13:       "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+14:     },
+15:     {
+16:       "name": "ere/errors.js",
+17:       "size": 1045,
+18:       "mode": 420,
+19:       "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+20:     },
+21:     {
+22:       "name": "ere/limits.d.ts",
+23:       "size": 671,
+24:       "mode": 420,
+25:       "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+26:     },
+27:     {
+28:       "name": "ere/limits.js",
+29:       "size": 3265,
+30:       "mode": 420,
+31:       "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+32:     },
+33:     {
+34:       "name": "ere/matcher.d.ts",
+35:       "size": 231,
+36:       "mode": 420,
+37:       "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+38:     },
+39:     {
+40:       "name": "ere/matcher.js",
+41:       "size": 9747,
+42:       "mode": 420,
+43:       "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+44:     },
+45:     {
+46:       "name": "ere/syntax.d.ts",
+47:       "size": 445,
+48:       "mode": 420,
+49:       "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+50:     },
+51:     {
+52:       "name": "ere/syntax.js",
+53:       "size": 14270,
+54:       "mode": 420,
+55:       "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+56:     },
+57:     {
+58:       "name": "ere/transport/accounting.d.ts",
+59:       "size": 1925,
+60:       "mode": 420,
+61:       "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+62:     },
+63:     {
+64:       "name": "ere/transport/accounting.js",
+65:       "size": 7003,
+66:       "mode": 420,
+67:       "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+68:     },
+69:     {
+70:       "name": "ere/transport/owner.d.ts",
+{"requests":12,"bytesRead":108762}
+14: await test('D09-sync-termination-throw-distinct',async()=>{const {instance,control}=owner({single:true,reason:false,syncThrow:true,cleanup:undefined});await outcome(instance.start());assert.equal((await outcome(instance.close())).value,false);assert.equal(control.termination,undefined);assert.equal(instance.cleanupFailurePresent,true);});
+15: await test('D10-late-exit-no-upgrade',async()=>{const {instance,control}=owner({persistent:true,reason:false});await outcome(instance.start());await outcome(instance.close());control.workers[0].emit('exit',0);control.workers[0].stdout.finish();control.workers[0].stderr.finish();assert.equal(instance.retirementState,'UNCONFIRMED');});
+16: async function rootUnknown(signal){const control=configure({persistent:true,reason:false});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});const request=session.execute({pattern:[{text:'a',literal:false}],subject:'a'},signal);await outcome(request);return {control,root,session};}
+17: await test('D11-root-unknown-close',async()=>{const {root,session}=await rootUnknown();assert.equal(root.retirementState,'UNCONFIRMED');assert.equal((await outcome(root.close())).value,false);assert.equal((await outcome(session.close())).value,false);});
+18: await test('D12-root-retains-charge',async()=>{const {root}=await rootUnknown();const before=root.usage.transport;await outcome(root.close());const after=root.usage.transport;assert(before.live>0);assert.equal(after.live,before.live);assert.equal(after.reserved,before.reserved);});
+19: await test('D13-root-no-new-work',async()=>{const {root,session,control}=await rootUnknown();await outcome(root.close());const result=await outcome(session.execute({pattern:[{text:'a',literal:false}],subject:'a'}));assert(result.present);assert.equal(control.workers.length,1);assert.throws(()=>root.openSession(()=>{}));});
+20: await test('D14-caller-false-priority',async()=>{const control=configure({persistent:true,reason:{setup:true}});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});const abort=new AbortController();const request=session.execute({pattern:[{text:'a',literal:false}],subject:'a'},abort.signal);abort.abort(false);assert.equal((await outcome(request)).value,false);assert.equal((await outcome(root.close())).value,false);assert.equal(control.workers.length,1);});
+21: await test('D15-known-retired-root-primary',async()=>{configure({single:true,reason:false});const root=new EreTransportRoot(bounds,()=>{});const session=root.openSession(()=>{});assert.equal((await outcome(session.execute({pattern:[{text:'a',literal:false}],subject:'a'}))).value,false);assert.equal((await outcome(root.close())).value,false);assert.equal(root.retirementState,'RETIRED');});
+22: await test('D16-primary-raw-object',async()=>{const reason={identity:true};const {instance}=owner({single:true,reason,rejectCleanup:true,cleanup:false});assert.equal((await outcome(instance.start())).value,reason);assert.equal((await outcome(instance.close())).value,reason);assert.equal(instance.cleanupFailureReason,false);});
+23: const result={schema:1,role:'actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof',groups:rows,passed:rows.filter(r=>r.pass).length,workers:0,matchingCalls:0,loaded:[...new Set(loaded)].sort()};writeFileSync(new URL('./DOUBLE-RESULT-v2.json',import.meta.url),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({groups:rows.length,passed:result.passed,workers:0}));if(result.passed!==16)process.exitCode=1;
+24: 
+{"requests":13,"bytesRead":116600}
+1: {
+2:   "schema": 1,
+3:   "authorization": false,
+4:   "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+5:   "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+6:   "privatePackageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+7:   "packageEntries": 25,
+8:   "cells": [
+9:     {
+10:       "cell": 1,
+11:       "identity": "L02/constructor-throws@new-no-acquisition-control",
+12:       "layout": "built",
+13:       "workers": 0,
+14:       "status": "UNRUN"
+15:     },
+16:     {
+17:       "cell": 2,
+18:       "identity": "L02/constructor-throws@new-no-acquisition-control",
+19:       "layout": "installed-internal",
+20:       "workers": 0,
+21:       "status": "UNRUN"
+22:     },
+23:     {
+24:       "cell": 3,
+25:       "identity": "L02/constructor-throws@new-no-acquisition-control",
+26:       "layout": "physically-moved-internal",
+27:       "workers": 0,
+28:       "status": "UNRUN"
+29:     },
+30:     {
+31:       "cell": 4,
+32:       "identity": "P01/matched-vector",
+33:       "layout": "built",
+34:       "workers": 1,
+35:       "status": "UNRUN"
+36:     },
+37:     {
+38:       "cell": 5,
+39:       "identity": "P01/matched-vector",
+40:       "layout": "installed-internal",
+41:       "workers": 1,
+42:       "status": "UNRUN"
+43:     },
+44:     {
+45:       "cell": 6,
+46:       "identity": "P01/matched-vector",
+47:       "layout": "physically-moved-internal",
+48:       "workers": 1,
+49:       "status": "UNRUN"
+50:     },
+51:     {
+52:       "cell": 7,
+53:       "identity": "L02/postMessage-throws",
+54:       "layout": "built",
+55:       "workers": 1,
+56:       "status": "UNRUN"
+57:     },
+58:     {
+59:       "cell": 8,
+60:       "identity": "L02/postMessage-throws",
+61:       "layout": "installed-internal",
+62:       "workers": 1,
+63:       "status": "UNRUN"
+64:     },
+65:     {
+66:       "cell": 9,
+67:       "identity": "L02/postMessage-throws",
+68:       "layout": "physically-moved-internal",
+69:       "workers": 1,
+70:       "status": "UNRUN"
+71:     },
+72:     {
+73:       "cell": 10,
+74:       "identity": "L02/handler-setup-throws@single-fault-v2",
+75:       "layout": "built",
+76:       "workers": 1,
+77:       "status": "UNRUN"
+78:     },
+79:     {
+80:       "cell": 11,
+81:       "identity": "L02/handler-setup-throws@single-fault-v2",
+82:       "layout": "installed-internal",
+83:       "workers": 1,
+84:       "status": "UNRUN"
+85:     },
+86:     {
+87:       "cell": 12,
+88:       "identity": "L02/handler-setup-throws@single-fault-v2",
+89:       "layout": "physically-moved-internal",
+90:       "workers": 1,
+91:       "status": "UNRUN"
+92:     },
+93:     {
+94:       "cell": 13,
+95:       "identity": "L02/handler-setup-throws@persistent-double-fault-retained",
+96:       "layout": "built",
+97:       "workers": 1,
+98:       "status": "UNRUN",
+99:       "mustBeLast": true,
+100:       "expected": "UNCONFIRMED is contained nonpass/STOP, never a retired-success"
+101:     }
+102:   ],
+103:   "totals": {
+104:     "cells": 13,
+105:     "WorkersCeiling": 10,
+106:     "peakWorkers": 1,
+107:     "actualExecuted": 0
+108:   },
+109:   "fixture": {
+110:     "name": "worker-bridge-single-fault-v2.mjs.data",
+111:     "sha256": "c41984bb63435c9e59597692e42f8fd380b78a0e8af70bc3089aa08d047f91a7",
+112:     "bytes": 2866,
+113:     "priorSha256": "05e485aaf0ee2161093a1bd39983498fd98b52d72039a085a28fc16cff51f739",
+114:     "delta": "only first injected exit-listener registration throws false; native terminate internal once remains ordinary; original persistent fixture immutable"
+115:   },
+116:   "capsProposal": {
+117:     "inclusiveSeconds": 600,
+118:     "knownOS": 22,
+119:     "peakOS": 3,
+120:     "caseSeconds": 10,
+121:     "TERMSeconds": 2,
+122:     "observeSeconds": 1,
+123:     "publicationReserveSeconds": 180,
+124:     "captureBytes": 67108864,
+125:     "workBytes": 268435456
+126:   },
+127:   "arithmetic": "13*(10+2+1)+180=349 seconds before setup; remaining251 reserved finite setup/admission. Future closed supervisor must enforce600, not an OS-retirement guarantee.",
+128:   "knownRoleGraph": {
+129:     "supervisor": 1,
+130:     "caseProcesses": 13,
+131:     "administrationReserve": 8
+132:   },
+133:   "requiredHarnessChanges": [
+134:     "authenticate changed 25-entry package and physical three-layout copies; no build retry",
+135:     "bind current owner/root raw close rejection expectation, not historical fulfilled cleanup",
+136:     "publish bounded journal attempt/constructed/handlerFault/terminationRequested/terminateSettled/exit/stdio before final receipt",
+137:     "retain actual known Worker handle AND root reference on UNCONFIRMED; emergency receipt distinguishes raw setup presence from cleanup presence and serialized detail",
+138:     "unknown final cell cannot advance or archive/remove owned roots; outer observation uses TERM2+observe1 policy and requires fresh ROOT recovery if close unknown",
+139:     "independent listener observer is harness telemetry only, not a production fallback listener or evidence that owner observed exit",
+140:     "rebind all controller/loader/static assets and request-vs-effective identities; no inherited blanket authority",
+141:     "fresh different pre-execution review and ROOT actual GO required"
+142:   ],
+143:   "successPredicates": {
+144:     "singleFault": [
+145:       "execute rejects raw false",
+146:       "root and session close reject earlier raw false",
+147:       "root.retirementState===RETIRED",
+148:       "known native exit and both stream closures/drains precede case completion",
+149:       "one Worker/no retry"
+150:     ],
+151:     "persistent": [
+152:       "execute/root.close preserve false setup primary",
+153:       "cleanupFailurePresent=true and cleanupFailureReason===false for native Promise rejection branch when proven observed",
+154:       "UNCONFIRMED never sets retired/closed; reservations and metadata remain owned",
+155:       "no new root work; no following case",
+156:       "actual termination promise rejection distinct from sync throw; late events cannot retroactively rescore originalcell76"
+157:     ]
+158:   },
+159:   "qualifications": [
+160:     "13 cells are follow-up obligations, NOT rescoring old cell76",
+161:     "No actual Workers launched under current grant",
+162:     "Expected persistent contained-unknown is not transport acceptance"
+163:   ]
+164: }
+165: 
+{"requests":14,"bytesRead":122246}
+{"error":"Error: DISPLAY_CAP","requests":15,"bytesRead":231069}
+1: {
+2:   "schema": 1,
+3:   "oldAttempt": {
+4:     "commit": "5001adc71a9c1549822843d9cdd3bc2410fcf357",
+5:     "matrixSha256": "a194dd04d5553820359a4c07a0f6b6703a97638919ccd5dad74fdfc5e7068bc4",
+6:     "PASS": 75,
+7:     "nonpass": 1,
+8:     "UNRUN": 59,
+9:     "originalEligibleIdentities": 47,
+10:     "cells": 135
+11:   },
+12:   "newSource": "Every old cell depends on owner lifecycle; old75 remain historical, not unchanged-candidate runtime passes. New followup covers a selected repair path; remaining135 obligations require versioned source/close-rejection assertions and fresh grants.",
+13:   "allVariantPartition": {
+14:     "eligiblePrivate": 47,
+15:     "nonpublicDeferred": 6,
+16:     "publicCORE70Deferred": 7,
+17:     "total": 60
+18:   },
+19:   "nonpublic": [
+20:     {
+21:       "id": "L07/messageerror",
+22:       "fixture": "Owned static Worker bridge; after exactly one successful real post, deliver one explicitly injected messageerror with a retained sentinel via its existing emitter route. No arbitrary module URL.",
+23:       "assertions": [
+24:         "actual post count1",
+25:         "raw sentinel identity at execute rejection",
+26:         "one acquisition/no retry",
+27:         "unknown spent grant not refunded",
+28:         "actual Worker exit +both stdio joins"
+29:       ],
+30:       "proof": "Handler-route injection only, not native deserialization-event proof",
+31:       "gate": "ROOT approval of this explicit proof-role substitution; otherwise native messageerror obligation remains HOLD",
+32:       "plannedCells": 3,
+33:       "plannedWorkers": 3,
+34:       "status": "UNRUN",
+35:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+36:     },
+37:     {
+38:       "id": "B07/capture-byte-overflow",
+39:       "bounds": {
+40:         "maxExpansionBytes": 4096,
+41:         "maxExpansionFields": 64
+42:       },
+43:       "pattern": "^([a]+)$",
+44:       "subject": {
+45:         "ascii": "a",
+46:         "repeat": 2049
+47:       },
+48:       "derived": {
+49:         "patternBytes": 4096,
+50:         "subjectBytes": 4096,
+51:         "work": 131072,
+52:         "states": 512,
+53:         "allocationUnits": 40960,
+54:         "captureBytes": 4096,
+55:         "captureSlots": 64
+56:       },
+57:       "predicate": "execute rejects same-module EreProfileLimitError; resource===captureBytes; exact resource is preserved by root.js:235-237. Two full participating captures would require4098 bytes.",
+58:       "gate": "Before runtime seal, source/counter witness must establish work/states/allocation do not fail first. If any earlier cap wins, classify EARLIER_LIMIT, not capture PASS. No lower-limit hook/state injection or silent F/A/W increase.",
+59:       "plannedCells": 3,
+60:       "plannedWorkers": 3,
+61:       "status": "UNRUN",
+62:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+63:     },
+64:     {
+65:       "id": "B07/capture-slot-overflow",
+66:       "bounds": {
+67:         "maxExpansionBytes": 4096,
+68:         "maxExpansionFields": 1
+69:       },
+70:       "pattern": "(a)",
+71:       "subject": "a",
+72:       "derived": {
+73:         "work": 131072,
+74:         "states": 8,
+75:         "allocationUnits": 32896,
+76:         "captureBytes": 4096,
+77:         "captureSlots": 1
+78:       },
+79:       "predicate": "execute rejects same-module EreProfileLimitError with resource===captureSlots; overall+group require2 slots.",
+80:       "gate": "Source admission must establish compile/match states fit8 and other limits do not preempt; otherwise EARLIER_LIMIT. No altered product cap.",
+81:       "plannedCells": 3,
+82:       "plannedWorkers": 3,
+83:       "status": "UNRUN",
+84:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+85:     },
+86:     {
+87:       "id": "A01/expr-contract-pins",
+88:       "recipe": "Authenticate exact ROOT-selected accepted public artifact and its source/declaration manifest. Byte-compare legacy Expr implementation, RegexExecutionOptions and descriptor/reply declarations against that baseline. Run only the two previously accepted Expr consumer identities supplied by that manifest, with exact expected stdout/stderr/status and load closure.",
+89:       "gate": "Private25-entry artifact lacks public Expr/declarations. ROOT must supply the exact accepted public artifact/consumer bindings; no guessed current HEAD, API shape or historical pass inheritance.",
+90:       "plannedConsumers": 2,
+91:       "plannedWorkers": "No ERE Worker credit; Expr backend authority separately bound",
+92:       "status": "UNRUN",
+93:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+94:     },
+95:     {
+96:       "id": "A04/positive-new-method",
+97:       "recipe": "Compile the provided INERT positive.mts.data against exact private root.d.ts closure, no execution. Checks openSession/execute/close callable parameter/return types without inventing input shape.",
+98:       "gate": "Fresh exact declaration/tool closure and compiler GO; current task executes no typecheck",
+99:       "plannedTypeProcesses": 1,
+100:       "status": "UNRUN",
+101:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+102:     },
+103:     {
+104:       "id": "A04/negative-old-union",
+105:       "recipe": "Against ROOT-selected unchanged PUBLIC declarations, add shell-ere operation to an existing well-typed RegexExecutionOptions/legacy descriptor fixture and require exact excess-property/assignability diagnostic at that added field; first compile its unchanged positive counterpart.",
+106:       "gate": "Exact public exported type path, baseline positive fixture and required fields are missing from this private capsule. Do NOT invent a root export or count a missing-import diagnostic as the negative.",
+107:       "plannedTypeProcesses": 1,
+108:       "status": "UNRUN",
+109:       "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+110:     }
+111:   ],
+112:   "publicMapping": {
+113:     "path": "../preparation-r3/DEFERRED.md",
+114:     "unchanged": true,
+115:     "CORE70CaseMapSha256": "6437a80825871347d82e9b1d8f4208ffd69ed612a1d4ee23818f0332f01f6625",
+116:     "ids": [
+117:       "B01/root-descendants",
+118:       "B02/fresh-independent-exec",
+119:       "C01/readonly-capture-target",
+120:       "C02/public-expansion-limit",
+121:       "C02/public-output-limit",
+122:       "C02/sink-raw-false",
+123:       "C03/short-circuited-regex"
+124:     ],
+125:     "status": "UNRUN/private transport cannot discharge"
+126:   },
+127:   "oldCell76": "persistent double fault/unknown telemetry remains nonpass; source inference and pure models do not supply missing historical exit evidence"
+128: }
+129: 
+{"requests":16,"bytesRead":237564}
+{
+  "*": [
+    "schema",
+    "sourceBinding",
+    "modules"
+  ]
+}
+{"requests":17,"bytesRead":346387}
+{
+  "compressedBytes": 18000,
+  "compressedSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "tarBytes": 110592,
+  "tarSha256": "ecfc97a0d2b1d63f74f97ff52e523f980b483ac8b7f91dc53bf2b2871b2467ce",
+  "textBytes": 24001,
+  "textSha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8"
+}
+{"requests":18,"bytesRead":351514}
+1: # Final publication qualification
+2: 
+3: The prior HANDOFF sentence “No third helper” refers to host-double control execution only. There were two host-double helper attempts: the first parse-failed before0/16, the second passed16/16. A THIRD, separately presealed PURE DATA helper performed no production imports and stopped at its500000-byte per-archive-row cap. It exited1, raw stderr is retained, no archive was written and no retry occurred. The exact refused row was not included in its failure detail; do not invent it. This is a publication limitation, not a Worker or transport failure. RESULTS.json binds the existing raw strict-build/control receipts and already generated private25-entry package directly. No final complete working-tree census receipt or new evidence-archive success is claimed.
+4: 
+5: The strict build, second helper and package producer remain individually qualified; the combined first build-and-doubles controller correctly exited1 because its first helper syntax-failed. That original failure is not rescored. All actual known compiler/helper processes closed with full capture, and both direct controllers plus the DATA helper returned observed tool exits. No real Workers or engine matching were invoked. Fake UNCONFIRMED states cannot prove actual OS exit/stream ordering.
+6: 
+7: The private state accessor is part of the new internal ownership contract: a settled/rejected close promise alone MUST NOT be treated as known retirement. A harness/integrator must retain its root/handle owner on UNCONFIRMED. No public interface is added; generic core cleanup integration remains outside this write-set and must be rebound/reviewed before activation. The separately bounded outer observation profile is still necessary for reliable-but-unfulfilled native termination/stream events; this patch does not invent a universal cleanup timeout.
+8: 
+9: Source and complete strict input preseal:4abbdeec8e34de88ed2cf7bd32be9c06b413c631. Fixture-only correction:40948d132b8dc628b39eedb3069a9298d9788ff8. All original5001 and874450 artifacts remain unchanged. FOLLOWUP-13.json is a frozen proposal, not an executable dispatch grant; emergency-journal/retained-handle and new close-rejection receipt binding still require separate pre-execution review. The six nonpublic and seven CORE70 obligations are not discharged.
+10: 
+{"requests":19,"bytesRead":353836}
+{
+  "*": [
+    "schema",
+    "status",
+    "sourceCommit",
+    "fixtureCorrectionCommit",
+    "sourceManifestSha256",
+    "compiler",
+    "pure",
+    "ownedProcesses",
+    "capture",
+    "storage",
+    "future",
+    "history",
+    "bindings"
+  ]
+}
+{"requests":20,"bytesRead":365484}
+1: {
+2:   "schema": 1,
+3:   "sourceBinding": "270bea5826cd9d32f86654fe9e76d0e06d0040f81c49c1b53038c14e50d4caa7",
+4:   "modules": [
+5:     {
+6:       "name": "errors.ts",
+7:       "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+8:       "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+9:       "size": 1003,
+10:       "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+11:       "base64": "aW1wb3J0IHR5cGUgeyBFcmVSZXNvdXJjZSB9IGZyb20gIi4vdHlwZXMuanMiOwoKZXhwb3J0IGNsYXNzIEVyZVN5bnRheEVycm9yIGV4dGVuZHMgRXJyb3IgewogIHJlYWRvbmx5IHN0YXR1cyA9IDI7CiAgY29uc3RydWN0b3IobWVzc2FnZTogc3RyaW5nLCByZWFkb25seSBvZmZzZXQ6IG51bWJlcikgewogICAgc3VwZXIoYGludmFsaWQgRVJFIGF0ICR7b2Zmc2V0fTogJHttZXNzYWdlfWApOwogICAgdGhpcy5uYW1lID0gIkVyZVN5bnRheEVycm9yIjsKICB9Cn0KCmV4cG9ydCBjbGFzcyBFcmVVbnN1cHBvcnRlZEVycm9yIGV4dGVuZHMgRXJyb3IgewogIHJlYWRvbmx5IHN0YXR1cyA9IDI7CiAgY29uc3RydWN0b3IobWVzc2FnZTogc3RyaW5nLCByZWFkb25seSBvZmZzZXQ6IG51bWJlcikgewogICAgc3VwZXIoYHVuc3VwcG9ydGVkIEVSRSBwcm9maWxlIGF0ICR7b2Zmc2V0fTogJHttZXNzYWdlfWApOwogICAgdGhpcy5uYW1lID0gIkVyZVVuc3VwcG9ydGVkRXJyb3IiOwogIH0KfQoKZXhwb3J0IGNsYXNzIEVyZVByb2ZpbGVMaW1pdEVycm9yIGV4dGVuZHMgRXJyb3IgewogIHJlYWRvbmx5IHN0YXR1cyA9IDM7CiAgY29uc3RydWN0b3IocmVhZG9ubHkgcmVzb3VyY2U6IEVyZVJlc291cmNlLCByZWFkb25seSBsaW1pdDogbnVtYmVyKSB7CiAgICBzdXBlcihgRVJFIHByb2ZpbGUgbGltaXQgZXhjZWVkZWQ6ICR7cmVzb3VyY2V9ICgke2xpbWl0fSlgKTsKICAgIHRoaXMubmFtZSA9ICJFcmVQcm9maWxlTGltaXRFcnJvciI7CiAgfQp9CgpleHBvcnQgY2xhc3MgRXJlVXNhZ2VVbmtub3duRXJyb3IgZXh0ZW5kcyBFcnJvciB7CiAgcmVhZG9ubHkgc3RhdHVzID0gMzsKICBjb25zdHJ1Y3RvcihyZWFzb246IHVua25vd24pIHsKICAgIHN1cGVyKCJFUkUgaW52b2NhdGlvbiB1c2FnZSBpcyB1bmtub3duOyBmdXJ0aGVyIHdvcmsgaXMgcmVmdXNlZCIsIHsgY2F1c2U6IHJlYXNvbiB9KTsKICAgIHRoaXMubmFtZSA9ICJFcmVVc2FnZVVua25vd25FcnJvciI7CiAgfQp9Cg=="
+12:     },
+13:     {
+14:       "name": "limits.ts",
+15:       "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+16:       "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+{"requests":21,"bytesRead":474307}
+{
+  "compiler": {
+    "processes": 1,
+    "exit": 0,
+    "diagnosticBytes": 0,
+    "emissions": 24,
+    "strict": true,
+    "skipLibCheck": true,
+    "negativeConsumerProcesses": 0
+  },
+  "pure": {
+    "hostHelperProcesses": 2,
+    "firstParseFailure": {
+      "exit": 1,
+      "controlsExecuted": 0,
+      "preserved": true
+    },
+    "second": {
+      "exit": 0,
+      "uniqueGroups": 16,
+      "passed": 16
+    },
+    "thirdHelper": {
+      "role": "DATA only no control/production loads",
+      "exit": 1,
+      "reason": "archive row cap",
+      "exactOversizedRow": "NOT_RECORDED",
+      "retry": false,
+      "archivePublished": false
+    },
+    "actualWorkers": 0,
+    "matching": 0
+  },
+  "storage": {
+    "fullFinalCensus": "NOT_PUBLISHED; final DATA helper passed its traversal then refused archive row>500000; do not infer exact total from missing receipt",
+    "artifacts": "existing emitted25-entry package+PRODUCER authenticate separately; no archive retry; all original work retained"
+  },
+  "history": {
+    "actualT1": "75PASS/1nonpass/59UNRUN immutable",
+    "cell76": "unknown telemetry; no retrospective exit evidence",
+    "diagnosis": "874450368b4f12c63358f88c31e45babeae64d66 separate"
+  }
+}
+{"requests":22,"bytesRead":485955}
+1: import { types as utilTypes } from "node:util";
+2: import { EreProfileLimitError, EreUnsupportedError } from "../errors.js";
+3: import { deriveEreLimits } from "../limits.js";
+4: import type { EreFragment, EreLimits, EreResource, EreUsage } from "../types.js";
+5: import { add, integer, multiply, TransportAccounting } from "./accounting.js";
+6: import { EreTransportError, EreTransportProfileLimitError, operation, profile, resources } from "./protocol.js";
+7: import type { EreTransportInput, EreTransportReply, EreTransportRequest, EreTransportResult } from "./protocol.js";
+8: 
+9: const inputKeys = Object.freeze(["pattern", "subject"]);
+10: const fragmentKeys = Object.freeze(["text", "literal"]);
+11: const resultKeys = Object.freeze(["matched", "groupCount", "spans", "steps", "allocatedUnits"]);
+12: const spanKeys = Object.freeze(["start", "end"]);
+13: const replyKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "result", "usage"]);
+14: const failureKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "category", "resource", "offset", "usage"]);
+15: 
+16: function fail(): never { throw new EreTransportError("PROTOCOL", "invalid ERE transport frame"); }
+17: 
+18: function data(value: unknown, key: string, transport?: TransportAccounting): unknown {
+19:   const scratch = transport?.owned(5);
+20:   try {
+21:     if (value === null || typeof value !== "object" || utilTypes.isProxy(value)) return fail();
+22:   const descriptor = Object.getOwnPropertyDescriptor(value, key);
+23:   if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+24:   return descriptor.value;
+25:   } finally { scratch?.retire(); }
+26: }
+27: 
+28: function indexed(value: readonly unknown[], index: number, transport?: TransportAccounting): unknown {
+29:   const scratch = transport?.owned(16);
+30:   try { return data(value, String(index), transport); }
+31:   finally { scratch?.retire(); }
+32: }
+33: 
+34: export function record(value: unknown, keys: readonly string[], visit: (units: number) => void, transport?: TransportAccounting): Record<string, unknown> {
+35:   visit(1 + keys.length);
+36:   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || Array.isArray(value)) return fail();
+37:   const scratch = transport?.owned(add(1, multiply(keys.length, 6)));
+38:   try {
+39:     const actual = Reflect.ownKeys(value);
+40:   if (actual.length !== keys.length) return fail();
+41:   for (let index = 0; index < keys.length; index++) {
+42:     if (actual[index] !== keys[index]) return fail();
+43:     const descriptor = Object.getOwnPropertyDescriptor(value, keys[index]!);
+44:     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+45:   }
+46:   return value as Record<string, unknown>;
+47:   } finally { scratch?.retire(); }
+48: }
+49: 
+50: function array(value: unknown, maximum: number, visit: (units: number) => void, overLimit: () => never = fail, transport?: TransportAccounting): readonly unknown[] {
+51:   visit(1);
+52:   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || !Array.isArray(value)) return fail();
+53:   const lengthValue = data(value, "length", transport);
+54:   integer(lengthValue);
+55:   if (lengthValue > maximum) return overLimit();
+56:   visit(lengthValue);
+57:   const scratch = transport?.owned(add(2, multiply(lengthValue, 22)));
+58:   try {
+59:     const keys = Reflect.ownKeys(value);
+60:   if (keys.length !== lengthValue + 1 || keys[keys.length - 1] !== "length") return fail();
+61:   for (let index = 0; index < lengthValue; index++) {
+62:     const key = String(index);
+63:     if (keys[index] !== key) return fail();
+64:     const descriptor = Object.getOwnPropertyDescriptor(value, key);
+65:     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+66:   }
+67:   return value;
+68:   } finally { scratch?.retire(); }
+69: }
+70: 
+71: function ascii(value: unknown, cap: number, visit: (units: number) => void): string {
+72:   if (typeof value !== "string" || value.length > cap) return fail();
+73:   for (let offset = 0; offset < value.length; offset++) {
+74:     visit(1);
+75:     if (value.charCodeAt(offset) === 0 || value.charCodeAt(offset) > 127) return fail();
+76:   }
+77:   return value;
+78: }
+79: 
+80: export function usage(value: unknown, allowance: EreLimits, visit: (units: number) => void, transport?: TransportAccounting): EreUsage {
+81:   const fields = record(value, resources, visit, transport);
+82:   for (const key of resources) { integer(fields[key]); if ((fields[key] as number) > allowance[key]) return fail(); }
+83:   return fields as unknown as EreUsage;
+84: }
+85: 
+86: export interface InspectedInput {
+87:   readonly input: EreTransportInput;
+88:   readonly patternBytes: number;
+89:   readonly units: number;
+90: }
+91: 
+92: export function inspectInput(value: EreTransportInput, limits: EreLimits, transport: TransportAccounting, signal?: AbortSignal): InspectedInput {
+93:   const visit = (amount: number): void => { if (signal?.aborted) throw signal.reason; transport.visit(amount); };
+94:   const input = record(value, inputKeys, visit, transport);
+95:   if (typeof input.subject !== "string") return fail();
+96:   if (input.subject.length > limits.subjectBytes) throw new EreProfileLimitError("subjectBytes", limits.subjectBytes);
+97:   const maximum = Math.max(0, Math.floor((Math.floor(transport.available / 2) - 47 - input.subject.length) / 4));
+98:   const fragments = array(input.pattern, maximum, visit, () => { throw new EreTransportProfileLimitError("transportStorage", transport.storageLimit); }, transport);
+99:   let bytes = 0;
+100:   for (let index = 0; index < fragments.length; index++) {
+101:     const item = indexed(fragments, index, transport);
+102:     const fragment = record(item, fragmentKeys, visit, transport);
+103:     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") return fail();
+104:     if (fragment.text.length > limits.patternBytes - bytes) throw new EreProfileLimitError("patternBytes", limits.patternBytes);
+105:     for (let offset = 0; offset < fragment.text.length; offset++) {
+106:       visit(1);
+107:       if (fragment.text.charCodeAt(offset) === 0 || fragment.text.charCodeAt(offset) > 127) throw new EreUnsupportedError("transport requires non-NUL ASCII", bytes + offset);
+108:     }
+109:     bytes += fragment.text.length;
+110:   }
+{"requests":23,"bytesRead":499045}
+1: {
+2:   "schema": 1,
+3:   "role": "actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof",
+4:   "groups": [
+5:     {
+6:       "id": "D01-normal",
+7:       "pass": true
+8:     },
+9:     {
+10:       "id": "D02-single-false",
+11:       "pass": true
+12:     },
+13:     {
+14:       "id": "D03-persistent-Promise-reject-false",
+15:       "pass": true
+16:     },
+17:     {
+18:       "id": "D04-primary-false-cleanup-undefined",
+19:       "pass": true
+20:     },
+21:     {
+22:       "id": "D05-cleanup-only-undefined",
+23:       "pass": true
+24:     },
+25:     {
+26:       "id": "D06-constructor-false",
+27:       "pass": true
+28:     },
+29:     {
+30:       "id": "D07-both-stream-attempts",
+31:       "pass": true
+32:     },
+33:     {
+34:       "id": "D08-idempotent-close",
+35:       "pass": true
+36:     },
+37:     {
+38:       "id": "D09-sync-termination-throw-distinct",
+39:       "pass": true
+40:     },
+41:     {
+42:       "id": "D10-late-exit-no-upgrade",
+43:       "pass": true
+44:     },
+45:     {
+46:       "id": "D11-root-unknown-close",
+47:       "pass": true
+48:     },
+49:     {
+50:       "id": "D12-root-retains-charge",
+51:       "pass": true
+52:     },
+53:     {
+54:       "id": "D13-root-no-new-work",
+55:       "pass": true
+56:     },
+57:     {
+58:       "id": "D14-caller-false-priority",
+59:       "pass": true
+60:     },
+61:     {
+62:       "id": "D15-known-retired-root-primary",
+63:       "pass": true
+64:     },
+65:     {
+66:       "id": "D16-primary-raw-object",
+67:       "pass": true
+68:     }
+69:   ],
+70:   "passed": 16,
+71:   "workers": 0,
+72:   "matchingCalls": 0,
+73:   "loaded": [
+74:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.js",
+75:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.js",
+76:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.js",
+77:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+78:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.js",
+79:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js",
+80:     "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.js",
+81:     "node:timers/promises",
+82:     "node:util"
+83:   ]
+84: }
+85: 
+{"requests":24,"bytesRead":501657}
+{"bytes":9897,"sha256":"14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"}
+{"requests":25,"bytesRead":511554}
+{"bytes":14619,"sha256":"41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"}
+{"requests":26,"bytesRead":526173}
+143:       "size": 1606,
+144:       "mode": 420,
+145:       "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+146:     },
+147:     {
+148:       "name": "ere/types.js",
+149:       "size": 11,
+150:       "mode": 420,
+151:       "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+152:     },
+153:     {
+154:       "name": "package.json",
+155:       "size": 228,
+156:       "mode": 420,
+157:       "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+158:     }
+159:   ],
+160:   "tarBytes": 110592,
+161:   "tarSha256": "ecfc97a0d2b1d63f74f97ff52e523f980b483ac8b7f91dc53bf2b2871b2467ce",
+162:   "compressedBytes": 18000,
+163:   "compressedSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+164:   "textBytes": 24001,
+165:   "textSha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8",
+166:   "format": "gzip USTAR; ASCII names, lexical byte order, all regular0644, uid/gid/mtime0; package/ prefix"
+167: }
+168: 
+{"requests":27,"bytesRead":531300}

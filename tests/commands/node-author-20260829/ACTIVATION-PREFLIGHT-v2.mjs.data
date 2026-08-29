@@ -1,0 +1,43 @@
+async function activateNodePreflightV2(expectedSeal) {
+  const fs = await import('node:fs/promises');
+  const sync = await import('node:fs');
+  const crypto = await import('node:crypto');
+  const cp = await import('node:child_process');
+  const util = await import('node:util');
+  const home = '/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829';
+  const root = home + '/validation-v2/bootstrap-preflight';
+  await fs.mkdir(root);
+  const descriptors = [];
+  let child; let timer; let killer; let primary; let total = 0;
+  const record = {role:'node-author-bootstrap-v1',start:new Date().toISOString(),pid:null,spawned:false,closed:false,code:null,signal:null,bytes:0,primary:null,cleanup:[],elapsedMs:0};
+  const began = performance.now();
+  const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+  const read = async (file,maximum) => {const stat=await fs.lstat(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>maximum)throw Error('bootstrap input admission');return fs.readFile(file);};
+  const terminate = () => {if(record.closed)return;try{child?.kill('SIGTERM');}catch(value){primary??={present:true,value};}killer??=setTimeout(()=>{if(!record.closed)try{child?.kill('SIGKILL');}catch(value){primary??={present:true,value};}},2000);};
+  try {
+    descriptors.push(sync.openSync(root+'/launcher.stdout','wx',0o600));
+    descriptors.push(sync.openSync(root+'/launcher.stderr','wx',0o600));
+    const sealBody=await read(home+'/PREFLIGHT-SEAL-v2.json',2097152);
+    if(typeof expectedSeal!=='string'||hash(sealBody)!==expectedSeal)throw Error('bootstrap seal identity');
+    const seal=JSON.parse(sealBody.toString('utf8'));
+    if(hash(Buffer.from(activateNodePreflightV2.toString()+'\n'))!==seal.files.find(row=>row.path==='ACTIVATION-PREFLIGHT-v2.mjs.data').sha256)throw Error('bootstrap executable source drift');
+    for(const row of seal.files){const body=await read(home+'/'+row.path,4194304);if(body.length!==row.bytes||hash(body)!==row.sha256)throw Error('bootstrap selected file drift');}
+    const config=JSON.parse((await read(home+'/CONTROL-v2.json',65536)).toString('utf8'));
+    const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+    const stat=await fs.lstat(node);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==112989184)throw Error('bootstrap tool admission');
+    const hasher=crypto.createHash('sha256');let bytes=0;for await(const chunk of sync.createReadStream(node,{highWaterMark:65536})){bytes+=chunk.length;if(bytes>112989184)throw Error('bootstrap growing binary');hasher.update(chunk);}if(bytes!==112989184||hasher.digest('hex')!=='5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011')throw Error('bootstrap binary identity');
+    await new Promise((resolve,reject)=>{
+      timer=setTimeout(()=>{primary??={present:true,value:'bootstrap owner wall'};terminate();},30000);
+      try{child=cp.spawn(node,['--experimental-permission',...config.readRoots.map(value=>'--allow-fs-read='+value),'--allow-fs-write='+home+'/validation-v2',home+'/preflight-v2.mjs'],{cwd:home,env:config.environment,stdio:['ignore','pipe','pipe']});}catch(value){reject(value);return;}
+      child.once('error',value=>{primary??={present:true,value};});
+      child.once('close',(code,signal)=>{record.closed=true;record.code=code;record.signal=signal;clearTimeout(timer);clearTimeout(killer);resolve();});
+      try{record.pid=child.pid??null;record.spawned=child.pid!==undefined;for(const [index,stream]of [child.stdout,child.stderr].entries()){stream.on('error',value=>{primary??={present:true,value};terminate();});stream.on('data',chunk=>{try{total+=chunk.length;if(total>1048576)throw Error('bootstrap capture ceiling');let offset=0;while(offset<chunk.length){const written=sync.writeSync(descriptors[index],chunk,offset,chunk.length-offset);if(written<=0)throw Error('bootstrap zero write');offset+=written;}}catch(value){primary??={present:true,value};terminate();}});}}catch(value){primary??={present:true,value};terminate();}
+    });
+  } catch(value) {primary??={present:true,value};}
+  finally {
+    clearTimeout(timer);clearTimeout(killer);for(const descriptor of descriptors)try{sync.closeSync(descriptor);}catch(value){record.cleanup.push({present:true,isUndefined:value===undefined});}
+    record.primary=primary?{present:true,isUndefined:primary.value===undefined}:null;if(primary&&primary.value!==null&&typeof primary.value==='object'&&!util.types.isProxy(primary.value)){for(const key of ['name','message','code']){const field=Object.getOwnPropertyDescriptor(primary.value,key);if(field&&Object.hasOwn(field,'value')&&typeof field.value==='string'&&field.value.length<=2048)record.primary[key]=field.value;}}record.bytes=total;record.elapsedMs=performance.now()-began;
+    await fs.writeFile(root+'/RECEIPT.json',JSON.stringify(record)+'\n',{flag:'wx',mode:0o600});
+  }
+  return record;
+}

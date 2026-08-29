@@ -1,0 +1,28 @@
+1 startup-shell 64474
+2 namespace-mkdir 64476
+namespace-mkdir-retired0
+3 source-patch-shell 65304
+4 source-apply_patch 65305
+source-apply_patch-retired0
+5 preseal-apply_patch 65307
+preseal-apply_patch-retired0
+6 preseal-shasum 65308
+preseal-shasum-retired0
+7 narrow-qualification-shell 65674
+8 PURE-prepare 65675
+PURE-prepare-retired=0
+9 PURE-controller 65682
+PURE-controller-retired=0
+12 results-read-shell 65904 (roles10-11 are actual harmless children in children.jsonl)
+10 actual-harmless-zero 65685 source=controls/children.jsonl retired0
+11 actual-harmless-nonzero 65687 source=controls/children.jsonl retired7
+13 scoped-source-qualification-shell 69838
+14 qualification-read-shell 69952
+15 publication-shell 71856
+16 handoff-apply_patch 71857
+handoff-apply_patch-retired0
+17 evidence-mkdir 71858
+evidence-mkdir-retired0
+18 exact-capture-copy 71860
+exact-capture-copy-retired0
+19 census-snapshot-copy 71862

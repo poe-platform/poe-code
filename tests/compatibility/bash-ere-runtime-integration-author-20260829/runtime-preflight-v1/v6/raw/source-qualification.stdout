@@ -1,0 +1,33 @@
+FILE=tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/worker-observer.mjs
+13     boundFile({ path: spec.path, size: spec.size, mode: spec.mode, sha256: spec.sha256 });
+19     if (rows.length >= spec.maximumStarts) throw new Error('Worker-start cap');
+38           if (row.replies.length >= 128) throw new Error('reply observation cap');
+40           if (replyWait && rows.reduce((total, item) => total + item.replies.length, 0) >= replyWait.count) { replyWait.wait.resolve(); replyWait = undefined; }
+52       if (row.requests.length >= 128) throw new Error('request observation cap');
+74     expectReplies(additional) { if (replyWait || additional !== 2) throw new Error('fixed reply wait'); const wait = deferred(); replyWait = { count: rows.reduce((total, row) => total + row.replies.length, 0) + additional, wait }; controls.push(wait); return wait.promise; },
+FILE=tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/host-bodies.mjs
+33     ['group32', '('.repeat(32) + 'a' + ')'.repeat(32), 'a', 0],
+35     ['nodes4096', 'a'.repeat(4095), '', 1],
+36     ['nodes4097', 'a'.repeat(4096), '', 2],
+38     ['interval256', 'a{256}', 'a', 2],
+40     ['private-work', '(a|aa){18}', 'a'.repeat(36), 3, { maxExpansionBytes: 512, maxExpansionFields: 16384 }],
+41     ['private-state', '(a|aa){64}', 'a'.repeat(128), 3, { maxExpansionBytes: 1048576, maxExpansionFields: 128 }],
+44     const before = observer.rows.length;
+49     if (id === 'private-pattern-limit') assert.equal(observer.rows.length, before);
+52     emit({ event: 'subcase', id: 'H03/' + id, status, workerDelta: observer.rows.length - before, stderr: result.stderr });
+54   emit({ event: 'source-proof', id: 'H03/depth64', classification: 'UNREACHABLE_SOURCE_ONLY', reason: 'Every recursive expression(depth+1) is entered only after the32-group guard; no public path reaches depth64.' });
+82   const before = arrays.rows.length;
+83   result = await shell.exec('[[ a =~ (a) ]]', { limits: { maxExpansionFields: 1 } });
+87   assert.ok(refusals.length > 0);
+128   const before = observer.rows.length;
+129   assert.throws(() => boundFile({ ...sample, sha256: sample.sha256[0] === '0' ? '1' + sample.sha256.slice(1) : '0' + sample.sha256.slice(1) }), /file hash/);
+130   assert.equal(observer.rows.length, before);
+FILE=tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/SOURCE-INSPECTION.json
+17       "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+28       "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+40       "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37"
+49       "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+58       "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+67       "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+76       "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+QUALIFICATION_SOURCE_READ_COMPLETE

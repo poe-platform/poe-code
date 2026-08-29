@@ -1,0 +1,9 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-preflight-review-20260829/run-review.mjs:17
+ assert(record.spawn&&record.exit&&record.close&&!record.timeout&&!record.error&&record.signal===null,'RETIREMENT_OR_SAFETY_STOP');verify();if(record.code!==0)throw Error('CAPTURED_CONTROL_FAILURE:'+role);
+                                                                                                                                                                     ^
+
+Error: CAPTURED_CONTROL_FAILURE:independent
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-preflight-review-20260829/run-review.mjs:17:166
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.22.2

@@ -1,0 +1,31 @@
+{
+  "records": [
+    {
+      "role": "author",
+      "startedAt": "2026-08-29T09:48:36.448Z",
+      "spawn": true,
+      "exit": true,
+      "close": true,
+      "timeout": false,
+      "pid": 3340,
+      "code": 0,
+      "signal": null,
+      "finishedAt": "2026-08-29T09:48:36.567Z"
+    },
+    {
+      "role": "independent",
+      "startedAt": "2026-08-29T09:48:36.571Z",
+      "spawn": true,
+      "exit": true,
+      "close": true,
+      "timeout": false,
+      "pid": 3342,
+      "code": 1,
+      "signal": null,
+      "finishedAt": "2026-08-29T09:48:36.627Z"
+    }
+  ],
+  "native": 0,
+  "fixtureWorkers": 0,
+  "knownChildStarts": 2
+}

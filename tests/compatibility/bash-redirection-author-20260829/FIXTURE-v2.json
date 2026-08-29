@@ -1,0 +1,22 @@
+{
+  "role": "UNEXECUTED_TEST_ONLY_V2_REQUIRES_DIFFERENT_REVIEW",
+  "originalSha256": "9117a41af3f4f9b065e57072b3c21b120212ad0a8f39dd5e268e47caa785f397",
+  "revisedSha256": "3e11ac513a8fd1bec4a28f8c22e9f4d608ba49bb519427e12fe30f1b460be2cc",
+  "originalBytes": 9365,
+  "revisedBytes": 9507,
+  "corrections": [
+    [
+      "assert.deepEqual((await memory.readdir(\"/\")).sort(), Object.keys(row.files ?? {}).sort());",
+      "assert.deepEqual((await memory.readdir(\"/\")).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name))), Object.keys(row.files ?? {}).sort().map(name => ({ name, type: \"file\" })));"
+    ],
+    [
+      "assert.deepEqual(await memory.readdir(\"/\"), [\"first\"]);",
+      "assert.deepEqual(await memory.readdir(\"/\"), [{ name: \"first\", type: \"file\" }]);"
+    ]
+  ],
+  "allOtherBytesIdenticalAfterReversion": true,
+  "productTree": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+  "productChanges": 0,
+  "executions": 0
+}

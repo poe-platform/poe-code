@@ -1,0 +1,309 @@
+{
+  "role": "BOUNDED_RESOURCE_ACCOUNTING_WITH_EXPLICIT_OBSERVATION_LIMITS",
+  "originStartedAt": "2026-08-29T06:46:26.890Z",
+  "grant": {
+    "seconds": 3600,
+    "allOwnedOsProcesses": 128,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workingBytes": 1073741824,
+    "internalLoaderAdmissions": 40,
+    "regexWorkers": 12
+  },
+  "runtime": {
+    "directChildReceipts": 59,
+    "outer": 3,
+    "coordinator": 3,
+    "uniqueObservedPids": [
+      8296,
+      12796,
+      24372,
+      8297,
+      12799,
+      24375,
+      8303,
+      8333,
+      8503,
+      8635,
+      8656,
+      12826,
+      12865,
+      12961,
+      13020,
+      13027,
+      13032,
+      13067,
+      13090,
+      13102,
+      13107,
+      13110,
+      13121,
+      13128,
+      13154,
+      13170,
+      13176,
+      13188,
+      13190,
+      13196,
+      13205,
+      13212,
+      13222,
+      13233,
+      13239,
+      13252,
+      13263,
+      13265,
+      13269,
+      13276,
+      13295,
+      13299,
+      13310,
+      13342,
+      13345,
+      13354,
+      13358,
+      13363,
+      13381,
+      13389,
+      13394,
+      13396,
+      13406,
+      13409,
+      13489,
+      13740,
+      14176,
+      14340,
+      14452,
+      14574,
+      24428,
+      24434,
+      24472,
+      24513,
+      24569
+    ],
+    "allEnrolledClosed": true,
+    "allThreeGroupsAbsent": true,
+    "signals": 0,
+    "fixedLoaderAdmissions": 39,
+    "individualInternalWorkerExits": "NOT_CENSUSED",
+    "regexWorkerBirths": 0,
+    "regexWorkerExits": 0
+  },
+  "administration": {
+    "closedPatchChildrenBeforeThisPublication": [
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 11713,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 12402,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 12403,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 12404,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 18322,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 21493,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 22774,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 22775,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 22776,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 28362,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 30331,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 32175,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "rolesBeyondRuntime": [
+      {
+        "role": "launch shell wrappers",
+        "maximumOs": 3,
+        "qualification": "Some shells may exec-replace; not counted as measured distinct PIDs."
+      },
+      {
+        "role": "v2 seal Git add/commit wrapper",
+        "maximumOs": 3
+      },
+      {
+        "role": "tail syntax and Git add/commit wrapper",
+        "maximumOs": 4
+      },
+      {
+        "role": "archive Node and shell wrapper",
+        "maximumOs": 2
+      },
+      {
+        "role": "status/index Git and wrapper",
+        "maximumOs": 3
+      },
+      {
+        "role": "this resource publication patch",
+        "maximumOs": 1,
+        "qualification": "Final tool receipt supplies close, not this pre-spawn data."
+      },
+      {
+        "role": "README apply_patch wrapper",
+        "maximumOs": 2,
+        "qualification": "publication reservation until tool returns"
+      },
+      {
+        "role": "final Git add/commit/revparse/status/index/show wrapper",
+        "maximumOs": 7,
+        "qualification": "publication reservation until tool returns"
+      }
+    ],
+    "knownScopeUpperIncludingPublication": 102,
+    "upperIsNotMeasuredGlobalOsDescendantCensus": true
+  },
+  "captures": {
+    "directBytes": 6381492,
+    "outerBytes": 1587,
+    "archiveRawBytes": 22803795,
+    "archiveRecords": 270,
+    "archiveSha256": "4b008781fb604fb238991132f6ebc33e6daa6abed9c8f11fe1a8e6a6e422d981"
+  },
+  "physical": {
+    "files": 16299,
+    "bytes": 168402689,
+    "deleted": 0,
+    "postCensusDocumentationNotIncluded": true
+  },
+  "preparationSeparate": {
+    "start": "2026-08-29T06:30:48.594Z",
+    "publicationBeforeActivation": true,
+    "maximumElapsedUntilActivationMs": 938296,
+    "declaredRolesUpper": 35,
+    "grantOs": 48,
+    "grantSeconds": 1200,
+    "knownObservedPatchChildren": [
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 88482,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 90355,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 92409,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 98317,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 927,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 7198,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 7199,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 7200,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "apply_patch",
+        "closed": true,
+        "pid": 7263,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "qualification": "Git/Node/edit wrappers included by bounded role counts; not global OS syscall census."
+  },
+  "qualification": "All enrolled runtime and observed edit children retired. Tool invocations complete normally; no claim that declared wrapper upper bounds are measured native process trees or that trusted tools are hostile-code sandboxes. Fresh final publication roles are separately identified, not product outcomes."
+}
+

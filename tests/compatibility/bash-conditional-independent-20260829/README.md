@@ -1,4 +1,24 @@
-# Independent conditional preparation — all execution held
+# Independent conditional review — qualified HOLD
+
+## Current successor execution
+
+See `successor-v6/FINAL/REPORT.md` and its exact identity/resource maps.
+Candidate `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived
+`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 package
+`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`.
+All67 author profiles and201 selected retained cases pass per layout; novel9/12
+per layout leaves nine file-content checks unproved due reviewer reader mistakes.
+Twelve type groups pass,33 exact negative diagnostics;10 loaded mutants produce
+nine observed negative controls, with M04 restored collector gap and M06
+preabort nonactivation explicitly retained. Four binding refusals pass.
+Original preparation/import/reader failures are not rescored; no product defect
+has been demonstrated. No native/global-HEAD/full-Bash acceptance. Runtime stops
+at39/40 loader admissions; source-only reader-v4 is UNRUN. Raw staging is retained.
+
+## Historical preparation snapshot
+
+The following preparation observations remain literal historical evidence,
+not a statement that the later authorized runtime attempts were unexecuted.
 
 2026-08-29. Scope:source/DATA/design only. Forty original literal identities,
 ten original host protocols and twelve new independent identities are frozen;

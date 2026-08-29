@@ -1,0 +1,418 @@
+{
+  "role": "SOURCE_DATA_SYNTHESIS_NOT_ADDITIONAL_EXECUTION",
+  "summaries": [
+    {
+      "attempt": "ACTUAL-01",
+      "status": "FAILED_OR_INCOMPLETE",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 525,
+        "startedAt": "2026-08-29T06:46:26.890Z",
+        "pid": 8297,
+        "code": 1,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 13420
+      },
+      "cleanup": {
+        "directChildren": 5,
+        "observedProductWorkers": 0,
+        "implicitLoaderAdmissions": 2,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 2822756,
+      "scratchBytes": 55688694,
+      "cohorts": [
+        {
+          "label": "source-conditional",
+          "cases": 67,
+          "pass": 67,
+          "fail": 0
+        }
+      ],
+      "types": [],
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(traces.length)\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/run.mjs:132:47)\n    at async cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/run.mjs:136:18)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/run.mjs:229:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/run.mjs:233:3"
+    },
+    {
+      "attempt": "ACTUAL-02",
+      "status": "INDEPENDENT_ASSERTION_HOLD",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 531,
+        "startedAt": "2026-08-29T06:46:26.890Z",
+        "pid": 12799,
+        "code": 1,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 231232
+      },
+      "cleanup": {
+        "directChildren": 49,
+        "observedProductWorkers": 0,
+        "implicitLoaderAdmissions": 33,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 3544036,
+      "scratchBytes": 76109410,
+      "cohorts": [
+        {
+          "label": "source-conditional",
+          "cases": 67,
+          "pass": 67,
+          "fail": 0
+        },
+        {
+          "label": "source-novel",
+          "cases": 12,
+          "pass": 9,
+          "fail": 3
+        },
+        {
+          "label": "source-retained-public",
+          "cases": 45,
+          "pass": 45,
+          "fail": 0
+        },
+        {
+          "label": "source-retained-apply",
+          "cases": 28,
+          "pass": 28,
+          "fail": 0
+        },
+        {
+          "label": "source-retained-redirections",
+          "cases": 48,
+          "pass": 48,
+          "fail": 0
+        },
+        {
+          "label": "source-retained-strict",
+          "cases": 50,
+          "pass": 50,
+          "fail": 0
+        },
+        {
+          "label": "source-retained-arrays",
+          "cases": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        {
+          "label": "source-retained-coherence",
+          "cases": 18,
+          "pass": 18,
+          "fail": 0
+        },
+        {
+          "label": "installed-conditional",
+          "cases": 67,
+          "pass": 67,
+          "fail": 0
+        },
+        {
+          "label": "installed-novel",
+          "cases": 12,
+          "pass": 9,
+          "fail": 3
+        },
+        {
+          "label": "installed-retained-public",
+          "cases": 45,
+          "pass": 45,
+          "fail": 0
+        },
+        {
+          "label": "installed-retained-apply",
+          "cases": 28,
+          "pass": 28,
+          "fail": 0
+        },
+        {
+          "label": "installed-retained-redirections",
+          "cases": 48,
+          "pass": 48,
+          "fail": 0
+        },
+        {
+          "label": "installed-retained-strict",
+          "cases": 50,
+          "pass": 50,
+          "fail": 0
+        },
+        {
+          "label": "installed-retained-arrays",
+          "cases": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        {
+          "label": "installed-retained-coherence",
+          "cases": 18,
+          "pass": 18,
+          "fail": 0
+        },
+        {
+          "label": "moved-conditional",
+          "cases": 67,
+          "pass": 67,
+          "fail": 0
+        },
+        {
+          "label": "moved-novel",
+          "cases": 12,
+          "pass": 9,
+          "fail": 3
+        },
+        {
+          "label": "moved-retained-public",
+          "cases": 45,
+          "pass": 45,
+          "fail": 0
+        },
+        {
+          "label": "moved-retained-apply",
+          "cases": 28,
+          "pass": 28,
+          "fail": 0
+        },
+        {
+          "label": "moved-retained-redirections",
+          "cases": 48,
+          "pass": 48,
+          "fail": 0
+        },
+        {
+          "label": "moved-retained-strict",
+          "cases": 50,
+          "pass": 50,
+          "fail": 0
+        },
+        {
+          "label": "moved-retained-arrays",
+          "cases": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        {
+          "label": "moved-retained-coherence",
+          "cases": 18,
+          "pass": 18,
+          "fail": 0
+        },
+        {
+          "label": "M01-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M02-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M03-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M04-restored",
+          "cases": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        {
+          "label": "M05-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M06-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M07-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M08-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M09-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        {
+          "label": "M10-restored",
+          "cases": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      ],
+      "types": [
+        {
+          "layout": "source",
+          "role": "author",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "source",
+          "role": "author",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 8
+        },
+        {
+          "layout": "source",
+          "role": "independent",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "source",
+          "role": "independent",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 3
+        },
+        {
+          "layout": "installed",
+          "role": "author",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "installed",
+          "role": "author",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 8
+        },
+        {
+          "layout": "installed",
+          "role": "independent",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "installed",
+          "role": "independent",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 3
+        },
+        {
+          "layout": "moved",
+          "role": "author",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "moved",
+          "role": "author",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 8
+        },
+        {
+          "layout": "moved",
+          "role": "independent",
+          "negative": false,
+          "pass": true,
+          "diagnostics": 0
+        },
+        {
+          "layout": "moved",
+          "role": "independent",
+          "negative": true,
+          "pass": true,
+          "diagnostics": 3
+        }
+      ]
+    },
+    {
+      "attempt": "ACTUAL-03",
+      "status": "INDEPENDENT_ASSERTION_HOLD",
+      "outer": {
+        "closed": true,
+        "signals": [],
+        "captureBytes": 531,
+        "startedAt": "2026-08-29T06:46:26.890Z",
+        "pid": 24375,
+        "code": 1,
+        "signal": null,
+        "groupAbsent": true,
+        "elapsedMs": 545126
+      },
+      "cleanup": {
+        "directChildren": 5,
+        "observedProductWorkers": 0,
+        "implicitLoaderAdmissions": 4,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "captureBytes": 14700,
+      "scratchBytes": 36515199,
+      "cohorts": [
+        {
+          "label": "source-affected",
+          "cases": 3,
+          "pass": 0,
+          "fail": 3
+        },
+        {
+          "label": "installed-affected",
+          "cases": 3,
+          "pass": 0,
+          "fail": 3
+        },
+        {
+          "label": "moved-affected",
+          "cases": 3,
+          "pass": 0,
+          "fail": 3
+        },
+        {
+          "label": "M04-restored-v3",
+          "cases": 1,
+          "pass": 0,
+          "fail": 1
+        }
+      ],
+      "types": []
+    }
+  ],
+  "rawRecords": 270,
+  "rawBytes": 22803795,
+  "archiveBytes": 9535239,
+  "archiveSha256": "4b008781fb604fb238991132f6ebc33e6daa6abed9c8f11fe1a8e6a6e422d981",
+  "archiveBase64Sha256": "93697ab94e8395fe161daa0f8ce60fa8d6a7485b9851c2fb91269e6e3ac8bbbe",
+  "physicalFiles": 16299,
+  "physicalBytes": 168402689,
+  "deleted": 0,
+  "elapsedMs": 716404
+}

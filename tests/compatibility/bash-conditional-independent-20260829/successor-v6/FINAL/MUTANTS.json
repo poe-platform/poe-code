@@ -1,0 +1,211 @@
+{
+  "loaded": 10,
+  "observableDetected": 9,
+  "preabortUnactivatedSurvivors": 1,
+  "restoreCases": 10,
+  "restorePass": 9,
+  "restoreCollectorGap": 1,
+  "controls": [
+    {
+      "id": "M01",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "6d9c359406b9bb795b257c082823b5ea9d881214aca5ab063b59c6ca9af72c42",
+      "caseIds": [
+        "N05"
+      ],
+      "restored": [
+        {
+          "id": "N05",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Eager valid unsupported RHS activation."
+    },
+    {
+      "id": "M02",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "5282eb431e8cceaaca8dd25e41f0e0d3d633f619294ca0f28ebb42fff3ed26f4",
+      "caseIds": [
+        "N02"
+      ],
+      "restored": [
+        {
+          "id": "N02",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Rejects operator-like expanded data; not a full grammar reparser mutant."
+    },
+    {
+      "id": "M03",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "bfb013a37eaa7262292bb7fa09d71ef36f81580703f06f98984771628c3510d4",
+      "mutantSha256": "106de2f326c256f3af1d039a7ea1bfc9c1f6a97a83f5aa92330fb72ba8aa152d",
+      "caseIds": [
+        "N04"
+      ],
+      "restored": [
+        {
+          "id": "N04",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Removes pattern quote-fragment escaping."
+    },
+    {
+      "id": "M04",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "bfb013a37eaa7262292bb7fa09d71ef36f81580703f06f98984771628c3510d4",
+      "mutantSha256": "4c8767f33b74b0aea7001eca8111d16671eb958e68758ac1644580e1808ec898",
+      "caseIds": [
+        "N10"
+      ],
+      "restored": [
+        {
+          "id": "N10",
+          "pass": false,
+          "error": "TypeError: The \"list\" argument must be an instance of SharedArrayBuffer, ArrayBuffer or ArrayBufferView.\n    at TextDecoder.decode (node:internal/encoding:449:16)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/isolated-mutants/novel.mjs:27:102"
+        }
+      ],
+      "qualification": "Missing redirect file observed before collector; restored content-check gap remains."
+    },
+    {
+      "id": "M05",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "356ec5e92c76a39dc6fbc1a53cc06157d201ef3ac61af9438cd309229976c599",
+      "caseIds": [
+        "S12-untyped"
+      ],
+      "restored": [
+        {
+          "id": "S12-untyped",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Unexpected plain-object/Error errno falsely mapped to condition false."
+    },
+    {
+      "id": "M06",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "NOT_REACHED_PREABORT_ROUTE",
+      "detected": false,
+      "originalSha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8",
+      "mutantSha256": "8e67a738de0559a85eb2e0a8fd64221c4a8f69b3b5f1cc629ae5f7c50f1da6f1",
+      "caseIds": [
+        "H01"
+      ],
+      "restored": [
+        {
+          "id": "H01",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Generic original activated:true is not evidence of branch activation. H01 stops before changed owner.finish route."
+    },
+    {
+      "id": "M07",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "cda3165f93a8eb460f66c5f5a10668028ec4f24071418a0c86aac1c2d95f3c0f",
+      "mutantSha256": "eaff1f1430b4952d2c050c85336ca06150047e6764d7e9acc675c80dfb34f9ac",
+      "caseIds": [
+        "N03"
+      ],
+      "restored": [
+        {
+          "id": "N03",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Malformed skipped RHS silently acquires empty operand."
+    },
+    {
+      "id": "M08",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "7ee0e4f8c88a8bff4e6a9c4b357ad76ab40f0c768dcefee82abac230d5c13f9e",
+      "caseIds": [
+        "N09"
+      ],
+      "restored": [
+        {
+          "id": "N09",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Unsupported regex silently accepted; no actual Worker/native regex."
+    },
+    {
+      "id": "M09",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "1b07b7cc550d62563e37c96318ccfada29e0c0cb20b7750ff390a18e93dc5044",
+      "mutantSha256": "eb55c23054e2c39b982a67565c951167a8a3206c958e3856df6a90ec4483fb6f",
+      "caseIds": [
+        "N08"
+      ],
+      "restored": [
+        {
+          "id": "N08",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Invalid expression-text fallback accepted; no injected arithmetic writer/host eval."
+    },
+    {
+      "id": "M10",
+      "moduleLoaded": true,
+      "originalRawActivationField": true,
+      "independentActivation": "OBSERVABLE_SEMANTIC_DIFFERENCE",
+      "detected": true,
+      "originalSha256": "cda3165f93a8eb460f66c5f5a10668028ec4f24071418a0c86aac1c2d95f3c0f",
+      "mutantSha256": "8b54fb225e4ed64a9f4c45061642f7cd44b758309aa8f7bc31e685579ffc2f83",
+      "caseIds": [
+        "H08"
+      ],
+      "restored": [
+        {
+          "id": "H08",
+          "pass": true,
+          "error": null
+        }
+      ],
+      "qualification": "Grammar node-cap removal, inputs bounded at4097 nodes."
+    }
+  ]
+}
+

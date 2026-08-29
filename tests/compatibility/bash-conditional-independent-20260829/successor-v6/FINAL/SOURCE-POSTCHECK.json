@@ -1,0 +1,63 @@
+{
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "packageSha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+  "checks": [
+    {
+      "attempt": 1,
+      "layout": "source",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 293,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 2,
+      "layout": "source",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 293,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 2,
+      "layout": "moved",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved package/node_modules/virtual-bash",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 0,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 2,
+      "layout": "restored-original",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/isolated-mutants/node_modules/virtual-bash",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 0,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 3,
+      "layout": "source",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-03/scratch/source",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 293,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 3,
+      "layout": "moved",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-03/scratch/moved package/node_modules/virtual-bash",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 0,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    },
+    {
+      "attempt": 3,
+      "layout": "restored-copy",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-03/scratch/restored-copy/node_modules/virtual-bash",
+      "packageMembersChecked": 954,
+      "sourceInputsChecked": 0,
+      "role": "SOURCE_DATA_POSTCHECK_NOT_EXECUTION"
+    }
+  ]
+}
+

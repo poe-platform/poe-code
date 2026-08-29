@@ -1,0 +1,284 @@
+{
+  "status": "SOURCE_ONLY_AUTHORITY_PENDING",
+  "engine": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "assets": [
+    {
+      "path": "errors.js",
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "imports": [],
+      "staticEntry": null
+    },
+    {
+      "path": "limits.js",
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "imports": [
+        {
+          "line": "import { setImmediate } from \"node:timers/promises\";",
+          "specifier": "node:timers/promises"
+        },
+        {
+          "line": "import { EreProfileLimitError, EreUsageUnknownError } from \"./errors.js\";",
+          "specifier": "./errors.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "matcher.js",
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "imports": [
+        {
+          "line": "import { EreLedger } from \"./limits.js\";",
+          "specifier": "./limits.js"
+        },
+        {
+          "line": "import { admitAscii, resolveEreProgram } from \"./syntax.js\";",
+          "specifier": "./syntax.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "syntax.js",
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "imports": [
+        {
+          "line": "import { EreSyntaxError, EreUnsupportedError } from \"./errors.js\";",
+          "specifier": "./errors.js"
+        },
+        {
+          "line": "import { EreLedger } from \"./limits.js\";",
+          "specifier": "./limits.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/accounting.js",
+      "sha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522",
+      "imports": [
+        {
+          "line": "import { deriveEreLimits } from \"../limits.js\";",
+          "specifier": "../limits.js"
+        },
+        {
+          "line": "import { cumulative, EreTransportError, EreTransportProfileLimitError, resources } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/owner.js",
+      "sha256": "8a9ee6dae518ed56b36e79ad22542fa9f80087051fb4416e6cff8e0bcb9b6a28",
+      "imports": [
+        {
+          "line": "import { Worker } from \"node:worker_threads\";",
+          "specifier": "node:worker_threads"
+        },
+        {
+          "line": "import { EreTransportError, operation } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        },
+        {
+          "line": "import { record } from \"./validation.js\";",
+          "specifier": "./validation.js"
+        }
+      ],
+      "staticEntry": "./worker-entry.js"
+    },
+    {
+      "path": "transport/protocol.js",
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "imports": [],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/root.js",
+      "sha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824",
+      "imports": [
+        {
+          "line": "import { EreProfileLimitError } from \"../errors.js\";",
+          "specifier": "../errors.js"
+        },
+        {
+          "line": "import { EngineAccounting, StorageReservation, TransportAccounting, multiply } from \"./accounting.js\";",
+          "specifier": "./accounting.js"
+        },
+        {
+          "line": "import { EreWorkerOwner } from \"./owner.js\";",
+          "specifier": "./owner.js"
+        },
+        {
+          "line": "import { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        },
+        {
+          "line": "import { copyInput, copyReplyResult, inspectInput, validateReply } from \"./validation.js\";",
+          "specifier": "./validation.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/validation.js",
+      "sha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "imports": [
+        {
+          "line": "import { types as utilTypes } from \"node:util\";",
+          "specifier": "node:util"
+        },
+        {
+          "line": "import { EreProfileLimitError, EreUnsupportedError } from \"../errors.js\";",
+          "specifier": "../errors.js"
+        },
+        {
+          "line": "import { deriveEreLimits } from \"../limits.js\";",
+          "specifier": "../limits.js"
+        },
+        {
+          "line": "import { add, integer, multiply, TransportAccounting } from \"./accounting.js\";",
+          "specifier": "./accounting.js"
+        },
+        {
+          "line": "import { EreTransportError, EreTransportProfileLimitError, operation, profile, resources } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/wire-engine.js",
+      "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "imports": [
+        {
+          "line": "import { EreLedger } from \"../limits.js\";",
+          "specifier": "../limits.js"
+        },
+        {
+          "line": "import { compileEre } from \"../syntax.js\";",
+          "specifier": "../syntax.js"
+        },
+        {
+          "line": "import { matchEre } from \"../matcher.js\";",
+          "specifier": "../matcher.js"
+        },
+        {
+          "line": "import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from \"../errors.js\";",
+          "specifier": "../errors.js"
+        },
+        {
+          "line": "import { operation } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        },
+        {
+          "line": "import { validateReply, validateRequest } from \"./validation.js\";",
+          "specifier": "./validation.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "transport/worker-entry.js",
+      "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "imports": [
+        {
+          "line": "import { isMainThread, parentPort, workerData } from \"node:worker_threads\";",
+          "specifier": "node:worker_threads"
+        },
+        {
+          "line": "import { operation, EreTransportError } from \"./protocol.js\";",
+          "specifier": "./protocol.js"
+        },
+        {
+          "line": "import { record } from \"./validation.js\";",
+          "specifier": "./validation.js"
+        },
+        {
+          "line": "import { executeWireRequest } from \"./wire-engine.js\";",
+          "specifier": "./wire-engine.js"
+        },
+        {
+          "line": "import { integer } from \"./accounting.js\";",
+          "specifier": "./accounting.js"
+        }
+      ],
+      "staticEntry": null
+    },
+    {
+      "path": "types.js",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "imports": [],
+      "staticEntry": null
+    }
+  ],
+  "parentReachable": [
+    "errors.js",
+    "limits.js",
+    "transport/accounting.js",
+    "transport/owner.js",
+    "transport/protocol.js",
+    "transport/root.js",
+    "transport/validation.js"
+  ],
+  "workerReachable": [
+    "errors.js",
+    "limits.js",
+    "matcher.js",
+    "syntax.js",
+    "transport/accounting.js",
+    "transport/protocol.js",
+    "transport/validation.js",
+    "transport/wire-engine.js",
+    "transport/worker-entry.js"
+  ],
+  "builtinEdges": [
+    {
+      "importer": "limits.js",
+      "importerSha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "builtin": "node:timers/promises"
+    },
+    {
+      "importer": "transport/owner.js",
+      "importerSha256": "8a9ee6dae518ed56b36e79ad22542fa9f80087051fb4416e6cff8e0bcb9b6a28",
+      "builtin": "node:worker_threads"
+    },
+    {
+      "importer": "transport/validation.js",
+      "importerSha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "builtin": "node:util"
+    },
+    {
+      "importer": "transport/worker-entry.js",
+      "importerSha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "builtin": "node:worker_threads"
+    }
+  ],
+  "workerOptions": {
+    "workerData": {
+      "operation": "shell-ere",
+      "version": 1
+    },
+    "env": {},
+    "execArgv": [],
+    "stdout": true,
+    "stderr": true,
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 128,
+      "stackSizeMb": 4
+    },
+    "startupMs": 3000,
+    "requestMs": 1000
+  },
+  "packageContext": "requires explicitly bound ESM package.json; not inferred from mutable parent checkout",
+  "currentHarness": "typecheck-v2 executes compilers only; no runtime loader, Worker-permission grant, package install or moved dispatch",
+  "actualLoads": 0,
+  "actualWorkers": 0,
+  "unmodifiedVsInstrumented": "future loader-bootstrap/Worker-factory edits require separate source-bound instrumentation and authority; never silently alter private options"
+}

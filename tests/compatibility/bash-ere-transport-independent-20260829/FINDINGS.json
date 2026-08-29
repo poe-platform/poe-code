@@ -1,0 +1,233 @@
+{
+  "role": "SOURCE_DERIVED_NOT_EXECUTED_COUNTEREXAMPLES",
+  "blockers": [
+    {
+      "id": "ERT-S01",
+      "severity": "HIGH",
+      "classification": "SOURCE_BLOCKER_NOT_RUNTIME_REPRODUCED",
+      "title": "Caller cancellation is only polled; queued removal and active retirement obligations are unmet",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "lines": [
+            81,
+            82,
+            97,
+            124,
+            132,
+            137,
+            139,
+            141,
+            150,
+            155,
+            159,
+            180
+          ]
+        }
+      ],
+      "trace": [
+        "Admit one active request and a second queued request with an AbortSignal.",
+        "Abort the queued signal with false while the active request remains held: no abort listener removes the ticket; it continues occupying queue/storage until pumped, session close, or root failure.",
+        "For an active signal aborted with 0, let a valid reply arrive before the request timeout. The code validates/commits usage, then throws signal.reason. reconciled=true and failurePresent=false bypass Worker.close.",
+        "execute rejects with raw 0 while the Worker remains owned and reusable until later root close. Session.close after that rejection has no active ticket to join."
+      ],
+      "conflicts": [
+        "L03 queued-abort-false",
+        "L04 active-abort-zero",
+        "D1 child cancellation/retirement boundary"
+      ],
+      "required": "Add tracked cancellation enrollment/removal with initial/recheck race handling and a retirement/settlement path for active abort. Preserve raw falsy reason, sibling-only queued cancellation, validated accounting once, and no unproved refunds; no universal hard-preemption claim."
+    },
+    {
+      "id": "ERT-S02",
+      "severity": "HIGH",
+      "classification": "SOURCE_BLOCKER_NOT_RUNTIME_REPRODUCED",
+      "title": "Exact own-data validation is followed by unvalidated inherited iterator/map invocation",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/validation.ts",
+          "lines": [
+            24,
+            32,
+            39,
+            69,
+            71,
+            90,
+            92,
+            106,
+            108,
+            163,
+            165
+          ]
+        }
+      ],
+      "trace": [
+        "An Array may have exactly the accepted own index/length descriptors and a prototype with a Symbol.iterator getter/function or map override. isProxy=false and Array.isArray=true still hold.",
+        "inspectInput uses for-of after array admission, consulting inherited iteration; copyInput calls borrowed pattern.map. validateRequest repeats for-of and copyReplyResult calls borrowed spans.map.",
+        "A map override can return the original array, so Object.freeze freezes caller-owned data and preserves aliases instead of taking the promised fragment snapshot.",
+        "These are source-defined dispatches, not an executed exploit or a promise to sandbox arbitrary host JavaScript."
+      ],
+      "conflicts": [
+        "P05 zero getter/trap/coercion observation",
+        "B06 stable owned snapshot",
+        "ratified cross-realm own-data rules"
+      ],
+      "required": "Traverse admitted own indexed data without consulting borrowed iterator/map hooks; preserve cross-realm finite data rather than banning prototype identity. Revalidate/precharge the actual owned-copy boundary and never freeze caller-owned containers."
+    },
+    {
+      "id": "ERT-S03",
+      "severity": "HIGH",
+      "classification": "SOURCE_BLOCKER_PRIVATE_OWNER_OVERLAP_NOT_RUNTIME_REPRODUCED",
+      "title": "Owner.close does not settle or join its outstanding start/request promises",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/owner.ts",
+          "lines": [
+            42,
+            51,
+            53,
+            81,
+            87,
+            88,
+            95,
+            97,
+            98,
+            105,
+            110
+          ]
+        },
+        {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "lines": [
+            185,
+            190,
+            191,
+            192
+          ]
+        }
+      ],
+      "trace": [
+        "Call the private exported owner.start(), then close before READY. close clears the startup timer; the exit listener suppresses fail while closing.",
+        "Neither close nor exit rejects/resolves the pending ready promise, so close may settle while start remains pending indefinitely.",
+        "With a pending request, close joins termination/exit but not the request promise; its timer can fail/reject later, after close completed.",
+        "Current Root.close waits for active.done before owner.close, avoiding this overlap on its normal path by waiting for request/start settlement. That avoidance is not an owner-level join guarantee and is insufficient for fixing active cancellation by promptly closing the Worker."
+      ],
+      "conflicts": [
+        "cleanup owns all admitted jobs",
+        "L01/L02/L04 close/acquisition ordering"
+      ],
+      "required": "Close owner admission and settle/drain both startup and request waiters under explicit terminal reason/precedence, clear their timers, and join their settlement with Worker retirement. Do not introduce arbitrary late AbortError swallowing."
+    },
+    {
+      "id": "ERT-S04",
+      "severity": "HIGH",
+      "classification": "SOURCE_ACCOUNTING_BLOCKER_NOT_HEAP_MEASUREMENT",
+      "title": "The payload formulas match, but parent metadata/traversal ownership is not completely charged",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "lines": [
+            25,
+            40,
+            42,
+            43,
+            44,
+            45,
+            46,
+            51,
+            58,
+            87,
+            97,
+            128
+          ]
+        },
+        {
+          "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+          "lines": [
+            25,
+            62,
+            88,
+            97,
+            103,
+            110
+          ]
+        },
+        {
+          "path": "src/commands/regex-execution/ere/transport/validation.ts",
+          "lines": [
+            11,
+            14,
+            18,
+            24,
+            32,
+            36,
+            87
+          ]
+        }
+      ],
+      "trace": [
+        "Root initialization charges metadata(18): 19 units plus its 5-unit reservation token, total 24.",
+        "Under the ratified metadata-cell rule, root fields/container (16), EngineAccounting (5), TransportAccounting (7), bounds (3), limits (8), spent counters (8), queue/map containers (2), and the reservation token (5) total 54 logical units before any session. Map internals, Promise frames and Worker internals are excluded from this count.",
+        "Engine accounting/transport objects and their records are created before root metadata admission; their additional owned records do not have separate reservations.",
+        "Healthy validation allocates own-key arrays and descriptor records, inspection/validation return records and queue cells without a corresponding complete T census; usage snapshots likewise have no declared charge/exclusion.",
+        "Reflect.ownKeys also materializes all extra keys before the exact-length rejection. This is separate from the already-qualified exclusion of native structured-clone allocation before validation."
+      ],
+      "conflicts": [
+        "D2 count every owned metadata/queue/session cell and distinct retention boundary",
+        "B03 exact logical caps",
+        "B06 precharged copies"
+      ],
+      "required": "Supply an independently checkable full metadata/temporary/copy census and charge before the corresponding owned construction; retain cumulative spent versus reserved/live distinctions. If an exclusion is desired, request an explicit ROOT contract amendment rather than calling observable owned data VM frames. Payload U=47+4n+p+s and 479 alone do not certify the whole ledger."
+    }
+  ],
+  "qualifications": [
+    {
+      "id": "ERT-Q01",
+      "classification": "SOURCE_OWNERSHIP_GAP_NO_OBSERVED_LEAK",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/owner.ts",
+          "lines": [
+            28,
+            35,
+            58,
+            59,
+            60,
+            61,
+            95,
+            105
+          ]
+        },
+        {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "lines": [
+            164,
+            166
+          ]
+        }
+      ],
+      "issue": "Explicit stdout/stderr:true prevents default forwarding, but ownership is data/error callbacks only. close has no stream end/close barrier. An idle fatal stdout/unsolicited-frame event calls root.fail without scheduling immediate tracked retirement, so a live failed Worker can remain until root cleanup.",
+      "needed": "Demonstrate the exact pinned Node exit/stream lifetime guarantee or join stream settlement explicitly; exercise idle fatal output and delayed stream/error completion. Do not infer complete stdio cleanup merely from stdout/stderr:true or claim an actual leak was observed."
+    },
+    {
+      "id": "ERT-Q02",
+      "classification": "SOURCE_EXCEPTION_PATH_REQUIRES_CONTROL_NOT_DECLARED_RUNTIME_FAILURE",
+      "references": [
+        {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "lines": [
+            155,
+            157,
+            161,
+            185,
+            186,
+            190,
+            195
+          ]
+        }
+      ],
+      "issue": "A Worker-close rejection may install an already-rejected Promise as root.#closing. Later root.close returns it instead of entering the normal barrier. Determine explicitly which remaining job/metadata ownership is quarantined and which independent cleanup is still attempted; preserve undefined cleanup rejection and primary precedence.",
+      "needed": "Whole-owner schedule with termination rejection, known versus unknown exit, concurrent root close and active.done. Do not convert retained metadata/quarantine itself into a claimed native leak; no branch has executed here."
+    }
+  ]
+}

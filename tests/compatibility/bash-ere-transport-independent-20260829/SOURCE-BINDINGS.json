@@ -1,0 +1,1190 @@
+{
+  "role": "SOURCE_ONLY_REVIEW_BINDINGS",
+  "candidate": {
+    "source": "65f0e08078a186d322b7ab975bac5972f09bef17",
+    "successor": "0f36459ccf38623906c5c80702c5d32111167f4d",
+    "handoff": "6c68be44446ad6f3251697f1be6a07910155c53f",
+    "authentication": "7cdb62ac008899dcb692b4bed15485d81215b227",
+    "finalSealSha256": "f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1",
+    "baseline": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+    "engine": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb"
+  },
+  "sourceWriteSets": {
+    "initial": "seven added transport files only under src",
+    "successor": "owner.ts only under src",
+    "wholeCurrentHeadOrPackageClaim": false
+  },
+  "candidateRows": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2cb2cb99ac1523b24c54c9e10416bd1c61c2c595",
+      "bytes": 5754,
+      "path": "src/commands/regex-execution/ere/transport/accounting.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f25c1a52ae371b8cafb324a03cc60e705b2d5faa",
+      "bytes": 5248,
+      "path": "src/commands/regex-execution/ere/transport/owner.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "bytes": 2815,
+      "path": "src/commands/regex-execution/ere/transport/protocol.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9dfe6484bc69b369fa850ff326f441d3ead0795d",
+      "bytes": 9746,
+      "path": "src/commands/regex-execution/ere/transport/root.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d0376861106b1cb295f367e959d994e55f9a47d9",
+      "bytes": 10544,
+      "path": "src/commands/regex-execution/ere/transport/validation.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c4dcb4dc8c16db3884080ae83c9e7c51eae63269",
+      "bytes": 1803,
+      "path": "src/commands/regex-execution/ere/transport/wire-engine.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f27ea90106d71eb51b3e9bbb41eb43d1ff2b0b16",
+      "bytes": 1291,
+      "path": "src/commands/regex-execution/ere/transport/worker-entry.ts"
+    }
+  ],
+  "unchangedEngineRows": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "bytes": 1003,
+      "path": "src/commands/regex-execution/ere/errors.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "bytes": 3471,
+      "path": "src/commands/regex-execution/ere/limits.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "4999c609ebef6c7c750cf77b01b3664ac0d9c910",
+      "bytes": 8543,
+      "path": "src/commands/regex-execution/ere/matcher.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "bytes": 13070,
+      "path": "src/commands/regex-execution/ere/syntax.ts"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "bytes": 1554,
+      "path": "src/commands/regex-execution/ere/types.ts"
+    }
+  ],
+  "readArtifacts": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6e799ae43f9ae678769d91e80348120c362bb8b7",
+      "bytes": 5782,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/HANDOFF.md",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "2e1bd9ee40b8a72f1c24d93142ec8b79a3c439ec127c7dcbda6f425bf0fa751d"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6cdc32021a036bd3edbe4284398b778576466d29",
+      "bytes": 62544,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/SEAL-v2.json",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "bytes": 2815,
+      "path": "src/commands/regex-execution/ere/transport/protocol.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2cb2cb99ac1523b24c54c9e10416bd1c61c2c595",
+      "bytes": 5754,
+      "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "ac6e1a3ac8ad43d680000b8e707f9c0205ef84ada6611916a614bec58cbb2366"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f25c1a52ae371b8cafb324a03cc60e705b2d5faa",
+      "bytes": 5248,
+      "path": "src/commands/regex-execution/ere/transport/owner.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "2a7097754ddd3c3e557a28554f8262a2f698c8bae8513c1e8c02db3056bd38cd"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9dfe6484bc69b369fa850ff326f441d3ead0795d",
+      "bytes": 9746,
+      "path": "src/commands/regex-execution/ere/transport/root.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "8ef8739a129b3d9157b14e4bdba49e9f097a9aee1c4f33feda36248801165535"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d0376861106b1cb295f367e959d994e55f9a47d9",
+      "bytes": 10544,
+      "path": "src/commands/regex-execution/ere/transport/validation.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "1e5d094c075bd1b286a6c6e5f7d1b4b64eba2eb950db94077b1b2d3e56328af1"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c4dcb4dc8c16db3884080ae83c9e7c51eae63269",
+      "bytes": 1803,
+      "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f27ea90106d71eb51b3e9bbb41eb43d1ff2b0b16",
+      "bytes": 1291,
+      "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "bytes": 3471,
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ba06be7b8f40e8fee836e34687fda30a2f439185",
+      "bytes": 12351,
+      "path": "tests/compatibility/bash-ere-transport-design-20260829/DECISIONS-v2.md",
+      "commit": "aa16808cefcb255940ecbe7f7d26edd46b346fbb",
+      "sha256": "7827c12eea1e6a4292be5f260b1ccc8f28458aa82df1ab46dae3d360c6ee3e17"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "59e05eedfa1f08f6cd7d952d8d7140950b7f4178",
+      "bytes": 10692,
+      "path": "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json",
+      "commit": "aa16808cefcb255940ecbe7f7d26edd46b346fbb",
+      "sha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "0114495037324756264c77b0c5feeca1c4aba013",
+      "bytes": 2909,
+      "path": "tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.md",
+      "commit": "aa16808cefcb255940ecbe7f7d26edd46b346fbb",
+      "sha256": "e565ff02c9385d14c4056b95579fbd7de08d0d9817cd9d8d6bed22b8c61b4008"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d0330b303dbcc5b795674b1eaf2c7532bff677c8",
+      "bytes": 12966,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/RESULT.json",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "6f136d8254f1e7ae519b0c7cbd2338babd2071246a819e8c90434145c8930af4"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8f73e4aa9f9c62b307e7b073c5825b52f244ac68",
+      "bytes": 342,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/negative.stdout",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "1c3064a316bdf8a40b56aeb89fdb2d81690102b636fd404520f23b5b4ee1f6ec"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "201a28f1f921bf44e6973f2b518903b1abad1452",
+      "bytes": 12969,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/RESULT.json",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "8cb9a3970ecb45d9564997bec19bd460e8b1b9351b570e02ea43ebb6e0956d99"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8f73e4aa9f9c62b307e7b073c5825b52f244ac68",
+      "bytes": 342,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/negative.stdout",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "1c3064a316bdf8a40b56aeb89fdb2d81690102b636fd404520f23b5b4ee1f6ec"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a6ff68b6c393867e4212df312270eed7200e6b20",
+      "bytes": 569,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/PUBLICATION-FINAL.json",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "ef40afd58cf63544d6737f5ead526a3e540ca86923c940704ef940979b695418"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c2f91b100b79abb918dc91ff982c27c4fb9bdc50",
+      "bytes": 9842,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/typecheck-v2.mjs",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "c3bdfce2185b2290006ea9efad8adea9fcadfba78b1f6ffbdf3c37648e24847b"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "04aceda3dec14da1ef2385d983cf7b5505e8568a",
+      "bytes": 4177,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/PRESEAL.md",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "185d6c3bfefce7ac6d3b5470976acaf0c0e6c512e272ee07d5f35dea5a90a003"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "7625801e259feed4429a571ede3622d63f819217",
+      "bytes": 14725,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/PUBLICATION.outer.jsonl",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "22895daf31ad6fc5490d5d03092179cdfb1bb7cbe1f79d0150f351cb971a2ae3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ddab591a6bcc06be94235bc7b265cab223c29e7c",
+      "bytes": 204769,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/PUBLICATION.json",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "sha256": "21b0bd84f7996cf361effdb53d32d2ab02319991274b9210d03b76658f0382cb"
+    }
+  ],
+  "batchAuthenticated": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "bytes": 1554,
+      "path": "src/commands/regex-execution/ere/types.ts",
+      "expectedSha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "role": "candidate-source",
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "bytes": 1003,
+      "path": "src/commands/regex-execution/ere/errors.ts",
+      "expectedSha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "role": "candidate-source",
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "bytes": 3471,
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "expectedSha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "role": "candidate-source",
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "bytes": 13070,
+      "path": "src/commands/regex-execution/ere/syntax.ts",
+      "expectedSha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "role": "candidate-source",
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "4999c609ebef6c7c750cf77b01b3664ac0d9c910",
+      "bytes": 8543,
+      "path": "src/commands/regex-execution/ere/matcher.ts",
+      "expectedSha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8",
+      "role": "candidate-source",
+      "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2cb2cb99ac1523b24c54c9e10416bd1c61c2c595",
+      "bytes": 5754,
+      "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+      "expectedSha256": "ac6e1a3ac8ad43d680000b8e707f9c0205ef84ada6611916a614bec58cbb2366",
+      "role": "candidate-source",
+      "sha256": "ac6e1a3ac8ad43d680000b8e707f9c0205ef84ada6611916a614bec58cbb2366",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f25c1a52ae371b8cafb324a03cc60e705b2d5faa",
+      "bytes": 5248,
+      "path": "src/commands/regex-execution/ere/transport/owner.ts",
+      "expectedSha256": "2a7097754ddd3c3e557a28554f8262a2f698c8bae8513c1e8c02db3056bd38cd",
+      "role": "candidate-source",
+      "sha256": "2a7097754ddd3c3e557a28554f8262a2f698c8bae8513c1e8c02db3056bd38cd",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "bytes": 2815,
+      "path": "src/commands/regex-execution/ere/transport/protocol.ts",
+      "expectedSha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "role": "candidate-source",
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9dfe6484bc69b369fa850ff326f441d3ead0795d",
+      "bytes": 9746,
+      "path": "src/commands/regex-execution/ere/transport/root.ts",
+      "expectedSha256": "8ef8739a129b3d9157b14e4bdba49e9f097a9aee1c4f33feda36248801165535",
+      "role": "candidate-source",
+      "sha256": "8ef8739a129b3d9157b14e4bdba49e9f097a9aee1c4f33feda36248801165535",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d0376861106b1cb295f367e959d994e55f9a47d9",
+      "bytes": 10544,
+      "path": "src/commands/regex-execution/ere/transport/validation.ts",
+      "expectedSha256": "1e5d094c075bd1b286a6c6e5f7d1b4b64eba2eb950db94077b1b2d3e56328af1",
+      "role": "candidate-source",
+      "sha256": "1e5d094c075bd1b286a6c6e5f7d1b4b64eba2eb950db94077b1b2d3e56328af1",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c4dcb4dc8c16db3884080ae83c9e7c51eae63269",
+      "bytes": 1803,
+      "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+      "expectedSha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234",
+      "role": "candidate-source",
+      "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f27ea90106d71eb51b3e9bbb41eb43d1ff2b0b16",
+      "bytes": 1291,
+      "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "expectedSha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208",
+      "role": "candidate-source",
+      "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "55e3060e1d6cae8b5be653102a8ac3088d886be7",
+      "bytes": 691,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/errors.d.ts",
+      "expectedSha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "role": "retained-compiler-emission",
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b4f410fd444aa8fee51a792dc18680d4f3b16487",
+      "bytes": 1045,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/errors.js",
+      "expectedSha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "role": "retained-compiler-emission",
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "67e75cdb736c4fe20da7da121bc0e04c230a0484",
+      "bytes": 671,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/limits.d.ts",
+      "expectedSha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "role": "retained-compiler-emission",
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "4af1b7275a9436f661f687e142b8589ae33b9b24",
+      "bytes": 3265,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/limits.js",
+      "expectedSha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "role": "retained-compiler-emission",
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "96e6be91ad9e3368ee3304e283b5116e5b1b2bb2",
+      "bytes": 231,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/matcher.d.ts",
+      "expectedSha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "role": "retained-compiler-emission",
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c30fc48abd306cf0bebfaec9f1d1754027a0853a",
+      "bytes": 8483,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/matcher.js",
+      "expectedSha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "role": "retained-compiler-emission",
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8e659afcf32756b28e59fa1aa038e2ead2c73fd3",
+      "bytes": 445,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/syntax.d.ts",
+      "expectedSha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "role": "retained-compiler-emission",
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "37a5feb4b709f7f6ab70b01c1b802d2198403f86",
+      "bytes": 14270,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/syntax.js",
+      "expectedSha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "role": "retained-compiler-emission",
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b557e8a4731b1020fe4f93601f1bfeb632ec6017",
+      "bytes": 1478,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/accounting.d.ts",
+      "expectedSha256": "94a51268d00ed3d1f25cd8ead0733a89705fa336df86e5b5f1d1fd835bb7eb5d",
+      "role": "retained-compiler-emission",
+      "sha256": "94a51268d00ed3d1f25cd8ead0733a89705fa336df86e5b5f1d1fd835bb7eb5d",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "57ae6b8ae29abed3c2f3b65be2fac33660e01c1d",
+      "bytes": 5662,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/accounting.js",
+      "expectedSha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522",
+      "role": "retained-compiler-emission",
+      "sha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a965c121d5b64aba0c01055ca62581ba0b7c4227",
+      "bytes": 432,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/owner.d.ts",
+      "expectedSha256": "ee49c3de30d50c3035ce503e6b09ef66dac8d6699877aeb5ee1e85c296a868e3",
+      "role": "retained-compiler-emission",
+      "sha256": "ee49c3de30d50c3035ce503e6b09ef66dac8d6699877aeb5ee1e85c296a868e3",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ee3605c3f23d24ab2bd468a3a038f120b619358b",
+      "bytes": 5297,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/owner.js",
+      "expectedSha256": "f982aee1eca8a28c55fcfe0bdc8247e597d65f96dc5d2a307b12deffb0bfd259",
+      "role": "retained-compiler-emission",
+      "sha256": "f982aee1eca8a28c55fcfe0bdc8247e597d65f96dc5d2a307b12deffb0bfd259",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "95a89b035cf40d7667e408fae039576564e08ad3",
+      "bytes": 2658,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/protocol.d.ts",
+      "expectedSha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11",
+      "role": "retained-compiler-emission",
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "97121606a9e152855fc70974e9ecba1b4bf45161",
+      "bytes": 1198,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/protocol.js",
+      "expectedSha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "role": "retained-compiler-emission",
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ec3352bf548e581b6e75fb2db2ad518f07e4c373",
+      "bytes": 562,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/root.d.ts",
+      "expectedSha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1",
+      "role": "retained-compiler-emission",
+      "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "04818effcc8cf2f7ae9fa52646635a77887e2f8e",
+      "bytes": 9889,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/root.js",
+      "expectedSha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824",
+      "role": "retained-compiler-emission",
+      "sha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a85bcb78132f50a132750e8ed515df5d59dafcab",
+      "bytes": 1272,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/validation.d.ts",
+      "expectedSha256": "9d54695f9eb1f5913c2cf77caf283e803afbf0b23ff435b4d4a66aeb87b6868a",
+      "role": "retained-compiler-emission",
+      "sha256": "9d54695f9eb1f5913c2cf77caf283e803afbf0b23ff435b4d4a66aeb87b6868a",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8fcaa19778ee605ac33aedf6b653b94aeacea358",
+      "bytes": 10270,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/validation.js",
+      "expectedSha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "role": "retained-compiler-emission",
+      "sha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9c3f5b36ad3c8a61cf26f2d74f091a711ad2675a",
+      "bytes": 144,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/wire-engine.d.ts",
+      "expectedSha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168",
+      "role": "retained-compiler-emission",
+      "sha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9433d4fd47676ef9486b8a9f4ebecb9375034f72",
+      "bytes": 1795,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/wire-engine.js",
+      "expectedSha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "role": "retained-compiler-emission",
+      "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cb0ff5c3b541f646105198ee23ac0fc3d805023e",
+      "bytes": 11,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/worker-entry.d.ts",
+      "expectedSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "role": "retained-compiler-emission",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c32d203eccc04ef6cb0afad0b2b9e7228d9a08ff",
+      "bytes": 1331,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/transport/worker-entry.js",
+      "expectedSha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "role": "retained-compiler-emission",
+      "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8d2868558a28f67683b1ed4348ee0303176c612d",
+      "bytes": 1606,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/types.d.ts",
+      "expectedSha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "role": "retained-compiler-emission",
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cb0ff5c3b541f646105198ee23ac0fc3d805023e",
+      "bytes": 11,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-01/work/emitted/types.js",
+      "expectedSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "role": "retained-compiler-emission",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "55e3060e1d6cae8b5be653102a8ac3088d886be7",
+      "bytes": 691,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/errors.d.ts",
+      "expectedSha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "role": "retained-compiler-emission",
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b4f410fd444aa8fee51a792dc18680d4f3b16487",
+      "bytes": 1045,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/errors.js",
+      "expectedSha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "role": "retained-compiler-emission",
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "67e75cdb736c4fe20da7da121bc0e04c230a0484",
+      "bytes": 671,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/limits.d.ts",
+      "expectedSha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "role": "retained-compiler-emission",
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "4af1b7275a9436f661f687e142b8589ae33b9b24",
+      "bytes": 3265,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/limits.js",
+      "expectedSha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "role": "retained-compiler-emission",
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "96e6be91ad9e3368ee3304e283b5116e5b1b2bb2",
+      "bytes": 231,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/matcher.d.ts",
+      "expectedSha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "role": "retained-compiler-emission",
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c30fc48abd306cf0bebfaec9f1d1754027a0853a",
+      "bytes": 8483,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/matcher.js",
+      "expectedSha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "role": "retained-compiler-emission",
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8e659afcf32756b28e59fa1aa038e2ead2c73fd3",
+      "bytes": 445,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/syntax.d.ts",
+      "expectedSha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "role": "retained-compiler-emission",
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "37a5feb4b709f7f6ab70b01c1b802d2198403f86",
+      "bytes": 14270,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/syntax.js",
+      "expectedSha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "role": "retained-compiler-emission",
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b557e8a4731b1020fe4f93601f1bfeb632ec6017",
+      "bytes": 1478,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/accounting.d.ts",
+      "expectedSha256": "94a51268d00ed3d1f25cd8ead0733a89705fa336df86e5b5f1d1fd835bb7eb5d",
+      "role": "retained-compiler-emission",
+      "sha256": "94a51268d00ed3d1f25cd8ead0733a89705fa336df86e5b5f1d1fd835bb7eb5d",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "57ae6b8ae29abed3c2f3b65be2fac33660e01c1d",
+      "bytes": 5662,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/accounting.js",
+      "expectedSha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522",
+      "role": "retained-compiler-emission",
+      "sha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a965c121d5b64aba0c01055ca62581ba0b7c4227",
+      "bytes": 432,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/owner.d.ts",
+      "expectedSha256": "ee49c3de30d50c3035ce503e6b09ef66dac8d6699877aeb5ee1e85c296a868e3",
+      "role": "retained-compiler-emission",
+      "sha256": "ee49c3de30d50c3035ce503e6b09ef66dac8d6699877aeb5ee1e85c296a868e3",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a3517f66357e24fd23c0596ccac0f7f7abc6cc12",
+      "bytes": 5749,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/owner.js",
+      "expectedSha256": "8a9ee6dae518ed56b36e79ad22542fa9f80087051fb4416e6cff8e0bcb9b6a28",
+      "role": "retained-compiler-emission",
+      "sha256": "8a9ee6dae518ed56b36e79ad22542fa9f80087051fb4416e6cff8e0bcb9b6a28",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "95a89b035cf40d7667e408fae039576564e08ad3",
+      "bytes": 2658,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/protocol.d.ts",
+      "expectedSha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11",
+      "role": "retained-compiler-emission",
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "97121606a9e152855fc70974e9ecba1b4bf45161",
+      "bytes": 1198,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/protocol.js",
+      "expectedSha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "role": "retained-compiler-emission",
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ec3352bf548e581b6e75fb2db2ad518f07e4c373",
+      "bytes": 562,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/root.d.ts",
+      "expectedSha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1",
+      "role": "retained-compiler-emission",
+      "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "04818effcc8cf2f7ae9fa52646635a77887e2f8e",
+      "bytes": 9889,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/root.js",
+      "expectedSha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824",
+      "role": "retained-compiler-emission",
+      "sha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a85bcb78132f50a132750e8ed515df5d59dafcab",
+      "bytes": 1272,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/validation.d.ts",
+      "expectedSha256": "9d54695f9eb1f5913c2cf77caf283e803afbf0b23ff435b4d4a66aeb87b6868a",
+      "role": "retained-compiler-emission",
+      "sha256": "9d54695f9eb1f5913c2cf77caf283e803afbf0b23ff435b4d4a66aeb87b6868a",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8fcaa19778ee605ac33aedf6b653b94aeacea358",
+      "bytes": 10270,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/validation.js",
+      "expectedSha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "role": "retained-compiler-emission",
+      "sha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9c3f5b36ad3c8a61cf26f2d74f091a711ad2675a",
+      "bytes": 144,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/wire-engine.d.ts",
+      "expectedSha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168",
+      "role": "retained-compiler-emission",
+      "sha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9433d4fd47676ef9486b8a9f4ebecb9375034f72",
+      "bytes": 1795,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/wire-engine.js",
+      "expectedSha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "role": "retained-compiler-emission",
+      "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cb0ff5c3b541f646105198ee23ac0fc3d805023e",
+      "bytes": 11,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/worker-entry.d.ts",
+      "expectedSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "role": "retained-compiler-emission",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c32d203eccc04ef6cb0afad0b2b9e7228d9a08ff",
+      "bytes": 1331,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/worker-entry.js",
+      "expectedSha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "role": "retained-compiler-emission",
+      "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8d2868558a28f67683b1ed4348ee0303176c612d",
+      "bytes": 1606,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/types.d.ts",
+      "expectedSha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "role": "retained-compiler-emission",
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cb0ff5c3b541f646105198ee23ac0fc3d805023e",
+      "bytes": 11,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/types.js",
+      "expectedSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "role": "retained-compiler-emission",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "146f6fb50ac72c61d0e49a067ec50a8547151ab5",
+      "bytes": 1137,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/consumer.mts",
+      "expectedSha256": "ede294b9c236bb8dc4d331975d089e7d71343f660ee6db7eb47c9b8640118598",
+      "role": "type-fixture",
+      "sha256": "ede294b9c236bb8dc4d331975d089e7d71343f660ee6db7eb47c9b8640118598",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "071f01a59fe5061746a8ab16ac4cfa9dd5333e46",
+      "bytes": 444,
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/negative.mts",
+      "expectedSha256": "d3747360160b83a01189c0658e0e22d5381a3e026554b75e9c962513cb60940e",
+      "role": "type-fixture",
+      "sha256": "d3747360160b83a01189c0658e0e22d5381a3e026554b75e9c962513cb60940e",
+      "commit": "7cdb62ac008899dcb692b4bed15485d81215b227",
+      "loaded": false
+    }
+  ],
+  "retainedTypes": [
+    {
+      "cohort": "TYPE-01",
+      "role": "RETAINED_TYPE_EVIDENCE_NOT_RERUN",
+      "sourceBuild": true,
+      "positive": true,
+      "negative": {
+        "code": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "column": 108,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'values' does not exist in type 'EreTransportResult'."
+          },
+          {
+            "line": 3,
+            "column": 59,
+            "code": 2322,
+            "message": "Type 'number' is not assignable to type 'boolean'."
+          },
+          {
+            "line": 5,
+            "column": 47,
+            "code": 2345,
+            "message": "Argument of type 'number' is not assignable to parameter of type 'AbortSignal'."
+          }
+        ],
+        "pass": true
+      },
+      "children": [
+        {
+          "name": "source",
+          "pid": 12564,
+          "closed": true,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "positive",
+          "pid": 12571,
+          "closed": true,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "negative",
+          "pid": 12575,
+          "closed": true,
+          "code": 2,
+          "signal": null
+        }
+      ],
+      "emitted": 24,
+      "captureBytes": 342,
+      "rawNegativeSha256": "1c3064a316bdf8a40b56aeb89fdb2d81690102b636fd404520f23b5b4ee1f6ec"
+    },
+    {
+      "cohort": "TYPE-02",
+      "role": "RETAINED_TYPE_EVIDENCE_NOT_RERUN",
+      "sourceBuild": true,
+      "positive": true,
+      "negative": {
+        "code": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "column": 108,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'values' does not exist in type 'EreTransportResult'."
+          },
+          {
+            "line": 3,
+            "column": 59,
+            "code": 2322,
+            "message": "Type 'number' is not assignable to type 'boolean'."
+          },
+          {
+            "line": 5,
+            "column": 47,
+            "code": 2345,
+            "message": "Argument of type 'number' is not assignable to parameter of type 'AbortSignal'."
+          }
+        ],
+        "pass": true
+      },
+      "children": [
+        {
+          "name": "source",
+          "pid": 13488,
+          "closed": true,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "positive",
+          "pid": 13489,
+          "closed": true,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "name": "negative",
+          "pid": 13490,
+          "closed": true,
+          "code": 2,
+          "signal": null
+        }
+      ],
+      "emitted": 24,
+      "captureBytes": 342,
+      "rawNegativeSha256": "1c3064a316bdf8a40b56aeb89fdb2d81690102b636fd404520f23b5b4ee1f6ec"
+    }
+  ],
+  "history": {
+    "old64Compliance": "NOT CERTIFIED",
+    "later12Git": "ROOT-reported later publication total; not a retroactive compliance certification",
+    "selectedPublicationSnapshotChildren": [
+      4,
+      8
+    ],
+    "newCompilerExecutions": 0,
+    "newWorkerExecutions": 0,
+    "newProductionImports": 0,
+    "engineMatchingAdjudication": false
+  },
+  "design": {
+    "originalFreeze": "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+    "choices": "56fb11365399cf740f1ae2e65b532d74543fcbb8",
+    "ratification": "aa16808cefcb255940ecbe7f7d26edd46b346fbb",
+    "families": 32,
+    "variants": 60,
+    "status": "ALL_UNRUN"
+  },
+  "administrativeTool": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "bytes": 3704880,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "role": "POST_IMPLEMENTATION_DRAFT_PREEXECUTION_EXPECTATIONS",
+  "version": 1,
+  "profile": "NP1-CJS-WRQ-L-SYNC-1",
+  "executions": 0,
+  "countsAre": "case identities, not observations or Workers",
+  "cases": [
+    {
+      "id": "P01",
+      "route": "source VFS read",
+      "input": "same NodeProfileError instance rejected by readFile",
+      "expected": "raw same instance; zero provider starts, not status2"
+    },
+    {
+      "id": "P02",
+      "route": "borrowed stdin iterator factory",
+      "input": "same NodeUsageError instance thrown before first pull",
+      "expected": "raw same instance; zero provider starts; no iterator disposal"
+    },
+    {
+      "id": "P03",
+      "route": "borrowed stdin next",
+      "input": "reject false after one owned fragment",
+      "expected": "raw false; enrolled pull settles before close; no replay or disposal"
+    },
+    {
+      "id": "P04",
+      "route": "provider inert prepare",
+      "input": "throws same NodeUsageError instance",
+      "expected": "raw same instance; no acquired Worker claimed"
+    },
+    {
+      "id": "P05",
+      "route": "provider start",
+      "input": "rejects same NodeProfileError instance; retire proves no acquisition",
+      "expected": "raw same instance; idempotent retirement, not status2"
+    },
+    {
+      "id": "P06",
+      "route": "guest data FS request",
+      "input": "readFile rejects same NodeUsageError instance",
+      "expected": "raw same instance; not a transported FsError or numeric profile failure"
+    },
+    {
+      "id": "P07",
+      "route": "owned stdout sink",
+      "input": "write rejects same NodeProfileError instance",
+      "expected": "raw same instance; no typed FS conversion; earlier effects retained"
+    },
+    {
+      "id": "P08",
+      "route": "FS error pending delivery",
+      "input": "genuine FsError returned to provider but no services.delivered call before retirement",
+      "expected": "raw original FsError; no missing-terminal bypass"
+    },
+    {
+      "id": "P09",
+      "route": "caller control",
+      "input": "caller abort reason false collides with local cap failure",
+      "expected": "raw false highest priority; actual identity check is live, not serialized"
+    },
+    {
+      "id": "P10",
+      "route": "cleanup-only rejection",
+      "input": "retire rejects undefined after observed start settlement",
+      "expected": "raw rejection present with value undefined; never clean numeric result"
+    },
+    {
+      "id": "P11",
+      "route": "internal admission",
+      "input": "source bytes exceed fixed cap without host rejection",
+      "expected": "status2 only after local cleanup; zero provider starts"
+    },
+    {
+      "id": "P12",
+      "route": "complete request ownership",
+      "input": "provider retirement races an admitted request response microtask",
+      "expected": "request settles/reconciles before host retirement; no pending-response loss"
+    },
+    {
+      "id": "P13",
+      "route": "inert services",
+      "input": "prepare attempts reserve/request/delivered/cutoff",
+      "expected": "fail closed before Worker acquisition; no capability side effect"
+    },
+    {
+      "id": "P14",
+      "route": "primitive print",
+      "input": "print expression returns object; separate guest-thrown lookalike error control",
+      "expected": "trusted printRefusal yields profileFailure2 with no output; user lookalike remains guestFailure1"
+    }
+  ]
+}

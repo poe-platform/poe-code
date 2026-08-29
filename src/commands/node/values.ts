@@ -1,8 +1,20 @@
 import { types } from "node:util";
 import { NodeProfileError, NodeUsageError, nodeLimits, type NodeGrants } from "./types.js";
 
+function inherited(value: object): void {
+  let prototype: unknown = Object.getPrototypeOf(value);
+  let depth = 0;
+  while (prototype !== null) {
+    if (typeof prototype !== "object" || types.isProxy(prototype) || ++depth > 16) throw new TypeError("node protocol: prototype chain");
+    const names = Reflect.ownKeys(prototype);
+    if (names.length > 256) throw new TypeError("node protocol: prototype keys");
+    for (const name of names) if (Object.getOwnPropertyDescriptor(prototype, name)?.enumerable) throw new TypeError("node protocol: inherited enumerable field");
+    prototype = Object.getPrototypeOf(prototype);
+  }
+}
 export function record(value: unknown, keys: readonly string[], optional: readonly string[] = []): Record<string, unknown> {
   if (value === null || typeof value !== "object" || types.isProxy(value) || Array.isArray(value)) throw new TypeError("node protocol: own record");
+  inherited(value);
   const names = Reflect.ownKeys(value);
   if (names.length > keys.length + optional.length || keys.some(key => !Object.hasOwn(value, key))) throw new TypeError("node protocol: record keys");
   const result: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
@@ -25,6 +37,7 @@ export function integer(value: unknown, maximum: number, label: string): number 
 }
 export function strings(value: unknown, maximum: number, bytes: number): string[] {
   if (!Array.isArray(value) || types.isProxy(value)) throw new TypeError("node protocol: array");
+  inherited(value);
   const length = Object.getOwnPropertyDescriptor(value, "length");
   const count = integer(length?.value, maximum, "array length");
   if (Reflect.ownKeys(value).length !== count + 1) throw new TypeError("node protocol: array extras");
@@ -48,6 +61,7 @@ export function grants(value: unknown): Required<NodeGrants> {
 }
 export function environment(value: unknown): Readonly<Record<string, string>> {
   if (value === null || typeof value !== "object" || types.isProxy(value) || Array.isArray(value)) throw new TypeError("node environment");
+  inherited(value);
   const keys = Reflect.ownKeys(value);
   if (keys.length > 128) throw new NodeProfileError("environment entries");
   const result: Record<string, string> = Object.create(null) as Record<string, string>;

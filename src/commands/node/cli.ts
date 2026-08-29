@@ -4,7 +4,7 @@ import { strings, text } from "./values.js";
 
 export interface NodeInvocation { readonly selector: NodeSelector; readonly source: string | null; readonly filename: string; readonly argv: readonly string[]; }
 export function invocation(values: readonly string[], cwd: string): NodeInvocation {
-  const args = strings(values, 128, nodeLimits.sourceBytes + nodeLimits.contextBytes);
+  const args = strings(values, 132, nodeLimits.sourceBytes + nodeLimits.contextBytes + 128);
   text(cwd, nodeLimits.pathBytes, "cwd");
   if (!cwd.startsWith("/") || cwd.includes("\0")) throw new NodeUsageError("cwd must be an absolute virtual path");
   let selector: "eval" | "print" | undefined;

@@ -1,0 +1,200 @@
+{
+  "pid": 34607,
+  "status": "PREEXEC_SOURCE_DATA_ONLY",
+  "sourceInputsAuthenticated": 305,
+  "compiledManifestSha256": "f42f0008bf5939f28ccb7cd038b9f462a03efa38238709c97a7daab7c98e3035",
+  "archiveReauthenticatedNoInflate": true,
+  "cells": 210,
+  "wholeBodyIds": 70,
+  "workerStartsMaximum": 309,
+  "sourceOnly": {
+    "H03": [
+      "depth64 SOURCE_ONLY dominated by group32"
+    ],
+    "H04": [
+      "ticket MAX_SAFE overflow SOURCE_ONLY",
+      "ArrayOwner.close rejection not injected or observed; registered host cleanup rejection separate"
+    ]
+  },
+  "syntax": [
+    {
+      "name": "cell-v4.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "cell.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "additions.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "guards.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "worker-observer.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "array-observer.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "host-bodies.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/checkpoint",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/wrong-id",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/wrong-operation",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/wrong-count",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/out-of-range-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/fractional-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/extra-key",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/late-reply",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "source-built/positive",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/checkpoint",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/wrong-id",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/wrong-operation",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/wrong-count",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/out-of-range-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/fractional-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/extra-key",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/late-reply",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "installed/positive",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/checkpoint",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/wrong-id",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/wrong-operation",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/wrong-count",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/out-of-range-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/fractional-span",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/extra-key",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/late-reply",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "moved/positive",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "dispatch.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    }
+  ],
+  "sealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+  "productImports": 0,
+  "workers": 0,
+  "finishedMs": 1788012538761
+}

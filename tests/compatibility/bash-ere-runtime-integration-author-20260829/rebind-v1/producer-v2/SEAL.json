@@ -1,0 +1,135 @@
+{
+  "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "sourceInputs": 305,
+  "compiledMembers": 1305,
+  "privateAssets": 48,
+  "authority": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A06.stdout",
+    "size": 29390,
+    "mode": 420,
+    "sha256": "1a67dfc8d112a09a89f75b4ed04b1861141af80268fbf2177f98fa4fa750feaf",
+    "sha1": "876615a520855b2d05b5abb9ff4685ccf321494c",
+    "integrity": "sha512-t3CvGR3o8LRKEqbA574s/1yCaIMfT2AJMvqeCx3yR7nj9+5mbQ+rIGgd75RFoFGmv4Ezft7mc9j6qI22QmmKlA=="
+  },
+  "oldSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+    "size": 717198,
+    "mode": 420,
+    "sha256": "b3a3844213fe34017bb4b413bafda2433fd52a0d9165aed5810b01db245dfe95",
+    "sha1": "d9d7fe73a7dbb957467fcf9310e9f53a0c235160",
+    "integrity": "sha512-zKyMVeNPsbQZ74bV6XtkJ/ZbZEVXLV/rrkyDqlwVgQWcnB4Lzo28urCaA34CEFM8tfi8xv35bHxMUmjFLfLK/Q=="
+  },
+  "compiled": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/COMPILED.json",
+    "size": 271739,
+    "mode": 420,
+    "sha256": "f42f0008bf5939f28ccb7cd038b9f462a03efa38238709c97a7daab7c98e3035"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json",
+    "size": 528093,
+    "mode": 420,
+    "sha256": "eebea839e8a061259a257245540485f8e7df5b64aebc2f77d0803de0f4141aca"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "configs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+      "dev": 16777232,
+      "ino": 187849118
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+      "dev": 16777232,
+      "ino": 187849119
+    }
+  ],
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2",
+    "LANG": "C",
+    "TZ": "UTC",
+    "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+    "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+    "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/cache",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false",
+    "npm_config_update_notifier": "false"
+  },
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "pack",
+    "--offline",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate",
+  "fixtures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs",
+      "size": 17671,
+      "mode": 420,
+      "sha256": "9a8544306c48c76851b92da7600fc6674625af3789438df8d5eeff9ca1d4d84c",
+      "sha1": "a520309e41d09d0557cc33d154ced8b91fe02a1c",
+      "integrity": "sha512-dUBYPbvvgxEGdrv9AR3IH+1phYbF522barhxJ2CZ/TQTmBHQP3B2XK0iGJKfsig4hsn1EChgEcfP29ZLrTGVhw=="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRESEAL.md",
+      "size": 2438,
+      "mode": 420,
+      "sha256": "40ad6f2f177cba261cad67e221a1b84b8805e86e4928da40f01c79f1dce10e5d",
+      "sha1": "b1866c885e2737b6742caef6b4971fc0a4808cc5",
+      "integrity": "sha512-vggKHhJpbQ792Uty7XCEHtAUx9m3OdOfMUW6/TQ8ypXO2tl2+MLTigbMu9f5GFDC+DsTIw132ZgoPYgX7IDavA=="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A06.stdout",
+      "size": 29390,
+      "mode": 420,
+      "sha256": "1a67dfc8d112a09a89f75b4ed04b1861141af80268fbf2177f98fa4fa750feaf",
+      "sha1": "876615a520855b2d05b5abb9ff4685ccf321494c",
+      "integrity": "sha512-t3CvGR3o8LRKEqbA574s/1yCaIMfT2AJMvqeCx3yR7nj9+5mbQ+rIGgd75RFoFGmv4Ezft7mc9j6qI22QmmKlA=="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="
+    }
+  ],
+  "compressedMaximum": 16777216,
+  "decodedMaximum": 67108864,
+  "plannedProducerStarts": 1,
+  "runtimeStarts": 0
+}

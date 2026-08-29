@@ -25,6 +25,10 @@
 - User: **"IT MUST BE BETTER than just-bash, much better"**. Require broad,
   reproducible head-to-head evidence; never redefine superiority as a small
   passing subset, command-name count or selected performance win.
+- User: **"Make sure that on the surface nobody is going to notice that it's not a real bash"**.
+  Treat this as semantic compatibility, not cosmetic identity: verify quoting,
+  expansions, pipelines, exit statuses and output bytes with differential tests.
+  Do not claim indistinguishability while observable gaps remain.
 - User: **"one more note - zero dependency if posisble"**. Keep zero runtime
   dependencies where possible; Node builtins and minimal TS development tooling
   are permitted. Comparator dependencies belong in the isolated benchmarks package.

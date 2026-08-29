@@ -1,0 +1,783 @@
+# Project Rules
+
+## Authority and ownership
+
+- Work only in /Users/kjopek/Workspace/safe-bash. The directory correction did
+  not rename the package: it remains virtual-bash.
+- Preserve ../AGENTS.md: the root agent delegates substantive work, coordinates
+  workers and synthesizes results; leaf workers implement, investigate and verify.
+- User statements are authoritative. Preserve exact requirements without
+  invention, reinterpretation or silent scope reduction.
+- Current root assignments override historical ownership snapshots. Confirm
+  ownership before editing; read other workers' source without changing it.
+  Root package/export changes stay with the assigned integration owner.
+- Keep this file concise: durable rules, exact requirements and stable trust/
+  coordination conventions only. Timestamped counts, commits, worker statuses
+  and historical facts belong in docs/PROJECT_LEDGER.md and linked evidence.
+  Migrate history without discarding it; archived instructions are not active rules.
+
+## Exact requirements and scope
+
+- Build an extensible virtual Bash companion to poe-code packages/safejs,
+  inspired by just-bash, with Express-like plugins; memory, real, S3-compatible
+  (including a mock), WebDAV and further filesystems; many agent-used tools;
+  full piping, stdin and shell support. A scaffold or passing subset is not completion.
+- User: **"IT MUST BE BETTER than just-bash, much better"**. Require broad,
+  reproducible head-to-head evidence; never redefine superiority as a small
+  passing subset, command-name count or selected performance win.
+- User: **"Make sure that on the surface nobody is going to notice that it's not a real bash"**.
+  Treat this as semantic compatibility, not cosmetic identity: verify quoting,
+  expansions, pipelines, exit statuses and output bytes with differential tests.
+  Do not claim indistinguishability while observable gaps remain.
+- User: **"one more note - zero dependency if posisble"**. Keep zero runtime
+  dependencies where possible; Node builtins and minimal TS development tooling
+  are permitted. Comparator dependencies belong in the isolated benchmarks package.
+- User: **"i also need curl"**. Network use must be explicitly enabled and usable,
+  with authorization at every redirect hop, credential protections, cancellation,
+  byte streaming and VFS I/O. Do not auto-enable network capability in agentCommands.
+- Prioritize the user-provided command table in docs/COMMAND_PRIORITIES.md:
+  sed, rg, git, printf, nl, cat, node, head, apply_patch, echo, find, tail, ls;
+  retain the separate curl requirement. User: **"without the npm stuff"** excludes
+  npm/npx product commands, not npm/Node/TypeScript development or oracle tooling.
+  Node remains a requested product command; neither host tooling nor the optional
+  SafeJS interpreter establishes product Git/Node/apply_patch compatibility.
+- User: **WORK 72 hours**. Record actual work; do not claim duration or full
+  completion without evidence. Build tools, then use a different agent to stress/fix.
+- User: **"init git, make atomic commits"**. This dedicated repository is already
+  initialized. Never initialize the broad Workspace or commit existing user changes.
+
+## Codebase and public API
+
+- TypeScript ESM, strict NodeNext, Node.js >=22; use .js specifiers in TS imports.
+  Runtime dependencies stay empty. Product virtual commands never spawn native
+  processes or access implicit host files; native utilities are test oracles only.
+- The real filesystem adapter accesses only its explicitly configured root.
+  Network adapters require explicit host configuration; do not read ambient
+  credentials, mutate global TLS/environment state or invent provider guarantees.
+- Root exports are src/index.ts and package.json exports. Publish examples only
+  from inspected APIs with build/public-consumer evidence, not proposed names.
+  An internal module or loopback mock alone does not prove bundled real-service support.
+- agentCommands/createAgentCommands compose command families with a single
+  replacement policy and collision preflight. Do not double-register families
+  without intentional replacement. Family limits are not one shared shell budget.
+- When default registration changes, synchronize maintained exact inventory
+  assertions and independently declared expected names in the coherent version.
+  Keep sealed historical fixtures/profiles immutable and versioned; never derive
+  expectations from the registry under test or weaken exact counts.
+- Curl and SafeJS are optional explicit plugins, not default aggregate commands.
+  SafeJS requires injected legitimate runtime hooks; never install/load a private
+  package implicitly, vendor the engine or modify the private poe-code checkout.
+  Proposed upstream patches are not approved integrations or replay guarantees.
+- Node is explicit opt-in with a required trusted provider/static engine adapter;
+  entry URLs and identity strings are configuration, not byte authentication or
+  host authorization. Never auto-load/bundle an engine or add native fallbacks.
+  Preserve restricted Worker-L retirement semantics, not full Node/all-jobs/RSS claims.
+
+## Streams, invocation and filesystem safety
+
+- Contracts are src/contracts/**. Command/FS payloads are Uint8Array. Await sink
+  writes, preserve backpressure and chunk ownership, and bound collected output.
+  Shell exec returns buffered results while internal pipelines use byte streams.
+- Copy retained ByteSource fragments into owned bytes before advancing or
+  finalizing the producer; Buffer.slice/subarray are views, not copies. Completed
+  awaited transient writes need not copy indiscriminately. This tested producer-
+  reuse contract does not promise arbitrary concurrent mutation safety or leases.
+- Middleware must await/return next(). Preserve shared budgets and explicitly
+  propagate signals into host work. Cancellation cannot undo completed effects
+  or forcibly stop uncooperative host work; observe late rejections.
+- Register cooperative InvocationCleanup synchronously through registerCleanup
+  before invocation-owned resource acquisition/admission; use the same idempotent
+  cleanup from finally, sharing completion across overlapping calls. Close owned
+  acquisition admission and cover admitted work. Outcome selection and public
+  exec/dispose settlement await registered cooperative cleanup/tracked resource
+  work and the root cleanup barrier, not opaque host work.
+  Direct/custom hosts may omit the hook; finally remains necessary.
+- ByteSink.ownedOutput is optional, destination-specific enrollment. Apply the
+  cleanup-before-acquisition rule to createOutputOperation; close blocks new work
+  and drains admitted cooperative resources and explicit child scopes. Wrapping
+  a sink does not establish child ownership. Closing stdout must not cancel
+  sibling file/header/stderr work or the whole command context merely to close
+  that destination. Unenrolled opaque work gains no arbitrary preemption.
+- CommandContext.invoke dispatches literal argv with existing middleware, FS,
+  signal and shared budgets. replaceEnv true uses exactly the supplied exported
+  map (omitted means empty), without inherited exports/PWD injection or local
+  promotion; omitted/false retains merge compatibility. Preserve parent state.
+  Test actual Shell/registry invocation, not only a stub. See src/contracts/command.md.
+- CommandInvokeOptions.signal is optional, permits explicit undefined and is
+  borrowed; omission/undefined adds no local cancellation resources. Preserve
+  root-caller cancellation > escaping execution/control failure > local
+  cancellation. Do not infer provenance from reason equality or global mappings,
+  or raise an escaping error from an already mapped result status.
+- stdinIsDefault describes provenance, not bytes/EOF/readability. Preserve it
+  through transparent forwarding; replacement streams choose origin explicitly.
+  xargs child input is the implicit empty default, not consumed argument input.
+- PIPESTATUS is lazy and typed: preserve visible scalars and readonly absence;
+  internal completion may atomically replace a visible indexed binding even when
+  readonly. Stage on the shared array ledger; publish qualifying numeric raw
+  stage vectors before aggregate/errexit handling, not compound-wrapper or rejected
+  completions. Local scalar shadows and outer indexed restoration remain distinct.
+- `local -a NAME[=VALUE]` creates a generic indexed local using the shared array
+  ownership/restoration path; plain `local` remains distinct. Do not special-case
+  PIPESTATUS to simulate indexed declarations or reinterpret unsupported flags as names.
+- Use readBytes/writeBytes with the supplied signal. POSIX path helpers are
+  virtual; lexical containment is not symlink containment or namespace authority.
+- Safe empty-directory removal uses optional FileSystem.rmdir, otherwise ENOTSUP.
+  Never approximate it with an empty listing followed by recursive deletion.
+  Force flags must not swallow cancellation, including errno-shaped abort reasons.
+- Preserve the explicit weaker capabilities.snapshotRmdir snapshot-marker profile
+  through wrappers or refuse delegation; never erase it or promote it to strong
+  empty-only semantics. Strong consumers must resolve the path's actual contract
+  or refuse. Neither profile permits deleting descendants, including hiding them
+  by overlay whiteouts. Marker success need not mean directory absence; it provides
+  no transaction or ABA guarantee. See src/contracts/filesystem.md.
+- identityScope/device/inode and compareEntry follow src/contracts/filesystem.md.
+  Opaque scopes compare by reference and mean real disjoint storage, not different
+  clients/protocols. Unknown stays unknown; preserve aliases, conflicts and errors
+  before destructive publication. Comparison is not a lease, transaction or ABA defense.
+- Provider authority is an explicit trusted host binding to the backing resource
+  used by content operations. Faithful forwarding preserves provenance and path/
+  stat binding; remappers/cache gateways omit or replace changed assertions.
+  Host JavaScript is not sandboxed. Resolver callbacks must be truthful, preserve
+  composition/alias precedence and cancellation, and use public consumer APIs.
+- With permissions:false, modes may be advisory, never privacy guarantees;
+  chmod remains unsupported. Access is a best-effort policy probe, not proof of
+  later GET/PUT success. Do not fabricate missing stat fields or remote enforcement.
+  mktemp uses exclusive VFS creation and documented virtual-temp prerequisites.
+- Filesystem errors use typed FsError.code. Shell stderr is human-readable
+  utility output, not errno serialization. Preserve error meaning/path, status
+  and exact byte/namespace effects; no blanket diagnostic-assertion relaxation.
+- FileStat.allocatedBytes is optional provider-reported allocation: a nonnegative
+  safe integer, with zero known and absence unknown. Preserve it through wrappers;
+  do not invent it from logical size or interpret it as unique physical storage/RSS.
+
+## Evidence and dialect discipline
+
+- Canonical tests must not rewrite committed evidence. Explicit capture writes
+  to unique isolated output directories, preserving existing captures.
+- Cross-realm tool-role validation checks exact finite own-data types, keys,
+  values and sequence order, not prototype identity. Reject holes, accessors
+  and extras without coercion; preserve actual thrown-reason identity and strict
+  route admission. This is not a hostile host-JavaScript sandbox guarantee.
+- Reusable current canonical tests must not pin historical implementation bytes
+  as current. Version-specific reproduction/audit drivers remain explicit opt-in
+  with immutable data, outside canonical discovery.
+- Explicitly authorized committed-archive gates bind immutable candidate Git
+  inputs and verify archive integrity before/after execution. Unrelated live
+  edits neither enter nor veto that archive; never overlay live product inputs.
+  Strict-live gate mode retains its dirty-input rejection.
+  State whether post-run checks also detect new entries; checking only original
+  tracked paths does not establish an append-proof tree.
+- Computed composition/Merkle/Git-tree hashes need not name stored objects.
+  Authenticate all inputs and recompute exact canonical tree bytes/hashes; do
+  not require git rev-parse success for a declared derived-only identity.
+  Claims of stored commits/blobs/trees still require object verification.
+- Inventory canonicalization must declare one explicit pathname domain and shared
+  producer/verifier ordering; do not mix locale, component and full-path ordering.
+- A sparse witness is not a complete inventory; preserve that distinction in guards.
+- Establish trusted outer-owned raw startup capture before fallible admission or
+  child launch, so early bootstrap failures do not depend on inner publication.
+- Generated and inherited compressed artifacts require regular-file, bounded
+  compressed-size/read and expected-hash admission before inflation or parsing.
+  Decode the same authenticated bytes and budget concurrently retained buffers.
+- Critical admission/launch dispatch uses sealed files and explicit arguments in
+  self-contained entrypoints, not ambient cross-call REPL bindings. Establish
+  capture/catch ownership before fallible state lookup; do not infer a shared-state
+  or cross-agent kernel cause from an undefined binding alone.
+- Resource census and closure helpers must be file-based, take explicit owned
+  roots, use invocation-local counters, and return one immutable snapshot.
+  Never use ambient REPL counters or reset/rebound globals, or substitute a
+  cumulative counter for a fresh sample.
+- Authenticate Git path inventories from NUL-delimited records and byte-exact
+  paths, not C-quoted line displays; never reinterpret quoted display names as
+  filenames or classify a wrong-tree harness capture as a product failure.
+- Preserve original cohorts, failures, fixture inputs and oracle defects beside
+  later corrections. Record exact source hashes, profiles, versions, denominators,
+  dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported
+  cases and TODOs are not passes; scoped suites do not imply a current full gate.
+- Segregate native oracle/input/captured data from canonical TypeScript inputs and
+  test discovery by explicit data classification; preserve bytes and canonical
+  source/test/helper coverage, not blanket exclusions or test waivers. Qualify each
+  current candidate against its actual committed source/tests, authenticated
+  prerequisites and tracked consumer inventory. Historical cohorts do not certify
+  that candidate; an inventory is not proof that all TypeScript fixtures were checked.
+- Environment ordering is POSIX-unspecified. A GNU capture on Darwin does not
+  establish GNU/Linux semantics; qualify host/library profiles. Strict SGID
+  differences need host-specific evidence, not a mandatory new API or unsafe rollback.
+- Retain the user's verified GNU sed4.9 policy for global ^|$ substitution and
+  invocation-wide successful quit under -i/-s; do not emulate BSD later-file
+  truncation just to match an oracle. Preserve the original BSD evidence.
+- Do not falsely label registry commands as builtins for comparison parity.
+  Separate terminal byte-API differences from internal pipe/file corruption.
+  Benchmark scratch setup is a harness role, not a fake product directory effect.
+- Compare native semantics, backend interoperability and performance separately.
+  Time/memory cohorts require matching outputs/effects, repeat/order controls,
+  source hashes and cohost-load caveats. Include baseline-only coverage gaps.
+- Prioritize real adapter/tool workflows over more names. Backend unit or mock
+  success alone does not establish deployed-provider behavior; helper/fixture
+  semantic changes must be disclosed, not called unchanged all-input proof.
+
+## Validation and commits
+
+- npm test runs node:test through tsx; npm run test:contracts targets contracts.
+  npm run typecheck:all builds once, then checks source/tests and maintained strict
+  consumers; npm run typecheck requires existing built declarations. Rebuild after
+  source changes. Typechecking is not runtime or service acceptance. Captured-data
+  exclusions must remain exact and authenticated, not broad test-tree omissions.
+  npm run build emits ESM/declarations in dist.
+  Run scoped checks first; do not rerun competing owners' entire suites needlessly.
+- Inspect git root/status/index before changes. Use apply_patch, stage explicit
+  owned paths and git commit --only with those paths. Preserve concurrent edits,
+  staging and native temporary artifacts; never broad-stage or commit others' work.
+- Never decode or dump resolved executables. Before text inspection, lstat and
+  admit a bounded regular file of a recognized text type; hash necessary binary
+  tool bindings with bounded streams. Use apply_patch through its patch interface,
+  not binary inspection; editing tools are not executor inputs unless invoked there.
+- Do not create branches or alter unrelated worktrees without instruction.
+  Keep documentation corrections narrow and atomic; report checks and remaining
+  limits without claiming superiority, universal parity or completion.
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import vm from "node:vm";
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+const own = path.dirname(fileURLToPath(import.meta.url)), repo = "/Users/kjopek/Workspace/safe-bash";
+const started = Date.now(), deadline = started + 120000;
+const out = fs.openSync(path.join(own, "owner.stdout"), "wx", 0o600);
+const err = fs.openSync(path.join(own, "owner.stderr"), "wx", 0o600);
+const hash = raw => crypto.createHash("sha256").update(raw).digest("hex");
+function read(filename) { const stat = fs.lstatSync(filename); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 2097152); const raw = fs.readFileSync(filename); assert.equal(raw.length, stat.size); return raw; }
+function record(filename, value) { assert(Date.now() < deadline); const raw = Buffer.from(JSON.stringify(value, null, 2) + "\n"); assert(raw.length <= 2097152); fs.writeFileSync(path.join(own, filename), raw, { flag: "wx", mode: 0o600 }); }
+try {
+  const authOut = fs.openSync(path.join(own, "baseline.stdout"), "wx", 0o600), authErr = fs.openSync(path.join(own, "baseline.stderr"), "wx", 0o600);
+  let child;
+  try { child = spawnSync("/usr/bin/git", ["show", "faff3d1b56b841594768e476700209e1d2bca734:src/shell/runtime.ts"], { cwd: repo, stdio: ["ignore", authOut, authErr], timeout: 20000 }); }
+  finally { for (const fd of [authOut, authErr]) { fs.fsyncSync(fd); fs.closeSync(fd); } }
+  assert.equal(child.status, 0); assert.equal(child.signal, null); assert.equal(child.error, undefined);
+  const raw = read(path.join(repo, "src/shell/runtime.ts")), baseline = read(path.join(own, "baseline.stdout"));
+  const source = raw.toString(), base = baseline.toString();
+  const marker = "  async prepareVariable(", next = "  async prepareArrayObservers(";
+  const start = source.indexOf(marker), end = source.indexOf(next, start), oldStart = base.indexOf(marker), oldEnd = base.indexOf(next, oldStart);
+  assert(start > 0 && end > start && oldStart > 0 && oldEnd > oldStart);
+  assert.equal(source.slice(0, start), base.slice(0, oldStart)); assert.equal(source.slice(end), base.slice(oldEnd));
+  const method = source.slice(start, end), fragment = method.slice(method.indexOf("\n") + 1, method.lastIndexOf("  }"));
+  const replacements = [["stateMonitor(state)!", "stateMonitor(state)"], ["let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;", "let holding;"], ["let binding: IndexedBinding | undefined;", "let binding;"], ["let primary: unknown;", "let primary;"], ["(action: () => void | Promise<void>): Promise<void>", "(action)"]];
+  let executable = fragment; for (const [before, after] of replacements) { assert(executable.includes(before)); executable = executable.split(before).join(after); }
+  record("SOURCE-SEAL.json", { sourceSha256: hash(raw), baselineSha256: hash(baseline), helperSha256: hash(read(fileURLToPath(import.meta.url))), foreignPrefixSuffixEqual: true, fragment, replacements });
+  const execute = new vm.Script("(async function(env){const {state,name,saved,scalarLegacy,requireArrays,stateMonitor,ArrayOwner,textToken,typedSavedVariables,ArrayFailure}=env;" + executable + "})").runInNewContext({});
+  async function probe(options = {}) {
+    const counts = { create: 0, hold: 0, binding: 0, close: 0, release: 0 }, failures = [], saved = { value: "outer" }, values = new Map();
+    const reason = Object.hasOwn(options, "reason") ? options.reason : { primary: options.stage };
+    const secondary = Object.hasOwn(options, "secondary") ? options.secondary : { secondary: true };
+    const fail = stage => { if (options.stage === stage) throw reason; };
+    const cleanup = stage => { counts[stage]++; if (options.cleanup?.includes(stage)) throw secondary; };
+    const binding = { retain() { return binding; }, async release() { cleanup("binding"); } };
+    const owner = { reserve() { return {}; }, async close() { cleanup("close"); } };
+    const parent = { ledger: {}, hold() { counts.hold++; fail("hold"); return { release() { cleanup("release"); } }; } };
+    const store = { owner: parent, async watch() { fail("watch"); return { valid: () => true }; }, get: () => binding };
+    const environment = { state: {}, name: "ordinary", saved, scalarLegacy: false, requireArrays: () => store, stateMonitor: () => ({ session: { scope: { failures } } }), ArrayOwner: { create() { counts.create++; fail("create"); return owner; } }, textToken: async () => ({}), typedSavedVariables: { set(key, value) { fail("set"); values.set(key, value); }, delete(key) { values.delete(key); } }, ArrayFailure: Error };
+    let present = false, actual;
+    try { await execute.call({ signal: {} }, environment); } catch (error) { present = true; actual = error; }
+    return { counts, failures, reason, secondary, present, actual, registered: values.has(saved) };
+  }
+  const rows = [];
+  async function check(id, body) { try { assert(Date.now() < deadline); await body(); rows.push({ id, pass: true }); } catch (error) { rows.push({ id, pass: false, error: String(error) }); } }
+  await check("P01-successful-transfer", async () => { const row = await probe(); assert(!row.present); assert(row.registered); assert.deepEqual(row.counts, { create: 1, hold: 1, binding: 0, close: 0, release: 1 }); });
+  await check("P02-hold-falsy-failures", async () => { for (const reason of [false, 0, undefined]) { const row = await probe({ stage: "hold", reason }); assert(row.present); assert.strictEqual(row.actual, reason); assert.equal(row.counts.close, 1); assert.equal(row.counts.release, 0); assert(!row.registered); } });
+  await check("P03-hold-and-close-failures", async () => { const row = await probe({ stage: "hold", reason: undefined, cleanup: ["close"], secondary: false }); assert(row.present); assert.strictEqual(row.actual, undefined); assert.equal(row.failures.length, 1); assert.strictEqual(row.failures[0], false); assert.equal(row.counts.close, 1); });
+  await check("P04-body-close-hold-independent", async () => { const row = await probe({ stage: "watch", reason: 0, cleanup: ["close", "release"] }); assert.strictEqual(row.actual, 0); assert.equal(row.counts.close, 1); assert.equal(row.counts.release, 1); assert.equal(row.failures.length, 2); });
+  await check("P05-binding-close-hold-independent", async () => { const row = await probe({ stage: "set", reason: false, cleanup: ["binding", "close", "release"] }); assert.strictEqual(row.actual, false); for (const key of ["binding", "close", "release"]) assert.equal(row.counts[key], 1); assert.equal(row.failures.length, 3); assert(!row.registered); });
+  await check("P06-registered-hold-release-failure", async () => { const row = await probe({ cleanup: ["release"], secondary: undefined }); assert(row.present); assert.strictEqual(row.actual, undefined); assert(row.registered); assert.equal(row.counts.close, 0); assert.equal(row.counts.release, 1); });
+  await check("P07-create-refusal", async () => { const row = await probe({ stage: "create", reason: 0 }); assert(row.present); assert.strictEqual(row.actual, 0); assert.equal(row.counts.hold, 0); assert.equal(row.counts.close, 0); });
+  await check("P08-primary-secondary-identity", async () => { for (const reason of [undefined, null, false, 0, { marker: true }]) { const row = await probe({ stage: "set", reason, cleanup: ["binding", "close", "release"], secondary: undefined }); assert(row.present); assert.strictEqual(row.actual, reason); assert.equal(row.failures.length, 3); assert(row.failures.every(value => value === undefined)); } });
+  const result = { groups: 8, passed: rows.filter(row => row.pass).length, rows, sourceSha256: hash(raw), sourceOnly: true, actualPrivateFaults: false, Shell: 0, Workers: 0, compiler: 0, child: { pid: child.pid, status: child.status, signal: child.signal }, started, finished: Date.now() };
+  record("RESULT.json", result); fs.writeSync(out, JSON.stringify(result) + "\n"); if (result.passed !== 8) process.exitCode = 1;
+} catch (error) { fs.writeSync(err, String(error?.stack ?? error) + "\n"); process.exitCode = 1; }
+finally { for (const fd of [out, err]) { fs.fsyncSync(fd); fs.closeSync(fd); } }
+# Reconciliation complete; procedure ready, final freeze still gated
+
+August 29, 2026. This grant began 16:49:51 UTC and expires 16:57:51 UTC including
+publication. The 72-hour campaign endpoint remains **18:02:36 UTC today**.
+No compiler, package producer, product, Worker or native oracle was executed.
+
+## Tree discrepancy resolved precisely
+
+Both previous identities are correct for different pathname domains:
+
+- `3adc676a0ab638c9788ef007e465931d65d2c6fe` is the original broader repository
+  tree. Its authenticated root retains `.gitignore`, `AGENTS.md`, `benchmarks`,
+  `docs`, `package-lock.json`, `scripts`, and `tests` in addition to the selected
+  build-root entries. None of those seven additional root entries is a shipping
+  input in the 309-file manifest.
+- `c5e49e70c295d7e354eba53d1a91141ad701e3f6` is the projection rebuilt from only
+  those 309 selected build inputs. Comparing that projection to the broader root
+  caused the c314 reviewer refusal. This was not corrupt source, conflicting
+  blob hashes or a different sort order.
+
+The helper authenticated the original witness blob by its expected Git blob ID,
+size and SHA256; decoded the uncompressed tree-witness DATA; verified every tree
+SHA1 and Git entry order; followed all 309 selected paths through the original
+tree witnesses; and verified each selected blob's SHA1, SHA256 and byte length.
+`TREE-RECONCILIATION.json` contains the exact root entries and bindings.
+
+Encoding is explicit: each tree entry is ASCII octal mode, ASCII space, exact
+UTF-8 basename, NUL, then the raw 20-byte object ID. Directory mode is `40000`;
+file modes are individually bound. Sort by unsigned basename bytes, treating
+directory names as ending with `/`. Hash `tree <decimal-body-byte-count>\0`
+followed by the entry bytes using SHA1. The input manifest instead uses complete
+repository-relative UTF-8 pathname byte ordering, with its exact row array
+canonicalized by JSON.stringify and hashed using SHA256. These domains are never
+interchanged. No stored Git-object existence is required for a derived projection.
+
+This new erratum closes the earlier identity qualification; the original failed
+helper stderr, old report, all failed runs and their resource qualifications
+remain unchanged. This grant used **one DATA helper invocation**.
+
+## Explicit current candidate and README decision
+
+`CANDIDATE-INPUTS.json` binds **323 inputs**, their paths, exact modes/sizes/blob
+identities/SHA256 and accepted origins. ROOT's accepted PUBLIC309 README is
+selected by blob `d4618a2170f53ed8f6f20fe1a320ab32e84dab23`, SHA256
+`f035946288322e23951aba9f92e278fb13dac3c3a2bb21271a516cd6f2329621`.
+The current README remains untouched and unreviewed. Every other selected working
+file matched this pre-local-fix candidate at the helper's finite snapshot.
+
+- Candidate input projection: `696cf47f57657f2b6004f49031e6b5290d0f96ee`.
+- Exact candidate-file SHA256:
+  `ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd`.
+- Canonical candidate rows SHA256:
+  `9766e17a92f713fd63d95615a20ffcc57283ac9f2b9c3975574e06179efc423c`.
+
+The 40 extra tracked paths remain inventoried and excluded only from the derived
+build, not deleted from the working tree. No live HEAD or whole-file historical
+overlay is authorized. The candidate is bound DATA, **not a final build freeze**.
+
+## Latest PIPESTATUS gate — ROOT update
+
+ROOT supplied diagnosis **0989ed9b**: **75 PASS / 3 FAIL**, all failures are R17
+across the three layouts because the existing local builtin lacks `local -a`.
+The scalar PIPESTATUS publisher is correct and must be preserved. ROOT explicitly
+chooses narrow product support for **`local -a NAME`**, not a fixture workaround.
+No other local flags, declare/typeset, associative arrays or public API expansion.
+
+Plato's source/PURE fix and its review are pending. `ROOT-UPDATE.json` records this
+new authority without rewriting the earlier cause-pending receipt. The effective
+remaining gates are:
+
+1. Receive the exact accepted runtime/local-helper delta after review.
+2. Incorporate only that delta into the present union, preserving the already
+   compared public Node, CORE, arithmetic and PIPESTATUS changes. Recompute all
+   paths/counts/origins/hashes; a newly added helper can change the 323 count.
+3. Receive **fresh ROOT producer GO** before final input freeze, compiler or pack.
+
+There is no additional author-build authority in this reconciliation grant.
+
+## Exact prepared build/package procedure
+
+`TYPE-AND-TOOL-BINDINGS.json` binds the existing Node/TypeScript/npm tool sources,
+distinct empty npm configs and **115 type-tool files / 2,522,132 bytes**. Existing
+LOCAL @types/node 22.20.1 and declared undici-types 6.21.0 were reauthenticated at
+both their pinned original locations and isolated copies. No dependency was added
+or installed. Remaining executable-tool pins are the existing qualified producer
+pins and must be checked contemporaneously at launch, not treated as newly run.
+
+`PROCEDURE.json` contains exact absolute executable paths, arguments, cwd, a
+whitelisted environment and prospective output root
+`/private/tmp/safe-bash-final-composition-20260829`. It specifies:
+
+- Materialize only the final re-admitted input manifest into a fresh clean source
+  directory. Preserve its strict config and use the populated pinned typeRoots.
+- **One** direct pinned TypeScript compiler invocation, required exit 0. No reuse
+  of 58ba544's failed emits, previous dist, repository HEAD or excluded extras.
+- Enumerate every actual JS/map/declaration/declaration-map output and its source
+  cause. Recompute full shipping/private closure; do not inherit 1002/1014 counts.
+- **One** trusted pinned development npm `pack --offline --ignore-scripts --json`
+  with the exact separate user/global configs, fresh cache, disabled audit/fund,
+  and explicit owned destination. No install or lifecycle execution.
+- Commit exact archive and producer receipt size/hash **before** any decode;
+  admit the regular bounded file and decode that same authenticated Buffer.
+
+The prepared commands remain valid templates; the selected final input binding
+must be refreshed after the accepted local-array fix. Nothing here executes them.
+
+## Minimal existing public-API smoke, not a new campaign
+
+`SMOKE-PROPOSAL.json` binds the existing workflow source
+`tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs` and selects
+only **six existing cases**, prospectively **18 observations across three layouts**:
+
+| Existing ID | Finite coverage |
+| --- | --- |
+| C01 | Public root/Node export equality; explicit opt-in; default80 inventory; inert provider |
+| C02 | Strict quoting/conditional and printf-to-cat pipeline |
+| C07 | MemoryFileSystem stdout/stderr redirection effects |
+| C12 | Mock curl redirect authorization/header stripping, VFS output and disposal |
+| C13 | Git status/rev-parse/ls-files through ReadOnlyFileSystem; unchanged Git data |
+| C14 | apply_patch stdin, MemoryFileSystem effects and Git diff |
+
+No new case, assertion, engine, Worker, live network or native oracle is proposed.
+Reuse existing case bodies and fixtures, with their bindings updated to the final
+candidate; do not run an old dispatcher asserting hardcoded 3adc/1014 identity
+against a new package. This smoke checks selected public commands and memory/
+readonly FS interactions, **not all 80 command behaviors or Real/S3/WebDAV
+backends**, full Node execution, PIPESTATUS78 remediation or CORE210 coverage.
+Those prior failures and acceptance boundaries remain separate.
+
+## Receipt and bounds
+
+`RECEIPT.json` SHA256:
+`7bfbcf0a0e24dd8f8fa285803512eb8d9fa8d1c843aaaea53c7cd1d4d0392161`.
+The helper snapshot retains 3,706,123 logical bytes and 3,447,197 capture bytes;
+adding the explicit 16,777,216-byte publication reserve gives 20,483,339 logical
+bytes and 20,224,413 capture bytes, within 128 MiB work and 24 MiB capture.
+Known roles including planned publication: **20/24**, conservative peak **3/3**.
+One helper and one serial Git child; child completion and direct tool completion
+are recorded, not fabricated transitive PID closure. Git physical allocation,
+allocated blocks and RSS are excluded. All publication is scoped and atomic;
+foreign working source/staging and previous failures remain intact.
+
+**Ready: reconciled input domain, accepted README selection, exact tool/command
+procedure and narrow existing smoke proposal. Waiting: accepted local-array
+source delta and fresh ROOT producer GO. No final freeze or execution.**
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/BUILD-GRANT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/DATA-GRANT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/FINAL-PUBLICATION-PATHS.txt
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/PRESEAL.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/PUBLICATION-RECEIPT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/REPORT.md
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/RETAINED-DATA.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/ROOT-DECISION.txt
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/TYPE-TOOLS.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/bindings.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build-outer.log
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/decode-bind.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/decode-bind.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-census.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-census.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-preparation.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-preparation.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/inspect-types.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/io.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CASES-v4.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/COMPILED-INVENTORY.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CORE-GUARD-PRESEAL.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/DECODE-RECEIPT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/EMIT-CAUSES.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FINAL-BINDINGS.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FROZEN.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FULL-EMIT-DIFF.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/PRE-INFLATE-RECEIPT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/SHIPPING.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/SOURCE-ADMISSION.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/TOOL-ADMISSION.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/TOOL-POSTGUARD.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/core-guard-v8.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/dispatch.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/owner.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/LAYOUT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R26.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R27.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R28.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R29.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R30.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R31.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R32.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/additions.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/array-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/event-writer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/finalize-cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/guards.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/host-bodies.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-checkpoint.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-extra-key.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-fractional-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-late-reply.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-out-of-range-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-positive.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-count.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-id.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-operation.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/LAYOUT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R26.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R27.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R28.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R29.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R30.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R31.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R32.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/additions.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/array-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/event-writer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/finalize-cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/guards.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/host-bodies.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-checkpoint.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-extra-key.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-fractional-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-late-reply.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-out-of-range-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-positive.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-count.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-id.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-operation.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/LAYOUT.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R01.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R02.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R03.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R04.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R05.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R06.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R07.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R08.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R09.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R10.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R11.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R12.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R13.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R14.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R15.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R16.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R17.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R18.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R19.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R20.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R21.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R22.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R23.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R24.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R25.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R26.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R27.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R28.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R29.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R30.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R31.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R32.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/additions.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/array-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/event-writer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/finalize-cell.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/guards.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/host-bodies.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-checkpoint.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-extra-key.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-fractional-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-late-reply.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-observer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-out-of-range-span.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-positive.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-count.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-id.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-operation.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.json
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/preparation.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/preparation.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/prepare-version.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-add.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-add.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-check.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-check.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-commit.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-commit.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-after.raw
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-after.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-before.raw
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-before.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-publication.log
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/publish-data.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/seal.stderr
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/seal.stdout
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/verify-final.mjs
+tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/version.patch
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/PROCEDURE.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/RECEIPT.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/ROOT-UPDATE.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/SMOKE-PROPOSAL.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TREE-RECONCILIATION.json
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TYPE-AND-TOOL-BINDINGS.json

@@ -1,0 +1,220 @@
+{
+  "status": "READY_PROCEDURE_ONLY_WAIT_PIPESTATUS",
+  "candidate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+    "bytes": 178749,
+    "mode": 292,
+    "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TYPE-AND-TOOL-BINDINGS.json",
+    "bytes": 53567,
+    "mode": 292,
+    "sha256": "17c10b52c12c62d58d65a4e98297f8f210459b7316490fdfdfb1c64e7b0c0cdf"
+  },
+  "reconciliation": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TREE-RECONCILIATION.json",
+    "bytes": 3698,
+    "mode": 292,
+    "sha256": "1c6e9ad570cf971f3e2f309434c658713f18884f3fd503b8cc6e9b040a6e815e"
+  },
+  "gates": [
+    "Plato exact PIPESTATUS 78-cell/exit2 assertion cause and ROOT candidate verdict required before final input freeze",
+    "If candidate source changes, regenerate selected input/tool bindings; do not bless prior PIPESTATUS bytes by these hashes",
+    "Fresh ROOT build authorization and unchanged input/tool admission required before executing any command"
+  ],
+  "finalFreezeAuthorized": false,
+  "buildAuthorized": false,
+  "productAuthorized": false,
+  "outputRoot": "/private/tmp/safe-bash-final-composition-20260829",
+  "sourceRoot": "/private/tmp/safe-bash-final-composition-20260829/source",
+  "materialize": "Only the 323 explicitly authenticated input rows; accepted README from its pinned Git blob; exclude 40 tracked extras without deleting or editing them",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+    "HOME": "/private/tmp/safe-bash-final-composition-20260829/home",
+    "TMPDIR": "/private/tmp/safe-bash-final-composition-20260829/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_OPTIONAL_LOCKS": "0",
+    "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+    "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+    "npm_config_cache": "/private/tmp/safe-bash-final-composition-20260829/cache",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false"
+  },
+  "commands": {
+    "compiler": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/private/tmp/safe-bash-final-composition-20260829/source/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types"
+      ],
+      "maximumInvocations": 1,
+      "requiredExit": 0
+    },
+    "pack": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+        "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+        "--pack-destination=/private/tmp/safe-bash-final-composition-20260829/package"
+      ],
+      "maximumInvocations": 1,
+      "requiresCompilerExitZero": true
+    }
+  },
+  "artifactAdmission": {
+    "perDataFileMaximum": 16777216,
+    "noInheritedOutputCounts": true,
+    "completeEmitAndShippingInventoryRequired": true,
+    "archiveAndReceiptCommittedBeforeDecode": true,
+    "sameAuthenticatedBufferDecode": true
+  },
+  "noNewDependency": true
+}
+  that destination. Unenrolled opaque work gains no arbitrary preemption.
+- CommandContext.invoke dispatches literal argv with existing middleware, FS,
+  signal and shared budgets. replaceEnv true uses exactly the supplied exported
+  map (omitted means empty), without inherited exports/PWD injection or local
+  promotion; omitted/false retains merge compatibility. Preserve parent state.
+  Test actual Shell/registry invocation, not only a stub. See src/contracts/command.md.
+- CommandInvokeOptions.signal is optional, permits explicit undefined and is
+  borrowed; omission/undefined adds no local cancellation resources. Preserve
+  root-caller cancellation > escaping execution/control failure > local
+  cancellation. Do not infer provenance from reason equality or global mappings,
+  or raise an escaping error from an already mapped result status.
+- stdinIsDefault describes provenance, not bytes/EOF/readability. Preserve it
+  through transparent forwarding; replacement streams choose origin explicitly.
+  xargs child input is the implicit empty default, not consumed argument input.
+- PIPESTATUS is lazy and typed: preserve visible scalars and readonly absence;
+  internal completion may atomically replace a visible indexed binding even when
+  readonly. Stage on the shared array ledger; publish qualifying numeric raw
+  stage vectors before aggregate/errexit handling, not compound-wrapper or rejected
+  completions. Local scalar shadows and outer indexed restoration remain distinct.
+- `local -a NAME[=VALUE]` creates a generic indexed local using the shared array
+  ownership/restoration path; plain `local` remains distinct. Do not special-case
+  PIPESTATUS to simulate indexed declarations or reinterpret unsupported flags as names.
+- Use readBytes/writeBytes with the supplied signal. POSIX path helpers are
+  virtual; lexical containment is not symlink containment or namespace authority.
+- Safe empty-directory removal uses optional FileSystem.rmdir, otherwise ENOTSUP.
+  Never approximate it with an empty listing followed by recursive deletion.
+  Force flags must not swallow cancellation, including errno-shaped abort reasons.
+- Preserve the explicit weaker capabilities.snapshotRmdir snapshot-marker profile
+  through wrappers or refuse delegation; never erase it or promote it to strong
+  empty-only semantics. Strong consumers must resolve the path's actual contract
+  or refuse. Neither profile permits deleting descendants, including hiding them
+  by overlay whiteouts. Marker success need not mean directory absence; it provides
+  no transaction or ABA guarantee. See src/contracts/filesystem.md.
+- identityScope/device/inode and compareEntry follow src/contracts/filesystem.md.
+  Opaque scopes compare by reference and mean real disjoint storage, not different
+  clients/protocols. Unknown stays unknown; preserve aliases, conflicts and errors
+  before destructive publication. Comparison is not a lease, transaction or ABA defense.
+- Provider authority is an explicit trusted host binding to the backing resource
+  used by content operations. Faithful forwarding preserves provenance and path/
+  stat binding; remappers/cache gateways omit or replace changed assertions.
+  Host JavaScript is not sandboxed. Resolver callbacks must be truthful, preserve
+  composition/alias precedence and cancellation, and use public consumer APIs.
+- With permissions:false, modes may be advisory, never privacy guarantees;
+  chmod remains unsupported. Access is a best-effort policy probe, not proof of
+  later GET/PUT success. Do not fabricate missing stat fields or remote enforcement.
+  mktemp uses exclusive VFS creation and documented virtual-temp prerequisites.
+- Filesystem errors use typed FsError.code. Shell stderr is human-readable
+  utility output, not errno serialization. Preserve error meaning/path, status
+  and exact byte/namespace effects; no blanket diagnostic-assertion relaxation.
+- FileStat.allocatedBytes is optional provider-reported allocation: a nonnegative
+  safe integer, with zero known and absence unknown. Preserve it through wrappers;
+  do not invent it from logical size or interpret it as unique physical storage/RSS.
+
+## Evidence and dialect discipline
+
+- Canonical tests must not rewrite committed evidence. Explicit capture writes
+  to unique isolated output directories, preserving existing captures.
+- Cross-realm tool-role validation checks exact finite own-data types, keys,
+  values and sequence order, not prototype identity. Reject holes, accessors
+  and extras without coercion; preserve actual thrown-reason identity and strict
+  route admission. This is not a hostile host-JavaScript sandbox guarantee.
+- Reusable current canonical tests must not pin historical implementation bytes
+  as current. Version-specific reproduction/audit drivers remain explicit opt-in
+  with immutable data, outside canonical discovery.
+- Explicitly authorized committed-archive gates bind immutable candidate Git
+  inputs and verify archive integrity before/after execution. Unrelated live
+  edits neither enter nor veto that archive; never overlay live product inputs.
+  Strict-live gate mode retains its dirty-input rejection.
+  State whether post-run checks also detect new entries; checking only original
+  tracked paths does not establish an append-proof tree.
+- Computed composition/Merkle/Git-tree hashes need not name stored objects.
+  Authenticate all inputs and recompute exact canonical tree bytes/hashes; do
+  not require git rev-parse success for a declared derived-only identity.
+  Claims of stored commits/blobs/trees still require object verification.
+- Inventory canonicalization must declare one explicit pathname domain and shared
+  producer/verifier ordering; do not mix locale, component and full-path ordering.
+- A sparse witness is not a complete inventory; preserve that distinction in guards.
+- Establish trusted outer-owned raw startup capture before fallible admission or
+  child launch, so early bootstrap failures do not depend on inner publication.
+- Generated and inherited compressed artifacts require regular-file, bounded
+  compressed-size/read and expected-hash admission before inflation or parsing.
+  Decode the same authenticated bytes and budget concurrently retained buffers.
+- Critical admission/launch dispatch uses sealed files and explicit arguments in
+  self-contained entrypoints, not ambient cross-call REPL bindings. Establish
+  capture/catch ownership before fallible state lookup; do not infer a shared-state
+  or cross-agent kernel cause from an undefined binding alone.
+- Resource census and closure helpers must be file-based, take explicit owned
+  roots, use invocation-local counters, and return one immutable snapshot.
+  Never use ambient REPL counters or reset/rebound globals, or substitute a
+  cumulative counter for a fresh sample.
+- Authenticate Git path inventories from NUL-delimited records and byte-exact
+  paths, not C-quoted line displays; never reinterpret quoted display names as
+  filenames or classify a wrong-tree harness capture as a product failure.
+- Preserve original cohorts, failures, fixture inputs and oracle defects beside
+  later corrections. Record exact source hashes, profiles, versions, denominators,
+  dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported
+  cases and TODOs are not passes; scoped suites do not imply a current full gate.
+- Segregate native oracle/input/captured data from canonical TypeScript inputs and
+  test discovery by explicit data classification; preserve bytes and canonical
+  source/test/helper coverage, not blanket exclusions or test waivers. Qualify each
+  current candidate against its actual committed source/tests, authenticated
+  prerequisites and tracked consumer inventory. Historical cohorts do not certify
+  that candidate; an inventory is not proof that all TypeScript fixtures were checked.
+- Environment ordering is POSIX-unspecified. A GNU capture on Darwin does not
+  establish GNU/Linux semantics; qualify host/library profiles. Strict SGID
+  differences need host-specific evidence, not a mandatory new API or unsafe rollback.
+- Retain the user's verified GNU sed4.9 policy for global ^|$ substitution and
+  invocation-wide successful quit under -i/-s; do not emulate BSD later-file
+  truncation just to match an oracle. Preserve the original BSD evidence.
+- Do not falsely label registry commands as builtins for comparison parity.
+  Separate terminal byte-API differences from internal pipe/file corruption.
+  Benchmark scratch setup is a harness role, not a fake product directory effect.
+- Compare native semantics, backend interoperability and performance separately.
+  Time/memory cohorts require matching outputs/effects, repeat/order controls,
+  source hashes and cohost-load caveats. Include baseline-only coverage gaps.
+- Prioritize real adapter/tool workflows over more names. Backend unit or mock
+  success alone does not establish deployed-provider behavior; helper/fixture
+  semantic changes must be disclosed, not called unchanged all-input proof.
+
+## Validation and commits
+
+- npm test runs node:test through tsx; npm run test:contracts targets contracts.
+  npm run typecheck:all builds once, then checks source/tests and maintained strict
+  consumers; npm run typecheck requires existing built declarations. Rebuild after
+  source changes. Typechecking is not runtime or service acceptance. Captured-data
+  exclusions must remain exact and authenticated, not broad test-tree omissions.
+  npm run build emits ESM/declarations in dist.
+  Run scoped checks first; do not rerun competing owners' entire suites needlessly.
+- Inspect git root/status/index before changes. Use apply_patch, stage explicit
+  owned paths and git commit --only with those paths. Preserve concurrent edits,
+  staging and native temporary artifacts; never broad-stage or commit others' work.

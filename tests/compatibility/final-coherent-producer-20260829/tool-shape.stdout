@@ -1,0 +1,142 @@
+2897:  "tools": {
+2898-    "node": {
+2899-      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+2900-      "size": 112989184,
+2901-      "mode": 493,
+2902-      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+2903-    },
+2904:    "typescript": [
+2905-      {
+2906-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+2907-        "size": 6213092,
+2908-        "mode": 420,
+2909-        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+2910-      },
+2911-      {
+2912-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsserver.js",
+2913-        "size": 27888,
+2914-        "mode": 420,
+2915-        "sha256": "0efcc88cdf0593cc1dcc8b6afd605c7bed9eca6f648c70c8f0df8695114bf6d7"
+2916-      },
+2917-      {
+2918-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_typingsInstaller.js",
+2919-        "size": 10363,
+2920-        "mode": 420,
+2921-        "sha256": "62a69c574365f1c81633b86b3214f9df860aad08843028dd5244b00aa7f1e190"
+2922-      },
+2923-      {
+2924-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/cs/diagnosticMessages.generated.json",
+2925-        "size": 320453,
+2926-        "mode": 420,
+2927-        "sha256": "5b30e58d35f877521e14c16551c86320b2ed19ddb70fe5f41841b561d27f18c2"
+2928-      },
+2929-      {
+2930-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/de/diagnosticMessages.generated.json",
+2931-        "size": 344426,
+2932-        "mode": 420,
+2933-        "sha256": "a4031a8028febc35f92ba317104878d93f02c1750e6ee16351c2270ab4dff517"
+2934-      },
+2935-      {
+2936-        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/es/diagnosticMessages.generated.json",
+--
+4353:    "npm": {
+4354-      "bytes": 12446245,
+4355-      "rows": [
+4356-        {
+4357-          "path": "LICENSE",
+4358-          "size": 9742,
+4359-          "mode": 420,
+4360-          "sha256": "7610d223851f421d315df5e77974f1c68a04b97e02060e5bbbcf13d95e3ca257",
+4361-          "kind": "file"
+4362-        },
+4363-        {
+4364-          "path": "README.md",
+4365-          "size": 4043,
+4366-          "mode": 420,
+4367-          "sha256": "ec67df6a6b31f9641b74bbcbea148e29e0f2bb27a1479f601de0722e28cc25b0",
+4368-          "kind": "file"
+4369-        },
+4370-        {
+4371-          "path": "bin/node-gyp-bin/node-gyp",
+4372-          "size": 172,
+4373-          "mode": 493,
+4374-          "sha256": "7d8db08dc7f9d6d9f74341cf838a2d3532b4dec44aa0131ab8ec8076843c0c40",
+4375-          "kind": "file"
+4376-        },
+4377-        {
+4378-          "path": "bin/node-gyp-bin/node-gyp.cmd",
+4379-          "size": 149,
+4380-          "mode": 493,
+4381-          "sha256": "8cb8b915e6f433f7f8994eae04e74595d5a169d1e593833bb4a5f2cbe213f02d",
+4382-          "kind": "file"
+4383-        },
+4384-        {
+4385-          "path": "bin/npm",
+--
+18661:    "flags": [
+18662-      "--target",
+18663-      "ES2023",
+18664-      "--lib",
+18665-      "ES2023",
+18666-      "--module",
+18667-      "NodeNext",
+18668-      "--moduleResolution",
+18669-      "NodeNext",
+18670-      "--strict",
+18671-      "--noUncheckedIndexedAccess",
+18672-      "--exactOptionalPropertyTypes",
+18673-      "--verbatimModuleSyntax",
+18674-      "--skipLibCheck",
+18675-      "--types",
+18676-      "node"
+18677-    ]
+18678-  },
+18679-  "producerSeal": {
+18680-    "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+18681-    "sourceInputs": 305,
+18682-    "compiledMembers": 1305,
+18683-    "privateAssets": 48,
+18684-    "authority": {
+18685-      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A06.stdout",
+18686-      "size": 29390,
+18687-      "mode": 420,
+18688-      "sha256": "1a67dfc8d112a09a89f75b4ed04b1861141af80268fbf2177f98fa4fa750feaf",
+18689-      "sha1": "876615a520855b2d05b5abb9ff4685ccf321494c",
+18690-      "integrity": "sha512-t3CvGR3o8LRKEqbA574s/1yCaIMfT2AJMvqeCx3yR7nj9+5mbQ+rIGgd75RFoFGmv4Ezft7mc9j6qI22QmmKlA=="
+18691-    },
+18692-    "oldSeal": {
+18693-      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+--
+18706:    "tools": {
+18707-      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json",
+18708-      "size": 528093,
+18709-      "mode": 420,
+18710-      "sha256": "eebea839e8a061259a257245540485f8e7df5b64aebc2f77d0803de0f4141aca"
+18711-    },
+18712-    "node": {
+18713-      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+18714-      "size": 112989184,
+18715-      "mode": 493,
+18716-      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+18717-    },
+18718-    "configs": [
+18719-      {
+18720-        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+18721-        "size": 0,
+18722-        "mode": 420,
+18723-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+18724-        "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+18725-        "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==",
+18726-        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+18727-        "dev": 16777232,
+18728-        "ino": 187849118
+18729-      },
+18730-      {
+18731-        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+18732-        "size": 0,
+18733-        "mode": 420,
+18734-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+18735-        "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+18736-        "integrity": "sha512-z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==",
+18737-        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+18738-        "dev": 16777232,

@@ -1,0 +1,498 @@
+{
+  "excludedCount": 40,
+  "groups": {
+    "development workflow script": [
+      "scripts/typecheck-consumers.mjs",
+      "scripts/typecheck-inputs.mjs",
+      "scripts/typecheck-staged-inputs.mjs",
+      "scripts/typecheck.mjs",
+      "scripts/verify-current-consumers.mjs",
+      "scripts/verify-qualified-release.mjs",
+      "scripts/verify-whole-gate.mjs"
+    ],
+    "unselected product source (not compiled in this projection)": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/xan/DESIGN.md",
+      "src/commands/xan/README.md",
+      "src/commands/xan/argv.ts",
+      "src/commands/xan/budget.ts",
+      "src/commands/xan/commands.ts",
+      "src/commands/xan/csv.ts",
+      "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+      "src/commands/xan/design-evidence/HANDOFF-V2.md",
+      "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+      "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "src/commands/xan/design-evidence/RECEIPT.md",
+      "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+      "src/commands/xan/design-evidence/SELECTOR-BINDING-V4.json",
+      "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "src/commands/xan/design-evidence/SOURCE-MAP.md",
+      "src/commands/xan/index.ts",
+      "src/commands/xan/io.ts",
+      "src/commands/xan/options.ts",
+      "src/commands/xan/selector.ts",
+      "src/commands/xan/sort.ts",
+      "src/commands/xan/writer.ts",
+      "src/commands/yq/DESIGN.md",
+      "src/commands/yq/README.md",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/errors.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts"
+    ]
+  },
+  "exactRows": [
+    {
+      "path": "scripts/typecheck-consumers.mjs",
+      "mode": "100644",
+      "indexBlob": "5fb30bcf8d6b3994b30486fc0c23eeee2409f65a",
+      "workingBlob": "5fb30bcf8d6b3994b30486fc0c23eeee2409f65a",
+      "size": 9794,
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/typecheck-inputs.mjs",
+      "mode": "100644",
+      "indexBlob": "c835687a4b8c9180d24fff10f2bf4035a8588886",
+      "workingBlob": "c835687a4b8c9180d24fff10f2bf4035a8588886",
+      "size": 4467,
+      "sha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/typecheck-staged-inputs.mjs",
+      "mode": "100644",
+      "indexBlob": "90a448f49b943e051758b37e380fc5bfa900c082",
+      "workingBlob": "90a448f49b943e051758b37e380fc5bfa900c082",
+      "size": 2691,
+      "sha256": "99365eb838c17fe07960183f256b5ae4b1fc83dbc80e251809a243d9cb19109a",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/typecheck.mjs",
+      "mode": "100644",
+      "indexBlob": "9d383e1effb3ebff36ebcae3e3a1a8cdfbaf4621",
+      "workingBlob": "9d383e1effb3ebff36ebcae3e3a1a8cdfbaf4621",
+      "size": 4382,
+      "sha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/verify-current-consumers.mjs",
+      "mode": "100644",
+      "indexBlob": "326c6664c7d4a88f4cc61a5496aa1f01c3a52594",
+      "workingBlob": "326c6664c7d4a88f4cc61a5496aa1f01c3a52594",
+      "size": 13365,
+      "sha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/verify-qualified-release.mjs",
+      "mode": "100644",
+      "indexBlob": "36655cefe74fb6fa29468010cc113801dbf0d7bc",
+      "workingBlob": "36655cefe74fb6fa29468010cc113801dbf0d7bc",
+      "size": 9955,
+      "sha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "scripts/verify-whole-gate.mjs",
+      "mode": "100644",
+      "indexBlob": "e7f47bd8c1f87d5fd7bc9c3bcc2ff3c08a01a6ee",
+      "workingBlob": "e7f47bd8c1f87d5fd7bc9c3bcc2ff3c08a01a6ee",
+      "size": 818,
+      "sha256": "594b60540cf7aa1c5e1551259c6aaa7fe94c20045902b7587991d2433344e0b4",
+      "differsFromIndex": false,
+      "classification": "development workflow script"
+    },
+    {
+      "path": "src/commands/structured/query-core.ts",
+      "mode": "100644",
+      "indexBlob": "fc0e889802b40ad49225ce944521aae9942cce09",
+      "workingBlob": "fc0e889802b40ad49225ce944521aae9942cce09",
+      "size": 22399,
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "mode": "100644",
+      "indexBlob": "5c888078c45d57942137447380b51fbae48d79a0",
+      "workingBlob": "5c888078c45d57942137447380b51fbae48d79a0",
+      "size": 39293,
+      "sha256": "c6228d77f8610cb0690d3e6420813833474dcfadb57ae27e0077039b0cfd38d3",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/README.md",
+      "mode": "100644",
+      "indexBlob": "a8774ea64111f377aed5147d02989037c8a04e5c",
+      "workingBlob": "a8774ea64111f377aed5147d02989037c8a04e5c",
+      "size": 5549,
+      "sha256": "fb5ca195a9c91acfaba1c82c9376565e54f47147d2179e980717bdef87feca1e",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/argv.ts",
+      "mode": "100644",
+      "indexBlob": "d5076ba89e7a515173bbe69a33c0c72de20fc8c7",
+      "workingBlob": "d5076ba89e7a515173bbe69a33c0c72de20fc8c7",
+      "size": 9587,
+      "sha256": "11d030855f5a694bf59e6c602c5e352c155271863a2084f9e81b5020e3ae75fe",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/budget.ts",
+      "mode": "100644",
+      "indexBlob": "b6d5b6233182f558358648e158dcfccbcc9158cb",
+      "workingBlob": "b6d5b6233182f558358648e158dcfccbcc9158cb",
+      "size": 4361,
+      "sha256": "cd2e2269cdbbd23acc38d7ecfcb0573f84d12d3a91158f231051be28977cefcc",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/commands.ts",
+      "mode": "100644",
+      "indexBlob": "9d1bb493d04b2490233d7a74bcaf50f29ce32610",
+      "workingBlob": "9d1bb493d04b2490233d7a74bcaf50f29ce32610",
+      "size": 12915,
+      "sha256": "2fce3aa23a4bcf3265bf0e124bb42c29ed0ab7bfe7fb243929e168090002d702",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/csv.ts",
+      "mode": "100644",
+      "indexBlob": "11b7d8ba194fb888795279a5f2d883ad124a1366",
+      "workingBlob": "11b7d8ba194fb888795279a5f2d883ad124a1366",
+      "size": 6361,
+      "sha256": "2dda24db47c5e31950f3a1f03fe6f4026c7c94711c921782ea8071eac488d43d",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "mode": "100644",
+      "indexBlob": "73655f192ad63b9891145596694c2767a62b6568",
+      "workingBlob": "73655f192ad63b9891145596694c2767a62b6568",
+      "size": 6135,
+      "sha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "mode": "100644",
+      "indexBlob": "8eb7ff4812b7bcda3fd42b0f9fea6a560698e02e",
+      "workingBlob": "8eb7ff4812b7bcda3fd42b0f9fea6a560698e02e",
+      "size": 7674,
+      "sha256": "5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+      "mode": "100644",
+      "indexBlob": "2b2847c403a84f31a02e0e8879d726544ed04039",
+      "workingBlob": "2b2847c403a84f31a02e0e8879d726544ed04039",
+      "size": 11823,
+      "sha256": "058aa5c6495225f5202b7bd06e2715b39729000e50254279af39c2aad3f02d4e",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V2.md",
+      "mode": "100644",
+      "indexBlob": "48f51d27e1a0d49a93f50e92fcd822b9b5dec347",
+      "workingBlob": "48f51d27e1a0d49a93f50e92fcd822b9b5dec347",
+      "size": 5112,
+      "sha256": "36457c0a546af45c3fb05a6ee64283d54f7b16ad8002481ca21bde79e218fa75",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "mode": "100644",
+      "indexBlob": "82308e800bbd9593511325adac24ba473a9b9862",
+      "workingBlob": "82308e800bbd9593511325adac24ba473a9b9862",
+      "size": 4459,
+      "sha256": "30bc8d219a35ce7d4cc9fd6c71ffd206d920cb457057d3a8dc60dabf5f8a3238",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+      "mode": "100644",
+      "indexBlob": "fe66050f532c0b299ea27c1b394f510628a21480",
+      "workingBlob": "fe66050f532c0b299ea27c1b394f510628a21480",
+      "size": 2586,
+      "sha256": "23c95d7ce93839e9314302304c1782d1bf533d97e733bf97bba5272f2ada7633",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "mode": "100644",
+      "indexBlob": "e1d2c1214ef8f0b93724f97986db2ea14b03915d",
+      "workingBlob": "e1d2c1214ef8f0b93724f97986db2ea14b03915d",
+      "size": 16001,
+      "sha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "mode": "100644",
+      "indexBlob": "6b845ecb307bd8d397cee809ff92fc1c9d3d45bf",
+      "workingBlob": "6b845ecb307bd8d397cee809ff92fc1c9d3d45bf",
+      "size": 5952,
+      "sha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/RECEIPT.md",
+      "mode": "100644",
+      "indexBlob": "a9ce24e46503e8f672fc75ed75db0762198ae10a",
+      "workingBlob": "a9ce24e46503e8f672fc75ed75db0762198ae10a",
+      "size": 6531,
+      "sha256": "99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+      "mode": "100644",
+      "indexBlob": "e49e627c63935359d6d6d8ee18375a5ced83b1c5",
+      "workingBlob": "e49e627c63935359d6d6d8ee18375a5ced83b1c5",
+      "size": 3712,
+      "sha256": "e18eeb25d599c139cd325dc1e6961a47b0753b86225360db50033054cecf8bb0",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SELECTOR-BINDING-V4.json",
+      "mode": "100644",
+      "indexBlob": "be5b94a279d6a1e1ede86e2fb0cf96f0cadb98ad",
+      "workingBlob": "be5b94a279d6a1e1ede86e2fb0cf96f0cadb98ad",
+      "size": 10071,
+      "sha256": "de844c64cb6ddf4beb73dab5d9330fcade4f93fc247490fdbd109a683fb3631a",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "mode": "100644",
+      "indexBlob": "c86f1fdfcd4e23beb8370dc1125c526cfbe447f0",
+      "workingBlob": "c86f1fdfcd4e23beb8370dc1125c526cfbe447f0",
+      "size": 13305,
+      "sha256": "1e0d605985ddc6c2877d9ed38f76769a85b07e82d1c844406c39b2aa45a11493",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/SOURCE-MAP.md",
+      "mode": "100644",
+      "indexBlob": "b0b17396596a22744b67a602539059c36fdbf7b0",
+      "workingBlob": "b0b17396596a22744b67a602539059c36fdbf7b0",
+      "size": 5613,
+      "sha256": "7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/index.ts",
+      "mode": "100644",
+      "indexBlob": "e9d5a3eeb15860413fa19696841088fbbdc93f87",
+      "workingBlob": "e9d5a3eeb15860413fa19696841088fbbdc93f87",
+      "size": 5498,
+      "sha256": "fb664e5a432222c0d79765507da65712a3412a719390a01741b1aa730d4260e9",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/io.ts",
+      "mode": "100644",
+      "indexBlob": "6709ea821e1fb5919f9130871f90062163575d9e",
+      "workingBlob": "6709ea821e1fb5919f9130871f90062163575d9e",
+      "size": 9935,
+      "sha256": "162afedc011dd2949203be57f4fe2f656ef7b8a657e0b1cdef90a72805222590",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/options.ts",
+      "mode": "100644",
+      "indexBlob": "25555618b17a210c3f66e609940df5bb5d023063",
+      "workingBlob": "25555618b17a210c3f66e609940df5bb5d023063",
+      "size": 2454,
+      "sha256": "b8048c66111f47c6b56c1cf420eee20512c0ef17d5055b70fca2785976f1f074",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/selector.ts",
+      "mode": "100644",
+      "indexBlob": "57f61dbe8fd77a1dc9da89f9097ccc53e205292d",
+      "workingBlob": "57f61dbe8fd77a1dc9da89f9097ccc53e205292d",
+      "size": 9063,
+      "sha256": "27d93b7f759b512b1710eaa9f532aeccf5a43fbd62e32d6010d6009d3e0c56af",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/sort.ts",
+      "mode": "100644",
+      "indexBlob": "9177e370e7eb7919290192e82c0beea834b723bc",
+      "workingBlob": "9177e370e7eb7919290192e82c0beea834b723bc",
+      "size": 1377,
+      "sha256": "443a57afffc1fdd00652a6d388de5dc3d4b44d88125641293771b610eedca274",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/xan/writer.ts",
+      "mode": "100644",
+      "indexBlob": "9308fa2ebef473213f158f4be130c1bda2ee9260",
+      "workingBlob": "9308fa2ebef473213f158f4be130c1bda2ee9260",
+      "size": 3918,
+      "sha256": "610a3dd7fbc97fda2d429221774b56da92d7937db75567e4327b7a93d5303c03",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/DESIGN.md",
+      "mode": "100644",
+      "indexBlob": "412950cddd31e11f0bf5ee30a8b0c1492f360929",
+      "workingBlob": "412950cddd31e11f0bf5ee30a8b0c1492f360929",
+      "size": 16363,
+      "sha256": "2b0dab044c165a85e2b2ec23d542be3abe65a72f8cb667cb0eac6b7f704c3e4c",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/README.md",
+      "mode": "100644",
+      "indexBlob": "461ee1f844aae1069914257aa0f6546ddaa65978",
+      "workingBlob": "461ee1f844aae1069914257aa0f6546ddaa65978",
+      "size": 1153,
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/accounting.ts",
+      "mode": "100644",
+      "indexBlob": "e12c88906f219d82750071e2a01e5baa3f0b982e",
+      "workingBlob": "e12c88906f219d82750071e2a01e5baa3f0b982e",
+      "size": 9767,
+      "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/encoder.ts",
+      "mode": "100644",
+      "indexBlob": "20be87d55d7a93004ba0f68665d6320746eb1928",
+      "workingBlob": "20be87d55d7a93004ba0f68665d6320746eb1928",
+      "size": 8394,
+      "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/errors.ts",
+      "mode": "100644",
+      "indexBlob": "a1cd0156f38cc4fa53282e34c8a86d4b161de738",
+      "workingBlob": "a1cd0156f38cc4fa53282e34c8a86d4b161de738",
+      "size": 2728,
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/index.ts",
+      "mode": "100644",
+      "indexBlob": "eb93b148ba25b95dc2e467f03e44c6c3e7159011",
+      "workingBlob": "eb93b148ba25b95dc2e467f03e44c6c3e7159011",
+      "size": 24198,
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    },
+    {
+      "path": "src/commands/yq/parser.ts",
+      "mode": "100644",
+      "indexBlob": "24593a910b88199d4f68fd12ed18c61b1b7d2e6d",
+      "workingBlob": "24593a910b88199d4f68fd12ed18c61b1b7d2e6d",
+      "size": 45581,
+      "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+      "differsFromIndex": false,
+      "classification": "unselected product source (not compiled in this projection)"
+    }
+  ],
+  "filesDeleted": 0,
+  "normalWorkingTreeModified": false,
+  "defaultNpmRunBuildExecuted": false,
+  "actualProcedure": {
+    "compiler": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/private/tmp/safe-bash-final-composition-20260829/source/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types"
+      ],
+      "maximumInvocations": 1,
+      "requiredExit": 0
+    },
+    "pack": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+        "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+        "--pack-destination=/private/tmp/safe-bash-final-composition-20260829/package"
+      ],
+      "maximumInvocations": 1,
+      "requiresCompilerExitZero": true
+    }
+  },
+  "reason": "Only exact accepted 323-source projection was built using explicit isolated Node typeRoots. Excluded tracked inputs remain in normal checkout; this does not certify default build, all-fixture typecheck, installation, command behavior, filesystem adapters, or smoke.",
+  "packageScripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "node scripts/typecheck.mjs",
+    "typecheck:all": "node scripts/typecheck.mjs --build",
+    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+    "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+    "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+  }
+}

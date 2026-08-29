@@ -2,9 +2,11 @@
 
 Recorded checkpoints contain the initial random state, portable host results,
 callback arguments, and an execution-order trace. Restoring a checkpoint rebuilds
-script state from the source and replays that history. Completed host operations
-are not invoked again. A still-pending operation follows its declared recovery
-policy: re-issue or external reconciliation.
+script state from the source and replays that history. Completed host-operation
+outcomes are reused instead of invoking those operations again. This does not
+exclude reconstruction of recorded source callbacks or a configured `onReplay`
+hook. A still-pending operation follows its declared recovery policy: re-issue
+or external reconciliation.
 
 ## External checkpoints during host waits
 
@@ -24,6 +26,48 @@ It does not serialize live native execution or promise objects: pending host
 operations still require re-issue or genuine external reconciliation. The
 signal dump handler selects replay mode for operator-requested checkpoints.
 Completed and failed-run dumping retain their existing `onFailure` behavior.
+
+## Raw views and serialized checkpoints
+
+A raw snapshot passed to `SnapshotBackend.write(snapshot)` is not a deeply
+frozen point-in-time value. Its shallow bindings can retain references to nested
+objects that subsequent execution or cancellation cleanup mutates; copied
+primitive bindings need not change with them. It is therefore not a uniformly
+live view of the lexical environment either. Serializing a retained raw object
+later can produce different diagnostic binding or heap fields.
+
+Already serialized checkpoint bytes are a separate artifact: later source
+mutations cannot change those bytes. The file backend serializes when its queued
+write operation runs, before the filesystem write/retry loop. A later write can
+replace a checkpoint file; retaining a raw object is not equivalent to retaining
+the earlier file contents. Use the public dump/restore path for portable replay,
+not a JSON clone of a live diagnostic view.
+
+This distinction does not relax persisted-checkpoint correctness. Replay and
+initial-input graphs, aliases, callback history, and fresh-process restoration
+still need to describe the captured execution. The six checkpoint-view validation
+profiles compare full serialized graphs and fresh restores, not just raw binding
+observations; they are not a guarantee for every collection operation or old
+snapshot.
+
+### Canonical replay and outer projections
+
+For current checkpoints containing canonical typed `replay`, that history supplies
+restored outcomes and source-capability identities; the outer `bindings`/`heap`
+and legacy `hostCalls` outcome projections are not lossless mirrors of that graph.
+Legacy call identity/lifecycle and within-envelope references are still validated.
+In the tested completed Map restores, function-marker aliases split across roots
+and legacy marker names disappeared, while canonical typed identities and guest
+results remained intact. These are real representation changes, not merely heap-ID
+renumbering. They do not establish universal byte-identical dumps, whole-graph
+stability after load/run/dump, or compatibility of legacy-only snapshots.
+
+Migration reconciliation is bound to the exact checkpoint artifact, including its
+outer fields (see [MIGRATION.md](MIGRATION.md)). A receipt for an earlier artifact
+cannot transfer to a regenerated dump whose recorded fields differ, even if its
+canonical replay graph is unchanged. Preserve the original artifact; inspect and
+reconcile the artifact actually being migrated. Do not normalize references, edit
+projection fields, or mutate the original to make artifacts or digests match.
 
 ## Execution and cancellation
 
@@ -63,6 +107,16 @@ limits are separate from reconstruction of source functions, which is supported.
 The language-completeness plan in `docs/plans/safejs-language-completeness.md`
 tracks outstanding release gates. This document describes the implemented
 callback-recovery interface, not a claim that every checkpoint case is complete.
+
+## Synchronous source generators
+
+Replay can reconstruct a synchronous source generator by executing its source
+and recorded history; it does not serialize an opaque native generator frame.
+The background-dump generator-loop regression restores the source loop yielding
+`1, 2, 3, 4` and returns the same `[1, 2, 3, 4]` result. This bounded example is
+not a promise that arbitrary host iterators, async generators, or live native
+frames can be checkpointed. Checkpoint timing and host recovery must still obey
+the rules above.
 
 ## Original inputs and capabilities
 
@@ -164,14 +218,83 @@ result alone does not establish whether its callbacks must finish first.
 - `waitForCallbacks()`: wait for this invocation's active callbacks, including
   callbacks started while waiting. A `"joined"` proof performs this wait before
   the result is delivered.
+- `toSandboxValue(value)`: convert a supported result graph for a proof in this
+  active invocation's context. This includes genuine source-function adapters
+  reconstructed through its callback history, with their supported aliases,
+  cycles, and captures. It is not a general native-function import facility.
 
-Callback adapters retain the source's lexical bindings. They do not grant access
-to host globals. Replay data, callback arguments, and scheduling history count
+For a function-bearing callback result, await the appropriate `replayed` result
+and convert that graph with the same context's `toSandboxValue`. Returning a
+source function is not another callback invocation. Do not call the returned
+function merely to replace it with data, or invoke the original callback again
+to reconstruct a result already recorded. Conversion alone does not start a new
+callback or invoke the reconstructed function. Request IDs, callback IDs,
+invocation order, and the proof's required `callbackDisposition` still describe
+the actual operation; conversion does not supply or replace that evidence.
+
+The converter rejects ordinary native functions, function-shaped substitutes,
+and functions from a different invocation context. It is valid only while its
+own context is active. The generic `deepCopyToSandbox` converter continues to
+reject native functions. These are context-scoped source-function guarantees,
+not arbitrary closure serialization or a blanket promise about accessor
+evaluation during all host conversions.
+
+Source callback adapters retain lexical bindings. Host-observed wrapper `length`
+also follows the guest signature in the tested direct-argument and array-property
+paths, including default, rest, and bound signatures. This corrects the earlier
+zero-length wrapper result; it does not imply universal function reflection,
+descriptor, prototype, or function-property-write compatibility.
+
+Replay data, callback arguments, and scheduling history count
 against the aggregate data budget. Malformed callback journals or conflicting
 execution traces are rejected before external reconciliation.
 Retained source closures and their mutable captures remain budget roots even
 after ordinary source bindings stop referencing them. Initial input history and
 callback execution traces also consume the aggregate data budget.
+
+## Collection identity and older captures
+
+Current completed-outcome replay preserves the tested shared source function
+across a Map key, its associated value, neighboring objects, and Set entries,
+including cyclic captures. An older capture that already split these identities
+does not contain enough information to recover the lost alias. Replaying such
+a capture does not retrospectively repair it. Preserve the original evidence
+and reconcile application state before an authorized reset or migration; do not
+change a version marker to present it as a repaired capture. These graph-copy
+checks do not establish parity for every Map operation.
+
+## Argument digests and source `toJSON`
+
+Host argument digests use an own-data representation rather than implicitly
+calling a source `toJSON` hook in the tested plain-record, nested-record, and
+named-array cases. The actual host argument graph is not replaced with that
+digest representation. An explicit callback invocation by a host remains a real
+invocation and must be recorded as such. This is a digest-construction guarantee,
+not a claim that every conversion is free of accessor evaluation or user code.
+
+Callable omission and the numeric-element array digest policy remain unchanged:
+the digest is not a complete fingerprint of aliases or named array metadata.
+Tested old plain/nested-object captures whose digest depended on `toJSON` refuse
+with `does not match the next restored invocation; reset is required` before any
+host operation or external proof provider runs. The tested old named-array
+control still replays. Neither observation establishes a rule for every old
+capture. A reset-required refusal is not authorization to repeat external
+effects: reconcile their outcome before deciding whether to restart.
+
+## Public results and thrown values
+
+Callers must handle both fulfilled `run()` results and promise rejection. A
+fulfilled result can have `ok: true` with a `returnValue`, or `ok: false` with an
+interpreter diagnostic. Other failures reject the execution promise. Checking
+only `result.ok`, or only catching a rejection, misses one channel.
+
+These API channels are distinct from guest data. A guest that returns
+`{ ok: false }` can still produce an API result with `ok: true`; inspect
+`returnValue` according to the application's protocol. Inside source code,
+catching and rethrowing ordinary records, including error-shaped records,
+preserves their source identity, aliases, metadata, and visible mutations.
+Host-boundary copying and public error normalization are separate operations;
+a normalized public diagnostic is not a promise of identity with a guest object.
 
 ## Execution compatibility
 
@@ -180,12 +303,21 @@ they retain their existing identity and can be rebound from snapshots without
 recreating connections. Published poe-code 8.0.1 (`jobs-v4`) returns false for
 `(await get()) === method` when `get` returns the registered `method`; the current
 runtime returns true. Managed MCP clients use those stable capabilities and
-run-scoped cleanup. Older snapshots are rejected before effects, not migrated.
+run-scoped cleanup. Unsupported replay markers are rejected before effects, not
+silently migrated.
 
-New run snapshots carry `executionSemantics: "jobs-v6"`. Assignment references read
-their captured value before the RHS, and conversion/write failures preserve source
-evaluation order. Earlier markers must use explicit migration rather than replaying
-host effects against the corrected reference semantics. Promise jobs run after
+New run snapshots in poe-code 11.0.32 carry `executionSemantics: "jobs-v7"`.
+The restore path also accepts genuine `jobs-v6` snapshots and keeps their v6
+execution semantics, including on subsequent dumps; accepting that marker is
+not an upgrade to v7. Packaged working v6 histories have compatibility coverage,
+while historical failing raw v6 histories remain separate evidence. Acceptance
+does not guarantee that every v6 history can complete. Do not rewrite markers
+to bypass this distinction.
+
+Assignment references read their captured value before the RHS, and
+conversion/write failures preserve source evaluation order. Unsupported earlier
+markers require explicit migration rather than replaying host effects against
+the corrected reference semantics. Promise jobs run after
 the surrounding synchronous source execution yields. Async functions execute
 their synchronous prefix before returning a promise, and synchronous builtin
 callbacks do not implicitly await returned promises. Thenables preserve their
@@ -217,7 +349,7 @@ and replay journals preserve this identity and reject invalid metadata.
 These corrections change execution ordering, not the parsed source hash. An
 upgrade probe against poe-code 4.0.71 reproduced both changed results and stalled
 replay with an unchanged source hash. `restore` and `run` therefore reject replay
-snapshots lacking the current execution marker with `SnapshotValidationError`,
+snapshots lacking a supported execution marker with `SnapshotValidationError`,
 code `unsupportedVersion`, at `$.executionSemantics`, before host operations.
 Unknown markers are also rejected. Legacy snapshots without replay history keep
 their existing legacy restoration path; this does not upgrade their guarantees.

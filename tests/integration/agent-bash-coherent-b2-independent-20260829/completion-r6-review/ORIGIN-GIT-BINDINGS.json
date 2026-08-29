@@ -1,0 +1,50 @@
+{
+  "utc": "2026-08-29T14:47:30.288Z",
+  "origins": [
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+      "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+      "gitMode": "100644",
+      "matched": true
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+      "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+      "gitMode": "100644",
+      "matched": true
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+      "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+      "gitMode": "100644",
+      "matched": true
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+      "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+      "gitMode": "100644",
+      "matched": true
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+      "gitMode": "100644",
+      "matched": true
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+      "gitMode": "100644",
+      "matched": true
+    }
+  ],
+  "sourceGitBindings": 6,
+  "allKnownGitChildrenReturned": true,
+  "initialOptionalFilterStop": "Preserved after four rows; two exact remaining paths completed without repeating those four"
+}

@@ -1,0 +1,18 @@
+{
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json",
+    "bytes": 528093,
+    "sha256": "eebea839e8a061259a257245540485f8e7df5b64aebc2f77d0803de0f4141aca",
+    "commit": "22260dd7"
+  },
+  "producerSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/SEAL.json",
+    "bytes": 7074,
+    "sha256": "f78151de4b59220dc906ee29600f19fb5ed90ee99d88985093d422ea8d54e934"
+  },
+  "packageManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PACKAGE-MANIFEST.json",
+    "bytes": 205721,
+    "sha256": "09f5f0a974cb5c33a91dc947d7b94bfb2473706e479014b4ef750a1182678fbb"
+  }
+}

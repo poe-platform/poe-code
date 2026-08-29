@@ -44,6 +44,7 @@ export class EreWorkerOwner {
       try {
         const worker = new Worker(new URL("./worker-entry.js", import.meta.url), {
           workerData: { operation, version: 1 }, env: {}, execArgv: [],
+          stdout: true, stderr: true,
           resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
         });
         this.#worker = worker;
@@ -54,6 +55,10 @@ export class EreWorkerOwner {
         this.#exitListenerInstalled = true;
         worker.on("error", (reason: unknown) => this.#fail(reason));
         worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+        worker.stdout.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker stdout")));
+        worker.stderr.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker stderr")));
+        worker.stdout.on("error", (reason: unknown) => this.#fail(reason));
+        worker.stderr.on("error", (reason: unknown) => this.#fail(reason));
         worker.on("message", (message: unknown) => {
           try {
             if (!this.#readySeen) {

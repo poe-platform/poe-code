@@ -1,0 +1,70 @@
+{
+  "schema": "COMPATIBILITY_DOCS_CLOSEOUT_VALIDATION",
+  "checkedAt": "2026-08-29T18:10:30.136Z",
+  "file": "docs/COMMAND_PRIORITIES.md",
+  "bytes": 40000,
+  "sha256": "54ecc5d1dda05e2cd5006d4d15a6c5803bf19a91e0c8e42fbdf8f2f538326032",
+  "qualificationChecks": 23,
+  "reportLinksChecked": 17,
+  "priorDocCommit": "479a64a6830ecb273e5c1a4632a6909b6c616ebe",
+  "rootStatusOnly": true,
+  "newRuntimeResults": 0,
+  "productExecutions": 0,
+  "compilerExecutions": 0,
+  "workers": 0,
+  "npmExecutions": 0,
+  "scopedPaths": [
+    "src/shell/runtime.ts",
+    "tsconfig.build.json",
+    "package.json",
+    "src/index.ts",
+    "AGENTS.md",
+    "docs/COMMAND_PRIORITIES.md",
+    "README.md"
+  ],
+  "beforeStatus": [],
+  "afterStatus": [
+    " M docs/COMMAND_PRIORITIES.md"
+  ],
+  "ownedChanges": [
+    "docs/COMMAND_PRIORITIES.md",
+    "this validation receipt"
+  ],
+  "sourceConfigReadmeAgentsEdited": false,
+  "heldXanContentReads": false,
+  "facts": {
+    "producer": "QUALIFIED_COMPLETE_DATA_ACCEPT_fc4afd51_708f5ec0",
+    "b2": "AUTHOR672_PASS_INDEPENDENT_FULL_AUDIT_HOLD_ad6b94e8",
+    "core": "FIRST_R01_OPAQUE_NONPASS_23_UNRUN_PUBLIC_ENTRY_UNKNOWN_LATER_PREP_ZERO_CALLS",
+    "finalSmoke": "ALL24_UNRUN_PRE_INSTALL_DESCRIPTOR_REFUSAL",
+    "sourceBuiltEightRows": "PENDING_NO_RESULT_RECEIVED_BEFORE_THIS_FREEZE"
+  },
+  "remainingMinimalDocDelta": "When ROOT forwards the actual eight-row source-built report, update only its PENDING row with exact outcomes and retained source-built/no bare-package/three-layout qualifications; do not infer wider acceptance.",
+  "rawCaptureRoot": "/private/tmp/safe-bash-priorities-closeout-20260829",
+  "validationRoles": [
+    {
+      "role": "after-status",
+      "pid": 26330,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "role": "diff-check",
+      "pid": 26332,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ]
+}

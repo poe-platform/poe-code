@@ -1,0 +1,185 @@
+{
+  "bindingProof": [
+    {
+      "layout": "source",
+      "file": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-redirections-v3-binding.json",
+      "sha256": "be34bdbd7addd0be25fa08bbf4d1c08b55ed15d71f1e404529a7b9f31376acb6",
+      "matchedPackageDistMembers": 952
+    },
+    {
+      "layout": "installed",
+      "file": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/installed-redirections-v3-binding.json",
+      "sha256": "73bc044a0470473a750a92384eeb4d8ce071a6fb7becee67a0eb3029a27ec722",
+      "matchedPackageDistMembers": 952
+    },
+    {
+      "layout": "moved",
+      "file": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/moved-redirections-v3-binding.json",
+      "sha256": "690479451d657dfeab388459b5959795e8ccdf11f5823c06c7051f6e0f95c651",
+      "matchedPackageDistMembers": 952
+    }
+  ],
+  "packageJson": {
+    "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+    "scripts": {
+      "benchmark": "node --import tsx benchmarks/run.ts",
+      "build": "tsc -p tsconfig.build.json",
+      "typecheck": "node scripts/typecheck.mjs",
+      "typecheck:all": "node scripts/typecheck.mjs --build",
+      "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+      "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+      "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+      "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+      "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+      "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+    }
+  },
+  "packProducer": {
+    "pacoteFile": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/dir.js",
+    "sha256": "8089bcad46b8272055ba90dd471c4e0c0112c5e2a6f50c5b3b4e90d86ece44af",
+    "selected": [
+      {
+        "line": 3,
+        "text": "const runScript = require('@npmcli/run-script')"
+      },
+      {
+        "line": 30,
+        "text": "  #prepareDir () {"
+      },
+      {
+        "line": 32,
+        "text": "      if (!mani.scripts || !mani.scripts.prepare) {"
+      },
+      {
+        "line": 36,
+        "text": "      // we *only* run prepare."
+      },
+      {
+        "line": 41,
+        "text": "      return runScript({"
+      },
+      {
+        "line": 42,
+        "text": "        // this || undefined is because runScript will be unhappy with the default null value"
+      },
+      {
+        "line": 45,
+        "text": "        event: 'prepare',"
+      },
+      {
+        "line": 68,
+        "text": "    // run the prepare script, get the list of files, and tar it up"
+      },
+      {
+        "line": 70,
+        "text": "    this.#prepareDir()"
+      }
+    ]
+  },
+  "calculatedTarBytes": 5545984,
+  "calculationQualification": "954 regular headers and padded bodies plus two zero blocks; footer agrees, no fresh inflate; runner did not separately log decoded length.",
+  "sourceToolRows": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "actualOrder": [
+    {
+      "label": "development-blobs",
+      "pid": 82659,
+      "code": 0
+    },
+    {
+      "label": "production-build-once",
+      "pid": 82941,
+      "code": 0
+    },
+    {
+      "label": "offline-pack",
+      "pid": 83488,
+      "code": 0
+    },
+    {
+      "label": "source-redirections-v3",
+      "pid": 83637,
+      "code": 0
+    },
+    {
+      "label": "source-strict",
+      "pid": 83652,
+      "code": 0
+    },
+    {
+      "label": "source-conditional",
+      "pid": 83671,
+      "code": 0
+    },
+    {
+      "label": "source-extension",
+      "pid": 83682,
+      "code": 0
+    },
+    {
+      "label": "source-arrays",
+      "pid": 83706,
+      "code": 0
+    },
+    {
+      "label": "source-novel",
+      "pid": 83733,
+      "code": 0
+    },
+    {
+      "label": "source-n14",
+      "pid": 83746,
+      "code": 0
+    },
+    {
+      "label": "source-identity",
+      "pid": 83765,
+      "code": 0
+    },
+    {
+      "label": "types-source-false",
+      "pid": 83771,
+      "code": 0
+    },
+    {
+      "label": "types-source-true",
+      "pid": 83785,
+      "code": 2
+    },
+    {
+      "label": "offline-install",
+      "pid": 83824,
+      "code": 0
+    },
+    {
+      "label": "installed-redirections-v3",
+      "pid": 83909,
+      "code": 0
+    }
+  ]
+}

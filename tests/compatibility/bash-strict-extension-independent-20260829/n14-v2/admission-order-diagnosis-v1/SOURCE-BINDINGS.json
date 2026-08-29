@@ -1,0 +1,47 @@
+{
+  "ancestorEvidence": "be7d4b9827ba4350f1fcbb34ef85a43705d1487f",
+  "manifest2Sha256": "026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39",
+  "manifestSha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb",
+  "bindings": [
+    {
+      "path": "run-v2.mjs",
+      "bytes": 30558,
+      "sha256": "27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac"
+    },
+    {
+      "path": "EXECUTOR-v2.json",
+      "bytes": 26762,
+      "sha256": "a1d5f0c668a8ba52e071dc52d5c933d40e97c858ffe0b94b9feeb56dfa9ee8ac"
+    },
+    {
+      "path": "PRESEAL-v2.json",
+      "bytes": 3727,
+      "sha256": "8aca94c5b062af67db745f1b2875935a946851f377310c9ccaf4f0689fb9d314"
+    },
+    {
+      "path": "actual-v2/evidence/RESULT.json",
+      "bytes": 1651971,
+      "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+    },
+    {
+      "path": "actual-v2/evidence/offline-pack.stdout",
+      "bytes": 107251,
+      "sha256": "026704bb3821d76c039cc7d74fc3d7525bde5824a4d7020e7c5fb85b1f8410ca"
+    },
+    {
+      "path": "actual-v2/TERMINAL.json",
+      "bytes": 208,
+      "sha256": "bc0558edbff87e273d4a0270931b38c8e368b1cc88980bf2ab488ffe90058375"
+    }
+  ],
+  "operationsThisDiagnosis": {
+    "product": 0,
+    "compiler": 0,
+    "build": 0,
+    "worker": 0,
+    "inflate": 0,
+    "install": 0,
+    "nativeOracle": 0
+  },
+  "publication": "/private/tmp/n14-admission-diagnosis-publication-LvgCRY"
+}

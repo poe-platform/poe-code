@@ -1,0 +1,1176 @@
+{
+  "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+  "authorEvidence": "af66b7748af06319751b6cf87acacbe43acc48fd",
+  "moduleInputs": [
+    {
+      "path": "src/commands/node/README.md",
+      "mode": "100644",
+      "bytes": 4832,
+      "sha256": "9db0ad82fedbb1c03319027dce9053e139a993080b91be34bc1f78b6a60f38f3",
+      "blob": "f0699874752420545c973d5075a638b8a82d6392"
+    },
+    {
+      "path": "src/commands/node/admission.ts",
+      "mode": "100644",
+      "bytes": 15660,
+      "sha256": "946dc675c8423a809cc7b27f9e1364a83f4c9a6b15687a165e66b9eabc238a31",
+      "blob": "4bf32489d6367538af1c2427d4b8da24f500991f"
+    },
+    {
+      "path": "src/commands/node/channel.ts",
+      "mode": "100644",
+      "bytes": 3877,
+      "sha256": "2e9badd57919fc8ac78f2e2bea11768d2ce2c473ac20571f2ef7876aaa69e3b4",
+      "blob": "48bf256cf0f6da57f2c31ccaeb80d59c7a2e8cc4"
+    },
+    {
+      "path": "src/commands/node/cli.ts",
+      "mode": "100644",
+      "bytes": 2797,
+      "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d",
+      "blob": "5f13fd04b6dcbcf658c370c34b440fd864ed6001"
+    },
+    {
+      "path": "src/commands/node/diagnostics.ts",
+      "mode": "100644",
+      "bytes": 2034,
+      "sha256": "db2a5229f32a10cdea69c39ca00669d03f20c17648797739ed896224d3f65a15",
+      "blob": "455f946434ca7adb39e5bebac630854e138eb6a0"
+    },
+    {
+      "path": "src/commands/node/host.ts",
+      "mode": "100644",
+      "bytes": 17891,
+      "sha256": "13b00c8cd62b13479176932a30dbbd5176b58bea1baf76e87c2e6eed5e159db6",
+      "blob": "0de6f7fe1de0d6953a1de13d5c155cd1fdfc1589"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "mode": "100644",
+      "bytes": 8225,
+      "sha256": "954c9ed43187eb40cd72dd7cd56e196b945c6ccac6f125f8feddfb949aad4b2a",
+      "blob": "634a655de6c13c35fd41286e683f40109b92f561"
+    },
+    {
+      "path": "src/commands/node/lifecycle.ts",
+      "mode": "100644",
+      "bytes": 8239,
+      "sha256": "1746183490f8e5a4a7f719ddbaea2e43eaf6d29c7ef67ab3e88607f15492e4f9",
+      "blob": "93d28ad83ad3cd9d73822adb4c0b0e78f9b10851"
+    },
+    {
+      "path": "src/commands/node/lower.ts",
+      "mode": "100644",
+      "bytes": 15050,
+      "sha256": "8b9572ff30e286d18be5f60d18ef4ab0e54a4dbbf3335419508d6f2929ba96f2",
+      "blob": "9790bcda552a84806e1b44c7fe9de87c7eb02a1a"
+    },
+    {
+      "path": "src/commands/node/program.ts",
+      "mode": "100644",
+      "bytes": 13151,
+      "sha256": "dfc91dbda976f7b2b8a7a5857525e15b8b031a9fa72e826b34aeb9baeb2f3831",
+      "blob": "c21ad0637acaaee25e5cb9c019ec4b75b76de353"
+    },
+    {
+      "path": "src/commands/node/rules.ts",
+      "mode": "100644",
+      "bytes": 9961,
+      "sha256": "7aca4750d9e03e4f575b8a2e8937331124b6f0d6441ba01e2d78184596272993",
+      "blob": "682290df6dd4c92c04f8cb6975eefebc4d534277"
+    },
+    {
+      "path": "src/commands/node/types.ts",
+      "mode": "100644",
+      "bytes": 4335,
+      "sha256": "75aac3f18fe5d95d8eec82a4a57f133fd67cac75049cfd903aafe24ea6c99b61",
+      "blob": "62e4f598dded3652421613b3ade030d161315f76"
+    },
+    {
+      "path": "src/commands/node/values.ts",
+      "mode": "100644",
+      "bytes": 5778,
+      "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677",
+      "blob": "70653a8e5622ab16b4bbaf2c73f0dc4dcf7a7761"
+    },
+    {
+      "path": "src/commands/node/worker-main.ts",
+      "mode": "100644",
+      "bytes": 8519,
+      "sha256": "0ffc7f0f83580a6dad12ec2d4b82e3970b382475480b95a14b53afa0f7dfebf1",
+      "blob": "53817b89a8c2003b9317f26e146b9d3893ffa6e4"
+    },
+    {
+      "path": "src/commands/node/worker-provider.ts",
+      "mode": "100644",
+      "bytes": 17151,
+      "sha256": "992758197bc26ee55674d7f5eb049dcc28a455abd83279c434edc1c74a9f72df",
+      "blob": "e22ff37000aa8af4e54384d5c437da37110dc522"
+    },
+    {
+      "path": "src/commands/node/worker-types.ts",
+      "mode": "100644",
+      "bytes": 1210,
+      "sha256": "6c987e85c11b0b6f1b9cb0042edc344e4063fbfb33783a66f48c22675b8a3585",
+      "blob": "e681cb46302a97f1c0ed58ca10a1f6ff408c0e52"
+    }
+  ],
+  "baselineDerived": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "baselineInputs": 278,
+  "engineEmissions": 95,
+  "engineEntries": 96,
+  "engineSHA256": "ccca78945cdea4736603d3cf9eaa2c38a0af2036ed3a0c1ab61e182e21f6c006",
+  "fullPackageSha256": "f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092",
+  "files": [
+    {
+      "path": "BASE-PACKAGE-v1.json",
+      "bytes": 127885,
+      "sha256": "3f97f00039e1e12d9afdd6fe800b6ae437d375c0f4e3c994825ce7818f926c51"
+    },
+    {
+      "path": "BUILTINS-v5.json",
+      "bytes": 63685,
+      "sha256": "e4771ac7c4e80a3bfe274dfecc623cec440a805d6989b43e73f45860a1e52711"
+    },
+    {
+      "path": "CONTROL-v5.json",
+      "bytes": 4835,
+      "sha256": "f7fa600b2cb5e836ddf9efd52226224cac06fd3bbd8d1efc4f8bf5163bfc528f"
+    },
+    {
+      "path": "INPUTS-v1.json.gz.base64",
+      "bytes": 1939657,
+      "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+    },
+    {
+      "path": "MODULE-v5.json",
+      "bytes": 189595,
+      "sha256": "5210a762b00e1ea614d881a4fb3a3aad1e4953601faca294d20fa0e4af4bbb9d"
+    },
+    {
+      "path": "MUTATIONS-v5.json",
+      "bytes": 1719,
+      "sha256": "531c2ca73ddeceed30c2b93278dea24dfe5a344e2c131965d5176a580cf27a4a"
+    },
+    {
+      "path": "WORKER-CASES-v5.json",
+      "bytes": 2616,
+      "sha256": "b0389072f54d6d822a7d0cb4eaa535ae3b347ce89583279c668af6c5279c551e"
+    },
+    {
+      "path": "capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "case-runner-v5.mjs",
+      "bytes": 1312,
+      "sha256": "3a6cd63b6bfa537fd2059daf78f8f52a8d2024367c9166505f4c1a362dfb7bf7"
+    },
+    {
+      "path": "engine-adapter-noise-v1.mjs",
+      "bytes": 282,
+      "sha256": "e9001c5a4dde7202d1223c97de9248dc9ed3714f33aa98af13e989defbe19653"
+    },
+    {
+      "path": "engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+    },
+    {
+      "path": "focused-v5.mjs",
+      "bytes": 16082,
+      "sha256": "646d306d0cd9f59c26e9615ac6672df0f38ef6c705d12979577f1582fcd4372b"
+    },
+    {
+      "path": "host-guard-v1.mjs",
+      "bytes": 643,
+      "sha256": "f5cbc54f084b0a5b2f81a12e32e28ed058e302b5fbd152ef919314e31110ad1e"
+    },
+    {
+      "path": "independent.mjs",
+      "bytes": 10810,
+      "sha256": "a647087f3d91d0a574a1265c5f3d84e760a850456a8b1c450370a818d1a7292d"
+    },
+    {
+      "path": "judge-v5.mjs",
+      "bytes": 9047,
+      "sha256": "76e442cf05a014cde8d86a0f028950e00050db4eaefcf0bf4b25842276cec132"
+    },
+    {
+      "path": "load-guard-v1.mjs",
+      "bytes": 2450,
+      "sha256": "0c5098f8ad78441d0a002f05ff29ca7f6c473381a94db6e96d7ae85dcc92055c"
+    },
+    {
+      "path": "load-negative-v1.mjs.data",
+      "bytes": 650,
+      "sha256": "cf10fa1da5c1437b76108da925cf6df586aeadf678bd963712918978da250a4a"
+    },
+    {
+      "path": "owner-v5.mjs",
+      "bytes": 29346,
+      "sha256": "6148785b3f53f20cfdfd358cba83a0718d181425a9b0289a9049b4be68506a21"
+    },
+    {
+      "path": "raw-controls.mjs",
+      "bytes": 7070,
+      "sha256": "a220a9a77e615d94a884e4590a098015a1b7207527bdd8691d140805ce2939a4"
+    },
+    {
+      "path": "types-v1.mts.data",
+      "bytes": 3022,
+      "sha256": "2bf84e25975a71b916176d90adf66c344c27967f9384ed6d43f497d965e377ee"
+    },
+    {
+      "path": "workers-v5.mjs",
+      "bytes": 13383,
+      "sha256": "c3691d8d2502cb36f9ec698034cd07de88273a28714535d6ba00115248afb971"
+    }
+  ],
+  "recipeDeltas": [
+    {
+      "from": "Object.freeze([\"F01\",\"F02\",\"F03\",\"F04\",\"F05\",\"F06\",\"F10\",\"F16-v2\",\"F17-v2\",\"F28\",\"F33\",\"F34\"])",
+      "to": "Object.freeze([\"F01\",\"F02\",\"F03\",\"F04\",\"F05\",\"F06\",\"F07\",\"F08\",\"F09\",\"F10\",\"F11\",\"F12\",\"F13\",\"F14\",\"F15\",\"F16-v2\",\"F17-v2\",\"F18\",\"F19\",\"F20\",\"F21\",\"F22\",\"F23\",\"F24\",\"F25\",\"F26\",\"F27\",\"F28\",\"F29\",\"F30\",\"F31\",\"F32\",\"F33\",\"F34\"])",
+      "count": 1
+    },
+    {
+      "from": "Object.freeze([\"W01\",\"W03\",\"W04\",\"W05\",\"W06\",\"W08\",\"W09\",\"W15\",\"W16\",\"W23-v2\",\"W24\",\"W26\",\"W27\",\"W28\",\"W29\"])",
+      "to": "Object.freeze([\"W01\",\"W02\",\"W03\",\"W04\",\"W05\",\"W06\",\"W07\",\"W08\",\"W09\",\"W10\",\"W11\",\"W12\",\"W13\",\"W14\",\"W15\",\"W16\",\"W17\",\"W18\",\"W19\",\"W20\",\"W21\",\"W22\",\"W23-v2\",\"W24\",\"W25\",\"W26\",\"W27\",\"W28\",\"W29\"])",
+      "count": 1
+    },
+    {
+      "from": "const focusedIds=[\"F01\",\"F02\",\"F03\",\"F04\",\"F05\",\"F06\",\"F10\",\"F16-v2\",\"F17-v2\",\"F28\",\"F33\",\"F34\"];",
+      "to": "const focusedIds=[\"F01\",\"F02\",\"F03\",\"F04\",\"F05\",\"F06\",\"F07\",\"F08\",\"F09\",\"F10\",\"F11\",\"F12\",\"F13\",\"F14\",\"F15\",\"F16-v2\",\"F17-v2\",\"F18\",\"F19\",\"F20\",\"F21\",\"F22\",\"F23\",\"F24\",\"F25\",\"F26\",\"F27\",\"F28\",\"F29\",\"F30\",\"F31\",\"F32\",\"F33\",\"F34\"];",
+      "count": 1
+    },
+    {
+      "from": "import {runFocused} from './focused-v5.mjs';",
+      "to": "import {runFocused} from './focused-v5.mjs';\nimport {runIndependent} from './independent.mjs';",
+      "count": 1
+    },
+    {
+      "from": "else throw new Error('case role');",
+      "to": "else if(input.role==='independent'){const rows=await runIndependent(input,publish);final={role:'independent-summary',pass:rows.every(row=>row.pass),clean:rows.every(row=>row.clean),count:rows.length};}\nelse throw new Error('case role');",
+      "count": 1
+    },
+    {
+      "from": "role:'node-author-validation-v2'",
+      "to": "role:'node-independent-actual-review-v1'",
+      "count": 1
+    },
+    {
+      "from": "state.mutations.length===1",
+      "to": "state.mutations.length===6",
+      "count": 1
+    },
+    {
+      "from": "const rows=judgeRows(receipts(record),record.code,role,id,readJSON(path.join(home,'WORKER-CASES-v5.json'),32768));",
+      "to": "if(role==='independent'){\n const rows=receipts(record);const last=rows.pop();const expected=configuration.independentIds;\n if(rows.length!==expected.length||last.role!=='independent-summary'||last.count!==expected.length||last.clean!==true||record.code!==(last.pass?0:1))throw Error('independent summary');\n let workers=0,entries=0;for(let index=0;index<rows.length;index++){const row=rows[index];if(row.id!==expected[index]||typeof row.pass!=='boolean'||row.clean!==true||!Number.isSafeInteger(row.workers)||row.workers<0||row.workers>20||!Number.isSafeInteger(row.guestEntries)||row.guestEntries<0||row.guestEntries>row.workers)throw Error('independent ownership/schema');workers+=row.workers;entries+=row.guestEntries;}\n if(workers>18||entries>18||last.pass!==rows.every(row=>row.pass))throw Error('independent counters');state.workerSlots+=18;state.workers+=workers;state.guestEntries+=entries;if(state.workerSlots>configuration.workers||state.workers>configuration.workers||state.guestEntries>configuration.guests)throw Error('independent cumulative caps');const loads=loadRows(record);if(!loads.some(row=>row.path===moduleRoot+'/commands/node/index.js'))throw Error('independent actual load');state.loads.push({name,rows:loads});state.cases.push(...rows.map(row=>({layout,...row})));return last;\n }\n const rows=judgeRows(receipts(record),record.code,role,id,readJSON(path.join(home,'WORKER-CASES-v5.json'),32768));",
+      "count": 1
+    },
+    {
+      "from": "await types('source',sourceModule);",
+      "to": "await types('source',sourceModule);await oneCase('source',sourceModule,'independent','independent');",
+      "count": 1
+    },
+    {
+      "from": "await types(layout,moduleRoot);}",
+      "to": "await types(layout,moduleRoot);await oneCase(layout,moduleRoot,'independent','independent');}",
+      "count": 1
+    },
+    {
+      "from": "if(entries.length!==958)throw Error('whole package entry count');",
+      "to": "if(entries.length!==958||sha(tarBytes)!=='f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092')throw Error('whole package identity');",
+      "count": 1
+    }
+  ],
+  "coverage": [
+    {
+      "id": "N01",
+      "original": {
+        "id": "N01",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "edit",
+        "arrange": "/work/main.cjs contains edit; explicit sourceRead/dataRead/dataWrite/stdout authority in configured VFS",
+        "expect": "exit0; stdout 3\\n; result.json exactly {\"count\":3}; input unchanged; no external IO",
+        "negative": "omit dataWrite: result absent; root or native fallback cannot rescue",
+        "bindings": [
+          "B01",
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E01,W05,W24",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N02",
+      "original": {
+        "id": "N02",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "cwd",
+        "arrange": "eval at cwd /work with an explicitly exported fixture env and literal argument tail",
+        "expect": "exit0, stdout /work\\n; parent env/cwd unaffected; no source-file or stdin acquisition",
+        "negative": "provider substitutes host cwd/env or rewrites argv => reject observation",
+        "bindings": [
+          "B01",
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W03,E09",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N03",
+      "original": {
+        "id": "N03",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "primitive-p expressions: undefined, null, false, 0, -0, \"é\"; separate {} and function value controls",
+        "expect": "primitive exact stdout: undefined\\n/null\\n/false\\n/0\\n/0\\n/é\\n; objects/functions refuse without invoking coercion",
+        "negative": "object with user coercion must not cause a write or output; no eval host fallback",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W02,W17,E02",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N04",
+      "original": {
+        "id": "N04",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "stdinSource",
+        "arrange": "stdin source bytes are exactly stdinSource; source+stdinRead+stdout authorized",
+        "expect": "exit0 stdout 0\\n after source EOF; no replay of script bytes as data stdin; producer return rules traced separately",
+        "negative": "replay source or pull a second source iterator => fail",
+        "bindings": [
+          "B02",
+          "B06"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W04,W29",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N05",
+      "original": {
+        "id": "N05",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "argv each: --inspect; -e with missing value; -p with missing value; --input-type=module",
+        "expect": "nonzero usage/profile refusal; zero builtin stdin next, zero source FS calls, zero provider start",
+        "negative": "poison stdin next/source read/start each raises distinct sentinel to prove no acquisition",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F11,F12,F27,R01-invalid-flag",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N06",
+      "original": {
+        "id": "N06",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "entry operands /work/main.js, /work/main.mjs, /work/main, /work/main.cjs/",
+        "expect": "refuse before source/stat/package lookup and guest start, no outputs except bounded diagnostic",
+        "negative": "place valid text at rejected suffix to kill acceptance-by-content",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F27 SOURCE cli binding",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N07",
+      "original": {
+        "id": "N07",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "authorized /work/main.cjs is directory; separate missing and EACCES observations",
+        "expect": "preserve actual typed source error classification; no guest entry; no fabricated success or package search",
+        "negative": "provider returns directory-like source without authorized observation => reject",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F25",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N08",
+      "original": {
+        "id": "N08",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "syntax",
+        "arrange": "eval entire malformed source; stdout/sources/write counters enabled",
+        "expect": "nonzero; zero guest-visible effects and no must-not-print; whole-source preflight before entry",
+        "negative": "delete final syntax check or run prefix before parse => fail",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E03",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N09",
+      "original": {
+        "id": "N09",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "literalDenied",
+        "arrange": "literalDenied and computedDenied run separately with stdout grant",
+        "expect": "literal unsupported target refuses before must-not-print; computed target may preserve before\\n then refuse at call; no subprocess",
+        "negative": "substring scan wrongly rejects a benign quoted child_process string; whitelist bypass must not import host",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "SOURCE admission; runtime untested computed-require branch",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N10",
+      "original": {
+        "id": "N10",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "separate literal sources: import x from \"x\"; await 1; Function(\"return 1\")(); eval(\"1\"); require(\"./other.cjs\"); require(\"fs/promises\"); process.exit(0)",
+        "expect": "explicit unsupported profile; no packages, ESM/TLA/async-fs/exit/native fallback; no forbidden operation effects",
+        "negative": "unsupported branches not counted as useful positive commands",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W22 SOURCE exclusion",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N11",
+      "original": {
+        "id": "N11",
+        "roles": [
+          "E"
+        ],
+        "fixture": "promiseConstructor",
+        "arrange": "execute the preserved constructor-negative fixture",
+        "expect": "non-success/refusal in restricted profile; no constructor or polyfill parity claim",
+        "negative": "do not change source to Promise.race and call old constructor a pass",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "SOURCE constructor refusal; no extra guest constructor attempt",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N12",
+      "original": {
+        "id": "N12",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "pendingStatic",
+        "arrange": "unawaited supported Promise.race([]) then entry-return print",
+        "expect": "exit0 exact entry-return\\n, normal L cutoff and actual ownership retirement; pending race is NOT proven settled",
+        "negative": "deadline is a different nonpass, not accepted alternate success",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W14",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N13",
+      "original": {
+        "id": "N13",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "deniedRead",
+        "arrange": "only stdout authority; data grants absent; repeat deniedWrite separately",
+        "expect": "each catch prints ERR_VNODE_DENIED\\n with exit0; no data file read/write; denied.txt absent",
+        "negative": "sourceRead alone must not imply dataRead; permission mode cannot grant missing authority",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W07,E07",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N14",
+      "original": {
+        "id": "N14",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "readText",
+        "arrange": "finite authorized namespace /data; allowed read; independent write-disabled and out-of-namespace controls",
+        "expect": "allowed bytes exactly Aé😀\\n plus console LF; denied operations no IO/effects; permissions do not expand grants",
+        "negative": "legitimate alias/symlink into outside backing cannot pass a lexical prefix test",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E01,E07 SOURCE VFS namespace policy",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N15",
+      "original": {
+        "id": "N15",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "write",
+        "arrange": "explicit dataWrite; absent result.txt then existing result.txt; exclusive fixture against existing text.txt",
+        "expect": "write creates then overwrites with exact UTF8 c3a9f09f9880; wx refuses EEXIST or provider honest ENOTSUP before alteration",
+        "negative": "check-then-write wx overwrite mutation must fail source-data preservation",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W11,E01",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N16",
+      "original": {
+        "id": "N16",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "write",
+        "arrange": "granted write through ReadonlyFileSystem of the same initialized VFS",
+        "expect": "actual FsError EROFS, bytes/namespace unchanged; not ERR_VNODE_DENIED and no grant override",
+        "negative": "typed-looking ordinary error cannot be used as FS authority",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W10",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N17",
+      "original": {
+        "id": "N17",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "missing",
+        "arrange": "genuine missing read; scripted genuine FsError variants EACCES/ELOOP and optional own undefined fields; stack accessor is never read",
+        "expect": "guest missing fields name/code/path produce FsError:ENOENT:/missing\\n; actual error transport only on FS-origin route; optional absence/undefined and empty strings distinct",
+        "negative": "shape-only FsError from sink/control or getter field must not be serialized as genuine FS error",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W08,F04-F10,R04-R06",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N18",
+      "original": {
+        "id": "N18",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "each frozen reason token thrown by stdout, stderr and control separately; independent raw identity registry",
+        "expect": "preserve present=true and same raw value, not truthiness/equality-origin inference; public boundary follows existing mapping, not automatically every caught handler error becomes rejection",
+        "negative": "JSON text alone cannot certify raw object identity or undefined presence",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F02,F13,F14,F17-v2,F25,F26,W09,W16",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N19",
+      "original": {
+        "id": "N19",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "readText",
+        "arrange": "valid UTF8 vector at all frozen splits; BOM/invalid/incomplete/NUL vectors separate",
+        "expect": "valid exact decoded string, raw bytes charged before decoding; no split corruption; malformed/BOM outcomes bind B04 rather than guessing fatal/replacement",
+        "negative": "count UTF16 units as UTF8 or discard carry/EOF bytes => fail",
+        "bindings": [
+          "B04",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W28,W29,E04",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N20",
+      "original": {
+        "id": "N20",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "stdin",
+        "arrange": "eval data stdin with shared reusable byte buffer and multiple chunks; later repeated fd0 read",
+        "expect": "retained chunks copied before advancing producer; no replay; no borrowed producer premature return; owned acquisition cleanup exactly once",
+        "negative": "return borrowed Shell iterator on first command settlement or retain Buffer.subarray => fail",
+        "bindings": [
+          "B06"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F26,W04; reusable-buffer variant remains unrun",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N21",
+      "original": {
+        "id": "N21",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "cache",
+        "arrange": "first/second/third JSON require as literal fixture; separate fsAlias; second fresh invocation",
+        "expect": "first prints true:true:7\\n while VFS input becomes {\"count\":99}; fsAlias true\\n; new invocation cache sees99 not7",
+        "negative": "host fresh copy per cache hit or cross-invocation object sharing => fail",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W06,E06",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N22",
+      "original": {
+        "id": "N22",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": "cache",
+        "arrange": "revoke authority between first read and later hit; change bound backing before read completion",
+        "expect": "every hit reauthorized; no unvalidated late cache installation; namespaces are authority not fake disjoint identity",
+        "negative": "constant per-client token or retained authorization bypass => fail",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E06; pathname race guarantee expressly absent",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N23",
+      "original": {
+        "id": "N23",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "keys",
+        "arrange": "own __proto__/constructor/toString JSON values and malformed JSON followed by corrected backing",
+        "expect": "exact inert data roundtrip; no prototype mutation; failed parse installs no cached result",
+        "negative": "compare via prototype identity or accept accessor-shaped DTO => fail",
+        "bindings": [
+          "B01",
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E05; parse-failure cache variant unrun",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N24",
+      "original": {
+        "id": "N24",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "boundary recipes source/path/operationText at L-1/L/L+1 after B05 binding",
+        "expect": "at inclusive admitted bounds useful operation; over bound refuses before prohibited allocation/acquisition/effect; shared counters never reset",
+        "negative": "lower byte accounting or per-frame resets must fail; memory profile remains logical not RSS",
+        "bindings": [
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F16-v2,F17-v2,W23-v2; full max-adjacent matrix not run",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N25",
+      "original": {
+        "id": "N25",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "public Shell maxOutputBytes2; node stdout AB then E on stderr; separate diagnostic sink refusal",
+        "expect": "same existing ShellLimitError limit maxOutputBytes; no third byte, diagnostic budget bypass or output refund; cleanup barrier still honored",
+        "negative": "fresh sink budget or exempt diagnostic would incorrectly succeed",
+        "bindings": [
+          "B05",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E08",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N26",
+      "original": {
+        "id": "N26",
+        "roles": [
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "script node -e \"\"; node -e \"\"; node -e \"\" with maxCommands2 and explicitly enabled module",
+        "expect": "third dispatch fails existing ShellLimitError maxCommands; at most two node starts; no new Shell/global budget reset",
+        "negative": "internal creation of new Shell or guest-byte-as-command charging => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E08",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N27",
+      "original": {
+        "id": "N27",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "preaborted root before command admission; native delivered false/null/0/empty/object; exact undefined only synthetic own-data/preaborted branch",
+        "expect": "exact caller identity, zero source/provider acquisition, all registrations retired; no claim native abort(undefined) yields raw undefined",
+        "negative": "errno-shaped caller reason must not be mistaken for guest FsError",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F02 SOURCE preabort; full reason vector unrun",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N28",
+      "original": {
+        "id": "N28",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "nested context.invoke local signal cancels one blocked child, sibling completes; parent caller remains live",
+        "expect": "child reason exact; sibling stdout ok\\n; parent remains usable; env/getopts/state not poisoned; no shared cursor/cache aliases",
+        "negative": "child controller aborting caller or shared Worker of sibling => fail",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W20,E09",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N29",
+      "original": {
+        "id": "N29",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "inert prepared session; trace registration, startup admission, acquisition, exit and parent job cleanup",
+        "expect": "registerCleanup before any possible startup/acquisition; same idempotent promise finally/runtime close; actual Worker exit AND job cleanup before public settlement",
+        "negative": "prepared-session constructor starts Worker before registered owner => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F01,F29,W21",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N30",
+      "original": {
+        "id": "N30",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "proven-none setup rejection, constructor throw unconfirmed, late handle, failed cleanup registration; release finite cooperative holds explicitly",
+        "expect": "no fake exit; late acquired owner listened/retired once; unconfirmed acquisition cannot report clean success; all admitted jobs observed",
+        "negative": "eventual booleans without valid chronology or resolved numeric result despite unknown retirement => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "W21,W22,F29; constructor-throw branch source-only",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N31",
+      "original": {
+        "id": "N31",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "entryRead",
+        "arrange": "actual blocked parent read; cancel child; hold cleanup until after observed Worker exit; separate already-committed write",
+        "expect": "wakes blocked sync; public unsettled until parent cleanup; admitted committed bytes survive, no rollback; no later unadmitted effects",
+        "negative": "terminate() resolution/ACK alone used as exit+cleanup proof => fail",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F01,F33,F34,W15,W26,E09",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N32",
+      "original": {
+        "id": "N32",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "hold awaited sink; then release; separate enrolled output pipeline node | head -n 1 with cooperative operation",
+        "expect": "no uncontrolled production while write pending; operation closes before public settlement, caller/sibling remain live; already-written bytes retained",
+        "negative": "whole caller abort or no-input-acquisition shortcut cannot substitute operation cleanup",
+        "bindings": [
+          "B06",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "E10,W16; artificial held-sink variant unrun",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N33",
+      "original": {
+        "id": "N33",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "inject a real parent-owned diagnostic publication failure with each raw reason token after actual provider failure; stdout and stderr sink faults recorded separately",
+        "expect": "publication failure retained by actual owner, no catch-and-discard; serialized text never substitutes raw failure presence; public priority follows accepted contract",
+        "negative": "publishing helper returns {fault} but caller ignores it => fail; if no production route exists B08 must resolve explicitly",
+        "bindings": [
+          "B07",
+          "B08"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "R09,R10,F18-F24,W27",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N34",
+      "original": {
+        "id": "N34",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "numeric0 and numeric1 plus sole cleanup rejection; caller override; escaping execution rejection + cleanup; late losing handler mapped separately",
+        "expect": "caller > actual escaping execution rejection > cleanup > numeric; no status??0, no escalation of an already-mapped caught handler error; all failures observed",
+        "negative": "falsy cleanup discarded or nonzero numeric hides cleanup => fail",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F02,F14,F17-v2,R07,R11",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N35",
+      "original": {
+        "id": "N35",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": null,
+        "arrange": "instrumented cutoff before complete payload versus after admitted effect; 5s admission from ownership enrollment before startup",
+        "expect": "no new effects after cutoff; already admitted normal work drains without false abort/rollback; elapsed5s is not cleanup deadline; retirement L not Q",
+        "negative": "reset admission clock at READY/ACK or claim all Promise jobs settled => fail",
+        "bindings": [
+          "B01",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F03,W14,W26; full cutoff-frame schedule source-only",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N36",
+      "original": {
+        "id": "N36",
+        "roles": [
+          "P"
+        ],
+        "fixture": null,
+        "arrange": "finite exact-own-data protocol controls: missing/extra/accessor/hole fields, metadata-only FINAL_ACK, stale sequence/session, zero payload",
+        "expect": "invalid messages refuse before next operation; operation closure and actual guest delivery are separate; preserve original raw protocol fault",
+        "negative": "prototype-sensitive deep equality rejects valid cross-realm record; ACK counted as postcopy delivery => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "SOURCE channel/host; loaded mutants selective",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N37",
+      "original": {
+        "id": "N37",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": null,
+        "arrange": "bound trusted static Worker entry/public98->95 closure; ledger/SAB/V8 configuration observed at actual owner boundary",
+        "expect": "197056 SAB and 16777216 named ledger; admitted ownership only; worker exited and parentjobs cleaned; reused heap proof not a new guest/RSS proof",
+        "negative": "missing terminal or unknown exit cannot be converted to status0; no unseen work cleanup claims",
+        "bindings": [
+          "B01",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "all E/W actual closure + source ledger inventory",
+      "notFullFamilyProof": true
+    },
+    {
+      "id": "N38",
+      "original": {
+        "id": "N38",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "provider absent; invalid provider; explicitly supplied qualifying provider; source/engine entry identities fixed before launch",
+        "expect": "no implicit engine discovery/native fallback; module-only registration does not change aggregate79; explicit registration creates node only in that registry",
+        "negative": "root/subpath/default wiring absent is not a module defect; native engine path guess is a defect",
+        "bindings": [
+          "B01",
+          "B09"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "plannedBindings": "F11,F29,W22 SOURCE provider admission",
+      "notFullFamilyProof": true
+    }
+  ],
+  "types": [
+    {
+      "id": "T01",
+      "title": "Factory roles",
+      "expect": "Candidate-defined single definition/list/plugin roles match existing CommandDefinition/VirtualShellPlugin, no guessed export identifiers.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T02",
+      "title": "Old context compatibility",
+      "expect": "Existing structural CommandContext without optional cleanup/invoke stays valid; optional invoke signal undefined accepted as before.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T03",
+      "title": "Provider configuration",
+      "expect": "Explicit qualifying provider accepted; incompatible/missing required provider members receive exact diagnostics; no auto-runtime overload implied.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T04",
+      "title": "Finite grants",
+      "expect": "Declared grant types accept valid finite data and reject unrecognized keys/wrong scalar types; own undefined behavior bound B03.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T05",
+      "title": "Lifecycle types",
+      "expect": "Inert prepared session and retirement outcome require typed ownership/cleanup obligations; no unsafe cast hiding async completion or optional receiver errors.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T06",
+      "title": "Sync text I/O",
+      "expect": "Declared Node-local request/result types keep guest text distinct from underlying Uint8Array; reject unsupported FD/encoding/request variants.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T07",
+      "title": "Unknown reasons",
+      "expect": "Raw error/control fields can represent present undefined and arbitrary unknown without Error-only or nonnullable narrowing.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T08",
+      "title": "No shared API edits",
+      "expect": "Accepted command/io/output/Shell declarations remain compatible; module phase adds only owned Node-local types; installed/moved declaration routes authenticated.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    }
+  ],
+  "loads": [
+    {
+      "id": "A01",
+      "title": "Full composition",
+      "expect": "Accepted baseline constituents plus only exact candidate-owned files; complete new package identity and additions, not sparse projection/current HEAD.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A02",
+      "title": "Source/installed/moved",
+      "expect": "Actual loaded paths and hashes, complete pre/post namespace inventory including new entries; physically moved imports no source fallback.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A03",
+      "title": "Changed/missing module",
+      "expect": "One admitted edited-byte and one missing-file control refuse before guest; restores authenticated separately.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A04",
+      "title": "Declaration route",
+      "expect": "Strict public declared module path routes to exact installed/moved .d.ts; no fallback to repo root or live source.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A05",
+      "title": "Static entry/builtin boundary",
+      "expect": "Trusted entry and exact host-builtin importer edges; no global host-import allowlist, ambient fs/process/SAB exposure to guest.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A06",
+      "title": "Public engine closure",
+      "expect": "Test-only existing PUBLIC98 sources/PUBLIC95 emissions complete hashes; same emitter metadata != strict typecheck; no private/deep import/vendor/install guess.",
+      "status": "PREPARED_NOT_EXECUTED"
+    }
+  ],
+  "planned": {
+    "authorMappedIdentities": 61,
+    "newBOMIdentities": 2,
+    "mainAuthorExecutions": 189,
+    "mainIndependentRows": 66,
+    "rawIndependentIdentities": 12,
+    "engineIndependentIdentities": 10,
+    "mainWorkerCeiling": 141,
+    "mainGuestCeiling": 141,
+    "mutantFamilies": 6,
+    "mutationCaseProcesses": 12,
+    "loadNegativeFamilies": 6,
+    "typePositiveIdentities": 12,
+    "typeNegativeIdentities": 12,
+    "typeProcesses": 6,
+    "strictBuild": 1,
+    "pack": 1,
+    "offlineInstall": 1,
+    "expectedOwnerChildStarts": 120
+  }
+}

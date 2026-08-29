@@ -1,0 +1,12 @@
+{
+  "role": "PREP_HELPER_NOT_PRODUCT",
+  "exit": 1,
+  "signal": null,
+  "error": "recipe anchor Object.freeze([\"F01\",\"F02\",\"F03\",\"F04\",\"F05\",\"F06\",\"F10\",\"F16-v2\",\"F17 0",
+  "line": 27,
+  "sourceSha256": "2e764bdf54f9f8837ec911b4d4f6670bddd3e934fbb5dd54d1c2084ba78489a4",
+  "cause": "judge uses a plain array, not Object.freeze; strict anchor failed before any compiler/product execution",
+  "product": 0,
+  "workers": 0,
+  "partialCapsule": "capsule remains unchanged; successor uses fresh capsule-v2"
+}

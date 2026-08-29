@@ -1,0 +1,3067 @@
+[
+  {
+    "path": "tests/commands/node-author-20260829/ACTIVATION-PREFLIGHT-v2.mjs.data",
+    "mode": "100644",
+    "oid": "faba16c20355ae4f6e8b76635f0bf0bf387b364b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/ACTIVATION-v1.mjs.data",
+    "mode": "100644",
+    "oid": "2abc3d244e1c3e783e09a18c9b7ab787e7cd0666"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/ACTIVATION-v2.mjs.data",
+    "mode": "100644",
+    "oid": "db9c8645c2a935e2cf0b1462b60f4772477ca5fc"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/API-v1.md",
+    "mode": "100644",
+    "oid": "594abbd31f29d549b7a743795e9f20ae1da0bf8c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/API-v2.md",
+    "mode": "100644",
+    "oid": "e4ebcc44deaca3e5fd6615fa282349653664187d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/API-v3.md",
+    "mode": "100644",
+    "oid": "29b2278c91995d340bc66cbd0e042e2d65bc82bf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/API-v4.md",
+    "mode": "100644",
+    "oid": "1969a66def63d07fa4a52886cc69205f48c3c381"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/BASE-PACKAGE-v1.json",
+    "mode": "100644",
+    "oid": "3d07ac03bfb13ada65a3592229a2e2d7e0634dc2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/BASELINE.json",
+    "mode": "100644",
+    "oid": "9d878805105b50b9dbbf25859c2020f7ab294a22"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/BUILTINS-v1.json",
+    "mode": "100644",
+    "oid": "57bb4cd9fbc1a1c7e39c89a27c74df2e5943b800"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/BUILTINS-v2.json",
+    "mode": "100644",
+    "oid": "f98817c12ad5f1e5ce63b989267def24f9b34694"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/CONTRACT.md",
+    "mode": "100644",
+    "oid": "478fe6cd4a26dbef478d274276a75199d7309b29"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/CONTROL-v1.json",
+    "mode": "100644",
+    "oid": "f4fc8c8de14dfe23fe63a7bfbd9215facd0a0412"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/CONTROL-v2.json",
+    "mode": "100644",
+    "oid": "630f9f1b6e53376208b583d6210ac42658dca291"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/EXECUTION-v1.md",
+    "mode": "100644",
+    "oid": "dc0367f5dfc69f5acfdebf43d873ef8d9f5d2755"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/EXECUTION-v2.md",
+    "mode": "100644",
+    "oid": "19d0d0d9057967248d350334460a831275de4db9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/HANDOFF-v2.md",
+    "mode": "100644",
+    "oid": "feb9046ff9687e19d2ae214197649f8086a0f92c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/HANDOFF-v3.md",
+    "mode": "100644",
+    "oid": "c596d3329b3d9eb549d490834485a1d219bdb440"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/HANDOFF-v4.md",
+    "mode": "100644",
+    "oid": "e31d3a9ebbfb1f19ae9657e99e05c9116dc45809"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/IMPLEMENTATION-CHECKPOINT-v1.md",
+    "mode": "100644",
+    "oid": "e330d1bfa266430adc4eaaaaf9e4d933a4e302d0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/INPUTS-v1.json.gz.base64",
+    "mode": "100644",
+    "oid": "f88a09f5a792e0bc16a8309e266931d248921f50"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/MODULE-v4.json",
+    "mode": "100644",
+    "oid": "476abeaef2aa218f75f74d6822ca5c7d7fa01869"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/MUTATIONS-v1.json",
+    "mode": "100644",
+    "oid": "938740e7720f75d1a29d62a02e4a13f957b2c5ba"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PREFLIGHT-RESULT-v2.json",
+    "mode": "100644",
+    "oid": "fb3e4b4790173f07287462ae3618d7b851c59d8f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PREFLIGHT-SEAL-v2.json",
+    "mode": "100644",
+    "oid": "196a16bd838cb5488f13db653b4bc06685e6712f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PREPARE-AUTHOR-v5.mjs.data",
+    "mode": "100644",
+    "oid": "93eda72a8a41d828126d0130ab3147893920fa19"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PREPARE-STARTUP-v3.mjs.data",
+    "mode": "100644",
+    "oid": "67038b1c1cff55e979b8e16aff13aabd898ab381"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PREPARE-STARTUP-v4.mjs.data",
+    "mode": "100644",
+    "oid": "95018e723b9851e37739608bb712a1a0cb376b2d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PRESEAL-HISTORY-c10.json.gz.base64",
+    "mode": "100644",
+    "oid": "2d7ad7c3c0359ad461d9d803de2402a7bc5459be"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PRESEAL-v1.json",
+    "mode": "100644",
+    "oid": "eb823f665d7ca1da3ebcb7222cc0b6a16ab1a924"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/PRESEAL-v2.json",
+    "mode": "100644",
+    "oid": "c7ce84239019ff8f77cbcfc10aed4a869d151ff2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/RAW-STOP-v1.json.gz.base64",
+    "mode": "100644",
+    "oid": "a055135f8fbaa76193b88472e94b4818f4ce5df8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/REPAIR-v5.md",
+    "mode": "100644",
+    "oid": "033d4f7e73fab6adb97a28e92a4ecf2fa7aca41b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/RESULTS-v1.json",
+    "mode": "100644",
+    "oid": "7da35f28b85c76fee3c538f82b249c2aadc94b36"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/RESULTS-v2.json",
+    "mode": "100644",
+    "oid": "d706381c22b70be6cc5d8a04d64f33ea3b80d02e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/REVISION-1-ADMISSION-STOP.json",
+    "mode": "100644",
+    "oid": "74d02ef0d948c9d4130260c8876208cb504cba29"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/ROOT-GRANT-author-v2.json",
+    "mode": "100644",
+    "oid": "ca505705a1c5ce6c8c3251a6841979c0f2dcd244"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/ROOT-GRANT-v1.json",
+    "mode": "100644",
+    "oid": "3ae025855c93d7fd505d9cd4001482010272d93b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/ROOT-GRANT-v2.json",
+    "mode": "100644",
+    "oid": "010a49fabfc280b2a921a35b948ff2e17301efd3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/SOURCE-CHECKPOINT-v1.json",
+    "mode": "100644",
+    "oid": "51b42ddb082d42f07a87e49175ff9ea5ad06faed"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/SOURCE-PROVENANCE-CONTROLS-v1.json",
+    "mode": "100644",
+    "oid": "fb6bec1acbe93f10dddc0b6be31ff16c6b653211"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/SOURCE-REPAIR-v3.json",
+    "mode": "100644",
+    "oid": "39ad8297d39dcdd8f620dbbd0dc6db648d31d944"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/SOURCE-REPAIR-v3.md",
+    "mode": "100644",
+    "oid": "ce8cf901d9814aed339ce10a68c4d287e48add28"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/STATIC-CLOSURE-v2.json",
+    "mode": "100644",
+    "oid": "ecda5261c9b1a80ba1de000172579a292d4c9292"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/VALIDATION-STOP-v1.md",
+    "mode": "100644",
+    "oid": "f82b2194b207d4a384323ef2aaa631609fed0ba1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/WORKER-CASES-v1.json",
+    "mode": "100644",
+    "oid": "5c460d309852cadaf268f2d50674232aff570bed"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/capture-v1.mjs",
+    "mode": "100644",
+    "oid": "f36f76c3fdd9bd4323010c303f3455e1f3389a90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/case-runner-v1.mjs",
+    "mode": "100644",
+    "oid": "9bc7f41ef1d016e7b05a45fe11b3a82ea058f6e9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/engine-adapter-noise-v1.mjs",
+    "mode": "100644",
+    "oid": "9bba58bcefe1c4f82ee0f847fba05202c4d50ec0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/engine-adapter-v1.mjs",
+    "mode": "100644",
+    "oid": "18cf64b44ccdcc9ccfcfc015293d6feb13146181"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/focused-v1.mjs",
+    "mode": "100644",
+    "oid": "6567f010f778e69c6fb1a1fcef9bd9fc011b18b9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/focused-v2.mjs",
+    "mode": "100644",
+    "oid": "e1df71e76a64d424efc21bfb05d12d0866edd432"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/host-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "3f44a82587227a1ab215ff6ee00878b40891e0a8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/judge-v1.mjs",
+    "mode": "100644",
+    "oid": "0725c9a67426e24a7a7ab864449b6b40a16c8267"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/launcher-v1.mjs",
+    "mode": "100644",
+    "oid": "5dcde1b07af950f7e9df2a7432f4f9b72db9541f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/launcher-v2.mjs",
+    "mode": "100644",
+    "oid": "764348b7e773d8184b78142f331c425671d09ce3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/load-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "8252bd3206bcecacfbcb43743f950f8637564fa6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/load-negative-v1.mjs.data",
+    "mode": "100644",
+    "oid": "a6a7349b8d92434b325743900d36a644a5f5ff6d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/owner-v1.mjs",
+    "mode": "100644",
+    "oid": "2b9ad7c6f3444882b4103de134228c4c8780c840"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/owner-v2.mjs",
+    "mode": "100644",
+    "oid": "1cf84ad95af434eafe626a3fc517a24bdb9fb757"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/preflight-v2.mjs",
+    "mode": "100644",
+    "oid": "10964822c66de1d1947cf98592668c6e412baf5b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/types-v1.mts.data",
+    "mode": "100644",
+    "oid": "6ea311bc15d76f28e395a2a39e2ef08737103741"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/OWNERSHIP.txt",
+    "mode": "100644",
+    "oid": "8bed13c7920675bf4bf970614f804d2380f235c0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/bootstrap/RECEIPT.json",
+    "mode": "100644",
+    "oid": "54153052c66b496f8279e76a744f6e81b0845605"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/bootstrap/launcher.stderr",
+    "mode": "100644",
+    "oid": "0d2b8d3441129a1a3650b490ca0c864652ca3576"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/bootstrap/launcher.stdout",
+    "mode": "100644",
+    "oid": "b76ea1726200557cce9b8baca6ec27b2f2ca3eea"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/capture/journal.jsonl",
+    "mode": "100644",
+    "oid": "b9bddde270ac9e85ec96f7c42e366ae21eb3f175"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/evidence/RAW.json.gz.base64",
+    "mode": "100644",
+    "oid": "f5b3902a0376688b76d4d37784d5ad11b85cb0a4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/outer/RECEIPT.json",
+    "mode": "100644",
+    "oid": "b76ea1726200557cce9b8baca6ec27b2f2ca3eea"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/outer/owner.stderr",
+    "mode": "100644",
+    "oid": "669f4ecf1b61904141e7d3b3fcb8415c26e8d6a3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v1/outer/owner.stdout",
+    "mode": "100644",
+    "oid": "f04d735214702117e47ba5e70a2c3582bbb5b258"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/OWNERSHIP.txt",
+    "mode": "100644",
+    "oid": "d5652d7b254c6030e66f1facfe5f0e407a03d25c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/CONTROL-v2.json",
+    "mode": "100644",
+    "oid": "ef1d777efa80327d9338452fc77f377569c5ca9a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/DISPATCH-CONTROLS-v3.mjs.data",
+    "mode": "100644",
+    "oid": "79a0fee11f0e436af910728ed1f021e3621b6f18"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/MODULE-v6.json",
+    "mode": "100644",
+    "oid": "911dc8a239f6758c1eb0a405e5c17140da2edf36"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/PARENTS.json",
+    "mode": "100644",
+    "oid": "15847757bc75471e404bbc17d7f83ce05ea520c9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/STARTUP-RESULTS-v3.json",
+    "mode": "100644",
+    "oid": "a0f9f225c10a80baaf03087fa69978b5ee341677"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/STARTUP-SEAL-v3.json",
+    "mode": "100644",
+    "oid": "9b96d5e5bac77507fc9851a58370002bb8717604"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/capture-v1.mjs",
+    "mode": "100644",
+    "oid": "f36f76c3fdd9bd4323010c303f3455e1f3389a90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/focused-v3.mjs",
+    "mode": "100644",
+    "oid": "aaf7752a1497b48e571a031a44892500736fac86"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/harmless-v3.mjs",
+    "mode": "100644",
+    "oid": "93f99aab330964c9b55eb444b6d97e57ead2d91c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-capture-v3.mjs",
+    "mode": "100644",
+    "oid": "da569fdcd5ab21762a44e57f803ef244dac83f08"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls-v3.mjs",
+    "mode": "100644",
+    "oid": "657f075b2d2b0e740063eda2c90dbf915071c936"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S03.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S04.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S04.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S05.stderr",
+    "mode": "100644",
+    "oid": "e3616a49f315498cb07c270f99946160ba1b25d9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S05.stdout",
+    "mode": "100644",
+    "oid": "21e7d690bb45eacd86a1721ce6928b7bf5086786"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v3/workers-v3.mjs",
+    "mode": "100644",
+    "oid": "c9cd8cfc7e54d08574612ee4c5ba0a67b7480016"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/API-v4.md",
+    "mode": "100644",
+    "oid": "1969a66def63d07fa4a52886cc69205f48c3c381"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/BASE-PACKAGE-v1.json",
+    "mode": "100644",
+    "oid": "3d07ac03bfb13ada65a3592229a2e2d7e0634dc2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/BUILTINS-v4-r1.json",
+    "mode": "100644",
+    "oid": "636a2149d1c75a01a657bbaf1743b7300098e569"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/BUILTINS-v4.json",
+    "mode": "100644",
+    "oid": "ee6e46ca5c22039e371dc219f8e42afa8db2717b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/CONTROL-STARTUP-v4.json",
+    "mode": "100644",
+    "oid": "2d3de50ded92d2c07f129d59ad5eda8ad6072904"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/CONTROL-v4-r1.json",
+    "mode": "100644",
+    "oid": "c2ad366d0878838c8bc1b70bdf1b4ded095b9118"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/CONTROL-v4.json",
+    "mode": "100644",
+    "oid": "4d0acc45371d7f7f715845b7fc05a4500ead60cd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/DISPATCH-AUTHOR-v4-r1.mjs.data",
+    "mode": "100644",
+    "oid": "0871a0ba57df978e7894ae99c55474defa504393"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/DISPATCH-AUTHOR-v4.mjs.data",
+    "mode": "100644",
+    "oid": "95a4528710f8f055cf98cd02f2e32c547630d76f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/DISPATCH-CONTROLS-v4.mjs.data",
+    "mode": "100644",
+    "oid": "c241a7eea3eecaf87b54e06fe2e9e00f554f8640"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/EXECUTION-v4.md",
+    "mode": "100644",
+    "oid": "02307af642a2124a29a9176aba26ff6a67a13783"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/INPUTS-v1.json.gz.base64",
+    "mode": "100644",
+    "oid": "f88a09f5a792e0bc16a8309e266931d248921f50"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/MODULE-v6-r1.json",
+    "mode": "100644",
+    "oid": "90934962f41c3a78faba3811cd89dcb7a76e85e5"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/MODULE-v6.json",
+    "mode": "100644",
+    "oid": "911dc8a239f6758c1eb0a405e5c17140da2edf36"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/MUTATIONS-v1.json",
+    "mode": "100644",
+    "oid": "938740e7720f75d1a29d62a02e4a13f957b2c5ba"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/PARENTS.json",
+    "mode": "100644",
+    "oid": "9bd1d06c0864e47a0714ae34bd9dee5242baac78"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/POSTAUTH-v4.json",
+    "mode": "100644",
+    "oid": "32b48bc9093ec65352b215837a75d20b9177509b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/PRESEAL-v4-r1.json",
+    "mode": "100644",
+    "oid": "c6ce993f73d0a3cb6c1564becbc6ab53b235262f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/PRESEAL-v4.json",
+    "mode": "100644",
+    "oid": "004c35b575e33b315303b0de83f314da1d22d836"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/REPAIR-v4-r1.md",
+    "mode": "100644",
+    "oid": "5361f98438e7be6bb151c250872794f37db967af"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/RESULTS-v4.json",
+    "mode": "100644",
+    "oid": "c552055de6d08d13c4c2ee1a46f01d6f41417116"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/ROOT-GRANT-v4-r1.json",
+    "mode": "100644",
+    "oid": "9186171b5903fdcb2224bbd5460da04e02ab40cf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/ROOT-GRANT-v4.json",
+    "mode": "100644",
+    "oid": "9ed29f3e3f34a676f18ae27de22c17d683e32ccc"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/S05-RETAINED-WARNING.txt",
+    "mode": "100644",
+    "oid": "e3616a49f315498cb07c270f99946160ba1b25d9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/STARTUP-QUALIFICATION-v4.json",
+    "mode": "100644",
+    "oid": "02a63e877934cf1a87bc0f95e1d531ebdba1665e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/STARTUP-SEAL-v4.json",
+    "mode": "100644",
+    "oid": "cbd128f8960ea4bf9447869dff69feb0df73a610"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/WORKER-CASES-v4.json",
+    "mode": "100644",
+    "oid": "46e71567bbfd4eab5361bc8103b5591c3bf846be"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/capture-v1.mjs",
+    "mode": "100644",
+    "oid": "f36f76c3fdd9bd4323010c303f3455e1f3389a90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/case-runner-v4.mjs",
+    "mode": "100644",
+    "oid": "01f6df2afb47d5278bf3fd60d0aeb6da4948c3b9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/engine-adapter-noise-v1.mjs",
+    "mode": "100644",
+    "oid": "9bba58bcefe1c4f82ee0f847fba05202c4d50ec0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/engine-adapter-v1.mjs",
+    "mode": "100644",
+    "oid": "18cf64b44ccdcc9ccfcfc015293d6feb13146181"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/focused-v3.mjs",
+    "mode": "100644",
+    "oid": "aaf7752a1497b48e571a031a44892500736fac86"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/harmless-v3.mjs",
+    "mode": "100644",
+    "oid": "93f99aab330964c9b55eb444b6d97e57ead2d91c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/host-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "3f44a82587227a1ab215ff6ee00878b40891e0a8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/judge-v4.mjs",
+    "mode": "100644",
+    "oid": "ec6c50328d1079267bfa8ca2a1bc738aa0b01384"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/load-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "8252bd3206bcecacfbcb43743f950f8637564fa6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/load-negative-v1.mjs.data",
+    "mode": "100644",
+    "oid": "a6a7349b8d92434b325743900d36a644a5f5ff6d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/owner-v4-r1.mjs",
+    "mode": "100644",
+    "oid": "381c9d1b74c006e5868cc02b7d21def2497111ba"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/owner-v4.mjs",
+    "mode": "100644",
+    "oid": "79841618572b895d8eb7da0bc2475b960a7965d3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-capture-v3.mjs",
+    "mode": "100644",
+    "oid": "da569fdcd5ab21762a44e57f803ef244dac83f08"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls-v4.mjs",
+    "mode": "100644",
+    "oid": "73d43d995336200e04f160824f7472c4d69e95c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls/RESULTS.json",
+    "mode": "100644",
+    "oid": "ad6f80c2f8185a0322011f87de818a3ace6d8901"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls/S05-v2.stderr",
+    "mode": "100644",
+    "oid": "17984f10a08e27870514c3dccaf5f2c229e2cb84"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls/S05-v2.stdout",
+    "mode": "100644",
+    "oid": "21e7d690bb45eacd86a1721ce6928b7bf5086786"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls/S06.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-controls/S06.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-owner-v4-r1.mjs",
+    "mode": "100644",
+    "oid": "6b16fd6ca0c895618538bb4c2678b368a0f2b173"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/startup-owner-v4.mjs",
+    "mode": "100644",
+    "oid": "b4f2b0eee0687308543a667c4e3ed310c3b62d14"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/types-v1.mts.data",
+    "mode": "100644",
+    "oid": "6ea311bc15d76f28e395a2a39e2ef08737103741"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/build.stderr",
+    "mode": "100644",
+    "oid": "3573615685cd05c2a1dc6dd7e6aed573b7fde084"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/build.stdout",
+    "mode": "100644",
+    "oid": "8be7e5d0879b78afb34d8694f51f755bcbdf442b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/journal-r1.jsonl",
+    "mode": "100644",
+    "oid": "338c1ece783e16aaa59972ed84791405eb0b3a32"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/journal.jsonl",
+    "mode": "100644",
+    "oid": "0ed3064c3e403888623d4eecb6e066b715ae8e60"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M01-mutant-W07.stderr",
+    "mode": "100644",
+    "oid": "83a35a374418ea99d7decba6886738f88ebd7582"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M01-mutant-W07.stdout",
+    "mode": "100644",
+    "oid": "b8de5b3c69b4ea7c7f4735a1dd895416e0469ecf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M01-restore-W07.stderr",
+    "mode": "100644",
+    "oid": "747369bd1b3c0d771b59f17bb3663ec0eb038bc4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M01-restore-W07.stdout",
+    "mode": "100644",
+    "oid": "f8603a9bff7c565c39f94699f00be6aa4a2bc595"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M02-mutant-W06.stderr",
+    "mode": "100644",
+    "oid": "110ec9fd8d34a1d739ecf0caca36f0b099dbbea8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M02-mutant-W06.stdout",
+    "mode": "100644",
+    "oid": "078ab985f1e650301b2d69d2354f8633cdb510a2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M02-restore-W06.stderr",
+    "mode": "100644",
+    "oid": "7b3d9c621400d76409003a7fc82461acd6afa45e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M02-restore-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M03-mutant-W12.stderr",
+    "mode": "100644",
+    "oid": "c465400308ce8f04c90b9ec39e5ca661bc2f05d6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M03-mutant-W12.stdout",
+    "mode": "100644",
+    "oid": "4f62b690a1bce27ccf971d2f7e1d3160ec7f7cf3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M03-restore-W12.stderr",
+    "mode": "100644",
+    "oid": "8e45afe88434cfc35dd35b2fcc2a9cfb92c921e6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M03-restore-W12.stdout",
+    "mode": "100644",
+    "oid": "29ef6a85a6689fbe344059672f4ce1e6538cd087"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M04-mutant-W17.stderr",
+    "mode": "100644",
+    "oid": "43d5b8f19f229a3c6a376f7bd4ff3491e74d573a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M04-mutant-W17.stdout",
+    "mode": "100644",
+    "oid": "104faec6f140d048dcc1ee559e94430a87f8c529"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M04-restore-W17.stderr",
+    "mode": "100644",
+    "oid": "f2a17be36570bc4d61ac72a316bc3cb110e4d55c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M04-restore-W17.stdout",
+    "mode": "100644",
+    "oid": "b01c77b6cf332df00f8fa1b07483482d0444f23e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M05-mutant-focused.stderr",
+    "mode": "100644",
+    "oid": "bff2b9a245581522d328db9536776d4940f375f0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M05-mutant-focused.stdout",
+    "mode": "100644",
+    "oid": "f9248067ba71dcc08b5ca356fdb7cd8c5d845832"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M05-restore-focused.stderr",
+    "mode": "100644",
+    "oid": "3ce9cec4694da455a0a480febf35f495e7704b64"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M05-restore-focused.stdout",
+    "mode": "100644",
+    "oid": "824ca08f9ef8133a2691249cd54bcdd781d30e00"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M06-mutant-W09.stderr",
+    "mode": "100644",
+    "oid": "cd4d0dd08c2e39be234e7b2590030aeb7b0c4ff2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M06-mutant-W09.stdout",
+    "mode": "100644",
+    "oid": "2294e13a420f4f28fa767cfb60a919da67aecd3f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M06-restore-W09.stderr",
+    "mode": "100644",
+    "oid": "c19889932391cf074f9c0ea2e3a5b46ec45559e2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-M06-restore-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-build.stderr",
+    "mode": "100644",
+    "oid": "2e0d4d3f7000d8843e784f6b2d43a78d81ebe491"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-build.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-install.stderr",
+    "mode": "100644",
+    "oid": "ca58d092f97a99a4af8e1e9480170b1421b981c9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-install.stdout",
+    "mode": "100644",
+    "oid": "60fe35450566db03a83e9e209550287d93b552ca"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W01.stderr",
+    "mode": "100644",
+    "oid": "ca397638470c50b86ce1a4f29a93d2a642631d6c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W02.stderr",
+    "mode": "100644",
+    "oid": "5a3d34b3ca6d3fbf4e74f774b80ff098efc2d899"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W02.stdout",
+    "mode": "100644",
+    "oid": "387d1f7e25d13654f9a6143ff7dac954fcc3670f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W03.stderr",
+    "mode": "100644",
+    "oid": "eb701fdd8c529763b93420e8aab67bbfb648bf5c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W04.stderr",
+    "mode": "100644",
+    "oid": "9d1eb51ba33203e38e05deff2eb497ba3e4e0c1d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W05.stderr",
+    "mode": "100644",
+    "oid": "277b7f9ed5941b29fd90d057bf4f4c7e7d4f0788"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W05.stdout",
+    "mode": "100644",
+    "oid": "a1f1776aa331cf184dedbab9967b1234d9ba8b75"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W06.stderr",
+    "mode": "100644",
+    "oid": "df24aadcaa8148689ca8539a97a94ea9f2f42f6e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W07.stderr",
+    "mode": "100644",
+    "oid": "fbea1ace6b45c1d3ee97bb3b31e2e8c22a3f1304"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W07.stdout",
+    "mode": "100644",
+    "oid": "f8603a9bff7c565c39f94699f00be6aa4a2bc595"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W08.stderr",
+    "mode": "100644",
+    "oid": "3eeb0df5cf66a6b05b5aa740c337caba998b1928"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W09.stderr",
+    "mode": "100644",
+    "oid": "95b9fc15b6008407e3db59eb36d4e5cd4daafebb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W10.stderr",
+    "mode": "100644",
+    "oid": "cab9239468c5f6fa31ae8a38b5434949d9eee6d7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W10.stdout",
+    "mode": "100644",
+    "oid": "b9925798c8dac951df17e99728392d14f7eeb0e7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W11.stderr",
+    "mode": "100644",
+    "oid": "becbe2aa859767fde732646ebf49b3ccfce8e96e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W11.stdout",
+    "mode": "100644",
+    "oid": "be903c6eba026b266cfcab4eea1d6ec9db3b3365"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W12.stderr",
+    "mode": "100644",
+    "oid": "29f794b4a3837a43d38dab45434345c00a4f2150"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W12.stdout",
+    "mode": "100644",
+    "oid": "29ef6a85a6689fbe344059672f4ce1e6538cd087"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W13.stderr",
+    "mode": "100644",
+    "oid": "0dfd86b10880f3b76aad865a367c3f91d4f7095e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W13.stdout",
+    "mode": "100644",
+    "oid": "0497b412112330ecaee4b6dbd6984027a5177348"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W14.stderr",
+    "mode": "100644",
+    "oid": "5733f5c9413137c9af84eaca27c53a80c51310b8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W14.stdout",
+    "mode": "100644",
+    "oid": "0eac43d88ec117bef578efb2f7b28f6c6dece586"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W15.stderr",
+    "mode": "100644",
+    "oid": "311668d7b8ee000cdf926859fdba37d5c0f88b77"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W16.stderr",
+    "mode": "100644",
+    "oid": "a8957c39a42341e25af4c77de5a910ec6e82a3f0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W17.stderr",
+    "mode": "100644",
+    "oid": "94e04721b8556aaf2e70c9c9ec0f472fb9ae8ab6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W17.stdout",
+    "mode": "100644",
+    "oid": "b01c77b6cf332df00f8fa1b07483482d0444f23e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W18.stderr",
+    "mode": "100644",
+    "oid": "f2ba62c56c2e99cabe2ec72050584262c6744691"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W18.stdout",
+    "mode": "100644",
+    "oid": "e33a29ee2cca6cb88bd40641aa5a514c2ba9bf32"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W19.stderr",
+    "mode": "100644",
+    "oid": "405ca364bab00b821411e4e97e9d4cdb721ea844"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W19.stdout",
+    "mode": "100644",
+    "oid": "2ebe3320275ce0a2df2ba33d18a18b26ef9c6b1e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W20.stderr",
+    "mode": "100644",
+    "oid": "5ebbe90f51bc8a8ef7fe8a64490834fe6b7f8376"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W20.stdout",
+    "mode": "100644",
+    "oid": "62f026d637ab9d83514426da414b068e73f12235"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W21.stderr",
+    "mode": "100644",
+    "oid": "201a71c64f9f41e83b1567981d05dc89ca0d15ee"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W21.stdout",
+    "mode": "100644",
+    "oid": "e7650f5dfad28acc99d7da07d194b81f6c37a6ff"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W22.stderr",
+    "mode": "100644",
+    "oid": "65b765c03cd0484406ff2b8d99c8fab5ac8611b7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W22.stdout",
+    "mode": "100644",
+    "oid": "4415eb731cf50ebd8f8f879b941a846d78b1e39b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W23.stderr",
+    "mode": "100644",
+    "oid": "beb3985862d3f1f909270c37d29fff55336ab475"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W23.stdout",
+    "mode": "100644",
+    "oid": "58ade66c251ed6d20451a7aea6278ff5c9e0cfc1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W24.stderr",
+    "mode": "100644",
+    "oid": "c94fc6e17ab4029855797f3015ecbfa4e5864fd9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W25.stderr",
+    "mode": "100644",
+    "oid": "3fad145860cc670373a6bc6a1fbe6de8027e3a16"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W25.stdout",
+    "mode": "100644",
+    "oid": "b7ffcdca841b922fe497605af0b7a74b0c90e592"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W26.stderr",
+    "mode": "100644",
+    "oid": "a1308888cb7ada10a9ba0fa22630ec16671184db"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W27.stderr",
+    "mode": "100644",
+    "oid": "67b53f9c7292e32dedc529eab83c35f1526dff48"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-focused.stderr",
+    "mode": "100644",
+    "oid": "05b9760e398543ad8979fd345da0b8260ada2883"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-installed-focused.stdout",
+    "mode": "100644",
+    "oid": "824ca08f9ef8133a2691249cd54bcdd781d30e00"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-builtin-edge.stderr",
+    "mode": "100644",
+    "oid": "e6b157c563774b2aefc61204ff275f95c24d7c0f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-builtin-edge.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-missing-receipt.stderr",
+    "mode": "100644",
+    "oid": "d2372bc9a42cb1e0046b83480cebd3acb3f60554"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-missing-receipt.stdout",
+    "mode": "100644",
+    "oid": "7ef22e9a431ad0272713b71fdc8794016c8ef12f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-package-fallback.stderr",
+    "mode": "100644",
+    "oid": "68b28e50e0d6bc83d462e186628b69ee00c81bd4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-package-fallback.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-pass-nonzero.stderr",
+    "mode": "100644",
+    "oid": "406132fc5859b287cd786d925b63d5ec946ce189"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-pass-nonzero.stdout",
+    "mode": "100644",
+    "oid": "7ef22e9a431ad0272713b71fdc8794016c8ef12f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-source-fallback.stderr",
+    "mode": "100644",
+    "oid": "b17c11c7d381de04c5f480ebb9424b1ffa02e988"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-source-fallback.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-tamper.stderr",
+    "mode": "100644",
+    "oid": "b86adbd8771507105202ffaacb4f42362afd296f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-load-negative-tamper.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W01.stderr",
+    "mode": "100644",
+    "oid": "cc0d6b756b7c6f56e71d298966727615861bc2e4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W02.stderr",
+    "mode": "100644",
+    "oid": "9c77ae6e42bf0aaeb0ca3d66cbcc285eae97bfd1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W02.stdout",
+    "mode": "100644",
+    "oid": "387d1f7e25d13654f9a6143ff7dac954fcc3670f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W03.stderr",
+    "mode": "100644",
+    "oid": "0e249f6f34d63a65e774130da1eaa255b25d55c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W04.stderr",
+    "mode": "100644",
+    "oid": "0c341cc0fb5e3c89624dc138cd0a3fac4b710243"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W05.stderr",
+    "mode": "100644",
+    "oid": "202a4aca0b9c585340ac16e1fd57fb2aaf0ef2ee"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W05.stdout",
+    "mode": "100644",
+    "oid": "a1f1776aa331cf184dedbab9967b1234d9ba8b75"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W06.stderr",
+    "mode": "100644",
+    "oid": "c27f62ea6978a384a076cece6c2cdd02f68daf77"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W07.stderr",
+    "mode": "100644",
+    "oid": "0b223047635f19c617ee01f7f9ba12047c229446"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W07.stdout",
+    "mode": "100644",
+    "oid": "f8603a9bff7c565c39f94699f00be6aa4a2bc595"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W08.stderr",
+    "mode": "100644",
+    "oid": "064e0609d412413c7d7ed0d55fe9b2d57e9f15f8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W09.stderr",
+    "mode": "100644",
+    "oid": "a4203e94b1fdf5f40a207ab0989ed182f219275b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W10.stderr",
+    "mode": "100644",
+    "oid": "a7dd2ef1f488c90f091a3c8bea4147aaf4d82df1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W10.stdout",
+    "mode": "100644",
+    "oid": "b9925798c8dac951df17e99728392d14f7eeb0e7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W11.stderr",
+    "mode": "100644",
+    "oid": "b7f89c7a186b4d3f3c3d346a16094f7f3f146a0c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W11.stdout",
+    "mode": "100644",
+    "oid": "be903c6eba026b266cfcab4eea1d6ec9db3b3365"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W12.stderr",
+    "mode": "100644",
+    "oid": "ecb5f57b462464f406eac52efc82686d35514d1a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W12.stdout",
+    "mode": "100644",
+    "oid": "29ef6a85a6689fbe344059672f4ce1e6538cd087"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W13.stderr",
+    "mode": "100644",
+    "oid": "d7a544b28dbac132e1c9d57ce14efa1327fdc3f3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W13.stdout",
+    "mode": "100644",
+    "oid": "0497b412112330ecaee4b6dbd6984027a5177348"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W14.stderr",
+    "mode": "100644",
+    "oid": "a51154c1c70944cba7f42ee0af33a8040a3730fe"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W14.stdout",
+    "mode": "100644",
+    "oid": "0eac43d88ec117bef578efb2f7b28f6c6dece586"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W15.stderr",
+    "mode": "100644",
+    "oid": "b37a2ce9b1d739007786fdd666e363e43addfde8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W16.stderr",
+    "mode": "100644",
+    "oid": "8299a15e4de962fe0bb35ccdaff33a0cf63b3a4b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W17.stderr",
+    "mode": "100644",
+    "oid": "d2ed68f116b74f70067bfa93d8a4e41c589f2398"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W17.stdout",
+    "mode": "100644",
+    "oid": "b01c77b6cf332df00f8fa1b07483482d0444f23e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W18.stderr",
+    "mode": "100644",
+    "oid": "d7b4080790d912b6bb83ff6b875f9ad3c17a55c9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W18.stdout",
+    "mode": "100644",
+    "oid": "e33a29ee2cca6cb88bd40641aa5a514c2ba9bf32"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W19.stderr",
+    "mode": "100644",
+    "oid": "9602ba58ccf07b8e67796980e6e7efd52a402851"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W19.stdout",
+    "mode": "100644",
+    "oid": "2ebe3320275ce0a2df2ba33d18a18b26ef9c6b1e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W20.stderr",
+    "mode": "100644",
+    "oid": "a921954adbb4c59ae85b40437f0437b417064fe2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W20.stdout",
+    "mode": "100644",
+    "oid": "62f026d637ab9d83514426da414b068e73f12235"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W21.stderr",
+    "mode": "100644",
+    "oid": "2108f4205705d2f2dd59ee4bc43190fdb255a7d8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W21.stdout",
+    "mode": "100644",
+    "oid": "e7650f5dfad28acc99d7da07d194b81f6c37a6ff"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W22.stderr",
+    "mode": "100644",
+    "oid": "b6d260e490c731c089faf41d3ee4080b9971d975"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W22.stdout",
+    "mode": "100644",
+    "oid": "4415eb731cf50ebd8f8f879b941a846d78b1e39b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W23.stderr",
+    "mode": "100644",
+    "oid": "4e0639d1f79cc06415d3e404275f7825a75feb02"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W23.stdout",
+    "mode": "100644",
+    "oid": "58ade66c251ed6d20451a7aea6278ff5c9e0cfc1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W24.stderr",
+    "mode": "100644",
+    "oid": "c39d34bd647e07c61b3f42bf91351276c7a09dd5"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W25.stderr",
+    "mode": "100644",
+    "oid": "7a895f67cb49d0bd2cd6f63eaca07a3f61ae84e2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W25.stdout",
+    "mode": "100644",
+    "oid": "b7ffcdca841b922fe497605af0b7a74b0c90e592"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W26.stderr",
+    "mode": "100644",
+    "oid": "7fddc0adbcb461dc86f3f2f3a1baf4d5dc8ed67b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W27.stderr",
+    "mode": "100644",
+    "oid": "40cfb818f5c44428c0ca888b68187ea5fe3e5537"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-focused.stderr",
+    "mode": "100644",
+    "oid": "250c017620d976843e140e51cab43099b0c59c34"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-moved-focused.stdout",
+    "mode": "100644",
+    "oid": "824ca08f9ef8133a2691249cd54bcdd781d30e00"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-pack.stderr",
+    "mode": "100644",
+    "oid": "5afe8f8c9e9930d304065049da92926aaf8e2488"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-pack.stdout",
+    "mode": "100644",
+    "oid": "aad9c292e2992d4f9e799a1b6e85559d9fee213b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W01.stderr",
+    "mode": "100644",
+    "oid": "fb2aab63470b541d5568a53f6ffc2da05c839296"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W02.stderr",
+    "mode": "100644",
+    "oid": "b14d2b3362dfa602d11d1e7cb06da1084c71c0db"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W02.stdout",
+    "mode": "100644",
+    "oid": "387d1f7e25d13654f9a6143ff7dac954fcc3670f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W03.stderr",
+    "mode": "100644",
+    "oid": "0eb411a0ebc925b0d04b1320fa8b3cbf339123bf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W04.stderr",
+    "mode": "100644",
+    "oid": "732ae2c286621afb858237b225d0680675272fbf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W05.stderr",
+    "mode": "100644",
+    "oid": "429f63a8e828c9e819d55381b4d5425d5da7219f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W05.stdout",
+    "mode": "100644",
+    "oid": "a1f1776aa331cf184dedbab9967b1234d9ba8b75"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W06.stderr",
+    "mode": "100644",
+    "oid": "b7c0fd1d2a9def9b48b38ae63e30437775cb6c1b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W07.stderr",
+    "mode": "100644",
+    "oid": "ded8800001cc4633da0032701012f63fd81fd306"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W07.stdout",
+    "mode": "100644",
+    "oid": "f8603a9bff7c565c39f94699f00be6aa4a2bc595"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W08.stderr",
+    "mode": "100644",
+    "oid": "5ef094df266449cf98951bf8a0719bef54c03e4e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W09.stderr",
+    "mode": "100644",
+    "oid": "ea7e0e7b0f56b230d594f16ad6f17ffbfd834a34"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W10.stderr",
+    "mode": "100644",
+    "oid": "7aec65a7a93139629fabd84d0bea55eb370f116f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W10.stdout",
+    "mode": "100644",
+    "oid": "b9925798c8dac951df17e99728392d14f7eeb0e7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W11.stderr",
+    "mode": "100644",
+    "oid": "d3fc3a201439a69be1ca43824b34eda35f97d6a9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W11.stdout",
+    "mode": "100644",
+    "oid": "be903c6eba026b266cfcab4eea1d6ec9db3b3365"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W12.stderr",
+    "mode": "100644",
+    "oid": "b8d7553458212fe2d7c62e030335a473139d506e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W12.stdout",
+    "mode": "100644",
+    "oid": "29ef6a85a6689fbe344059672f4ce1e6538cd087"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W13.stderr",
+    "mode": "100644",
+    "oid": "86e9da724cb6445a5d5b991a02d9eb09f0780989"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W13.stdout",
+    "mode": "100644",
+    "oid": "0497b412112330ecaee4b6dbd6984027a5177348"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W14.stderr",
+    "mode": "100644",
+    "oid": "51d33a9c005938622900eb575c05713c74361f9e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W14.stdout",
+    "mode": "100644",
+    "oid": "0eac43d88ec117bef578efb2f7b28f6c6dece586"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W15.stderr",
+    "mode": "100644",
+    "oid": "33a6d52765aa247ba9079a324541bb3199e8bd10"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W16.stderr",
+    "mode": "100644",
+    "oid": "50564c6219b064d165c6fc618fc39fba23be29c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W17.stderr",
+    "mode": "100644",
+    "oid": "d40d738e29058ac602ffa7b7abd986e091bd5987"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W17.stdout",
+    "mode": "100644",
+    "oid": "b01c77b6cf332df00f8fa1b07483482d0444f23e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W18.stderr",
+    "mode": "100644",
+    "oid": "bd98cbaf0314de3b3d450e84a3f550f68afc0773"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W18.stdout",
+    "mode": "100644",
+    "oid": "e33a29ee2cca6cb88bd40641aa5a514c2ba9bf32"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W19.stderr",
+    "mode": "100644",
+    "oid": "26567aaf085e85788d8ad501896bc518120d4207"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W19.stdout",
+    "mode": "100644",
+    "oid": "2ebe3320275ce0a2df2ba33d18a18b26ef9c6b1e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W20.stderr",
+    "mode": "100644",
+    "oid": "4345e29321bdc5464b932c5dded11731f24d4493"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W20.stdout",
+    "mode": "100644",
+    "oid": "62f026d637ab9d83514426da414b068e73f12235"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W21.stderr",
+    "mode": "100644",
+    "oid": "3c42c1257430f59dcd680b8e6e2b8abf51bec435"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W21.stdout",
+    "mode": "100644",
+    "oid": "e7650f5dfad28acc99d7da07d194b81f6c37a6ff"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W22.stderr",
+    "mode": "100644",
+    "oid": "acc02ad6d1002a837aedf42f68af083d747f2dd2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W22.stdout",
+    "mode": "100644",
+    "oid": "4415eb731cf50ebd8f8f879b941a846d78b1e39b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W23.stderr",
+    "mode": "100644",
+    "oid": "9779f35bf0e2ad1ec549e625211ea31542368dfb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W23.stdout",
+    "mode": "100644",
+    "oid": "58ade66c251ed6d20451a7aea6278ff5c9e0cfc1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W24.stderr",
+    "mode": "100644",
+    "oid": "87d1370b0f2857669ff04e488a104313f010b84f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W25.stderr",
+    "mode": "100644",
+    "oid": "fe258086f1268905e16b8c9c1ec8cea1366f8665"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W25.stdout",
+    "mode": "100644",
+    "oid": "b7ffcdca841b922fe497605af0b7a74b0c90e592"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W26.stderr",
+    "mode": "100644",
+    "oid": "a08add1133ece013d91369e1bd99dfa7d82c35ff"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W27.stderr",
+    "mode": "100644",
+    "oid": "2131803a3fe7777031511f41917ccca0b3620688"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-focused.stderr",
+    "mode": "100644",
+    "oid": "2cb0708db69b1dc135151cfddfbc94ff1acf98eb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-source-focused.stdout",
+    "mode": "100644",
+    "oid": "824ca08f9ef8133a2691249cd54bcdd781d30e00"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-installed.stderr",
+    "mode": "100644",
+    "oid": "7b742085a2649fd52b62fa91cc00f1ccd4e072b2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-installed.stdout",
+    "mode": "100644",
+    "oid": "8eab45a7727269323d51e6f6ee4c3306e6c92f91"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-moved.stderr",
+    "mode": "100644",
+    "oid": "7921940ad4ed79abbcb055ef5bb1ae57d296f9e7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-moved.stdout",
+    "mode": "100644",
+    "oid": "000a69521e71388232d3e9e00ef9d8cd7ff78163"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-installed.stderr",
+    "mode": "100644",
+    "oid": "cfc52cec222e537c28281d85823877fcd404a92a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-installed.stdout",
+    "mode": "100644",
+    "oid": "24949171af27a1205d49e5409c51864a87040a28"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-moved.stderr",
+    "mode": "100644",
+    "oid": "0744553cd7e3f4ffd6df8508dc9ff8eca9adbe90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-moved.stdout",
+    "mode": "100644",
+    "oid": "993a73f07a2b6dca4102d6d1dda4e3617af2fd73"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-source.stderr",
+    "mode": "100644",
+    "oid": "f38caadc2988ce519a0e54ef5e932b8403bfd0e4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-negative-source.stdout",
+    "mode": "100644",
+    "oid": "944139d6e425da1fb6138f20b0d81e7a64ef3c00"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-source.stderr",
+    "mode": "100644",
+    "oid": "66bffd9fd93951fd9650a24ffd7c47517eb66f5b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/capture/r1-types-source.stdout",
+    "mode": "100644",
+    "oid": "73a38642076c863e3cd0a3bee51c8ab0503e3ae3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/ARCHIVE.json",
+    "mode": "100644",
+    "oid": "5b72cb81ef51dde7afe9c4f9a367b74f89d2f540"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/RAW.json.gz.base64",
+    "mode": "100644",
+    "oid": "4da9c585820e7d0a1b09e7b5183db8ffa81878ab"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/SUMMARY.json",
+    "mode": "100644",
+    "oid": "732ec6984bc86742ad6b6fa36508708a71570de1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/r1-ARCHIVE.json",
+    "mode": "100644",
+    "oid": "dcde895dd23a77a5f90b9dfaa5060e7536b76d81"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/r1-PACKAGE.tgz.base64",
+    "mode": "100644",
+    "oid": "e73223acfc1e1b430a2d05be1fd542f6552e0da1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/r1-RAW.json.gz.base64",
+    "mode": "100644",
+    "oid": "828cc6fdbc2b59d03186548f210504464e3bb634"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/evidence/r1-SUMMARY.json",
+    "mode": "100644",
+    "oid": "f412cec76afdf07c8b973414b74c4a6765aed513"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/RECEIPT-r1.json",
+    "mode": "100644",
+    "oid": "b4f1b1a27e2a8b6c979f25d17a6bc045a1dbe0cd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/RECEIPT.json",
+    "mode": "100644",
+    "oid": "e9dc67b5554f6ac86cd141bf7931f73f5580ab98"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/owner-r1.stderr",
+    "mode": "100644",
+    "oid": "efc6d1786f2c754b177805133b4781f670c35b55"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/owner-r1.stdout",
+    "mode": "100644",
+    "oid": "d007a1748825c4f9a454e9532b9ea403130586ad"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/owner.stderr",
+    "mode": "100644",
+    "oid": "3a56d4aa84f27ba2739f4a7c6b3f390c41aa5f79"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/validation-v2/outer/owner.stdout",
+    "mode": "100644",
+    "oid": "d1974c9b9274c97013f68245a4cb867cc1cb3c06"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v4/workers-v3.mjs",
+    "mode": "100644",
+    "oid": "c9cd8cfc7e54d08574612ee4c5ba0a67b7480016"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/API-v4.md",
+    "mode": "100644",
+    "oid": "1969a66def63d07fa4a52886cc69205f48c3c381"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/BASE-PACKAGE-v1.json",
+    "mode": "100644",
+    "oid": "3d07ac03bfb13ada65a3592229a2e2d7e0634dc2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/BUILTINS-v5.json",
+    "mode": "100644",
+    "oid": "7eceff9f22e954cefcacecbd53ac193071db74d6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/CONTROL-v5.json",
+    "mode": "100644",
+    "oid": "56766b35f4e6de980490898aba728f0f22b88007"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/COVERAGE-v5.json",
+    "mode": "100644",
+    "oid": "8cd8a0155bb806e1ef3a6a4576e23b59ba4625cb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/DISPATCH-AUTHOR-v5.mjs.data",
+    "mode": "100644",
+    "oid": "e218fd190cb4d8702993d26727b8075b1b814201"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/EMISSIONS-v5.json",
+    "mode": "100644",
+    "oid": "7b07d4f5a00799c24a5b7138d0945a0acbae3e62"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/HANDOFF-v5.md",
+    "mode": "100644",
+    "oid": "9266b3ad965c62600c6a97c8f56da7342417e8e3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64",
+    "mode": "100644",
+    "oid": "f88a09f5a792e0bc16a8309e266931d248921f50"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/LOADS-v5.json.gz.base64",
+    "mode": "100644",
+    "oid": "2df1e1e9fbcfd48ef094b5ee0c10f32f29bd9c54"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/MODULE-v5.json",
+    "mode": "100644",
+    "oid": "00d0158ee40d87ddf91253fc41673b825ce0d21a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/MUTATIONS-v5.json",
+    "mode": "100644",
+    "oid": "4f700302b6df767286dd2236b5a91641b4219c34"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/PACKAGE-v5.json",
+    "mode": "100644",
+    "oid": "b95fd186cd20a3af942ac280b3854f6213bee056"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/PARENTS.json",
+    "mode": "100644",
+    "oid": "f17b66a160bbd58a7b2aa21c86eb8c7fb6c0e006"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/PRESEAL-v5.json",
+    "mode": "100644",
+    "oid": "5a865d60431b9d12fef78e302820e2cdc5d7d230"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/RAW-MANIFEST-v5.json",
+    "mode": "100644",
+    "oid": "984d7954aa6cb1f89a13a80680dbbe09c5955424"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/README.md",
+    "mode": "100644",
+    "oid": "a680a8163984ec53ff19fedad4bec2dfdd829149"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/RESULTS-v5.json",
+    "mode": "100644",
+    "oid": "612a867218107fb850280490c90ad461e5052ade"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/ROOT-GRANT-v5.json",
+    "mode": "100644",
+    "oid": "b0d8d07fc3c1afe31c859a3a61a33567f6f416ea"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/STARTUP-QUALIFICATION-v4.json",
+    "mode": "100644",
+    "oid": "02a63e877934cf1a87bc0f95e1d531ebdba1665e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/WORKER-CASES-v5.json",
+    "mode": "100644",
+    "oid": "f457c01c8463852292fc860e8afc37e985de4d67"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/capture-v1.mjs",
+    "mode": "100644",
+    "oid": "f36f76c3fdd9bd4323010c303f3455e1f3389a90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/case-runner-v5.mjs",
+    "mode": "100644",
+    "oid": "5eaefc2ca696a18e22a5c630178bc6eb5ac94378"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-noise-v1.mjs",
+    "mode": "100644",
+    "oid": "9bba58bcefe1c4f82ee0f847fba05202c4d50ec0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+    "mode": "100644",
+    "oid": "18cf64b44ccdcc9ccfcfc015293d6feb13146181"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/focused-v5.mjs",
+    "mode": "100644",
+    "oid": "ec3be08e12821500d491766af15b3e6e2fc293be"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/host-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "3f44a82587227a1ab215ff6ee00878b40891e0a8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/judge-v5.mjs",
+    "mode": "100644",
+    "oid": "d7beb75189c35dcaf8651bd5851894b968b1916d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/load-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "8252bd3206bcecacfbcb43743f950f8637564fa6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/load-negative-v1.mjs.data",
+    "mode": "100644",
+    "oid": "a6a7349b8d92434b325743900d36a644a5f5ff6d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/owner-v5.mjs",
+    "mode": "100644",
+    "oid": "fb31637c904d0650703d74c382b27d699f7d3d3d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/startup-capture-v3.mjs",
+    "mode": "100644",
+    "oid": "da569fdcd5ab21762a44e57f803ef244dac83f08"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/startup-owner-v5.mjs",
+    "mode": "100644",
+    "oid": "f85cf36d0f09610a0655f0660ab7a26da1a9f0ac"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/types-v1.mts.data",
+    "mode": "100644",
+    "oid": "6ea311bc15d76f28e395a2a39e2ef08737103741"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/journal-r1.jsonl",
+    "mode": "100644",
+    "oid": "07fbff607d5b0054dedff81da0ef146599358207"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-M05-mutant-focused.stderr",
+    "mode": "100644",
+    "oid": "911c9af55cf23b0da249f0f34df76c487718103d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-M05-mutant-focused.stdout",
+    "mode": "100644",
+    "oid": "dd0a9c4307e68a53e187c33f06ec8f9da8f65349"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-M05-restore-focused.stderr",
+    "mode": "100644",
+    "oid": "0fb22e04d3e085b4a12c6c9b39a373e2bf06f446"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-M05-restore-focused.stdout",
+    "mode": "100644",
+    "oid": "b54c497f20ae99dfad91efbf9369fe7d258de0c3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-build.stderr",
+    "mode": "100644",
+    "oid": "8549cb1f38840c4bc47b4547496ad35130c02e89"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-build.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-install.stderr",
+    "mode": "100644",
+    "oid": "629293ba7b6811f619b8abdee9d2186b21c4084c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-install.stdout",
+    "mode": "100644",
+    "oid": "60fe35450566db03a83e9e209550287d93b552ca"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W01.stderr",
+    "mode": "100644",
+    "oid": "3cacaef93e27e83cd03efe70130882967901e0a2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W03.stderr",
+    "mode": "100644",
+    "oid": "ab3639358e2e83f13451bdb0e620713094872344"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W04.stderr",
+    "mode": "100644",
+    "oid": "3340ee163376dec548ca5829d51123952c4663fa"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W05.stderr",
+    "mode": "100644",
+    "oid": "c5fef1a5c0325f727a5b341448e22557741a9201"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W05.stdout",
+    "mode": "100644",
+    "oid": "459471890a58afe9d154b30ef3459b8892296f92"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W06.stderr",
+    "mode": "100644",
+    "oid": "d2f2a2d7b9b2a3f05f8f6d8b16b0ae697bc67a1d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W08.stderr",
+    "mode": "100644",
+    "oid": "5fa138df501637cd3b9a2787be83dbdd24b598b6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W09.stderr",
+    "mode": "100644",
+    "oid": "1183e8705ef51f35ddc2c86ecdccb43c77113d14"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W15.stderr",
+    "mode": "100644",
+    "oid": "51e2a0b024930be53302759ded692f6bef15be54"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W16.stderr",
+    "mode": "100644",
+    "oid": "ab205e5efa734cc5ee9edbff1f83dc43856a6796"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W23-v2.stderr",
+    "mode": "100644",
+    "oid": "f65bca7909606c00c4f06d057bf1f33444efecef"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W23-v2.stdout",
+    "mode": "100644",
+    "oid": "cceacccfd6ed010ef467f18e3b4e9aa2f2d7fffd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W24.stderr",
+    "mode": "100644",
+    "oid": "19037631aad8a13eab47a6bc4cfa5a67b1ba3cc3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W26.stderr",
+    "mode": "100644",
+    "oid": "7796ce2dcdb12c84895801fee0839a5308e8d97a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W27.stderr",
+    "mode": "100644",
+    "oid": "6e6897f37e3ffb903e860973c6a46a8c9bb3a796"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W28.stderr",
+    "mode": "100644",
+    "oid": "bd664ce27543af3cc00797a9773677ff7e1002d8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W28.stdout",
+    "mode": "100644",
+    "oid": "9f286d6ed2a1348223ed78fb01ba8442df96e67b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W29.stderr",
+    "mode": "100644",
+    "oid": "1909123b443bddd1b2c7c6aa581521a8db3c129c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-W29.stdout",
+    "mode": "100644",
+    "oid": "d38bd88a9dc85787b3c66112f42f18913da87272"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-focused.stderr",
+    "mode": "100644",
+    "oid": "5b5822ac850656f9e2622a72a0e0e43077014327"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-installed-focused.stdout",
+    "mode": "100644",
+    "oid": "b54c497f20ae99dfad91efbf9369fe7d258de0c3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-builtin-edge.stderr",
+    "mode": "100644",
+    "oid": "2c32313fc3f123ccb81afec8637a098d602c2ff5"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-builtin-edge.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-missing-receipt.stderr",
+    "mode": "100644",
+    "oid": "4554481023b925cdd3c62db7fad5e5fd943ab47f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-missing-receipt.stdout",
+    "mode": "100644",
+    "oid": "7ef22e9a431ad0272713b71fdc8794016c8ef12f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-package-fallback.stderr",
+    "mode": "100644",
+    "oid": "e476142f785be5752e847ddce96902002aa4a8b8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-package-fallback.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-pass-nonzero.stderr",
+    "mode": "100644",
+    "oid": "2610d6d83b54e3fd00f0c52f54b4baa0008bd35c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-pass-nonzero.stdout",
+    "mode": "100644",
+    "oid": "7ef22e9a431ad0272713b71fdc8794016c8ef12f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-source-fallback.stderr",
+    "mode": "100644",
+    "oid": "614c9cac5237c536c477aa1ce5933568aca94b29"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-source-fallback.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-tamper.stderr",
+    "mode": "100644",
+    "oid": "e9e6cc6965953cc76c269e3b0059fc395407cfee"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-load-negative-tamper.stdout",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W01.stderr",
+    "mode": "100644",
+    "oid": "bb91e3be9dec19ab3e410d4199ee8eca3f715f5a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W03.stderr",
+    "mode": "100644",
+    "oid": "bb9aa92f8f63af2e110991a53c2b99130918664a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W04.stderr",
+    "mode": "100644",
+    "oid": "45b01ecd00bb3d26869f220fcb3f84cae4ae644a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W05.stderr",
+    "mode": "100644",
+    "oid": "3f27227339ba762053dc6698ebb526f552f0727b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W05.stdout",
+    "mode": "100644",
+    "oid": "459471890a58afe9d154b30ef3459b8892296f92"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W06.stderr",
+    "mode": "100644",
+    "oid": "f58a479a0019fa6fb7c01df29ffaf9bba4ee2afb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W08.stderr",
+    "mode": "100644",
+    "oid": "50d1254b704223df7b3168bd887e1daf02cc3c35"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W09.stderr",
+    "mode": "100644",
+    "oid": "6c2618f34c00baedf66fcfc8bda0574fee003183"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W15.stderr",
+    "mode": "100644",
+    "oid": "04085aad8c5f5facced80113f227fd123f870b43"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W16.stderr",
+    "mode": "100644",
+    "oid": "238eb9a7e4112bf14feb6853dd93c0ac3dc11526"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W23-v2.stderr",
+    "mode": "100644",
+    "oid": "a0c04e818bed6b5234c28a87f74a3088da6cc118"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W23-v2.stdout",
+    "mode": "100644",
+    "oid": "cceacccfd6ed010ef467f18e3b4e9aa2f2d7fffd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W24.stderr",
+    "mode": "100644",
+    "oid": "61eb61c391647efa87100dce5aca62768ef73759"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W26.stderr",
+    "mode": "100644",
+    "oid": "a6db48ee5bd620696e86d3e36f2f5d61a7d87ca0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W27.stderr",
+    "mode": "100644",
+    "oid": "90a5aa0367d822fdcb2b5c4efd09093741c49518"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W28.stderr",
+    "mode": "100644",
+    "oid": "de745563b0ea8757036c0712d411efed31e5cc91"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W28.stdout",
+    "mode": "100644",
+    "oid": "9f286d6ed2a1348223ed78fb01ba8442df96e67b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W29.stderr",
+    "mode": "100644",
+    "oid": "20aebf14c6b1a086471ae66acaf21b20070e2c6e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-W29.stdout",
+    "mode": "100644",
+    "oid": "d38bd88a9dc85787b3c66112f42f18913da87272"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-focused.stderr",
+    "mode": "100644",
+    "oid": "4558816c3789ea5acc0bef5e4c709fcc6a1b56a3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-moved-focused.stdout",
+    "mode": "100644",
+    "oid": "b54c497f20ae99dfad91efbf9369fe7d258de0c3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-pack.stderr",
+    "mode": "100644",
+    "oid": "661a88f1a8d18bf85a94155ae7296ef99bdc64e3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-pack.stdout",
+    "mode": "100644",
+    "oid": "c540d0a48fe0373a2b872ab4d863a90e1f684e20"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W01.stderr",
+    "mode": "100644",
+    "oid": "93c3de9c6dac1d1836787a42d0cb1e53acc50f3c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W01.stdout",
+    "mode": "100644",
+    "oid": "1ea05f96bafaca729ed389da55e51f578ea5e79d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W03.stderr",
+    "mode": "100644",
+    "oid": "0530a38dccb69c2a5625250aed92e1472f6f9d13"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W03.stdout",
+    "mode": "100644",
+    "oid": "468bc141d7b45002524d60d3acee6efd592575c4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W04.stderr",
+    "mode": "100644",
+    "oid": "8050f49f6d3e80f991cc51400f335c6f7d70418d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W04.stdout",
+    "mode": "100644",
+    "oid": "5f801d30d85350e49631cce79849bf6bc55cd875"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W05.stderr",
+    "mode": "100644",
+    "oid": "e551d36a075cdac3b69ef7710923ff7eaa3d4fc7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W05.stdout",
+    "mode": "100644",
+    "oid": "459471890a58afe9d154b30ef3459b8892296f92"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W06.stderr",
+    "mode": "100644",
+    "oid": "ac1655e8969e8cf731cbf8a6cadb32d49aed24d6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W06.stdout",
+    "mode": "100644",
+    "oid": "f1c846b2ca99b9e0cae9c52be3ff55c83213f02f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W08.stderr",
+    "mode": "100644",
+    "oid": "27b3d852fd8930a1e670338b565567a9d6882510"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W08.stdout",
+    "mode": "100644",
+    "oid": "be9a7e1ccd2ff5bad179b6f3e59dc6c1c5cda18a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W09.stderr",
+    "mode": "100644",
+    "oid": "280c06671b74c22d791c8fa2f0cde90f1a1738e9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W09.stdout",
+    "mode": "100644",
+    "oid": "01d31aa1479316cfd242f4aaa9346ed5b8ebad72"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W15.stderr",
+    "mode": "100644",
+    "oid": "9763da577a2559eb719b729eea00e18ddb75fa8b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W15.stdout",
+    "mode": "100644",
+    "oid": "47b87a68b267ad6bf8e1e098cfb5e96f8f512d39"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W16.stderr",
+    "mode": "100644",
+    "oid": "ae3442ffe7f6e0f2034f07c7ae4af346b426c479"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W16.stdout",
+    "mode": "100644",
+    "oid": "0f29a71bb931eff0f7c2ab487c8393389f4d3b0a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W23-v2.stderr",
+    "mode": "100644",
+    "oid": "8564e162e30d112db524e4f89a5178918f0aeaee"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W23-v2.stdout",
+    "mode": "100644",
+    "oid": "cceacccfd6ed010ef467f18e3b4e9aa2f2d7fffd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W24.stderr",
+    "mode": "100644",
+    "oid": "5cdab024a1b4b77c5f39dfdf9b2ada99a31bf982"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W24.stdout",
+    "mode": "100644",
+    "oid": "48e31ac61fe03da7a949f04ee8397c1802fa22c6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W26.stderr",
+    "mode": "100644",
+    "oid": "18ba6579960024041b726e1aec74a33438d45116"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W26.stdout",
+    "mode": "100644",
+    "oid": "7c786463b9a563c021ae9989d6669c916c2a4675"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W27.stderr",
+    "mode": "100644",
+    "oid": "c8554f780b3743c25dfc91f24d215927c962efb6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W27.stdout",
+    "mode": "100644",
+    "oid": "7b5b562251063678ca02abe364c3f737acd27e61"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W28.stderr",
+    "mode": "100644",
+    "oid": "883c57111445166f18334db395ec50f6c0bc53de"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W28.stdout",
+    "mode": "100644",
+    "oid": "9f286d6ed2a1348223ed78fb01ba8442df96e67b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W29.stderr",
+    "mode": "100644",
+    "oid": "60ac46563d01c26d1603f460b4a056fa049e7a7b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-W29.stdout",
+    "mode": "100644",
+    "oid": "d38bd88a9dc85787b3c66112f42f18913da87272"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-focused.stderr",
+    "mode": "100644",
+    "oid": "fcef51a41acf98888f100057163c37ba0510c5cf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-source-focused.stdout",
+    "mode": "100644",
+    "oid": "b54c497f20ae99dfad91efbf9369fe7d258de0c3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-installed.stderr",
+    "mode": "100644",
+    "oid": "b218181ee35a3d2116bc5e6427fcf68e50416133"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-installed.stdout",
+    "mode": "100644",
+    "oid": "80439219716b14a289fd6f4fa89e4792c3a3861e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-moved.stderr",
+    "mode": "100644",
+    "oid": "9bd588ba5b45b2e19cbceec24959a1f36166efc1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-moved.stdout",
+    "mode": "100644",
+    "oid": "97780ac68fd3a9646197737da9229ba4d4d26489"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-installed.stderr",
+    "mode": "100644",
+    "oid": "18ca51cf264c467d8510523198544f499f866709"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-installed.stdout",
+    "mode": "100644",
+    "oid": "ad0fc66f919e5cd113599bef405e8a9b9d79f2df"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-moved.stderr",
+    "mode": "100644",
+    "oid": "ccf0ab221bf05e71be3e7834f15897013ad5ec46"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-moved.stdout",
+    "mode": "100644",
+    "oid": "c45f347386cd595b87b6ce469f9e1470f4ffb72c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-source.stderr",
+    "mode": "100644",
+    "oid": "1d2a86252388f10e4f5f22dc3fa438562cb95ebd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-negative-source.stdout",
+    "mode": "100644",
+    "oid": "2697aa8ff1bb421b2c91f08ddd0a12b6d3317116"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-source.stderr",
+    "mode": "100644",
+    "oid": "051b6f935ec07a5e9cef2d28fa07eed6c8aa5798"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture/r1-types-source.stdout",
+    "mode": "100644",
+    "oid": "e1c96a27c60f0205334a51c5dd9f84577be6436b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/evidence/r1-ARCHIVE.json",
+    "mode": "100644",
+    "oid": "361efd317a3350037f2847d7949a5d0ec0d7da6d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/evidence/r1-PACKAGE.tgz.base64",
+    "mode": "100644",
+    "oid": "529a931c3cb4a1d776d16d0542fd37b92957f2d0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/evidence/r1-RAW.json.gz.base64",
+    "mode": "100644",
+    "oid": "e6386618c37336b45ff75f4452e08e5c6ba3c8d7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/evidence/r1-SUMMARY.json",
+    "mode": "100644",
+    "oid": "1d1337b972be77137942f884c12dd751ba9e1433"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/outer/RECEIPT-r1.json",
+    "mode": "100644",
+    "oid": "66f1e69f091568c276c76d5512cc3bafab603db7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/outer/owner-r1.stderr",
+    "mode": "100644",
+    "oid": "0000bd321b7d00851897fdda16b537fd6decdf6f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/outer/owner-r1.stdout",
+    "mode": "100644",
+    "oid": "340cf6b2216a331a2fa92ce33fb94d8707df2802"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/workers-v5.mjs",
+    "mode": "100644",
+    "oid": "48ccf8528bacab3181ad15811edbbabd2fb54108"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap-preflight/RECEIPT.json",
+    "mode": "100644",
+    "oid": "4acb3255d494339862583e8f2e41ab04791b750d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap-preflight/launcher.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap-preflight/launcher.stdout",
+    "mode": "100644",
+    "oid": "cf45e0a9d4eda24ec70baae79ff132194fd1b4f1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap/RECEIPT.json",
+    "mode": "100644",
+    "oid": "cb0977917a1245427814f1b2d492f324bb61fa1e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap/launcher.stderr",
+    "mode": "100644",
+    "oid": "02725453dd5bc08cc047a9f3c539731cb186a007"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/bootstrap/launcher.stdout",
+    "mode": "100644",
+    "oid": "e818b29cc044ec89a9e48cf52fbf32646136556a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/capture/build.stderr",
+    "mode": "100644",
+    "oid": "aeb5c6097528a4dc1c00d9a56ac5fd572ae76d08"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/capture/build.stdout",
+    "mode": "100644",
+    "oid": "3e6308e56b253b980dfc02a3ef2bb5cec16bdb93"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/capture/journal.jsonl",
+    "mode": "100644",
+    "oid": "236ac31df1bdcf80342fa42b975b2cc051c42bcb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/evidence/ARCHIVE.json",
+    "mode": "100644",
+    "oid": "2b639037bf9e5a941c768a06bc704d3e0ef4c4d4"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/evidence/RAW.json.gz.base64",
+    "mode": "100644",
+    "oid": "09ed63401d0dec803053f9c398b0c46deb039dfb"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/evidence/SUMMARY.json",
+    "mode": "100644",
+    "oid": "08c3f4f7ee61546efa03d27ce2c09c82ca6150dd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/outer/RECEIPT.json",
+    "mode": "100644",
+    "oid": "e818b29cc044ec89a9e48cf52fbf32646136556a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/outer/owner.stderr",
+    "mode": "100644",
+    "oid": "0772eb7b2d0f8c2f0750ba4ef9d4123616dc518b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/outer/owner.stdout",
+    "mode": "100644",
+    "oid": "d1974c9b9274c97013f68245a4cb867cc1cb3c06"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/preflight/RECEIPT.json",
+    "mode": "100644",
+    "oid": "cf45e0a9d4eda24ec70baae79ff132194fd1b4f1"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/ACTIVATION-v2.mjs.data",
+    "mode": "100644",
+    "oid": "92fae430c13aace167d754f0869e328845920271"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/API-v4.md",
+    "mode": "100644",
+    "oid": "1969a66def63d07fa4a52886cc69205f48c3c381"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/BASE-PACKAGE-v1.json",
+    "mode": "100644",
+    "oid": "3d07ac03bfb13ada65a3592229a2e2d7e0634dc2"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/BUILTINS-v2.json",
+    "mode": "100644",
+    "oid": "b47e5a67c67ff30b9e78c249eafbedc36021d87b"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/CONTROL-v2.json",
+    "mode": "100644",
+    "oid": "32b6ca32deb13c0f3d07ac4d1afd318fe99d7034"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/INPUTS-v1.json.gz.base64",
+    "mode": "100644",
+    "oid": "f88a09f5a792e0bc16a8309e266931d248921f50"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/MODULE-v4.json",
+    "mode": "100644",
+    "oid": "e94f3bf464cc38b5eb9124c887735a3d809b6874"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/MUTATIONS-v1.json",
+    "mode": "100644",
+    "oid": "938740e7720f75d1a29d62a02e4a13f957b2c5ba"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/PRESEAL-v2.json",
+    "mode": "100644",
+    "oid": "48c4ffefce171dfebcf56ed0647035ced617a98a"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/REPAIR.json",
+    "mode": "100644",
+    "oid": "eabd0a3a272d8c7ac99c26a3e2d664bef55fb629"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/WORKER-CASES-v1.json",
+    "mode": "100644",
+    "oid": "5c460d309852cadaf268f2d50674232aff570bed"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/capture-v1.mjs",
+    "mode": "100644",
+    "oid": "f36f76c3fdd9bd4323010c303f3455e1f3389a90"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/case-runner-v1.mjs",
+    "mode": "100644",
+    "oid": "9bc7f41ef1d016e7b05a45fe11b3a82ea058f6e9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/engine-adapter-noise-v1.mjs",
+    "mode": "100644",
+    "oid": "9bba58bcefe1c4f82ee0f847fba05202c4d50ec0"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/engine-adapter-v1.mjs",
+    "mode": "100644",
+    "oid": "18cf64b44ccdcc9ccfcfc015293d6feb13146181"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/focused-v2.mjs",
+    "mode": "100644",
+    "oid": "e1df71e76a64d424efc21bfb05d12d0866edd432"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/host-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "3f44a82587227a1ab215ff6ee00878b40891e0a8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/judge-v1.mjs",
+    "mode": "100644",
+    "oid": "0725c9a67426e24a7a7ab864449b6b40a16c8267"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/launcher-v2.mjs",
+    "mode": "100644",
+    "oid": "b81f3c9d9f026ffa4c3a75d06b6e13ac06db622e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/load-guard-v1.mjs",
+    "mode": "100644",
+    "oid": "8252bd3206bcecacfbcb43743f950f8637564fa6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/load-negative-v1.mjs.data",
+    "mode": "100644",
+    "oid": "a6a7349b8d92434b325743900d36a644a5f5ff6d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/owner-v2.mjs",
+    "mode": "100644",
+    "oid": "f2c1b22b7060e55eebd9843d26d6a9e227ae96f9"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/types-v1.mts.data",
+    "mode": "100644",
+    "oid": "6ea311bc15d76f28e395a2a39e2ef08737103741"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/revision-1/workers-v1.mjs",
+    "mode": "100644",
+    "oid": "bdb1e3a6671c0c3c2247a8622abf647b43b3e19f"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.RECEIPT.json",
+    "mode": "100644",
+    "oid": "f216c224206087646c70dc26d21cd98fea8e7591"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.stderr",
+    "mode": "100644",
+    "oid": "934d6e09f98d1cc0ad92df4317a454b0a02a718c"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.stdout",
+    "mode": "100644",
+    "oid": "44056ef5b89a2ca0f43178bac99f726860591286"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v3-prep.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v3-prep.stdout",
+    "mode": "100644",
+    "oid": "4efbda77e5978a9abe7b5b1e0c494f3b8442ed5e"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-author.RECEIPT.json",
+    "mode": "100644",
+    "oid": "cfe95def796ddf4611e8630f75080288b7389cb5"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-author.stderr",
+    "mode": "100644",
+    "oid": "1cd4502bf72d983a78f518c65aa681abbeafbd2d"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-author.stdout",
+    "mode": "100644",
+    "oid": "e9dc67b5554f6ac86cd141bf7931f73f5580ab98"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-controls.RECEIPT.json",
+    "mode": "100644",
+    "oid": "db3fc9af3010068510c1b449ebdc724b5e1d84cf"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-controls.stderr",
+    "mode": "100644",
+    "oid": "35a8d1d6a0d73e53059fe1beebf879076049edf3"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-controls.stdout",
+    "mode": "100644",
+    "oid": "42eae65af512e08c9d659e3adc93787e34341f95"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-prep.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-prep.stdout",
+    "mode": "100644",
+    "oid": "1fc5234841ff75aea5a929f05d65cf5d708aad04"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-r1-author.RECEIPT.json",
+    "mode": "100644",
+    "oid": "9f1e358e95a407fd430bba44835172d5adb64024"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-r1-author.stderr",
+    "mode": "100644",
+    "oid": "b23253055a98c963e20094f006c62c122a9bee54"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v4-r1-author.stdout",
+    "mode": "100644",
+    "oid": "b4f1b1a27e2a8b6c979f25d17a6bc045a1dbe0cd"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v5-author.RECEIPT.json",
+    "mode": "100644",
+    "oid": "931151dca9dfa963e5fcb0b3f68d7fa148fdc133"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v5-author.stderr",
+    "mode": "100644",
+    "oid": "d7642c9759f1b48f2fa67447e85edbcd5c72c6a6"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v5-author.stdout",
+    "mode": "100644",
+    "oid": "66f1e69f091568c276c76d5512cc3bafab603db7"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v5-prep.stderr",
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/validation-v2/v5-prep.stdout",
+    "mode": "100644",
+    "oid": "85a7eec83eb5dfe846856313e6b93d78b9d538a8"
+  },
+  {
+    "path": "tests/commands/node-author-20260829/workers-v1.mjs",
+    "mode": "100644",
+    "oid": "bdb1e3a6671c0c3c2247a8622abf647b43b3e19f"
+  }
+]

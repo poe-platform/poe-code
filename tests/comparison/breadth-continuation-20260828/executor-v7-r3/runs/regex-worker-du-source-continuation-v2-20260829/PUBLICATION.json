@@ -1,0 +1,47 @@
+{
+  "receipts": [
+    {
+      "id": "add",
+      "pid": 24100,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "capturesClosed": true
+    },
+    {
+      "id": "commit",
+      "pid": 24102,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "capturesClosed": true
+    }
+  ],
+  "processesThroughControllerAndGit": 41,
+  "evidenceManifestSha256": "535bfb79a9e2fd34d89abdeaa52504de573ae7e65884e6ff17ff1ed27aa02232",
+  "finalPublicationToolsRemaining": 6,
+  "sourceEvidenceCommit": "6e3765bf1f5c268ddd774c766fb10a20332e07af",
+  "presealCommit": "7b7a9cc7f1e8ef6b728d1c377f1dfb675156d4ff",
+  "publicationInspection": {
+    "knownProcessesThroughLookup": 43,
+    "lookup": {
+      "pid": 24396,
+      "status": 0,
+      "signal": null,
+      "stdout": "6e3765bf1f5c268ddd774c766fb10a20332e07af\n7b7a9cc7f1e8ef6b728d1c377f1dfb675156d4ff\n",
+      "stderr": "",
+      "error": null
+    },
+    "remainingFourGitTools": [
+      "add explicit publication paths",
+      "commit --only explicit publication paths",
+      "log owned publication commit",
+      "status owned scope"
+    ],
+    "plannedTotalKnownProcesses": 47
+  }
+}

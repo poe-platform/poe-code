@@ -1,0 +1,236 @@
+{
+  "target": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "pack": {
+    "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "bytes": 749907,
+    "mode": 420,
+    "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+  },
+  "binaryHashOnly": true,
+  "fullArchiveReproduction": false,
+  "projectionSeal": {
+    "path": "../executor-v3/PROJECTION.json",
+    "bytes": 812576,
+    "mode": 420,
+    "sha256": "f4061034b88d36ff4fbed942a11447a6f690320c0cf13630c5910322a2e9bbcb",
+    "role": "inherited-immutable-input"
+  },
+  "public80": {
+    "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+    "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "staticClosure": true
+  },
+  "closureProof": [
+    {
+      "layout": "target-installed",
+      "path": "dist/commands/regex-execution/worker.js",
+      "mode": 420,
+      "bytes": 1981,
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-moved",
+      "path": "dist/commands/regex-execution/worker.js",
+      "mode": 420,
+      "bytes": 1981,
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-installed",
+      "path": "dist/commands/regex-execution/protocol.js",
+      "mode": 420,
+      "bytes": 7869,
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "imports": [],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-moved",
+      "path": "dist/commands/regex-execution/protocol.js",
+      "mode": 420,
+      "bytes": 7869,
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "imports": [],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-installed",
+      "path": "dist/commands/expr/bre-worker.js",
+      "mode": 420,
+      "bytes": 19153,
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-moved",
+      "path": "dist/commands/expr/bre-worker.js",
+      "mode": 420,
+      "bytes": 19153,
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-installed",
+      "path": "dist/commands/regex-execution/matching.js",
+      "mode": 420,
+      "bytes": 13278,
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "imports": [
+        "node:buffer"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    },
+    {
+      "layout": "target-moved",
+      "path": "dist/commands/regex-execution/matching.js",
+      "mode": 420,
+      "bytes": 13278,
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "imports": [
+        "node:buffer"
+      ],
+      "public80Equal": true,
+      "proof": "fresh static bytes/mode/realpath; NOT nested nextLoad"
+    }
+  ],
+  "client": {
+    "path": "dist/commands/regex-execution/client.js",
+    "mode": 420,
+    "bytes": 15146,
+    "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+  },
+  "clientConstructorLines": [
+    {
+      "line": 73,
+      "text": "        this.worker = new Worker(new URL(import.meta.url.endsWith(\".ts\") ? \"../../../dist/commands/regex-execution/worker.js\" : \"./worker.js\", import.meta.url), {"
+    },
+    {
+      "line": 74,
+      "text": "            execArgv: [], resourceLimits: {"
+    },
+    {
+      "line": 75,
+      "text": "                maxOldGenerationSizeMb: owner.options.workerOldGenerationMb,"
+    },
+    {
+      "line": 76,
+      "text": "                stackSizeMb: owner.options.workerStackMb,"
+    }
+  ],
+  "sourceEquality": [
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/client.ts",
+      "kind": "complete earlier capture, not missing stream reconstruction",
+      "oid": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "bytes": 15319,
+      "verified": true,
+      "freshComparison": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/worker.ts",
+      "kind": "complete earlier capture, not missing stream reconstruction",
+      "oid": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "bytes": 1930,
+      "verified": true,
+      "freshComparison": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/protocol.ts",
+      "kind": "complete earlier capture, not missing stream reconstruction",
+      "oid": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "bytes": 10890,
+      "verified": true,
+      "freshComparison": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/matching.ts",
+      "kind": "complete earlier capture, not missing stream reconstruction",
+      "oid": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "bytes": 11796,
+      "verified": true,
+      "freshComparison": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/bre-worker.ts",
+      "kind": "blob",
+      "oid": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "bytes": 17704,
+      "verified": true
+    }
+  ],
+  "extra": {
+    "dist/shell/runtime.js": {
+      "selected": true,
+      "path": "dist/shell/runtime.js",
+      "mode": 420,
+      "bytes": 146664,
+      "sha256": "03630eb6b5396e498cbee1838356f7461e5a14ceeb07ee56ff64588ecf4cd4fd",
+      "references": [
+        {
+          "line": 2825,
+          "text": "        const append = (value, glob, present) => {"
+        },
+        {
+          "line": 2832,
+          "text": "            field.pattern += glob ? value : value.replace(/[\\\\*?[\\]\\-^]/gu, \"\\\\$&\");"
+        },
+        {
+          "line": 2899,
+          "text": "            for (const value of split ? await this.glob(field.value, field.pattern, state) : [pattern ? field.pattern : field.value]) {"
+        },
+        {
+          "line": 2911,
+          "text": "    async glob(value, pattern, state) {"
+        }
+      ]
+    },
+    "dist/shell/pattern.js": {
+      "selected": true,
+      "path": "dist/shell/pattern.js",
+      "mode": 420,
+      "bytes": 5344,
+      "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19",
+      "references": []
+    },
+    "dist/commands/expr/expr.js": {
+      "selected": false
+    }
+  },
+  "actualArgumentBrand": "UNKNOWN",
+  "run02CompiledRuntimeTraceEqualityClaim": false
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "functional-adapter",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/adapter.mjs"
+  },
+  {
+    "id": "functional-seal",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/SEAL.json",
+    "data": true,
+    "sha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1"
+  },
+  {
+    "id": "actual-evidence-manifest",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/EVIDENCE-MANIFEST.json",
+    "data": true,
+    "sha256": "3f0303334992f2f242825c512d02391a7ec8109733b8ff23ea8e8e2b88e2b981"
+  },
+  {
+    "id": "run02-admission",
+    "kind": "git",
+    "ref": "8918f35bed8d9ec11f523a53e52488f885f627f3:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/admission.mjs"
+  },
+  {
+    "id": "root-manifest",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/MANIFEST.json",
+    "data": true
+  }
+]

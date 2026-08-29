@@ -1,0 +1,127 @@
+[
+  {
+    "id": "target-0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+    "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+  },
+  {
+    "id": "target-1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+    "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+  },
+  {
+    "id": "target-2",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/regex-execution/matching.js",
+    "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791"
+  },
+  {
+    "id": "target-3",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+    "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6"
+  },
+  {
+    "id": "target-4",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/expr/bre-worker.js",
+    "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+  },
+  {
+    "id": "target-5",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/fs/memory/index.js",
+    "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+  },
+  {
+    "id": "target-6",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/du/du.js",
+    "sha256": "2fad6e6d31eb24f5757db3ca5533c7dddf551cb6b5b3e37bf9b4ec8978f6205f"
+  },
+  {
+    "id": "adapter",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/adapter.mjs"
+  },
+  {
+    "id": "op7-input",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.json",
+    "data": true
+  },
+  {
+    "id": "op7-receipt",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json",
+    "data": true
+  },
+  {
+    "id": "op7-part0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json.part-0000.data",
+    "sha256": "d31cecdbbe74d51ef9af4cdf2f39cf3288a7eaa90e9a940c99deb419fe85ba04",
+    "data": true
+  },
+  {
+    "id": "op7-part1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json.part-0001.data",
+    "sha256": "3408dd10aa6d664c058a2fa48ed0afd7564e96540ecf3ca5a7deabc626cd5230",
+    "data": true
+  },
+  {
+    "id": "op9-input",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.json",
+    "data": true
+  },
+  {
+    "id": "op9-receipt",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json",
+    "data": true
+  },
+  {
+    "id": "op9-part0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json.part-0000.data",
+    "sha256": "edf703f3348c0a330de241da3f6765b49ae541f93e2ba52f2b1d67ebabcd7abf",
+    "data": true
+  },
+  {
+    "id": "op9-part1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json.part-0001.data",
+    "sha256": "7c49b83748cd28e95ddf9659a0e437f09c78b9b65d22d5dca907fde8cf0fc387",
+    "data": true
+  },
+  {
+    "id": "op10-input",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.json",
+    "data": true
+  },
+  {
+    "id": "op10-receipt",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json",
+    "data": true
+  },
+  {
+    "id": "op10-part0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json.part-0000.data",
+    "sha256": "6461a123b91813458956dfd5cf0ad881919cfe35bf19bdb4465769ebfb528f74",
+    "data": true
+  },
+  {
+    "id": "op10-part1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json.part-0001.data",
+    "sha256": "951bbeb4a6156c19bbee15571ac684fab8b6e83c125a7b90e03fcc07f942740e",
+    "data": true
+  }
+]

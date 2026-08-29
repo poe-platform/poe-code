@@ -1,0 +1,444 @@
+{
+  "schema": "additive-compound-workflows-preexecution-v1",
+  "count": 10,
+  "executions": 0,
+  "rows": [
+    {
+      "id": "W01",
+      "title": "VFS filter, field extraction and deduplicated pipeline report",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "inventory": {
+          "base64": "a2VlcDpiZXRhCnNraXA6bm8Ka2VlcDphbHBoYQprZWVwOmJldGEK",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "cat inventory | grep '^keep:' | cut -d : -f 2 | sort | uniq | tee selected",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGEKYmV0YQo=",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "selected": {
+            "base64": "YWxwaGEKYmV0YQo="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      }
+    },
+    {
+      "id": "W02",
+      "title": "Split creates two files, then pipeline reconstructs exact input",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "rows": {
+          "base64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "split -l 2 rows part- && cat part-aa part-ab | tee joined",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "part-aa": {
+            "base64": "YWxwaGEKYmV0YQo="
+          },
+          "part-ab": {
+            "base64": "Z2FtbWEK"
+          },
+          "joined": {
+            "base64": "YWxwaGEKYmV0YQpnYW1tYQo="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      }
+    },
+    {
+      "id": "W03",
+      "title": "Zero-timeout transparent binary stdin through pipeline and VFS",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "AP9BCg2AAA==",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "timeout 0 cat | tee copied",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "AP9BCg2AAA==",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "copied": {
+            "base64": "AP9BCg2AAA=="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "inputChunkLengths": [
+        1,
+        2,
+        1,
+        3
+      ],
+      "inputAdmission": "Existing authenticated byte adapter required; no UTF-8 substitution or scalar-string fallback.",
+      "additionalObservations": [
+        "timeout child cat dispatched exactly once",
+        "timeout arms zero deadline timers",
+        "stdin exhausts exactly supplied seven bytes",
+        "all acquired iterators settle before case closure"
+      ]
+    },
+    {
+      "id": "W04",
+      "title": "getopts state selects a redirection destination",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {},
+      "directories": [],
+      "symlinks": {},
+      "script": "getopts 'n:' option -n result.txt && printf '%s:%s\\n' \"$option\" \"$OPTIND\" > \"$OPTARG\" && cat result.txt",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "bjozCg==",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "result.txt": {
+            "base64": "bjozCg=="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      }
+    },
+    {
+      "id": "W05",
+      "title": "HTML conversion writes Markdown and filters pipeline output",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "page.html": {
+          "base64": "PEgxPlJlbGVhc2U8L0gxPjxoNj5Ob3RlczwvaDY+",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "html-to-markdown page.html | tee rendered.md | grep '^#'",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "IyBSZWxlYXNlCiMjIyMjIyBOb3Rlcwo=",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "rendered.md": {
+            "base64": "IyBSZWxlYXNlCgojIyMjIyMgTm90ZXMK"
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "oracleProvenance": {
+        "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "path": "tests/commands/html-to-markdown/render.test.ts",
+        "rowTitle": "headings",
+        "qualification": "Literal accepted-source fixture reused; pipeline/effects expectation is additive, not a rerun result."
+      }
+    },
+    {
+      "id": "W06",
+      "title": "Apparent byte totals from two files into report",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "a.txt": {
+          "base64": "b25lCg==",
+          "mode": 420
+        },
+        "b.txt": {
+          "base64": "dGhyZWUK",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "du -b a.txt b.txt | tee sizes",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "NAlhLnR4dAo2CWIudHh0Cg==",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "sizes": {
+            "base64": "NAlhLnR4dAo2CWIudHh0Cg=="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "qualification": "Explicit apparent-size mode only; Memory allocation unknown remains unknown. Not old du-positive credit, physical parity or another metadata audit."
+    },
+    {
+      "id": "W07",
+      "title": "Virtual PATH executable lookup persisted without execution",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/fixture/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "bin/tool": {
+          "base64": "Zml4dHVyZSBleGVjdXRhYmxlIG1hcmtlcgo=",
+          "mode": 493
+        }
+      },
+      "directories": [
+        "bin"
+      ],
+      "symlinks": {},
+      "script": "which tool > resolved && cat resolved",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "L2ZpeHR1cmUvYmluL3Rvb2wK",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "resolved": {
+            "base64": "L2ZpeHR1cmUvYmluL3Rvb2wK"
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "additionalObservations": [
+        "No fixture executable is executed",
+        "Memory stat/access checks, not registry name synthesis",
+        "Initial permission bits 0755 retained"
+      ],
+      "qualification": "No which echo reinterpretation; actual virtual file/access semantics."
+    },
+    {
+      "id": "W08",
+      "title": "Checksum manifest generation and verification against VFS",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "payload": {
+          "base64": "YWJjCg==",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "sha256sum payload > sums && sha256sum -c sums",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "cGF5bG9hZDogT0sK",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "sums": {
+            "base64": "ZWRlYWFmZjNmMTc3NGFkMjg4ODY3Mzc3MGM2ZDY0MDk3ZTM5MWJjMzYyZDdkNmZiMzQ5ODJkZGYwZWZkMThjYiAgcGF5bG9hZAo="
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "oracleProvenance": {
+        "digestAlgorithm": "SHA-256",
+        "inputBase64": "YWJjCg==",
+        "digest": "edeaaff3f1774ad2888673770c6d64097e391bc362d7d6fb34982ddf0efd18cb",
+        "qualification": "Data-only mathematical digest, not product or native output."
+      }
+    },
+    {
+      "id": "W09",
+      "title": "Copy, move, stream and cleanup with exact final namespace",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "input": {
+          "base64": "a2VwdAo=",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "mkdir stage && cp input stage/copy && mv stage/copy stage/final && cat stage/final | tee snapshot && rm stage/final && rmdir stage",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "a2VwdAo=",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "snapshot": {
+            "base64": "a2VwdAo="
+          }
+        },
+        "absent": [
+          "stage",
+          "stage/copy",
+          "stage/final"
+        ],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      }
+    },
+    {
+      "id": "W10",
+      "title": "Default glob excludes dotfiles before a sorted report",
+      "classification": "new-additive-unexecuted",
+      "cwd": "/fixture",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/home/user",
+        "TMPDIR": "/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "USER": "user"
+      },
+      "stdinBase64": "",
+      "files": {
+        "b.txt": {
+          "base64": "Ygo=",
+          "mode": 420
+        },
+        "a.txt": {
+          "base64": "YQo=",
+          "mode": 420
+        },
+        ".hidden.txt": {
+          "base64": "aGlkZGVuCg==",
+          "mode": 420
+        }
+      },
+      "directories": [],
+      "symlinks": {},
+      "script": "printf '%s\\n' *.txt | sort > listing && cat listing",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "YS50eHQKYi50eHQK",
+        "stderrBase64": "",
+        "preserveInitialBytesAndPermissionBits": true,
+        "addedFiles": {
+          "listing": {
+            "base64": "YS50eHQKYi50eHQK"
+          }
+        },
+        "absent": [],
+        "exactFinalNamespace": true,
+        "compareNewFileModes": false
+      },
+      "qualification": "Existing default glob only, not shopt/dotglob support. Dotglob future branch stays separate."
+    }
+  ]
+}

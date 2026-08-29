@@ -1,0 +1,12 @@
+{
+  "kind": "ordinary-readonly-inspection-helper",
+  "attempt": 1,
+  "processExit": 1,
+  "retired": true,
+  "error": "TypeError: r.loads?.filter is not a function",
+  "location": "inline selected-field display",
+  "cause": "assumed loads was an array; records retain actual schema",
+  "productExecution": false,
+  "rawInputUnmodified": true,
+  "qualification": "tool-captured diagnostic, not a replay or replacement of product evidence"
+}

@@ -1,0 +1,4 @@
+{"pid":10605,"status":0,"signal":null,"args":["status","--porcelain=v1","-z","--untracked-files=normal","--","tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3"]}
+{"pid":10606,"status":0,"signal":null,"args":["diff","--cached","--name-only","-z"]}
+{"pid":10608,"status":0,"signal":null,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"]}
+{"pid":10609,"status":0,"signal":null,"args":["cat-file","--batch"]}

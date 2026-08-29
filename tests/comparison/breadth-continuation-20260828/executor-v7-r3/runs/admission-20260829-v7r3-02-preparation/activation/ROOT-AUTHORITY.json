@@ -1,0 +1,92 @@
+{
+  "schema": "FRESH_ROOT_ACTUAL_AUTHORITY_ATTEMPT02",
+  "receivedAuthority": "Current root user message, not another invented approval or commit",
+  "message": "ROOT ACTUAL V7-r3 ADMISSION attempt02 GO exactlyONEfreshattempt admission-20260829-v7r3-02, afterunusednamespace/fullrealpreflight. PeerREADY409623ac5fc6b0da78ba6788a6f92f5e466e251c receipt tests/comparison/v7-r3-independent-20260829/attempt02-source-review/REVIEW-RECEIPT.json SHA22fde49753f7935f6fcede52e4aec56cae855b752a23b2b13d535fe09c09813a; bindrepairpresealecb89887b9595227bc2753cbdf42a018d8e36f09/seal00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46/evidencee16ab245+tail02e60f4d. OwnerONLYrunIDliteral02, reviewed022wrapper/private600files; old01byteunchanged/consumed, no chmodfix. Explicitfinitehosttoolallowance ONLYdarwinUID501 __CF_USER_TEXT_ENCODING='0x1F5:0x0:0x0' exact13bytes, originUNKNOWN/no guestenvinheritance/otherenvvalues. AUTH.reviewremainsoriginald27fdreviewreceipt; 409623+ef181a3outeradjudicationseparateboundaddenda. Authorizewrite/atomiccommitfreshactiveROOTgrant/AUTH exactreviewedtemplates recordingTHISrootmessage, nootherinventedauthority; selfcontainedexec-replaced reviewedentrypointnoambientREPLstate/extraownedwaitingparent. 67PLANNEDALLprocesses incl20admin; cap128peak5inclcaptureowner,90mintotal=75owner/admission+15adminreserve,257MiBcapture(inner256unchanged+outer512KiB+admin512KiB),768MiBworking. Same14plannedworkers legacycap27NOTretrypermission/concurrency1,worker30sTERM2/KILL1,metadata10s64KiB,Nodeoldspace256MiBnotRSS. EXACTtwoC11EMPTYSETUPS allowed; ZERO99semanticcohort/benchmark/otherguestcalls. Frozeninnerrecipef7+fe803701+d306b837 target67eab12e/full8586608d255.../just-bash3.4.2 unchanged, no80/Node/newcore/HEAD. Fullrealarchive/projection/mode/physicalstage/load/closureauth beforecredit, noharmlesssubstitutions. OuterrawcapturebeforeANYfalliblelauncher/auth, childenrollment/listenersfirst, preserveprimarypresenceandallcleanupfaults; qualifiedactualcaptureobserved==retained. STOPunexpectedcaptureloss/integrity/fence/unknownretirement/deadline/resourcefailure, noautomaticretry/widen/rephrase. ExpectednegativecontrolsONLYpresealed. No newnetwork/acquisition/private/nativeoracle/XAN/unlistednpm/build/installscript. Preserveattempt01STOP0/14, originalwrapper5/8/newtails3/3crossversion, allN02/V6loss/history/W07UNQUALIFIED. Reportcountsqualified/unrun, rawcaptures/counters/knownprocess+Workerretirement/loadwitnesses andlimits; no superiorityorsemanticclaim. Thisfreshgrantdoesnotrescorepastfailures.",
+  "messageSha256": "bd9ea7340e4366387a78e0e23e1ee4aeb51c8146b146eba63a3f16afc87c8179",
+  "runId": "admission-20260829-v7r3-02",
+  "attempts": 1,
+  "peer": {
+    "commit": "409623ac5fc6b0da78ba6788a6f92f5e466e251c",
+    "path": "tests/comparison/v7-r3-independent-20260829/attempt02-source-review/REVIEW-RECEIPT.json",
+    "sha256": "22fde49753f7935f6fcede52e4aec56cae855b752a23b2b13d535fe09c09813a"
+  },
+  "originalReview": {
+    "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+    "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+    "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+  },
+  "outerAdjudication": {
+    "commit": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae",
+    "path": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+    "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f"
+  },
+  "repairPreseal": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+  "repairSealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+  "prospectiveBudget": {
+    "status": "INACTIVE_PENDING_DIFFERENT_REVIEW_AND_FRESH_ACTUAL_GO",
+    "actualAuthorized": false,
+    "runId": "admission-20260829-v7r3-02",
+    "elapsed": {
+      "ownerWindowMilliseconds": 4500000,
+      "administrationReserveMilliseconds": 900000,
+      "totalMilliseconds": 5400000
+    },
+    "capture": {
+      "innerBodyBytes": 260046848,
+      "innerCollectorBytes": 8388608,
+      "outerBytes": 524288,
+      "publicationAdminBytes": 524288,
+      "totalBytes": 269484032
+    },
+    "workingBytes": 805306368,
+    "processes": {
+      "runtimeIncludingOwner": 47,
+      "administrationSlots": 20,
+      "totalPlanned": 67,
+      "allOwnedCap": 128,
+      "peak": 5,
+      "admissionWorkers": 14,
+      "legacyWorkerCap": 27,
+      "emptyC11Setups": 2,
+      "semanticCalls": 0
+    },
+    "administrationSlots": [
+      "wrapper-private-capture-preparer",
+      "wrapper-preopened-fd-guard",
+      "preflight-source-bindings",
+      "preflight-archive-projection",
+      "namespace-check",
+      "grant-author",
+      "grant-add",
+      "grant-commit",
+      "auth-author",
+      "auth-add",
+      "auth-commit",
+      "post-integrity",
+      "evidence-summary-author",
+      "raw-reference-authentication",
+      "final-manifest-generation",
+      "evidence-add",
+      "evidence-commit",
+      "final-clean-status",
+      "cleanup-verification",
+      "bounded-publication-receipt"
+    ],
+    "topology": "One shell runs capture-preparer then fd/environment guard as sequential exec-replaced helper children; shell then exec-replaces itself with exact attempt02 owner. No retained waiting shell. Two helper processes consume administration slots, runtime chain remains owner->launcher->coordinator->worker->one Git metadata child.",
+    "scope": "Prospective root ceiling only; not retroactive compliance for old 256MiB profiles or old administration caps.",
+    "unchangedLimits": {
+      "workerMilliseconds": 30000,
+      "termMilliseconds": 2000,
+      "killMilliseconds": 1000,
+      "metadataMilliseconds": 10000,
+      "metadataBytes": 65536,
+      "recordBytes": 262144,
+      "documentBytes": 33554432,
+      "nodeOldSpaceMiB": 256,
+      "notRSS": true
+    }
+  },
+  "actualSemanticCallsAuthorized": 0,
+  "previousAttempt": "6472790e consumed0/14 unchanged",
+  "activeGrantShape": "Exact reviewed13 fields; this authority addendum is separate"
+}

@@ -1,0 +1,75 @@
+{
+  "role": "FUTURE_OBLIGATIONS_ALL_UNRUN",
+  "families": [
+    {
+      "id": "F01",
+      "role": "SOURCE_ADMISSION",
+      "obligation": "Reauthenticate signed-input/evidence hashes; check full 1602-member source names/types/bytes/modes; preserve original staging; refuse before copy on mismatch.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F02",
+      "role": "COPY_METADATA",
+      "obligation": "Freeze executable-bit restoration and mtime preservation; verify parse.y/y.tab.c dependency ordering; never invoke an unadmitted parser generator or alter timestamps to conceal a needed rebuild.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F03",
+      "role": "TOOL_TRUST",
+      "obligation": "Reauthenticate finite host tool/selector aliases and missing source-called utility bindings; accept explicitly the unsealed remainder of trusted SDK/OS scope or HOLD.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F04",
+      "role": "OWNER_ADMISSION",
+      "obligation": "Open outer captures before any child; first/second-open and publication failures preserve primary and independently close owned descriptors; no unintended child.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F05",
+      "role": "GROUP_RETIREMENT",
+      "obligation": "Qualify dedicated PGID, normal close, deadline TERM then KILL, capture overflow and unknown-group disposition using separate bounded benign cases; not complete descendant or escape proof.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F06",
+      "role": "CONFIGURE",
+      "obligation": "One literal configure command, exact empty-map environment and default feature profile; capture compiler/run probes and actual decisions without translating unexpected denial into feature absence.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F07",
+      "role": "MAKE",
+      "obligation": "One make -j1 bash command; preserve recursive tools/generated execution/ignored optional errors; no install/docs/tests/feature-disable or compiler fallback.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F08",
+      "role": "OUTPUT_BINDING",
+      "obligation": "Authenticate regular resulting binary plus generated config/Makefiles/config.log; record actual runtime load metadata and hash before selected output version observation.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F09",
+      "role": "VERSION",
+      "obligation": "One bounded no-startup version observation after binary authentication; require actual GNU Bash 5.3.15 status/output, not filename/source inference; no surface suite.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    },
+    {
+      "id": "F10",
+      "role": "FINAL_RETIREMENT",
+      "obligation": "Direct children closed, known groups retired, captures finalized, owned work census and removal/retention documented; unknown escaped descendants remain a limitation, any evidence of live work is HOLD.",
+      "status": "UNRUN",
+      "authority": "FUTURE_SEPARATE_APPROVAL_REQUIRED"
+    }
+  ]
+}

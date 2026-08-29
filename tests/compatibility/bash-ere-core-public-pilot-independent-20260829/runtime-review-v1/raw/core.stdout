@@ -1,0 +1,267 @@
+
+FILE core.mjs
+import assert from 'node:assert/strict';
+
+export const IDS = Object.freeze(['R01', 'R02', 'R05', 'R06', 'R07', 'R11', 'R12', 'R22']);
+export function record(value, keys) {
+  assert(value !== null && typeof value === 'object' && !Array.isArray(value));
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  assert.deepEqual(Reflect.ownKeys(descriptors).sort(), [...keys].sort());
+  for (const key of keys) assert(Object.hasOwn(descriptors[key], 'value'));
+  return value;
+}
+export function ledger() {
+  const state = { present: false, reason: undefined, phase: undefined, secondary: [], omitted: 0 };
+  return { state, add(reason, phase) { if (!state.present) Object.assign(state, { present: true, reason, phase }); else if (state.secondary.length < 32) state.secondary.push({ reason, phase }); else state.omitted++; } };
+}
+export function describe(reason) {
+  if (reason === undefined) return { type: 'undefined' };
+  if (reason === null) return { type: 'null' };
+  if (['boolean', 'number', 'string'].includes(typeof reason)) return { type: typeof reason, value: typeof reason === 'string' ? reason.slice(0, 512) : reason };
+  return { type: typeof reason, opaque: true };
+}
+export function describeLedger(state) {
+  return { present: state.present, primary: state.present ? { phase: state.phase, reason: describe(state.reason) } : null, secondary: state.secondary.map(row => ({ phase: row.phase, reason: describe(row.reason) })), omitted: state.omitted };
+}
+export function captureBudget(maximum) {
+  assert(Number.isSafeInteger(maximum) && maximum > 0);
+  let admitted = 0;
+  return Object.freeze({ reserve(size) { assert(Number.isSafeInteger(size) && size >= 0 && size <= maximum - admitted, 'capture prewrite cap'); admitted += size; }, snapshot() { return { admitted, maximum }; } });
+}
+export function writer({ write, maximum, aggregate }) {
+  const budget = captureBudget(maximum);
+  let written = 0;
+  return Object.freeze({
+    bytes(bytes) {
+      assert(Buffer.isBuffer(bytes)); budget.reserve(bytes.length); aggregate.reserve(bytes.length);
+      let offset = 0;
+      while (offset < bytes.length) { const count = write(bytes, offset, bytes.length - offset); assert(Number.isSafeInteger(count) && count > 0 && count <= bytes.length - offset); offset += count; written += count; }
+    },
+    snapshot() { return { ...budget.snapshot(), written }; },
+  });
+}
+export function clock(started, now) {
+  assert(Number.isSafeInteger(started) && started >= 0);
+  const deadline = started + 1200000;
+  let last = started;
+  let stopped = false;
+  const sample = () => { const current = now(); assert(Number.isSafeInteger(current) && current >= last); last = current; return current; };
+  return Object.freeze({ deadline, sample, stop() { stopped = true; }, admit(duration, cleanup = 3000) { assert(Number.isSafeInteger(duration) && duration > 0 && Number.isSafeInteger(cleanup) && cleanup > 0); return !stopped && duration + cleanup + 180000 <= deadline - sample(); }, beforeEnd() { assert(sample() <= deadline, 'whole invocation deadline'); } });
+}
+export function validateSelection(cells) {
+  assert.equal(cells.length, 24);
+  const expected = ['source-built', 'installed', 'moved'].flatMap(layout => IDS.map(id => `${layout}/${id}`));
+  assert.deepEqual(cells.map(cell => cell.id), expected);
+  for (const cell of cells) { assert.equal(cell.definition.route, 'script'); assert.equal(cell.definition.workerStartsMaximum, 1); assert.equal(cell.definition.expected.stderr.exact, ''); assert.equal(cell.shellExecCalls, 1); }
+  assert.equal(cells.reduce((sum, cell) => sum + cell.regexVisits, 0), 30);
+}
+export function validateGrant(grant, profileSha256, started, wallNow) {
+  record(grant, ['schema', 'authorized', 'profileSha256', 'sourceReview', 'producerReview', 'pilotReview', 'issuedAt', 'latestStart', 'expiresAt', 'outerStarted', 'sampledNpmWork', 'knownOS', 'peak', 'workers', 'milliseconds', 'publicationMilliseconds', 'captureBytes', 'workingBytes']);
+  assert.equal(grant.schema, 1); assert.equal(grant.authorized, true);
+  assert.equal(grant.profileSha256, profileSha256);
+  assert.equal(grant.sourceReview, 'f17d8dec11190ef40ecac6c175b208a2e29c7fbf');
+  assert.equal(grant.producerReview, '5c2ef0795ca402344b5b0d28869b64db46d73b86');
+  assert(typeof grant.pilotReview === 'string' && /^[0-9a-f]{40}$/.test(grant.pilotReview));
+  assert.equal(grant.outerStarted, started);
+  assert.equal(grant.sampledNpmWork, true);
+  for (const [key, value] of Object.entries({ knownOS: 40, peak: 4, workers: 24, milliseconds: 1200000, publicationMilliseconds: 180000, captureBytes: 67108864, workingBytes: 268435456 })) assert.equal(grant[key], value);
+  const times = ['issuedAt', 'latestStart', 'expiresAt'].map(key => { assert(typeof grant[key] === 'string'); const value = Date.parse(grant[key]); assert(Number.isSafeInteger(value)); return value; });
+  assert(times[0] <= wallNow && wallNow <= times[1] && times[1] < times[2]);
+  assert(times[2] - times[0] <= 1200000 && wallNow < times[2]);
+}
+export function judgeCell(cell, receipt, rows) {
+  assert.equal(receipt.retired, true, 'native process ownership incomplete');
+  assert.equal(receipt.failure.present, false);
+  assert.equal(receipt.code, 0); assert.equal(receipt.signal, null);
+  assert(rows.length >= 2 && rows.length <= 128);
+  const startup = rows.filter(row => row.event === 'startup');
+  const finals = rows.filter(row => row.event === 'final');
+  assert.equal(startup.length, 1); assert.equal(finals.length, 1);
+  assert.equal(rows[0], startup[0]); assert.equal(rows.at(-1), finals[0]);
+  assert.equal(startup[0].pid, receipt.pid);
+  const final = record(finals[0], ['event', 'id', 'result', 'workers', 'failure']);
+  assert.equal(final.id, cell.id);
+  record(final.failure, ['present', 'primary', 'secondary', 'omitted']);
+  assert.equal(final.failure.present, false); assert.equal(final.failure.primary, null); assert.deepEqual(final.failure.secondary, []);
+  assert.equal(final.failure.omitted, 0);
+  record(final.result, ['exitCode', 'stdout', 'stderr']);
+  assert.equal(final.result.exitCode, cell.definition.expected.exitCode);
+  assert.equal(final.result.stdout, cell.definition.expected.stdout);
+  assert.equal(final.result.stderr, cell.definition.expected.stderr.exact);
+  assert(Array.isArray(final.workers) && final.workers.length <= 1);
+  for (const worker of final.workers) {
+    record(worker, ['identity', 'threadId', 'exit', 'stdout', 'stderr', 'exitCode']);
+    assert.equal(worker.exit, true); assert.equal(worker.stdout, true); assert.equal(worker.stderr, true);
+    assert(Number.isSafeInteger(worker.identity) && worker.identity > 0);
+    assert(Number.isSafeInteger(worker.threadId)); assert(Number.isInteger(worker.exitCode));
+  }
+  return { id: cell.id, status: 'PASS', workers: final.workers.length };
+}
+export async function schedule(profile, host) {
+  validateSelection(profile.cells);
+  const timer = clock(host.started, host.now);
+  const outcomes = [];
+  let workerStarts = 0;
+  const failures = ledger();
+  try {
+    await host.prepare(timer);
+    for (const cell of profile.cells) {
+      if (!timer.admit(10000)) break;
+      await host.sample();
+      if (!timer.admit(10000)) break;
+      const outcome = await host.run(cell, timer);
+      if (outcome.status !== 'PASS') { outcomes.push(outcome); timer.stop(); break; }
+      workerStarts += outcome.workers;
+      assert(workerStarts <= 24);
+      outcomes.push(outcome);
+      await host.sample();
+    }
+  } catch (reason) { failures.add(reason, 'schedule'); timer.stop(); }
+  const seen = new Set(outcomes.map(row => row.id));
+  for (const cell of profile.cells) if (!seen.has(cell.id)) outcomes.push({ id: cell.id, status: 'UNRUN' });
+  try { await host.sample(); } catch (reason) { failures.add(reason, 'final-sample'); }
+  const result = { outcomes, workerStarts, failure: describeLedger(failures.state), complete: outcomes.every(row => row.status === 'PASS') && !failures.state.present };
+  try { timer.beforeEnd(); await host.publish(result); timer.beforeEnd(); } catch (reason) { failures.add(reason, 'publication'); result.failure = describeLedger(failures.state); result.complete = false; await host.emergency(result); }
+  return result;
+}
+
+FILE process-owner.mjs
+import assert from 'node:assert/strict';
+import { ledger, describeLedger, writer } from './core.mjs';
+
+export async function ownChild(spec, io, ownership, aggregate) {
+  assert(Number.isSafeInteger(spec.milliseconds) && spec.milliseconds > 0);
+  const failures = ledger();
+  const descriptors = [];
+  const timers = [];
+  let child;
+  let receipt = { id: spec.id, pid: null, exit: false, close: false, stdout: false, stderr: false, retired: false, code: null, signal: null, cutoff: false };
+  let finish;
+  let completed = false;
+  const settled = new Promise(resolve => { finish = () => { if (!completed) { completed = true; resolve(); } }; });
+  const safe = (phase, body) => { try { return body(); } catch (reason) { failures.add(reason, phase); return undefined; } };
+  const reconsider = () => { receipt.retired = receipt.exit && receipt.close && receipt.stdout && receipt.stderr; if (receipt.retired) finish(); };
+  const signal = name => { if (child && !receipt.exit) safe(`signal-${name}`, () => child.kill(name)); };
+  try {
+    descriptors.push(io.open(spec.stdout)); descriptors.push(io.open(spec.stderr));
+    const sinks = descriptors.map(descriptor => writer({ maximum: spec.capture, aggregate, write: (bytes, offset, count) => io.write(descriptor, bytes, offset, count) }));
+    child = io.spawn(spec.executable, spec.argv, { cwd: spec.cwd, env: spec.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    ownership.push({ child, receipt, failures });
+    safe('child-identity', () => { receipt.pid = child.pid; });
+    timers.push(io.later(() => { failures.add('case deadline', 'timeout'); signal('SIGTERM'); }, spec.milliseconds));
+    timers.push(io.later(() => signal('SIGKILL'), spec.milliseconds + 2000));
+    timers.push(io.later(() => { if (!receipt.retired) { receipt.cutoff = true; failures.add('UNKNOWN native retirement', 'retirement'); finish(); } }, spec.milliseconds + 3000));
+    safe('exit-enrollment', () => child.once('exit', (code, reason) => { receipt.exit = true; receipt.code = code; receipt.signal = reason; reconsider(); }));
+    safe('close-enrollment', () => child.once('close', () => { receipt.close = true; reconsider(); }));
+    safe('error-enrollment', () => child.on('error', reason => failures.add(reason, 'child-error')));
+    for (const [index, channel] of ['stdout', 'stderr'].entries()) safe(`${channel}-enrollment`, () => {
+      const stream = child[channel];
+      safe(`${channel}-data-enrollment`, () => stream.on('data', bytes => { if (completed) return; try { sinks[index].bytes(bytes); } catch (reason) { failures.add(reason, `${channel}-capture`); signal('SIGTERM'); } }));
+      safe(`${channel}-end-enrollment`, () => stream.once('end', () => { receipt[channel] = true; reconsider(); }));
+      safe(`${channel}-error-enrollment`, () => stream.on('error', reason => failures.add(reason, `${channel}-error`)));
+    });
+    if (failures.state.present) signal('SIGTERM');
+    await settled;
+    receipt.capture = sinks.map(sink => sink.snapshot());
+  } catch (reason) {
+    failures.add(reason, 'acquisition');
+    if (child) { receipt.cutoff = true; signal('SIGTERM'); }
+  } finally {
+    completed = true;
+    for (const timer of timers) safe('timer-cancel', () => io.cancel(timer));
+    for (const descriptor of descriptors) safe('capture-close', () => io.close(descriptor));
+  }
+  receipt.failure = describeLedger(failures.state);
+  return receipt;
+}
+
+FILE cell.mjs
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { captureBudget, writer, ledger, describeLedger } from './core.mjs';
+import { createObserver } from './observer.mjs';
+import { read, hash } from './data.mjs';
+
+const output = writer({ maximum: 65536, aggregate: captureBudget(65536), write: (bytes, offset, count) => fs.writeSync(1, bytes, offset, count) });
+const emit = row => output.bytes(Buffer.from(JSON.stringify(row) + '\n'));
+const failures = ledger();
+let observer;
+let id = null;
+let result = null;
+try {
+  emit({ event: 'startup', pid: process.pid, execPath: process.execPath });
+  const bytes = read(process.argv[2], 65536);
+  assert.equal(hash(bytes), process.argv[3]);
+  const spec = JSON.parse(bytes);
+  id = spec.id;
+  assert.equal(process.execPath, spec.node);
+  const require = createRequire(import.meta.url);
+  const modulePath = require.resolve('virtual-bash');
+  assert.equal(modulePath, spec.modulePath, 'public consumer binding');
+  const namespace = require('node:worker_threads');
+  observer = createObserver({ NativeWorker: namespace.Worker, expectedUrl: pathToFileURL(spec.workerPath).href, emit });
+  namespace.Worker = observer.Constructor;
+  syncBuiltinESMExports();
+  const api = await import('virtual-bash');
+  const shell = new api.Shell({ fs: new api.MemoryFileSystem(), cwd: '/', env: { LC_ALL: 'C', LANG: 'C', TZ: 'UTC' }, limits: spec.limits });
+  shell.use(api.agentCommands());
+  const actual = await shell.exec(spec.definition.script);
+  result = { exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr };
+  observer.assertRetired();
+  assert.equal(result.exitCode, spec.definition.expected.exitCode);
+  assert.equal(result.stdout, spec.definition.expected.stdout);
+  assert.equal(result.stderr, spec.definition.expected.stderr.exact);
+} catch (reason) { failures.add(reason, 'public-cell'); }
+if (observer?.failures.state.present) failures.add(observer.failures.state.reason, 'observer');
+try { observer?.assertRetired(); } catch (reason) { failures.add(reason, 'worker-retirement'); }
+try { emit({ event: 'final', id, result, workers: observer?.snapshot() ?? [], failure: describeLedger(failures.state) }); } catch (reason) { failures.add(reason, 'final-capture'); }
+process.exitCode = failures.state.present ? 1 : 0;
+
+FILE data.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+
+export const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+export function read(file, maximum = 4 * 1024 * 1024) {
+  const stat = fs.lstatSync(file);
+  assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum, 'regular bounded input');
+  const bytes = fs.readFileSync(file);
+  assert.equal(bytes.length, stat.size);
+  return bytes;
+}
+export function bind(row) {
+  const stat = fs.lstatSync(row.path);
+  assert(stat.isFile() && !stat.isSymbolicLink());
+  assert.equal(stat.size, row.size); assert.equal(stat.mode & 0o777, row.mode);
+  const descriptor = fs.openSync(row.path, 'r');
+  const digest = crypto.createHash('sha256');
+  const buffer = Buffer.alloc(65536);
+  try { const opened = fs.fstatSync(descriptor); assert.equal(opened.dev, stat.dev); assert.equal(opened.ino, stat.ino); let count; while ((count = fs.readSync(descriptor, buffer))) digest.update(buffer.subarray(0, count)); } finally { fs.closeSync(descriptor); }
+  assert.equal(digest.digest('hex'), row.sha256, row.path);
+}
+export function archiveAdmission(row, bytes) {
+  assert.equal(row.size, 909885); assert.equal(bytes.length, row.size);
+  assert.equal(row.sha256, 'fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d');
+  assert.equal(hash(bytes), row.sha256);
+  return bytes;
+}
+export function census(root) {
+  let bytes = 0;
+  const rows = [];
+  const walk = directory => { for (const name of fs.readdirSync(directory).sort()) { const file = path.join(directory, name); const stat = fs.lstatSync(file); assert(!stat.isSymbolicLink(), 'unexpected link'); if (stat.isDirectory()) { rows.push({ path: path.relative(root, file), kind: 'directory' }); walk(file); } else { assert(stat.isFile()); bytes += stat.size; assert(Number.isSafeInteger(bytes)); rows.push({ path: path.relative(root, file), kind: 'file', size: stat.size }); } } };
+  walk(root);
+  return Object.freeze({ bytes, rows });
+}
+export function verifyPackage(root, expected) {
+  const actual = census(root);
+  assert.deepEqual(actual.rows.filter(row => row.kind === 'file').map(row => row.path).sort(), expected.map(row => row.path).sort());
+  for (const row of expected) bind({ ...row, path: path.join(root, row.path) });
+  return actual;
+}
+export function copyRows(source, target, rows) {
+  for (const row of rows) { const from = path.join(source, row.path); bind({ ...row, path: from }); const to = path.join(target, row.path); fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to, fs.constants.COPYFILE_EXCL); fs.chmodSync(to, row.mode); }
+}

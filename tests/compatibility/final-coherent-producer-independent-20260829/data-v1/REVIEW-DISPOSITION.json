@@ -1,0 +1,37 @@
+{
+  "verdict": "HOLD_REVIEWER_EXPORT_PATTERN_ASSUMPTION",
+  "sourceCommit": "937f1d9317256c18066d9f74c0ae0bb21842bfaa",
+  "freezeCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "archiveBytes": 974493,
+  "archiveSha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a",
+  "dataReceiptSha256": "d8451028627a01651e4fadf648147c15a39ef04e643dfa2e48a0259be385a50e",
+  "completedBeforeStop": {
+    "exactHashSizeTypeBeforeDecode": true,
+    "sameAuthenticatedBufferDecoded": true,
+    "positiveDecodes": 1,
+    "shippingMembers": 1070,
+    "shippingLogicalBytes": 5382293,
+    "emitsMatchedToShippingAndFrozenDist": 1068,
+    "sourceInputsMatchedFrozenMaterializationAndBlobIdentity": 323,
+    "canonicalSourceAndShippingHashes": true,
+    "archiveTamperControls": 6,
+    "archiveTamperControlsPassed": 6,
+    "frozenREADMEAndPackageBytesMatchArchive": true,
+    "runtimeDependenciesEmpty": true
+  },
+  "notCompleted": [
+    "pattern-aware public export resolution and private-export denial",
+    "48 private asset verification loop",
+    "1259 literal edge and Worker URL verification loop",
+    "source-map verification loop",
+    "final archive postguard and aggregate receipt publication"
+  ],
+  "typeQualification": "115 is authenticated manifest metadata, not independently rehashed full tool/type closure in this attempt",
+  "failure": "audit-v2.mjs treated ./dist/contracts/*.d.ts as a literal tar member; frozen package intentionally exports ./contracts/*. No product defect established.",
+  "historical": "inspect.mjs earlier stopped on a top-level committed-blob mismatch while overbroadly scanning administrative outputs. Exact offending path was not included in its diagnostic. Original exit1/capture retained; no decode on that first helper.",
+  "runtime": 0,
+  "workers": 0,
+  "compiler": 0,
+  "npmInstall": 0,
+  "defaultBuildOrSmokeAcceptance": false
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "k08-author-implementation-protocol-v1",
+  "issuedUTC": "2026-08-29T14:23:50.612Z",
+  "deadlineUTC": "2026-08-29T14:54:43.488Z",
+  "scope": "runtime two arithmetic sites +new private preparer +owned tests; no parser/evaluator/ERE/LET/public API change",
+  "originalRuntime": {
+    "bytes": 210813,
+    "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+  },
+  "originalArithmeticSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+  "originalParserSha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+  "maximumKnownOS": 72,
+  "peak": 3,
+  "captureBytes": 100663296,
+  "logicalWorkBytes": 536870912,
+  "adminSubcap": 32,
+  "actualProductCalls": 0,
+  "strictBuilds": 1,
+  "consumerChecks": 0,
+  "consumerReason": "No public API/type closure change intended; private implementation declarations checked by strict build.",
+  "proposedProfile": "plain one-digit $0..$9 and braced decimal positional text; unsupported dollar/quote/backslash/backtick forms retain original error; no shell re-expansion of values",
+  "buildPlan": "Authenticate exact305 retained source members; replace only pinned runtime, add new helper =>306; copy pinned compiler/type files; one direct pinned Node tsc strict build in canonical owned root. No npm/install/network and no compressed source decode.",
+  "futureMatrix": "Targeted source-built/installed/moved dispatch needs separate ROOT GO and different review; nothing below grants actual Shell.exec.",
+  "matrixRows": 23,
+  "helperControls": 9,
+  "outputEvidence": "Raw build stdout/stderr and exact code/fixture hashes; never call product2MiB pack() on capture directory; no old rearchive."
+}

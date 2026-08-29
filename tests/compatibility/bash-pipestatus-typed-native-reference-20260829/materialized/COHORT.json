@@ -1,0 +1,50 @@
+{
+  "schema": "pipestatus-typed-reference-v1",
+  "cases": [
+    {
+      "id": "P19",
+      "program": "declare -p PIPESTATUS",
+      "programSha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583",
+      "stdinBase64": "",
+      "expectedNative": null
+    },
+    {
+      "id": "P20",
+      "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+      "programSha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990",
+      "stdinBase64": "",
+      "expectedNative": null
+    },
+    {
+      "id": "P21",
+      "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+      "programSha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857",
+      "stdinBase64": "",
+      "expectedNative": null
+    },
+    {
+      "id": "P22",
+      "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "programSha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93",
+      "stdinBase64": "",
+      "expectedNative": null
+    },
+    {
+      "id": "P23",
+      "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "programSha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8",
+      "stdinBase64": "",
+      "expectedNative": null
+    },
+    {
+      "id": "P24",
+      "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+      "programSha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801",
+      "stdinBase64": "",
+      "expectedNative": null
+    }
+  ],
+  "fixtures": [],
+  "failedLookups": [],
+  "effects": "none; before and after owned namespace must match"
+}

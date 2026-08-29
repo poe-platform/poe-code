@@ -1,0 +1,13 @@
+{
+  "schema": "pipestatus-typed-literal-proposal-v1",
+  "nativeAuthority": false,
+  "fixtures": [],
+  "cases": [
+    {"id": "P19", "program": "declare -p PIPESTATUS", "expectedNative": null},
+    {"id": "P20", "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS", "expectedNative": null},
+    {"id": "P21", "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS", "expectedNative": null},
+    {"id": "P22", "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS", "expectedNative": null},
+    {"id": "P23", "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS", "expectedNative": null},
+    {"id": "P24", "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS", "expectedNative": null}
+  ]
+}

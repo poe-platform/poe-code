@@ -1,0 +1,56 @@
+[
+  {
+    "path": "admission.mjs",
+    "parentSha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+    "candidateSha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+    "changed": true
+  },
+  {
+    "path": "entry.mjs",
+    "parentSha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+    "candidateSha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+    "changed": true
+  },
+  {
+    "path": "observation.mjs",
+    "parentSha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+    "candidateSha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+    "changed": true
+  },
+  {
+    "path": "capture.mjs",
+    "parentSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+    "candidateSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+    "changed": false
+  },
+  {
+    "path": "lifecycle.mjs",
+    "parentSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+    "candidateSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+    "changed": false
+  },
+  {
+    "path": "group-observer.mjs",
+    "parentSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+    "candidateSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+    "changed": false
+  },
+  {
+    "path": "observer-state.mjs",
+    "parentSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+    "candidateSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+    "changed": false
+  },
+  {
+    "path": "state.mjs",
+    "parentSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+    "candidateSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+    "changed": false
+  },
+  {
+    "path": "storage.mjs",
+    "parentSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+    "candidateSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+    "changed": false
+  }
+]

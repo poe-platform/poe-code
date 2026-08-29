@@ -1,0 +1,86 @@
+{
+  "schema": "pipestatus-typed-preexec-controls-v1",
+  "results": [
+    {
+      "id": "D01",
+      "status": "PASS",
+      "assertions": 15,
+      "error": null
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "assertions": 10,
+      "error": null
+    },
+    {
+      "id": "D04",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "D05",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "D06",
+      "status": "PASS",
+      "assertions": 13,
+      "error": null
+    },
+    {
+      "id": "D07",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    },
+    {
+      "id": "D08",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    },
+    {
+      "id": "D09",
+      "status": "PASS",
+      "assertions": 7,
+      "error": null
+    },
+    {
+      "id": "D10",
+      "status": "PASS",
+      "assertions": 18,
+      "error": null
+    },
+    {
+      "id": "D11",
+      "status": "PASS",
+      "assertions": 7,
+      "error": null
+    },
+    {
+      "id": "D12",
+      "status": "PASS",
+      "assertions": 20,
+      "error": null
+    }
+  ],
+  "pass": 12,
+  "fail": 0,
+  "assertions": 120,
+  "nativeStarts": 0,
+  "entryExecuted": false,
+  "controlChildren": 0,
+  "syntaxChildrenRetired": 3,
+  "helperImages": 3,
+  "deadline": 1788012702742.8252
+}

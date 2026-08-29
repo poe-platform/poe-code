@@ -1,0 +1,134 @@
+[
+  {
+    "id": "P19",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P20",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P21",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P22",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P23",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P24",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+      "pipestatus-typed-case"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/home",
+      "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/tmp",
+      "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/empty-path"
+    },
+    "extraProcessReservation": 0
+  }
+]

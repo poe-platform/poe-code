@@ -1,0 +1,53 @@
+{
+  "schema": "ACTUAL_ATTEMPT02_FINAL_PUBLICATION",
+  "status": "ADMISSION_ACCEPTED",
+  "grantCommit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+  "authCommit": "68cf50c62b74f2d544126f46c9f599d0b2444321",
+  "evidenceCommit": "3c4eedf2f153e12bc59851f7bcf22273a44652b6",
+  "evidenceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/EVIDENCE-MANIFEST.json",
+    "bytes": 26085,
+    "mode": 420,
+    "sha256": "c4d6c75cb7806877f6b85d14bd9633c12dd70d73fa1812c9a5ca9e5b39d60d90"
+  },
+  "publicationCapture": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/PUBLICATION-CAPTURE.ndjson",
+    "bytes": 53373,
+    "mode": 384,
+    "sha256": "b382f8e8e6bdf20b65fba94fac29069151bd533c9a995166857bdd8823adbfbc"
+  },
+  "throughPublication": {
+    "metadataProcesses": 13,
+    "wrapperHelpers": 2,
+    "runtimeProcesses": 47,
+    "total": 62,
+    "allKnownMetadataClosed": true,
+    "publicationPathsClean": true
+  },
+  "reservedFinalMetadataProcesses": 4,
+  "expectedFinalTotal": 66,
+  "planned": 67,
+  "cap": 128,
+  "peak": 5,
+  "scope": "Owned launch graph,not host-global process census",
+  "all14WorkerProcessesReaped": true,
+  "all30AuthorityChildrenReaped": true,
+  "rawCaptureLostBytes": 0,
+  "actualSemanticCalls": 0,
+  "C11EmptySetups": 2,
+  "grantConsumed": true,
+  "noFurtherAttemptAuthorized": true,
+  "elapsedMillisecondsAtPublication": 989444,
+  "actualLimits": "90min total;75min reviewed owner;15min admin reserve.257MiB partition,inner256 unchanged;768MiBwork.Heap256MiB notRSS.",
+  "physicalViews": "Remain local immutable staged input copies. Full STAGED inventory committed; payload duplication not staged into Git. Published receipt paths clean; this is not a whole-tree clean claim.",
+  "finalTransport": "Final four bounded metadata operations retained by tool transport; not recursively asserted to be in this self-hashed file.",
+  "historical": "All oldattempt01/wrapper/V6/N02/W07 qualifications unchanged",
+  "postInspectionFailure": [
+    {
+      "phase": "post-run summary formatting",
+      "message": "row.report.loads.evaluated.slice is not a function",
+      "scope": "Display-only field-shape mistake after full staged authentication; no engine operation, child launch, or integrity check failed; no stage replay",
+      "rawToolReceiptPreserved": true
+    }
+  ]
+}

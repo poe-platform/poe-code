@@ -32,7 +32,7 @@ export async function admitAscii(text: string, ledger: EreLedger, signal?: Abort
     ledger.charge("work", 1, signal);
     const code = text.charCodeAt(offset);
     if (code === 0 || code > 127) throw new EreUnsupportedError("only non-NUL ASCII in the C/POSIX profile", offset);
-    if (offset % 256 === 0) await ledger.checkpoint(signal);
+    await ledger.checkpoint(signal);
   }
 }
 
@@ -58,6 +58,7 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
   for (const fragment of input) {
     for (let offset = 0; offset < fragment.text.length; offset++) {
       ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
       quoted.push(fragment.literal);
     }
     output.push(fragment.text);
@@ -94,6 +95,7 @@ class Parser {
     }
     if (alternatives.length === 1) return alternatives[0]!;
     this.ledger.charge("work", alternatives.length * 2, this.signal);
+    await this.ledger.checkpoint(this.signal);
     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
   }
 
@@ -110,11 +112,11 @@ class Parser {
         let min = operator === "+" ? 1 : 0;
         let max = operator === "?" ? 1 : Infinity;
         if (operator === "{") {
-          min = this.count();
+          min = await this.count();
           max = min;
           if (this.at(",")) {
             this.offset++;
-            max = this.at("}") ? Infinity : this.count();
+            max = this.at("}") ? Infinity : await this.count();
           }
           if (!this.at("}") || max < min) throw new EreSyntaxError("invalid interval", begin);
           this.offset++;
@@ -132,14 +134,16 @@ class Parser {
     if (children.length === 0) return this.node(() => ({ kind: "empty", nullable: true, captured: false }));
     if (children.length === 1) return children[0]!;
     this.ledger.charge("work", children.length * 2, this.signal);
+    await this.ledger.checkpoint(this.signal);
     return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
   }
 
-  count(): number {
+  async count(): Promise<number> {
     const begin = this.offset;
     let value = 0;
     while (!this.quoted?.[this.offset] && this.pattern[this.offset] !== undefined && this.pattern[this.offset]! >= "0" && this.pattern[this.offset]! <= "9") {
       this.ledger.charge("work", 1, this.signal);
+      await this.ledger.checkpoint(this.signal);
       value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
       if (value > 255) throw new EreUnsupportedError("interval counts exceed 255", begin);
     }
@@ -174,7 +178,7 @@ class Parser {
     return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
   }
 
-  set(begin: number): EreNode {
+  async set(begin: number): Promise<EreNode> {
     this.ledger.charge("allocationUnits", 128, this.signal);
     const members: boolean[] = new Array<boolean>(128).fill(false);
     const negate = this.at("^");
@@ -182,10 +186,12 @@ class Parser {
     let first = true;
     while (this.offset < this.pattern.length) {
       this.ledger.charge("work", 1, this.signal);
+      await this.ledger.checkpoint(this.signal);
       if (this.at("]") && !first) {
         this.offset++;
         if (negate) for (let code = 1; code < 128; code++) {
           this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
           members[code] = !members[code];
         }
         return this.node(() => ({ kind: "set", members: Object.freeze(members), nullable: false, captured: false }));
@@ -200,6 +206,7 @@ class Parser {
         let name = "";
         while (this.offset < this.pattern.length && !this.at(":")) {
           this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
           if (name.length >= 6) throw new EreSyntaxError("unknown character class", classBegin);
           name += this.pattern[this.offset++];
         }
@@ -207,6 +214,7 @@ class Parser {
         this.offset += 2;
         for (let code = 1; code < 128; code++) {
           this.ledger.charge("work", 1, this.signal);
+          await this.ledger.checkpoint(this.signal);
           if (classMember(name, code)) members[code] = true;
         }
         if (this.at("-") && !this.at("]", this.offset + 1)) throw new EreSyntaxError("class cannot be a range endpoint", this.offset);
@@ -219,6 +227,7 @@ class Parser {
           if (lower > upper) throw new EreSyntaxError("descending range", this.offset - 3);
           for (let code = lower; code <= upper; code++) {
             this.ledger.charge("work", 1, this.signal);
+            await this.ledger.checkpoint(this.signal);
             members[code] = true;
           }
         } else members[lower] = true;

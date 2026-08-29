@@ -32,16 +32,17 @@ async function historyOrder(left: History | null, right: History | null, ledger:
   const rightCount = right?.count ?? 0;
   for (let ordinal = 1; ordinal <= Math.min(leftCount, rightCount); ordinal++) {
     ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
     let leftEntry = left!;
     let rightEntry = right!;
     for (let remaining = leftCount; remaining > ordinal; remaining--) {
       ledger.charge("work", 1, signal);
-      if (remaining % 256 === 0) await ledger.checkpoint(signal);
+      await ledger.checkpoint(signal);
       leftEntry = leftEntry.previous!;
     }
     for (let remaining = rightCount; remaining > ordinal; remaining--) {
       ledger.charge("work", 1, signal);
-      if (remaining % 256 === 0) await ledger.checkpoint(signal);
+      await ledger.checkpoint(signal);
       rightEntry = rightEntry.previous!;
     }
     const compared = spanOrder(leftEntry.span, rightEntry.span);
@@ -130,6 +131,7 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
           let next = current.next;
           for (let index = node.children.length - 1; index >= 0; index--) {
             ledger.charge("work", 1, signal);
+            await ledger.checkpoint(signal);
             const following = next;
             next = task(() => ({ kind: "node", node: node.children[index]!, next: following }));
           }
@@ -139,6 +141,7 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
         case "alternative":
           for (let index = node.children.length - 1; index >= 0; index--) {
             ledger.charge("work", 1, signal);
+            await ledger.checkpoint(signal);
             push(state.position, task(() => ({ kind: "node", node: node.children[index]!, next: current.next })), state.captures, state.histories);
           }
           break;

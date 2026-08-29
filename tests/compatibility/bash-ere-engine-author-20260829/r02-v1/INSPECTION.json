@@ -1,0 +1,32 @@
+[
+  {
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/HANDOFF.md",
+    "size": 7171,
+    "mode": 420,
+    "sha256": "9b88bac08fad94c9440efdc5f56a4acb25a31f54458c7c502d05e66e79bdba45"
+  },
+  {
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/ROUTING.md",
+    "size": 7297,
+    "mode": 420,
+    "sha256": "56da6aa386169fcf565658548f89ea81f9a48dbbba90fbd99dfe20ebb20ce193"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/matcher.ts",
+    "size": 8470,
+    "mode": 420,
+    "sha256": "d9eb7ec7b18648ddcbd853085aef6972cd5938d3817df458796b0a7354b0abeb"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/syntax.ts",
+    "size": 12570,
+    "mode": 420,
+    "sha256": "cf928a8e09a2fbe4bdd67c187849e40bde1d02e9eb1e79f509827b0a2f5cde6d"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/limits.ts",
+    "size": 3471,
+    "mode": 420,
+    "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+  }
+]

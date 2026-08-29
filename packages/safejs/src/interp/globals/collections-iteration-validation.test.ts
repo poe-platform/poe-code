@@ -60,9 +60,9 @@ async function verifyCheckpoint(source: string, pauseAt = 1, nativeSource = sour
     async () => undefined
   );
   const clock = vi.spyOn(Date, "now").mockReturnValue(0);
-  let release!: () => void;
+  let release!: (value: undefined) => void;
   let checkpointWritten!: (snapshot: SafeJSSnapshot) => void;
-  const gate = new Promise<void>((resolve) => {
+  const gate = new Promise<undefined>((resolve) => {
     release = resolve;
   });
   const checkpoint = new Promise<SafeJSSnapshot>((resolve) => {
@@ -89,7 +89,7 @@ async function verifyCheckpoint(source: string, pauseAt = 1, nativeSource = sour
         call: () => {
           calls += 1;
           if (calls !== pauseAt) {
-            return createSandboxPromise(Promise.resolve());
+            return createSandboxPromise(Promise.resolve(undefined));
           }
           clock.mockReturnValue(2);
           return createSandboxPromise(gate);
@@ -103,7 +103,7 @@ async function verifyCheckpoint(source: string, pauseAt = 1, nativeSource = sour
       throw new Error("Execution finished without the selected await checkpoint");
     })
   ]);
-  release();
+  release(undefined);
   const original = await execution;
   expect(saved.pendingAwaits).toMatchObject([
     { span: { start: { offset: source.indexOf("await pause") } } }
@@ -117,7 +117,7 @@ async function verifyCheckpoint(source: string, pauseAt = 1, nativeSource = sour
     bindings: {
       pause: createSandboxClosure({
         async: true,
-        call: () => createSandboxPromise(Promise.resolve())
+        call: () => createSandboxPromise(Promise.resolve(undefined))
       })
     }
   });

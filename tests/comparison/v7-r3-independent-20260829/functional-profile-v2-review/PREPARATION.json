@@ -1,0 +1,39 @@
+{
+  "status": "PREPARED_NOT_RUN",
+  "presealSha256": "31236b74c79a583592f41e6df1d57de8d0dd1aa95d8017a2598c4ae3c84e16d0",
+  "successor": 27,
+  "inherited": 62,
+  "controls": {
+    "authorFamilies": 14,
+    "retainedAdmissionData": 3,
+    "novel": 12
+  },
+  "outputOnlyRelocationAndDefaultNullHook": [
+    {
+      "label": "owned-fixture-output",
+      "before": "path.join(home,'evidence','fixtures',name)",
+      "after": "path.join(\"/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/work\",'fixtures',name)"
+    },
+    {
+      "label": "default-null-novel-hook",
+      "before": "wrongFirst=false,preparationFailure=false,unsafeFirst=false",
+      "after": "wrongFirst=false,preparationFailure=false,unsafeFirst=false,tweak=null"
+    },
+    {
+      "label": "novel-hook-before-body",
+      "before": "  const terminalBytes=[];",
+      "after": "  if(tweak)tweak(drivers);\n  const terminalBytes=[];"
+    },
+    {
+      "label": "owned-budget-output",
+      "before": "path.join(home,'evidence','budget')",
+      "after": "path.join(\"/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/work\",'budget')"
+    },
+    {
+      "label": "owned-control-output",
+      "before": "path.join(home,'evidence','CONTROL-RESULT.json')",
+      "after": "path.join(\"/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/work\",'CONTROL-RESULT.json')"
+    }
+  ],
+  "children": 0
+}

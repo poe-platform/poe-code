@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "45dd71f18882900070c5a925a5c01e0a6045aa5b",
+  "sourceRows": 28,
+  "presealSha256": "31236b74c79a583592f41e6df1d57de8d0dd1aa95d8017a2598c4ae3c84e16d0",
+  "controls": {
+    "authorFamilies": 14,
+    "retainedAdmissionData": 3,
+    "novel": 12
+  }
+}

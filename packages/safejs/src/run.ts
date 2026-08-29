@@ -196,6 +196,10 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       try {
         const restoredSnapshot =
           options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
+        const executionSemantics =
+          restoredSnapshot?.executionSemantics === "jobs-v6" ? "jobs-v6" : EXECUTION_SEMANTICS;
+        const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
+          executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
         if (restoredSnapshot !== undefined) {
           leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
         }
@@ -226,7 +230,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 resumeNodeId: (restoredSnapshot as RunSnapshot).pendingAwaits?.[0]?.nodeId
               }
             : undefined;
-        const callerBindings =
+        const callerBindings = convertInitialInput(() =>
           options.bindings === undefined
             ? {}
             : wrapCallerInjectedBindings(options.bindings, {
@@ -235,7 +239,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 moduleId: "<bindings>",
                 signal: options.signal,
                 lifecycle
-              });
+              })
+        );
         const builtinBindings = {
           ...createConsoleJsonGlobals({
             budget,
@@ -260,10 +265,9 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           }),
           ...createRegexGlobals()
         };
-        const importMeta = deepCopyToSandbox(options.importMeta ?? {}) as Record<
-          string,
-          SandboxValue
-        >;
+        const importMeta = convertInitialInput(
+          () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
+        );
         if (restoredSnapshot?.migration !== undefined) {
           if (Object.hasOwn(importMeta, "migration"))
             throw new TypeError("import.meta.migration is reserved for migrated checkpoint state.");
@@ -277,16 +281,19 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         const initialInputs = prepareReplayInputs(
           {
             bindings: callerBindings,
-            imports: resolveModuleImports(module, options.modules, {
-              budget,
-              hostCalls,
-              signal: options.signal,
-              allowMissing: restoredSnapshot?.initialInputs !== undefined
-            }),
-            entryPointArgs:
+            imports: convertInitialInput(() =>
+              resolveModuleImports(module, options.modules, {
+                budget,
+                hostCalls,
+                signal: options.signal,
+                allowMissing: restoredSnapshot?.initialInputs !== undefined
+              })
+            ),
+            entryPointArgs: convertInitialInput(() =>
               options.entryPointArgs === undefined
                 ? undefined
-                : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[]),
+                : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[])
+            ),
             importMeta
           },
           restoredSnapshot?.initialInputs,
@@ -354,6 +361,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         snapshotScheduler = activeSnapshotScheduler;
         createFailureSnapshot = () =>
           createRunSnapshot({
+            executionSemantics,
             migration: restoredSnapshot?.migration,
             bindings: executionScope.snapshot().bindings,
             clock: options.clock,
@@ -381,6 +389,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               }
               const interpreterSnapshot = yieldPoint.snapshot();
               snapshot = createRunSnapshot({
+                executionSemantics,
                 migration: restoredSnapshot?.migration,
                 bindings: interpreterSnapshot.bindings,
                 clock: options.clock,
@@ -428,6 +437,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                     }
                     const interpreterSnapshot = yieldPoint.snapshot();
                     snapshot = createRunSnapshot({
+                      executionSemantics,
                       migration: restoredSnapshot?.migration,
                       bindings: interpreterSnapshot.bindings,
                       clock: options.clock,
@@ -467,6 +477,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           replayError = error.message;
         }
         const snapshot = createRunSnapshot({
+          executionSemantics,
           migration: restoredSnapshot?.migration,
           bindings: executionScope.snapshot().bindings,
           clock: options.clock,
@@ -667,6 +678,7 @@ function createExecutableNode(module: Module): ParseResult {
 }
 
 function createRunSnapshot(input: {
+  executionSemantics: "jobs-v6" | typeof EXECUTION_SEMANTICS;
   migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
@@ -688,7 +700,7 @@ function createRunSnapshot(input: {
 }): RunSnapshot {
   return {
     version: DUMP_FORMAT_VERSION,
-    executionSemantics: EXECUTION_SEMANTICS,
+    executionSemantics: input.executionSemantics,
     sourceHash: input.sourceHash,
     ...(input.migration === undefined ? {} : { migration: structuredClone(input.migration) }),
     bindings: input.bindings,

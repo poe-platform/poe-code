@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { describe, expect, it, vi } from "vitest";
 
 import { declareHostOperation, dump, restore, run, type HostCallResumeRequest } from "./index.js";
+import { promiseReplayContext } from "./interp/promise-replay.js";
 
 function deferred<Value>() {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
@@ -18,7 +19,9 @@ describe("external replay checkpoints", () => {
       const disable = vi.spyOn(AsyncLocalStorage.prototype, "disable");
       try {
         await run(source, { bindings: { callback: async () => 1 } }).catch(() => undefined);
-        expect(disable).toHaveBeenCalledTimes(1);
+        expect(
+          disable.mock.contexts.filter((context) => context !== promiseReplayContext)
+        ).toHaveLength(1);
       } finally {
         disable.mockRestore();
       }
@@ -55,7 +58,7 @@ return { first, final };`;
         const saved = await dump(execution, { mode: "replay" });
         expect(released).toBe(false);
         const snapshot = restore(JSON.parse(saved), { source });
-        expect(snapshot.executionSemantics).toBe("jobs-v6");
+        expect(snapshot.executionSemantics).toBe("jobs-v7");
         expect(snapshot.hostCalls).toEqual(
           expect.arrayContaining([
             expect.objectContaining({ operation: "checkpoint", lifecycle: "running" })

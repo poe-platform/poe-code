@@ -4,6 +4,7 @@ import { dump } from "./dump.js";
 import { inspectSnapshotMigration, migrateSnapshot } from "./migrate.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
+import { EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
 
 const compoundOperators = [
   "+=",
@@ -281,7 +282,7 @@ describe("assignment reference evaluation", () => {
       "const target = { value: 1 }; target.value += (target.value = 4); return target.value;";
     const original = await run(source);
     const snapshot = JSON.parse(await dump(original));
-    expect(snapshot.executionSemantics).toBe("jobs-v6");
+    expect(snapshot.executionSemantics).toBe(EXECUTION_SEMANTICS);
     const previous = { ...snapshot, executionSemantics: "jobs-v5" };
     expect(() => restore(previous, { source })).toThrow("incompatible execution semantics");
     const targetSource = "return import.meta.migration.result;";
@@ -297,7 +298,7 @@ describe("assignment reference evaluation", () => {
           calls: []
         }
       });
-      expect(migrated.executionSemantics).toBe("jobs-v6");
+      expect(migrated.executionSemantics).toBe(EXECUTION_SEMANTICS);
       await expect(run(targetSource, { snapshot: migrated })).resolves.toMatchObject({
         ok: true,
         returnValue: 5

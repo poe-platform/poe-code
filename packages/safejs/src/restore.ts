@@ -50,6 +50,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
 
   if (
     snapshot.executionSemantics !== EXECUTION_SEMANTICS &&
+    snapshot.executionSemantics !== "jobs-v6" &&
     (snapshot.executionSemantics !== undefined ||
       snapshot.promiseReplay !== undefined ||
       snapshot.replay !== undefined ||

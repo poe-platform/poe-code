@@ -1,0 +1,9 @@
+{"started":true,"action":"--controls","pid":90986,"execPath":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","version":"v22.22.2"}
+{"id":"B01","pass":true,"bytes":2,"sha256":"06f961b802bc46ee168555f066d28f4f0e9afdf3f88174c1ee6f9de004fc30a0"}
+{"id":"B02","pass":true,"bytes":1,"sha256":"559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"}
+{"id":"B03","pass":true,"bytes":4,"sha256":"e3f86c9d7526077c58626fec9851686595db1b97d114431b257f2aed8a2be73f"}
+{"id":"B04","pass":true,"bytes":5,"sha256":"34458efc6b3e8689be7b17dffa5c40d9c1b72807c93cd35c96f8a6e1b4484a7c"}
+{"id":"B05","pass":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+{"id":"B06","pass":true,"bytes":9,"sha256":"c3f9fcb9fec539b233bf467d2389f94effd48922009ceb25344987538f080e20"}
+{"negativeWithinB06":"wrong digest refused before creation"}
+{"terminal":true,"elapsedMs":67,"children":[]}

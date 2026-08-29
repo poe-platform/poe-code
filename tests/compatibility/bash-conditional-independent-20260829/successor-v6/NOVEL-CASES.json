@@ -1,0 +1,193 @@
+[
+  {
+    "id": "N01",
+    "role": "mixed quote fragments and single substitution",
+    "program": "[[ 'a*b' == \"a*\"$(printf visit >> visits; printf '?') ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {
+        "visits": "visit"
+      }
+    },
+    "basis": "root quote-fragment pattern and once-only expansion",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N02",
+    "role": "expanded operator/closing token remain data",
+    "program": "op='||'; close=']]'; [[ $op == '||' && $close == ']]' ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {}
+    },
+    "basis": "root no expanded operator reparse",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N03",
+    "role": "malformed skipped grammar before effects",
+    "program": "[[ x || ( $(printf late > visits) && ) ]] > out",
+    "projectExpected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderrClass": "ShellSyntaxError diagnostic, not GNU golden",
+      "files": {},
+      "directParseError": "ShellSyntaxError"
+    },
+    "basis": "full syntax parse before execution; short-circuit does not hide syntax errors",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N04",
+    "role": "quoted unsupported-looking pattern data",
+    "program": "p='@(x)'; [[ '@(x)' == \"$p\" && '[[.a.]]' == '[[.a.]]' ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {}
+    },
+    "basis": "quoted lookalikes remain literal",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N05",
+    "role": "unvisited valid unsupported RHS with effects",
+    "program": "[[ x || $(printf bad > visits; printf x) == @(x|y) ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {}
+    },
+    "basis": "root valid unsupported extglob represented but unvisited operand never expanded",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N06",
+    "role": "reached expanded extglob refuses",
+    "program": "p='@(x)'; [[ x == $p ]]",
+    "projectExpected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderrClass": "budgeted explicit unsupported-profile diagnostic",
+      "files": {}
+    },
+    "basis": "root refusal2, not literal/false; no native diagnostic claim",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N07",
+    "role": "literal numeric/base/empty and expanded positional count",
+    "program": "set -- a b; [[ $# -eq 2 && 010 -eq 8 && -2 -lt 0 && '' -eq 0 ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {}
+    },
+    "basis": "root literal signed64/octal/empty0; expanded $# permitted",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N08",
+    "role": "expanded assignment-like numeric text cannot write",
+    "program": "value='victim=9'; victim=keep; [[ $value -eq 9 ]]; status=$?; printf '%s:%s\\n' \"$status\" \"$victim\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "2:keep\n",
+      "stderrClass": "budgeted explicit unsupported numeric profile",
+      "files": {}
+    },
+    "basis": "no arithmetic assignment/expression evaluation; false2 is conditional status not final printf status",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N09",
+    "role": "reached regex refusal retains array capture state",
+    "program": "BASH_REMATCH=(sentinel); [[ x =~ x ]]; status=$?; printf '%s:%s\\n' \"$status\" \"${BASH_REMATCH[0]}\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "2:sentinel\n",
+      "stderrClass": "budgeted regex-profile refusal",
+      "files": {},
+      "workerStarts": 0
+    },
+    "basis": "root no ERE engine or BASH_REMATCH mutation",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N10",
+    "role": "skipped nounset and compound redirect effects",
+    "program": "set -u; [[ x || $missing ]] &> out; printf done",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "done",
+      "stderr": "",
+      "files": {
+        "out": ""
+      }
+    },
+    "basis": "Unit2 unvisited expansion; Unit1 ordered compound redirects",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N11",
+    "role": "visited nounset under already admitted redirect",
+    "program": "set -u; [[ $missing ]] &> out; printf bad",
+    "projectExpected": null,
+    "proposedProjectExpected": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "fileNames": [
+        "out"
+      ],
+      "out": "budgeted missing diagnostic; exact bytes require existing Unit2 source mapping"
+    },
+    "held": "Q02: design says original caller stderr versus inherited current redirected IO; do not derive expectation from candidate output",
+    "basis": "existing Unit1/Unit2 route proposal; not yet a new frozen stdout golden",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  },
+  {
+    "id": "N12",
+    "role": "canonical sparse/empty/scalar presence only",
+    "program": "a=(); a[3]=; scalar=; [[ -v a[3] && ! -v a[0] && -v scalar && ! -v missing ]]; printf '%s\\n' \"$?\"",
+    "projectExpected": {
+      "exitCode": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "files": {}
+    },
+    "basis": "root scalar/canonicalindex -v only; no aggregate selector inference",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "productObserved": null
+  }
+]

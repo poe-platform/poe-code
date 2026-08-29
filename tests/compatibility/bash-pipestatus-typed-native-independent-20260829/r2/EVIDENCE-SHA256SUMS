@@ -1,0 +1,6 @@
+d4e25b11396a4eda67e710ba89bdf7ca27bbd16cb2ffb2a7ad70bfaa724a0e59  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/RECEIPT.json
+7e469fa3bbd188858b951cdf5a694855189918b8ded8270b7abb7f88bab22512  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/AUDIT.json
+145675ab1f1d543e17d357914420920830a81842a472c696b539d78085f270b3  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/INSPECTION.json
+c56c600e8bd43ac2702b93fcfaf9918b80d8c9845d6ef5143e2d2578fae15931  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/audit.mjs
+f17d7aa1248ce80dd1f0bcd09685004d7ac14d49649c5de16e6f9f499646b157  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/inspect.mjs
+9bd0e074c3085e7361e859480b69a96e2d73ac92e9b71aa74983716ed54da599  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/r2/INVOCATION.json

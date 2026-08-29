@@ -164,6 +164,10 @@
 - A sparse witness is not a complete inventory; preserve that distinction in guards.
 - Establish trusted outer-owned raw startup capture before fallible admission or
   child launch, so early bootstrap failures do not depend on inner publication.
+- Critical admission/launch dispatch uses sealed files and explicit arguments in
+  self-contained entrypoints, not ambient cross-call REPL bindings. Establish
+  capture/catch ownership before fallible state lookup; do not infer a shared-state
+  or cross-agent kernel cause from an undefined binding alone.
 - Authenticate Git path inventories from NUL-delimited records and byte-exact
   paths, not C-quoted line displays; never reinterpret quoted display names as
   filenames or classify a wrong-tree harness capture as a product failure.

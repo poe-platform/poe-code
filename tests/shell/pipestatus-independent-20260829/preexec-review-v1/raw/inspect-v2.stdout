@@ -1,0 +1,734 @@
+
+FILE SEAL-v2.json bytes 795793
+
+FILE CONTROLS.json bytes 9205
+{
+  "results": [
+    {
+      "id": "C01",
+      "pass": true
+    },
+    {
+      "id": "C02",
+      "pass": true
+    },
+    {
+      "id": "C03",
+      "pass": true
+    },
+    {
+      "id": "C04",
+      "pass": true
+    },
+    {
+      "id": "C05",
+      "pass": true
+    },
+    {
+      "id": "C06",
+      "pass": true
+    },
+    {
+      "id": "C07",
+      "pass": true
+    },
+    {
+      "id": "C08",
+      "pass": true
+    },
+    {
+      "id": "C09",
+      "pass": true
+    },
+    {
+      "id": "C10",
+      "pass": true,
+      "status": 0,
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 540,
+        "sha256": "1b4f9f1893aae91bd0a458aafad1b52c381c14641633966dffe4265785585f16"
+      },
+      "lifecycle": {
+        "id": "C10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639009
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639012
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639012
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639053
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639053
+          },
+          {
+            "name": "exit",
+            "at": 1788019639053
+          },
+          {
+            "name": "close",
+            "at": 1788019639053
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 9,
+            "sha256": "8f95582e52c949b94d7d59c3ee6811fbf9ecb07de9785d35d1df83a0687f3145",
+            "base64": "SEFSTUxFU1MK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53476,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639065
+      }
+    },
+    {
+      "id": "C11",
+      "pass": true,
+      "status": 1,
+      "expectedRefusal": "EDGE_REFUSED",
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 540,
+        "sha256": "8f88e0208a79ec3d5f5c5d5ac95d5498d70e9a6bf0094e8c32ec882e116dc02a"
+      },
+      "lifecycle": {
+        "id": "C11",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639126
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639127
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639127
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639164
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639164
+          },
+          {
+            "name": "exit",
+            "at": 1788019639164
+          },
+          {
+            "name": "close",
+            "at": 1788019639164
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 1009,
+            "sha256": "4d48c4c85f4f7949b50859ee76e57e1411f6cd6aa60c1b4fc0d43427352c8b73",
+            "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMS9ndWFyZC5tanM6MjUKICAgICAgaWYgKCFyb2xlLmVkZ2VzW3BhcmVudF0/LmluY2x1ZGVzKHNwZWNpZmllcikpIHRocm93IEVycm9yKCdFREdFX1JFRlVTRUQnKTsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KCkVycm9yOiBFREdFX1JFRlVTRUQKICAgIGF0IHJlc29sdmUgKGZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLXBpcGVzdGF0dXMtcHJlZXhlYy9DMTEvZ3VhcmQubWpzOjI1OjU5KQogICAgYXQgbmV4dFN0ZXAgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9jdXN0b21pemF0aW9uX2hvb2tzOjE4OToyNikKICAgIGF0IHJlc29sdmVXaXRoSG9va3MgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9jdXN0b21pemF0aW9uX2hvb2tzOjM5NToxMCkKICAgIGF0IE1vZHVsZUxvYWRlci5yZXNvbHZlU3luYyAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6Nzg3OjE0KQogICAgYXQgTW9kdWxlTG9hZGVyLnJlc29sdmUgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjcwMzoxOSkKICAgIGF0IE1vZHVsZUxvYWRlci5nZXRNb2R1bGVKb2JGb3JJbXBvcnQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjMxMDozOCkKICAgIGF0IG9uSW1wb3J0LnRyYWNlUHJvbWlzZS5fX3Byb3RvX18gKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjY2NDozNikKICAgIGF0IFRyYWNpbmdDaGFubmVsLnRyYWNlUHJvbWlzZSAobm9kZTpkaWFnbm9zdGljc19jaGFubmVsOjM1MDoxNCkKICAgIGF0IE1vZHVsZUxvYWRlci5pbXBvcnQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjY2MzoyMSkKICAgIGF0IGRlZmF1bHRJbXBvcnRNb2R1bGVEeW5hbWljYWxseUZvck1vZHVsZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS91dGlsczoyMjI6MzEpCgpOb2RlLmpzIHYyMi4yMi4yCg==",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53477,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639171
+      }
+    },
+    {
+      "id": "C12",
+      "pass": true,
+      "status": 1,
+      "expectedRefusal": "AUTH_HASH",
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 279,
+        "sha256": "da9ad3839c378bba4151d8d7b36e5ceaa7799550ff43c0ee4112840866b124e2"
+      },
+      "lifecycle": {
+        "id": "C12",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639226
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639227
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639227
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639267
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639268
+          },
+          {
+            "name": "exit",
+            "at": 1788019639268
+          },
+          {
+            "name": "close",
+            "at": 1788019639268
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 1063,
+            "sha256": "b9eb2ea9da04b8f53a5a181c84a4f4f149896e2b3f58a7f5e7b53e956ed2e048",
+            "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMi9hdXRoLm1qczoxOAogICAgaWYgKGZzLnJlYWRTeW5jKGRlc2NyaXB0b3IsIEJ1ZmZlci5hbGxvYygxKSwgMCwgMSwgb2Zmc2V0KSB8fCBoYXNoKGJ5dGVzKSAhPT0gcGluLnNoYTI1NikgdGhyb3cgRXJyb3IoJ0FVVEhfSEFTSCcpOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXgoKRXJyb3I6IEFVVEhfSEFTSAogICAgYXQgcmVhZFBpbm5lZCAoZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMi9hdXRoLm1qczoxODoxMDEpCiAgICBhdCBsb2FkIChmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1waXBlc3RhdHVzLXByZWV4ZWMvQzEyL2d1YXJkLm1qczozOToxOSkKICAgIGF0IG5leHRTdGVwIChub2RlOmludGVybmFsL21vZHVsZXMvY3VzdG9taXphdGlvbl9ob29rczoxODk6MjYpCiAgICBhdCBsb2FkV2l0aEhvb2tzIChub2RlOmludGVybmFsL21vZHVsZXMvY3VzdG9taXphdGlvbl9ob29rczozNTI6MTgpCiAgICBhdCAjbG9hZFN5bmMgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjg0OToxNCkKICAgIGF0IE1vZHVsZUxvYWRlci5sb2FkIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjo4MDg6MjgpCiAgICBhdCBNb2R1bGVMb2FkZXIubG9hZEFuZFRyYW5zbGF0ZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6NTk0OjMxKQogICAgYXQgI2NyZWF0ZU1vZHVsZUpvYiAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6NjI0OjM2KQogICAgYXQgI2dldEpvYkZyb21SZXNvbHZlUmVzdWx0IChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjozNDM6MzQpCiAgICBhdCBNb2R1bGVMb2FkZXIuZ2V0TW9kdWxlSm9iRm9ySW1wb3J0IChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjozMTE6NDEpCgpOb2RlLmpzIHYyMi4yMi4yCg==",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53478,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639275
+      }
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "actualAdmissionMembers": 1010,
+  "managedChildren": 3,
+  "retired": true,
+  "productEvaluations": 0,
+  "Workers": 0,
+  "tarBytes": 5819392
+}
+
+FILE ROLE-GRAPH.json bytes 2197
+{
+  "outer": [
+    "launch-shell",
+    "binary-and-manifest-shasum",
+    "bootstrap-shasum",
+    "outer-Node",
+    "owner-Node"
+  ],
+  "inner": [
+    "offline-npm",
+    "source-built:R01",
+    "source-built:R02",
+    "source-built:R03",
+    "source-built:R04",
+    "source-built:R05",
+    "source-built:R06",
+    "source-built:R07",
+    "source-built:R08",
+    "source-built:R09",
+    "source-built:R10",
+    "source-built:R11",
+    "source-built:R12",
+    "source-built:R13",
+    "source-built:R14",
+    "source-built:R15",
+    "source-built:R16",
+    "source-built:R17",
+    "source-built:R18",
+    "source-built:H01",
+    "source-built:H02",
+    "source-built:H03",
+    "source-built:H04",
+    "source-built:H05",
+    "source-built:H06",
+    "source-built:H07",
+    "source-built:H08",
+    "installed:R01",
+    "installed:R02",
+    "installed:R03",
+    "installed:R04",
+    "installed:R05",
+    "installed:R06",
+    "installed:R07",
+    "installed:R08",
+    "installed:R09",
+    "installed:R10",
+    "installed:R11",
+    "installed:R12",
+    "installed:R13",
+    "installed:R14",
+    "installed:R15",
+    "installed:R16",
+    "installed:R17",
+    "installed:R18",
+    "installed:H01",
+    "installed:H02",
+    "installed:H03",
+    "installed:H04",
+    "installed:H05",
+    "installed:H06",
+    "installed:H07",
+    "installed:H08",
+    "physically-moved:R01",
+    "physically-moved:R02",
+    "physically-moved:R03",
+    "physically-moved:R04",
+    "physically-moved:R05",
+    "physically-moved:R06",
+    "physically-moved:R07",
+    "physically-moved:R08",
+    "physically-moved:R09",
+    "physically-moved:R10",
+    "physically-moved:R11",
+    "physically-moved:R12",
+    "physically-moved:R13",
+    "physically-moved:R14",
+    "physically-moved:R15",
+    "physically-moved:R16",
+    "physically-moved:R17",
+    "physically-moved:R18",
+    "physically-moved:H01",
+    "physically-moved:H02",
+    "physically-moved:H03",
+    "physically-moved:H04",
+    "physically-moved:H05",
+    "physically-moved:H06",
+    "physically-moved:H07",
+    "physically-moved:H08"
+  ],
+  "publicationAdminSlots": 9,
+  "totalCeiling": 93,
+  "publicExecCalls": 81,
+  "contextInvokes": 3,
+  "executedProductCases": 0
+}
+
+FILE REUSE.json bytes 2621
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/auth.mjs",
+    "bytes": 3951,
+    "mode": 420,
+    "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+    "name": "auth.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/auth.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/profile.mjs",
+    "bytes": 2114,
+    "mode": 420,
+    "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc",
+    "name": "profile.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/profile.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/guard.mjs",
+    "bytes": 2245,
+    "mode": 420,
+    "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9",
+    "name": "guard.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/guard.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/finalization.mjs",
+    "bytes": 850,
+    "mode": 420,
+    "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+    "name": "finalization.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/finalization.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/direct-child.mjs",
+    "bytes": 5895,
+    "mode": 420,
+    "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120",
+    "name": "direct-child.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/direct-child.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  }
+]
+
+FILE owner.mjs bytes 11317
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {hash,readPinned,pinExecutable,publish,errorRecord} from './reuse/auth.mjs';
+import {runDirect} from './reuse/direct-child.mjs';
+import {caseArguments,PROFILE} from './reuse/profile.mjs';
+import {finalize} from './reuse/finalization.mjs';
+import {admitArchive,materialize,verifyPackage,sample,timeWindow} from './admission.mjs';
+
+export function preEvaluation(seal, root, started, deadline) {
+  const window=timeWindow(started,deadline);pinExecutable(seal.node);
+  for(const row of seal.sources)readPinned(path.join(seal.sourceRoot,row.path),{bytes:row.bytes,sha256:row.sha256});
+  for(const row of seal.files)readPinned(row.path,row);
+  const manifest=JSON.parse(readPinned(seal.packageManifest.path,seal.packageManifest,1048576));
+  if(manifest.sha256!==seal.archive.sha256||manifest.count!==1010)throw Error('PACKAGE_AUTHORITY');
+  const admitted=admitArchive(seal.archive.path,manifest);
+  const sourceRoot=path.join(root,'source-built','product');materialize(admitted.rows,sourceRoot);
+  return {window,manifest,admitted,sourceRoot};
+}
+export function edgesFor(files) {
+  const edges={};const builtins=new Set();
+  for(const row of files.filter(row=>row.path.endsWith('.mjs')||row.path.endsWith('.js'))){const source=readPinned(row.path,row).toString('utf8');const imports=[...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*|\bexport\s*[^;]*?\bfrom\s*)["']([^"']+)["']/gu)].map(match=>match[1]);edges[row.path]=[...new Set(imports)];for(const name of imports)if(name.startsWith('node:'))builtins.add(name);}
+  return {edges,builtins:[...builtins].sort()};
+}
+export function verifyNpm(seal) {
+  const actual=[];const walk=directory=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename);actual.push(filename);if(stat.isDirectory())walk(filename);}};walk(seal.npmRoot);
+  const expected=[...seal.npmFiles.map(row=>row.path),...seal.npmDirectories.map(row=>row.path)];actual.sort();expected.sort();if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error('NPM_SET');
+  for(const row of seal.npmDirectories){const stat=fs.lstatSync(row.path);if(!stat.isDirectory()||(stat.mode&4095)!==row.mode)throw Error('NPM_DIRECTORY');}
+  for(const pin of seal.npmFiles){if(pin.kind==='link'){const stat=fs.lstatSync(pin.path),target=fs.realpathSync(pin.path);if(!stat.isSymbolicLink()||(stat.mode&4095)!==pin.mode||fs.readlinkSync(pin.path)!==pin.text||target!==pin.target)throw Error('NPM_LINK');readPinned(target,{bytes:pin.targetBytes,sha256:pin.targetSha256});}else{if((fs.lstatSync(pin.path).mode&4095)!==pin.mode)throw Error('NPM_MODE');readPinned(pin.path,pin);}}
+}
+export function makeRole(seal, app, productRoot, row, captureRoot, kind='product-case', entrySource) {
+  fs.mkdirSync(app,{recursive:true});
+  for(const name of ['guard.mjs','auth.mjs','profile.mjs']){const pin=seal.reuse.find(pin=>pin.name===name);fs.writeFileSync(path.join(app,name),readPinned(pin.path,pin));}
+  fs.writeFileSync(path.join(app,'case-driver.mjs'),entrySource??readPinned(seal.driver.path,seal.driver));
+  fs.writeFileSync(path.join(app,'host-protocols.mjs'),readPinned(seal.host.path,seal.host));
+  fs.writeFileSync(path.join(app,'package.json'),'\u007b"type":"module","private":true\u007d\n');
+  const all=[];const walk=directory=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('APP_LINK');if(stat.isDirectory())walk(filename);else{if(!stat.isFile()||stat.size>4194304)throw Error('APP_TYPE_SIZE');const content=fs.readFileSync(filename);all.push({path:filename,bytes:content.length,sha256:hash(content)});}}};walk(app);
+  const graph=edgesFor(all);const entry=path.join(app,'case-driver.mjs');
+  if(kind==='product-case')graph.edges[entry].push('virtual-bash',new URL('file://'+productRoot+'/dist/index.js').href);
+  const trace=path.join(captureRoot,row.roleId+'.trace');fs.writeFileSync(trace,'',{flag:'wx'});
+  const rolePath=path.join(captureRoot,row.roleId+'.role.json');
+  const role={profile:PROFILE,id:row.roleId,kind,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',app,entry,guard:path.join(app,'guard.mjs'),trace,rolePath,nodePath:seal.node.path,readFiles:[rolePath,trace],files:Object.fromEntries(all.map(row=>[row.path,{bytes:row.bytes,sha256:row.sha256}])),edges:graph.edges,builtins:graph.builtins,layout:row.layout,case:row.case,productRoot};
+  const bytes=Buffer.from(JSON.stringify(role));if(bytes.length>2097152)throw Error('ROLE_LIMIT');fs.writeFileSync(rolePath,bytes,{flag:'wx'});
+  return {role,bytes,args:caseArguments(role),env:{PATH:'/usr/bin:/bin',HOME:app,TMPDIR:app,LANG:'C',LC_ALL:'C',SURFACE_ROLE:rolePath,SURFACE_ROLE_BYTES:String(bytes.length),SURFACE_ROLE_SHA256:hash(bytes)}};
+}
+export async function execute(seal, grant) {
+  const window=timeWindow(grant.started,grant.deadline);if(grant.action!=='execute-pipestatus-78-v1'||grant.sealSha256!==process.env.PIPE_SEAL_SHA256||!/^([a-f0-9]{40})$/u.test(grant.rootReceipt))throw Error('GRANT');
+  if(fs.existsSync(seal.actualRoot))throw Error('ATTEMPT_USED');fs.mkdirSync(seal.actualRoot);
+  const capture=path.join(seal.actualRoot,'capture');fs.mkdirSync(capture);
+  const ledger={starts:0,maximum:79,active:0,stopped:false,captureBytes:131072,captureMaximum:100663296,rows:[]};
+  const abort=new AbortController();const timer=setTimeout(()=>abort.abort(Error('OWNER_DEADLINE')),window.bodyDeadline-Date.now());
+  const results=[];let primaryPresent=false,primary;
+  const persist=(name,value)=>{const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n');if(ledger.captureBytes+bytes.length>ledger.captureMaximum)throw Error('AGGREGATE_CAPTURE');ledger.captureBytes+=bytes.length;return publish(path.join(capture,name),bytes,window.deadline);};
+  const check=()=>{abort.signal.throwIfAborted();if(Date.now()>=window.bodyDeadline||ledger.stopped)throw Error('OWNER_ADMISSION');sample(seal.actualRoot,536870912);};
+  try {
+    const prepared=preEvaluation(seal,seal.actualRoot,grant.started,grant.deadline);
+    const installed=path.join(seal.actualRoot,'installed'),moved=path.join(seal.actualRoot,'moved');fs.mkdirSync(installed);
+    const archive=path.join(seal.actualRoot,'input.tgz');fs.writeFileSync(archive,readPinned(seal.archive.path,seal.archive));
+    fs.writeFileSync(path.join(installed,'package.json'),'{"type":"module","private":true}\n');
+    for(const name of ['user.npmrc','global.npmrc'])fs.writeFileSync(path.join(seal.actualRoot,name),'',{flag:'wx'});
+    verifyNpm(seal);
+    const installArgs=['--permission','--allow-fs-read='+seal.npmRoot,'--allow-fs-read='+seal.actualRoot,'--allow-fs-write='+seal.actualRoot,seal.npmRoot+'/bin/npm-cli.js','install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--cache='+seal.actualRoot+'/npm-cache','--userconfig='+seal.actualRoot+'/user.npmrc','--globalconfig='+seal.actualRoot+'/global.npmrc',archive];
+    const installation=await runDirect({id:'offline-install',node:seal.node,args:installArgs,cwd:installed,env:{PATH:'/usr/bin:/bin',HOME:seal.actualRoot,TMPDIR:seal.actualRoot,LANG:'C',LC_ALL:'C'},capture:path.join(capture,'install'),bodyDeadline:window.bodyDeadline,finalDeadline:window.deadline,timeoutMs:120000,signal:abort.signal},ledger);
+    if(!installation.row.qualified||installation.row.status!==0)throw Error('INSTALL_REFUSAL');verifyNpm(seal);verifyPackage(path.join(installed,'node_modules/virtual-bash'),prepared.admitted.rows);
+    for(const layout of ['source-built','installed','physically-moved']){
+      if(layout==='physically-moved'){fs.renameSync(installed,moved);if(fs.existsSync(installed))throw Error('MOVE_ORIGIN');}
+      const app=layout==='source-built'?path.dirname(prepared.sourceRoot):layout==='installed'?installed:moved;
+      const productRoot=layout==='source-built'?prepared.sourceRoot:path.join(app,'node_modules/virtual-bash');
+      for(const item of seal.cases){check();verifyPackage(productRoot,prepared.admitted.rows);const roleId=layout+'-'+item.id;
+        const bound=makeRole(seal,app,productRoot,{roleId,layout,case:item},capture);ledger.captureBytes+=bound.bytes.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('ROLE_CAPTURE');
+        const child=await runDirect({id:roleId,node:seal.node,args:bound.args,cwd:app,env:bound.env,capture:path.join(capture,roleId),bodyDeadline:window.bodyDeadline,finalDeadline:window.deadline,timeoutMs:30000,signal:abort.signal},ledger);
+        if(!child.row.qualified)throw Error('CASE_RETIREMENT');const trace=fs.readFileSync(bound.role.trace);ledger.captureBytes+=trace.length;if(trace.length>524288||ledger.captureBytes>ledger.captureMaximum)throw Error('TRACE_CAPTURE');
+        const lines=trace.toString('utf8').split('\n').filter(Boolean).map(line=>JSON.parse(line));if(lines.filter(row=>row.event==='permission-admitted').length!==1||lines.filter(row=>row.event==='synchronous-hooks-installed').length!==1)throw Error('HOOK_WITNESS');
+        const stdout=Buffer.from(child.row.captures.find(row=>row.kind==='stdout').base64,'base64');const stderr=child.row.captures.find(row=>row.kind==='stderr');if(stderr.bytes)throw Error('BOOTSTRAP_OR_GUARD_FAILURE');
+        const receipt=JSON.parse(stdout.toString('utf8'));if(stdout.toString('utf8')!==JSON.stringify(receipt)+'\n'||receipt.id!==item.id||receipt.layout!==layout||!receipt.cleanupQualified||child.row.status!==(receipt.pass?0:1))throw Error('CASE_RECEIPT');
+        const loaded=lines.filter(row=>row.event==='module-loaded');if(!loaded.some(row=>row.url===new URL('file://'+productRoot+'/dist/index.js').href))throw Error('PUBLIC_ROOT_NOT_LOADED');
+        verifyPackage(productRoot,prepared.admitted.rows);persist(roleId+'.json',{receipt,lifecycle:child.row,trace:{bytes:trace.length,sha256:hash(trace)},loaded});results.push(receipt);
+      }
+    }
+    if(results.length!==78||ledger.starts!==79)throw Error('FINAL_MEMBERSHIP');
+  }catch(reason){primaryPresent=true;primary=reason;}
+  clearTimeout(timer);
+  const final=finalize({primaryPresent,primary,census(){if(ledger.active||ledger.rows.some(row=>row.knownOutstanding))throw Error('RETIREMENT_UNKNOWN');return sample(seal.actualRoot,536870912);},publish(state){persist('RESULT.json',{...state,primary:state.primaryPresent?errorRecord(state.primary):undefined,results,ledger,finished:Date.now()});}});
+  return {status:final.primaryPresent||!final.publicationSucceeded?'STOP':results.some(row=>!row.pass)?'ASSERTION_FAILURES':'PASS',cases:results.length,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),final};
+}
+
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+  const seal=JSON.parse(readPinned(process.env.PIPE_SEAL,{bytes:Number(process.env.PIPE_SEAL_BYTES),sha256:process.env.PIPE_SEAL_SHA256},2097152));
+  const grant=JSON.parse(readPinned(process.env.PIPE_GRANT,{bytes:Number(process.env.PIPE_GRANT_BYTES),sha256:process.env.PIPE_GRANT_SHA256},65536));
+  const result=await execute(seal,grant);process.stdout.write(JSON.stringify(result)+'\n');process.exitCode=result.status==='PASS'?0:result.status==='ASSERTION_FAILURES'?2:1;
+}
+
+FILE outer.mjs bytes 1843
+import fs from 'node:fs';
+import path from 'node:path';
+import {readPinned,pinExecutable,hash} from './reuse/auth.mjs';
+import {runDirect} from './reuse/direct-child.mjs';
+import {timeWindow} from './admission.mjs';
+const seal=JSON.parse(readPinned(process.env.PIPE_SEAL,{bytes:Number(process.env.PIPE_SEAL_BYTES),sha256:process.env.PIPE_SEAL_SHA256},2097152));
+const grant=JSON.parse(readPinned(process.env.PIPE_GRANT,{bytes:Number(process.env.PIPE_GRANT_BYTES),sha256:process.env.PIPE_GRANT_SHA256},65536));
+timeWindow(grant.started,grant.deadline);pinExecutable(seal.node);for(const row of seal.files)readPinned(row.path,row);
+const root=seal.actualRoot+'-outer';if(fs.existsSync(root))throw Error('OUTER_USED');fs.mkdirSync(root);
+const ledger={starts:0,maximum:1,active:0,stopped:false,captureBytes:0,captureMaximum:131072,rows:[]};
+const child=await runDirect({id:'owner',node:seal.node,args:[seal.owner],cwd:root,env:{PATH:'/usr/bin:/bin',HOME:root,TMPDIR:root,LANG:'C',LC_ALL:'C',PIPE_SEAL:process.env.PIPE_SEAL,PIPE_SEAL_BYTES:process.env.PIPE_SEAL_BYTES,PIPE_SEAL_SHA256:process.env.PIPE_SEAL_SHA256,PIPE_GRANT:process.env.PIPE_GRANT,PIPE_GRANT_BYTES:process.env.PIPE_GRANT_BYTES,PIPE_GRANT_SHA256:process.env.PIPE_GRANT_SHA256},capture:path.join(root,'owner'),bodyDeadline:grant.deadline-5000,finalDeadline:grant.deadline,timeoutMs:Math.max(1,grant.deadline-5000-Date.now()),ownerGrace:true},ledger);
+const receipt=Buffer.from(JSON.stringify({ledger,qualified:child.row.qualified,finished:Date.now()})+'\n');fs.writeFileSync(path.join(root,'OUTER.json'),receipt,{flag:'wx'});
+if(Date.now()>=grant.deadline)throw Error('OUTER_PUBLICATION_DEADLINE');process.stdout.write(JSON.stringify({qualified:child.row.qualified,status:child.row.status,receiptSha256:hash(receipt)})+'\n');process.exitCode=child.row.qualified?child.row.status:1;
+
+FILE launch-v2.sh bytes 1432
+#!/bin/zsh
+set -eu
+set -C
+exec >/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stdout 2>/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stderr
+NODE=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node
+BOOTSTRAP=/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/BOOTSTRAP-v2.sha256
+: ${PIPE_BOOTSTRAP_SHA:?exact ROOT-bound bootstrap manifest hash required}
+zmodload zsh/stat
+zstat -H nodeStat -- "$NODE"
+[[ -f "$NODE" && ! -L "$NODE" && ${nodeStat[size]} == 112989184 ]] || exit 78
+zstat -H bootStat -- "$BOOTSTRAP"
+[[ -f "$BOOTSTRAP" && ! -L "$BOOTSTRAP" && ${bootStat[size]} -le 32768 ]] || exit 78
+/usr/bin/shasum -a 256 "$NODE" "$BOOTSTRAP" >/private/tmp/safe-bash-pipestatus-actual-78-v1.node.sha256
+{ IFS=' ' read -r digest ignored; IFS=' ' read -r bootstrapDigest ignored; } </private/tmp/safe-bash-pipestatus-actual-78-v1.node.sha256
+[[ "$digest" == 5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011 ]] || exit 78
+[[ "$bootstrapDigest" == "$PIPE_BOOTSTRAP_SHA" ]] || exit 78
+/usr/bin/shasum -a 256 -c "$BOOTSTRAP"
+: ${PIPE_SEAL:?exact sealed path required} ${PIPE_SEAL_BYTES:?exact size required} ${PIPE_SEAL_SHA256:?exact hash required} ${PIPE_GRANT:?ROOT grant required} ${PIPE_GRANT_BYTES:?exact size required} ${PIPE_GRANT_SHA256:?exact hash required}
+exec "$NODE" /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/outer.mjs
+
+FILE admission.mjs bytes 4824
+import fs from 'node:fs';
+import path from 'node:path';
+import {gunzipSync} from 'node:zlib';
+import {hash,readPinned} from './reuse/auth.mjs';
+
+export function timeWindow(started, deadline, now=Date.now()) {
+  if (![started,deadline,now].every(Number.isSafeInteger) || started < 0 || deadline-started !== 1800000 || now < started || now >= deadline-180000) throw Error('TIME_ADMISSION');
+  return {started,deadline,bodyDeadline:deadline-180000};
+}
+export function validateTar(tar, manifest) {
+  if (!Buffer.isBuffer(tar) || tar.length !== manifest.tarBytes || tar.length % 512 || manifest.count !== 1010 || manifest.members.length !== 1010) throw Error('TAR_CARDINALITY_ALIGNMENT');
+  const expected = new Map();
+  for (const row of manifest.members) {
+    if (!row.path.startsWith('package/') || row.path.split('/').some(part=>!part||part==='..'||part==='.') || expected.has(row.path) || !Number.isSafeInteger(row.size) || row.size<0 || row.mode!==420 || !/^[a-f0-9]{64}$/u.test(row.sha256)) throw Error('MANIFEST_SCHEMA');
+    expected.set(row.path,row);
+  }
+  const text = bytes => { const end=bytes.indexOf(0); const head=end<0?bytes:bytes.subarray(0,end); if(end>=0&&bytes.subarray(end).some(byte=>byte!==0))throw Error('TAR_TEXT_PADDING'); return new TextDecoder('utf-8',{fatal:true}).decode(head); };
+  const octal = bytes => { const raw=bytes.toString('ascii').replace(/[\0 ]+$/u,''); if(!/^[0-7]+$/u.test(raw))throw Error('TAR_OCTAL'); const value=Number.parseInt(raw,8);if(!Number.isSafeInteger(value))throw Error('TAR_SIZE');return value; };
+  const rows=[]; const seen=new Set(); let offset=0;
+  while (offset+512<=tar.length) {
+    const header=tar.subarray(offset,offset+512);
+    if(header.every(byte=>byte===0)) { if(tar.length-offset<1024||tar.subarray(offset).some(byte=>byte!==0))throw Error('TAR_TERMINAL');offset=tar.length;break; }
+    let sum=0;for(let index=0;index<512;index++)sum+=index>=148&&index<156?32:header[index];
+    if(sum!==octal(header.subarray(148,156))||header[156]!==48||header.subarray(257,263).toString('ascii')!=='ustar\0')throw Error('TAR_HEADER');
+    const prefix=text(header.subarray(345,500)); const name=text(header.subarray(0,100)); const relative=prefix?prefix+'/'+name:name;
+    const expectedRow=expected.get(relative); const size=octal(header.subarray(124,136)); const mode=octal(header.subarray(100,108));
+    if(!expectedRow||seen.has(relative)||size!==expectedRow.size||mode!==expectedRow.mode||offset+512+size>tar.length)throw Error('TAR_MEMBER');
+    const content=tar.subarray(offset+512,offset+512+size);if(hash(content)!==expectedRow.sha256)throw Error('TAR_CONTENT');
+    const end=offset+512+Math.ceil(size/512)*512;if(tar.subarray(offset+512+size,end).some(byte=>byte!==0))throw Error('TAR_PADDING');
+    rows.push({path:relative.slice(8),content,mode,sha256:expectedRow.sha256});seen.add(relative);offset=end;
+  }
+  if(offset!==tar.length||seen.size!==expected.size||rows.length!==1010)throw Error('TAR_SET');
+  return rows;
+}
+export function admitArchive(filename, manifest) {
+  const compressed=readPinned(filename,{bytes:manifest.size,sha256:manifest.sha256},16777216);
+  const tar=gunzipSync(compressed,{maxOutputLength:33554432});
+  return {tar,rows:validateTar(tar,manifest),compressedBytes:compressed.length};
+}
+export function materialize(rows, root) {
+  if(fs.existsSync(root))throw Error('STAGE_EXISTS');fs.mkdirSync(root,{recursive:true});
+  for(const row of rows){const filename=path.join(root,row.path);fs.mkdirSync(path.dirname(filename),{recursive:true});fs.writeFileSync(filename,row.content,{flag:'wx',mode:row.mode});}
+  verifyPackage(root,rows);
+}
+export function verifyPackage(root, rows) {
+  const actual=[];const walk=(directory,relative='')=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename),next=relative?relative+'/'+name:name;if(stat.isSymbolicLink())throw Error('STAGE_LINK');if(stat.isDirectory())walk(filename,next);else{if(!stat.isFile())throw Error('STAGE_TYPE');actual.push(next);}}};walk(root);
+  const expected=rows.map(row=>row.path).sort();actual.sort();if(JSON.stringify(expected)!==JSON.stringify(actual))throw Error('STAGE_SET');
+  for(const row of rows){const filename=path.join(root,row.path);if((fs.lstatSync(filename).mode&511)!==row.mode)throw Error('STAGE_MODE');readPinned(filename,{bytes:row.content.length,sha256:row.sha256});}
+}
+export function sample(root, maximum) {
+  let bytes=0,files=0;const walk=directory=>{for(const name of fs.readdirSync(directory)){const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isDirectory())walk(filename);else{if(!stat.isFile()||stat.isSymbolicLink())throw Error('WORK_TYPE');bytes+=stat.size;files++;if(bytes>maximum)throw Error('WORK_LIMIT');}}};walk(root);return {bytes,files};
+}
+
+FILE controls.mjs bytes 6844
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const own='/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1';
+const work='/private/tmp/safe-bash-pipestatus-preexec';
+const hash=value=>createHash('sha256').update(value).digest('hex');
+const prepared=JSON.parse(fs.readFileSync(own+'/PREPARED.json','utf8'));const sealStat=fs.lstatSync(own+'/SEAL.json');if(!sealStat.isFile()||sealStat.size!==prepared.seal.bytes||sealStat.size>2097152)throw Error('CONTROL_SEAL_SIZE');const sealBytes=fs.readFileSync(own+'/SEAL.json');if(hash(sealBytes)!==prepared.seal.sha256)throw Error('CONTROL_SEAL_HASH');const seal=JSON.parse(sealBytes);
+for(const row of seal.files){const stat=fs.lstatSync(row.path);if(!stat.isFile()||stat.size!==row.bytes||hash(fs.readFileSync(row.path))!==row.sha256)throw Error('CONTROL_HELPER_BINDING');}
+const {preEvaluation,makeRole}=await import(pathToFileURL(own+'/owner.mjs'));
+const {validateTar,admitArchive,verifyPackage,timeWindow}=await import(pathToFileURL(own+'/admission.mjs'));
+const {Primary,readPinned}=await import(pathToFileURL(own+'/reuse/auth.mjs'));
+const {runDirect,openCapturePair}=await import(pathToFileURL(own+'/reuse/direct-child.mjs'));
+const {finalize}=await import(pathToFileURL(own+'/reuse/finalization.mjs'));
+const results=[];const record=(id,body)=>{try{body();results.push({id,pass:true});}catch(error){results.push({id,pass:false,message:String(error)});}};
+const stage=work+'/admission';fs.mkdirSync(stage);const now=Date.now();
+let admitted;
+record('C01',()=>{admitted=preEvaluation(seal,stage,now,now+1800000);assert.equal(admitted.admitted.rows.length,1010);verifyPackage(admitted.sourceRoot,admitted.admitted.rows);});
+if(!admitted)throw Error('ACTUAL_ADMISSION_STOP');
+record('C02',()=>{const altered=Buffer.from(readPinned(seal.archive.path,seal.archive));altered[altered.length-1]^=1;const filename=work+'/changed.tgz';fs.writeFileSync(filename,altered,{flag:'wx'});assert.throws(()=>admitArchive(filename,admitted.manifest),/AUTH_HASH/u);});
+record('C03',()=>assert.throws(()=>validateTar(admitted.admitted.tar,{...admitted.manifest,count:1002}),/CARDINALITY/u));
+record('C04',()=>{const tar=Buffer.from(admitted.admitted.tar);const firstSize=admitted.manifest.members[0].size;const next=512+Math.ceil(firstSize/512)*512;tar.subarray(0,100).copy(tar,next);tar.subarray(345,500).copy(tar,next+345);tar.fill(32,next+148,next+156);let sum=0;for(let index=0;index<512;index++)sum+=tar[next+index];tar.write(sum.toString(8).padStart(6,'0')+'\0 ',next+148,8,'ascii');assert.throws(()=>validateTar(tar,admitted.manifest),/TAR_MEMBER/u);});
+record('C05',()=>assert.throws(()=>validateTar(admitted.admitted.tar.subarray(1),admitted.manifest),/ALIGNMENT/u));
+record('C06',()=>{const filename=admitted.sourceRoot+'/package.json';const before=fs.readFileSync(filename);const changed=Buffer.from(before);changed[0]^=1;try{fs.writeFileSync(filename,changed);assert.throws(()=>verifyPackage(admitted.sourceRoot,admitted.admitted.rows),/AUTH_HASH/u);}finally{fs.writeFileSync(filename,before);}verifyPackage(admitted.sourceRoot,admitted.admitted.rows);});
+record('C07',()=>{assert.throws(()=>timeWindow(NaN,now+1800000),/TIME/u);assert.throws(()=>timeWindow(now,now+1800000,now+1800000),/TIME/u);});
+record('C08',()=>{const result=finalize({primaryPresent:true,primary:false,census(){throw null;},publish(){throw 0;}});assert.equal(result.primary,false);assert.equal(result.secondary.length,2);assert.equal(result.secondary[0].reason,null);assert.equal(result.secondary[1].reason,0);});
+record('C09',()=>{let acquired,closed=false,opens=0;const operations={openSync(...args){if(opens++)throw false;return acquired=fs.openSync(...args);},closeSync(descriptor){assert.equal(descriptor,acquired);fs.closeSync(descriptor);closed=true;}};const primary=new Primary(),ledger={rows:[]},row={};let rejected=false;try{openCapturePair({capture:work+'/partial'},ledger,row,primary,operations);}catch(reason){rejected=true;assert.equal(reason,false);}assert(rejected&&closed);assert.equal(row.childStarted,false);assert.equal(row.knownOutstanding,0);});
+const capture=work+'/harmless';fs.mkdirSync(capture);
+const ledger={starts:0,maximum:3,active:0,stopped:false,captureBytes:0,captureMaximum:2097152,rows:[]};
+for(const [id,source,negative]of [
+  ['C10',"import assert from 'node:assert/strict'; assert.equal(1,1); process.stdout.write('HARMLESS\\n');",undefined],
+  ['C11',"await import('node:os');",'EDGE_REFUSED'],
+  ['C12',"process.stdout.write('never');",'AUTH_HASH'],
+]){
+  const app=work+'/'+id;const bound=makeRole(seal,app,app+'/no-product',{roleId:id,layout:'harmless',case:{id}},capture,'harmless-control',Buffer.from(source));
+  if(id==='C11')bound.role.edges[bound.role.entry]=[];
+  if(id==='C12')bound.role.files[bound.role.entry].sha256='0'.repeat(64);
+  if(negative){bound.bytes=Buffer.from(JSON.stringify(bound.role));fs.writeFileSync(bound.role.rolePath,bound.bytes);bound.env.SURFACE_ROLE_BYTES=String(bound.bytes.length);bound.env.SURFACE_ROLE_SHA256=hash(bound.bytes);}
+  fs.appendFileSync(work+'/roles.log','harmless child '+id+' spawn requested\n');
+  const child=await runDirect({id,node:seal.node,args:bound.args,cwd:app,env:bound.env,capture:capture+'/'+id,bodyDeadline:Date.now()+30000,finalDeadline:Date.now()+40000,timeoutMs:5000},ledger);
+  if(!child.row.qualified)throw Error('HARMLESS_RETIREMENT_STOP');
+  const stdout=Buffer.from(child.row.captures.find(row=>row.kind==='stdout').base64,'base64').toString();const stderr=Buffer.from(child.row.captures.find(row=>row.kind==='stderr').base64,'base64').toString();
+  const trace=fs.readFileSync(bound.role.trace);const events=trace.toString().split('\n').filter(Boolean).map(line=>JSON.parse(line));
+  results.push({id,pass:negative?child.row.status!==0&&stderr.includes(negative):child.row.status===0&&stdout==='HARMLESS\n'&&stderr==='',status:child.row.status,expectedRefusal:negative,permission:events.some(row=>row.event==='permission-admitted'),hooks:events.some(row=>row.event==='synchronous-hooks-installed'),trace:{bytes:trace.length,sha256:hash(trace)},lifecycle:child.row});
+}
+verifyPackage(admitted.sourceRoot,admitted.admitted.rows);
+fs.writeFileSync(own+'/CONTROLS.json',JSON.stringify({results,passed:results.filter(row=>row.pass).length,total:12,actualAdmissionMembers:1010,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),productEvaluations:0,Workers:0,tarBytes:admitted.admitted.tar.length},null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({passed:results.filter(row=>row.pass).length,total:12,children:ledger.starts,productEvaluations:0}));process.exitCode=results.some(row=>!row.pass)?1:0;
+
+FILE case-driver.mjs bytes 1451
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {runHost,runVisibleCases} from './host-protocols.mjs';
+const role=JSON.parse(fs.readFileSync(process.env.SURFACE_ROLE,'utf8'));
+const api=await import(role.layout==='source-built'?pathToFileURL(role.productRoot+'/dist/index.js').href:'virtual-bash');
+const disposals=[];
+class ObservedShell extends api.Shell {
+  dispose(){const row={entered:true,settled:false,rejected:false};disposals.push(row);const exact=super.dispose();void exact.then(()=>{row.settled=true;},()=>{row.settled=true;row.rejected=true;});return exact;}
+}
+const observed={...api,Shell:ObservedShell};let pass=false,reason;
+try {if(role.case.id.startsWith('H'))await runHost(role.case.id,observed);else await runVisibleCases(observed,[role.case]);pass=true;}
+catch(error){reason=error===undefined?{kind:'undefined'}:error===null?{kind:'null'}:typeof error==='object'?{kind:'object',name:error.name,message:String(error.message??'').slice(0,2048),assertion:error instanceof assert.AssertionError}:{kind:typeof error,value:error};}
+const cleanupQualified=disposals.length>0&&disposals.every(row=>row.settled&&!row.rejected);
+process.stdout.write(JSON.stringify({schema:'pipestatus-case-v1',id:role.case.id,layout:role.layout,pass,reason,disposals,cleanupQualified,observer:'exact dispose Promise forwarding subclass'})+'\n');
+process.exitCode=pass&&cleanupQualified?0:1;
+
+FILE reuse/guard.mjs bytes 2245
+import fs from 'node:fs';
+import {registerHooks} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import {hash,readPinned} from './auth.mjs';
+import {PROFILE,validateRole,validateArguments} from './profile.mjs';
+const roleName = process.env.SURFACE_ROLE;
+const roleSize = Number(process.env.SURFACE_ROLE_BYTES);
+const raw = readPinned(roleName,{bytes:roleSize,sha256:process.env.SURFACE_ROLE_SHA256},2097152);
+const role = validateRole(JSON.parse(raw));
+if (roleName !== role.rolePath || process.execPath !== role.nodePath) throw Error('CHILD_IDENTITY');
+validateArguments(role,[...process.execArgv,process.argv[1]],process.env);
+if (!process.permission || ['child','worker','addon','wasi','inspector'].some(scope => process.permission.has(scope))) throw Error('PERMISSION_NOT_DENIED');
+let traceBytes = 0;
+function trace(event) {
+  const bytes = Buffer.from(JSON.stringify({...event,profile:PROFILE,role:role.id}) + '\n');
+  traceBytes += bytes.length;
+  if (traceBytes > 524288) throw Error('TRACE_LIMIT');
+  fs.appendFileSync(role.trace,bytes);
+}
+trace({event:'permission-admitted',child:false,worker:false,loaderThreads:0});
+registerHooks({
+  resolve(specifier,context,nextResolve) {
+    if (context.parentURL?.startsWith('file:')) {
+      const parent = fileURLToPath(context.parentURL);
+      if (!role.edges[parent]?.includes(specifier)) throw Error('EDGE_REFUSED');
+    }
+    if (specifier.startsWith('node:')) {
+      if (!role.builtins.includes(specifier)) throw Error('BUILTIN_REFUSED');
+      return nextResolve(specifier,context);
+    }
+    const resolved = nextResolve(specifier,context);
+    if (!resolved.url.startsWith('file:') || !Object.hasOwn(role.files,fileURLToPath(resolved.url))) throw Error('LOAD_BINDING_REFUSED');
+    return resolved;
+  },
+  load(url,context,nextLoad) {
+    if (url.startsWith('node:')) return nextLoad(url,context);
+    const filename = fileURLToPath(url), pin = role.files[filename];
+    if (!pin) throw Error('LOAD_BINDING_REFUSED');
+    const bytes = readPinned(filename,pin);
+    trace({event:'module-loaded',url,bytes:bytes.length,sha256:hash(bytes)});
+    return {format:'module',source:bytes,shortCircuit:true};
+  }
+});
+trace({event:'synchronous-hooks-installed',loaderThreads:0});

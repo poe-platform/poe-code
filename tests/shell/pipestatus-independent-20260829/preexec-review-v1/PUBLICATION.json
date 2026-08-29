@@ -1,0 +1,31 @@
+{
+  "utc": "2026-08-29T16:19:51.258Z",
+  "verdict": "HOLD_EXECUTION_BINDING_AND_WORK_BOUND",
+  "qualifiedControls": 20,
+  "authorMap": "C01-C10 plus caught-boundary C11-v2/C12-v2",
+  "novel": 8,
+  "harmlessChildren": 2,
+  "productCalls": 0,
+  "Workers": 0,
+  "loaderThreads": 0,
+  "knownOsConservativePublicationAndReadout": 31,
+  "maximum": 40,
+  "peak": 3,
+  "logical": {
+    "evidence": 177060,
+    "scratch": 6100897,
+    "captures": 120962,
+    "total": 6398919,
+    "excludes": "Git internals/RSS/physical allocation; publication ongoing external raw tail not in prepublication snapshot"
+  },
+  "snapshotDomain": "relative UTF8 paths; Buffer.compare; invocation-local counters",
+  "evidenceManifest": "97436f56e68a99357a1203dec3b7e177f9fac709c3ee83f895f6d2373c4a1b89",
+  "scratchManifest": "02278b255448f6ac88e6936dde2a9069f3558d32cd5fdb53b3976451d9f92386",
+  "resultSha256": "6f3df5e722fc545b09e2c72bd2fe1b9a58318e8207c9f07f2f0e93fca4c33fb3",
+  "findings": [
+    "F01 outer tool command needs terminal exec or changed peak authority",
+    "F02 working bound only sampled after growth; no complete pre-growth derivation"
+  ],
+  "recentB2Race": "same function can ENOENT, but no sampling during awaited install in this coordinator",
+  "activeChildren": 0
+}

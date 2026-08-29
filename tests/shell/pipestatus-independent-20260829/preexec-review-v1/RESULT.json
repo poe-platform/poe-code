@@ -1,0 +1,433 @@
+{
+  "results": [
+    {
+      "id": "C01",
+      "pass": true
+    },
+    {
+      "id": "C02",
+      "pass": true
+    },
+    {
+      "id": "C03",
+      "pass": true
+    },
+    {
+      "id": "C04",
+      "pass": true
+    },
+    {
+      "id": "C05",
+      "pass": true
+    },
+    {
+      "id": "C06",
+      "pass": true
+    },
+    {
+      "id": "C07",
+      "pass": true
+    },
+    {
+      "id": "C08",
+      "pass": true
+    },
+    {
+      "id": "C09",
+      "pass": true
+    },
+    {
+      "id": "C10",
+      "pass": true,
+      "lifecycle": {
+        "id": "C10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788020197711
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788020197713
+          },
+          {
+            "name": "spawn",
+            "at": 1788020197713
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788020197753
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788020197754
+          },
+          {
+            "name": "exit",
+            "at": 1788020197754
+          },
+          {
+            "name": "close",
+            "at": 1788020197754
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 9,
+            "sha256": "8f95582e52c949b94d7d59c3ee6811fbf9ecb07de9785d35d1df83a0687f3145",
+            "base64": "SEFSTUxFU1MK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 55696,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788020197763
+      },
+      "traceSha256": "b7a6db6bf155f61bde92b863fea7466341897c6a5fba0da55985e3796b0d14dd"
+    },
+    {
+      "id": "C11-v2",
+      "pass": true,
+      "lifecycle": {
+        "id": "C11-C12-v2",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788020197821
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788020197822
+          },
+          {
+            "name": "spawn",
+            "at": 1788020197822
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788020197861
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788020197861
+          },
+          {
+            "name": "exit",
+            "at": 1788020197861
+          },
+          {
+            "name": "close",
+            "at": 1788020197861
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 29,
+            "sha256": "9182bcd6d940af09bdd8c729c1ef116092f98d5866c0c8a5bbf8adf7af6e952e",
+            "base64": "WyJFREdFX1JFRlVTRUQiLCJBVVRIX0hBU0giXQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 55697,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788020197867
+      },
+      "traceSha256": "17034406112216bb6ab6fcf26722440eb0a37e627be708bb9343b88a648cd61d",
+      "versionedCaughtBoundary": true
+    },
+    {
+      "id": "C12-v2",
+      "pass": true,
+      "lifecycle": {
+        "id": "C11-C12-v2",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788020197821
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788020197822
+          },
+          {
+            "name": "spawn",
+            "at": 1788020197822
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788020197861
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788020197861
+          },
+          {
+            "name": "exit",
+            "at": 1788020197861
+          },
+          {
+            "name": "close",
+            "at": 1788020197861
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 29,
+            "sha256": "9182bcd6d940af09bdd8c729c1ef116092f98d5866c0c8a5bbf8adf7af6e952e",
+            "base64": "WyJFREdFX1JFRlVTRUQiLCJBVVRIX0hBU0giXQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 55697,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788020197867
+      },
+      "traceSha256": "17034406112216bb6ab6fcf26722440eb0a37e627be708bb9343b88a648cd61d",
+      "versionedCaughtBoundary": true
+    },
+    {
+      "id": "N01",
+      "pass": true
+    },
+    {
+      "id": "N02",
+      "pass": true
+    },
+    {
+      "id": "N03",
+      "pass": true
+    },
+    {
+      "id": "N04",
+      "pass": true
+    },
+    {
+      "id": "N05",
+      "pass": true
+    },
+    {
+      "id": "N06",
+      "pass": true
+    },
+    {
+      "id": "N07",
+      "pass": true
+    },
+    {
+      "id": "N08",
+      "pass": true
+    }
+  ],
+  "passed": 20,
+  "total": 20,
+  "actualAdmissionMembers": 1010,
+  "sourceInputs": 307,
+  "npmFiles": 2039,
+  "npmLinks": 12,
+  "managedChildren": 2,
+  "lifecycle": [
+    {
+      "id": "C10",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788020197711
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788020197713
+        },
+        {
+          "name": "spawn",
+          "at": 1788020197713
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788020197753
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788020197754
+        },
+        {
+          "name": "exit",
+          "at": 1788020197754
+        },
+        {
+          "name": "close",
+          "at": 1788020197754
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 9,
+          "sha256": "8f95582e52c949b94d7d59c3ee6811fbf9ecb07de9785d35d1df83a0687f3145",
+          "base64": "SEFSTUxFU1MK",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 55696,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788020197763
+    },
+    {
+      "id": "C11-C12-v2",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788020197821
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788020197822
+        },
+        {
+          "name": "spawn",
+          "at": 1788020197822
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788020197861
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788020197861
+        },
+        {
+          "name": "exit",
+          "at": 1788020197861
+        },
+        {
+          "name": "close",
+          "at": 1788020197861
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 29,
+          "sha256": "9182bcd6d940af09bdd8c729c1ef116092f98d5866c0c8a5bbf8adf7af6e952e",
+          "base64": "WyJFREdFX1JFRlVTRUQiLCJBVVRIX0hBU0giXQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 55697,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788020197867
+    }
+  ],
+  "retired": true,
+  "productEvaluations": 0,
+  "Workers": 0,
+  "loaderThreads": 0,
+  "versionedAuthorMap": true
+}

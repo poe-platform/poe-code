@@ -1,0 +1,10 @@
+SEAL a7627ff9bc6db2c14f69973a638049e5d9ab80033de7398730f92346331ac9ec
+?? tests/shell/pipestatus-independent-20260829/preexec-review-v1/
+[main 3988d171d] test: preseal PIPESTATUS coordinator independent controls
+ 5 files changed, 309 insertions(+)
+ create mode 100644 tests/shell/pipestatus-independent-20260829/preexec-review-v1/EXECUTION-SEAL.json
+ create mode 100644 tests/shell/pipestatus-independent-20260829/preexec-review-v1/PRESEAL.md
+ create mode 100644 tests/shell/pipestatus-independent-20260829/preexec-review-v1/prepare.mjs
+ create mode 100644 tests/shell/pipestatus-independent-20260829/preexec-review-v1/runner.mjs
+ create mode 100644 tests/shell/pipestatus-independent-20260829/preexec-review-v1/tail.fragment.txt
+UTC 2026-08-29T16:16:31.905Z

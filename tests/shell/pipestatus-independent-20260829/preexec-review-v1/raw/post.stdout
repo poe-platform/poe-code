@@ -1,0 +1,145 @@
+{
+  "pass": 20,
+  "total": 20,
+  "rows": [
+    {
+      "id": "C01",
+      "pass": true
+    },
+    {
+      "id": "C02",
+      "pass": true
+    },
+    {
+      "id": "C03",
+      "pass": true
+    },
+    {
+      "id": "C04",
+      "pass": true
+    },
+    {
+      "id": "C05",
+      "pass": true
+    },
+    {
+      "id": "C06",
+      "pass": true
+    },
+    {
+      "id": "C07",
+      "pass": true
+    },
+    {
+      "id": "C08",
+      "pass": true
+    },
+    {
+      "id": "C09",
+      "pass": true
+    },
+    {
+      "id": "C10",
+      "pass": true
+    },
+    {
+      "id": "C11-v2",
+      "pass": true
+    },
+    {
+      "id": "C12-v2",
+      "pass": true
+    },
+    {
+      "id": "N01",
+      "pass": true
+    },
+    {
+      "id": "N02",
+      "pass": true
+    },
+    {
+      "id": "N03",
+      "pass": true
+    },
+    {
+      "id": "N04",
+      "pass": true
+    },
+    {
+      "id": "N05",
+      "pass": true
+    },
+    {
+      "id": "N06",
+      "pass": true
+    },
+    {
+      "id": "N07",
+      "pass": true
+    },
+    {
+      "id": "N08",
+      "pass": true
+    }
+  ],
+  "children": [
+    {
+      "pid": 55696,
+      "status": 0,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "signals": [],
+      "outstanding": 0
+    },
+    {
+      "pid": 55697,
+      "status": 0,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "signals": [],
+      "outstanding": 0
+    }
+  ],
+  "retired": true,
+  "admitted": 1010,
+  "sources": 307,
+  "npmFiles": 2039,
+  "npmLinks": 12
+}
+CENSUS-CALLS
+7: import {finalize} from './reuse/finalization.mjs';
+51:   const abort=new AbortController();const timer=setTimeout(()=>abort.abort(Error('OWNER_DEADLINE')),window.bodyDeadline-Date.now());
+54:   const check=()=>{abort.signal.throwIfAborted();if(Date.now()>=window.bodyDeadline||ledger.stopped)throw Error('OWNER_ADMISSION');sample(seal.actualRoot,536870912);};
+63:     const installation=await runDirect({id:'offline-install',node:seal.node,args:installArgs,cwd:installed,env:{PATH:'/usr/bin:/bin',HOME:seal.actualRoot,TMPDIR:seal.actualRoot,LANG:'C',LC_ALL:'C'},capture:path.join(capture,'install'),bodyDeadline:window.bodyDeadline,finalDeadline:window.deadline,timeoutMs:120000,signal:abort.signal},ledger);
+69:       for(const item of seal.cases){check();verifyPackage(productRoot,prepared.admitted.rows);const roleId=layout+'-'+item.id;
+83:   const final=finalize({primaryPresent,primary,census(){if(ledger.active||ledger.rows.some(row=>row.knownOutstanding))throw Error('RETIREMENT_UNKNOWN');return sample(seal.actualRoot,536870912);},publish(state){persist('RESULT.json',{...state,primary:state.primaryPresent?errorRecord(state.primary):undefined,results,ledger,finished:Date.now()});}});
+PROFILE
+import path from 'node:path';
+export const PROFILE = 'bash-surface-direct-owned-child-functional-v1';
+export function validateRole(role) {
+  if (role.profile !== PROFILE || role.childProcessPermission !== 0 || role.workerPermission !== 0 || role.loaderThreads !== 0 || role.loaderMode !== 'synchronous-registerHooks') throw Error('ROLE_AUTHORITY');
+  if (!['harmless-control','product-case'].includes(role.kind)) throw Error('ROLE_KIND');
+  for (const key of ['app','entry','guard','trace','rolePath']) if (typeof role[key] !== 'string' || !path.isAbsolute(role[key]) || role[key].includes('*')) throw Error('ROLE_PATH');
+  for (const key of ['entry','guard']) if (!role[key].startsWith(role.app + path.sep)) throw Error('ROLE_APP');
+  if (!Array.isArray(role.readFiles) || !role.readFiles.includes(role.rolePath) || !role.readFiles.includes(role.trace)) throw Error('ROLE_READS');
+  for (const filename of role.readFiles) if (!path.isAbsolute(filename) || filename.includes('*')) throw Error('ROLE_READ_PATH');
+  if (!role.files || !role.files[role.entry] || !role.edges || !Array.isArray(role.builtins)) throw Error('ROLE_BINDINGS');
+  return role;
+}
+export function caseArguments(role) {
+  validateRole(role);
+  return ['--permission','--allow-fs-read=' + role.app,...role.readFiles.map(filename => '--allow-fs-read=' + filename),'--allow-fs-write=' + role.trace,'--import',role.guard,role.entry];
+}
+export function validateArguments(role, args, env) {
+  if (JSON.stringify(args) !== JSON.stringify(caseArguments(role)) || Object.hasOwn(env,'NODE_OPTIONS') || Object.hasOwn(env,'NODE_PATH')) throw Error('CHILD_ARGUMENT_AUTHORITY');
+}
+export function completion(receipt, lifecycle) {
+  return receipt?.profile === PROFILE && receipt.publicSettlement?.execObserved === true && receipt.publicSettlement?.disposeSettled === true && receipt.publicSettlement?.disposeRejected === false && lifecycle.exit === true && lifecycle.close === true && lifecycle.stdoutEOF === true && lifecycle.stderrEOF === true && lifecycle.capturesQualified === true && lifecycle.forced === false && lifecycle.primaryPresent === false;
+}
+
+ACTUAL UNUSED true UTC 2026-08-29T16:17:15.112Z

@@ -1,0 +1,133 @@
+
+FILE controls.mjs
+e;return acquired=fs.openSync(...args);},closeSync(descriptor){assert.equal(descriptor,acquired);fs.closeSync(descriptor);closed=true;}};const primary=new Primary(),ledger={rows:[]},row={};let rejected=false;try{openCapturePair({capture:work+'/partial'},ledger,row,primary,operations);}catch(reason){rejected=true;assert.equal(reason,false);}assert(rejected&&closed);assert.equal(row.childStarted,false);assert.equal(row.knownOutstanding,0);});
+const capture=work+'/harmless';fs.mkdirSync(capture);
+const ledger={starts:0,maximum:3,active:0,stopped:false,captureBytes:0,captureMaximum:2097152,rows:[]};
+for(const [id,source,negative]of [
+  ['C10',"import assert from 'node:assert/strict'; assert.equal(1,1); process.stdout.write('HARMLESS\\n');",undefined],
+  ['C11',"await import('node:os');",'EDGE_REFUSED'],
+  ['C12',"process.stdout.write('never');",'AUTH_HASH'],
+]){
+  const app=work+'/'+id;const bound=makeRole(seal,app,app+'/no-product',{roleId:id,layout:'harmless',case:{id}},capture,'harmless-control',Buffer.from(source));
+  if(id==='C11')bound.role.edges[bound.role.entry]=[];
+  if(id==='C12')bound.role.files[bound.role.entry].sha256='0'.repeat(64);
+  if(negative){bound.bytes=Buffer.from(JSON.stringify(bound.role));fs.writeFileSync(bound.role.rolePath,bound.bytes);bound.env.SURFACE_ROLE_BYTES=String(bound.bytes.length);bound.env.SURFACE_ROLE_SHA256=hash(bound.bytes);}
+  fs.appendFileSync(work+'/roles.log','harmless child '+id+' spawn requested\n');
+  const child=await runDirect({id,node:seal.node,args:bound.args,cwd:app,env:bound.env,capture:capture+'/'+id,bodyDeadline:Date.now()+30000,finalDeadline:Date.now()+40000,timeoutMs:5000},ledger);
+  if(!child.row.qualified)throw Error('HARMLESS_RETIREMENT_STOP');
+  const stdout=Buffer.from(child.row.captures.find(row=>row.kind==='stdout').base64,'base64').toString();const stderr=Buffer.from(child.row.captures.find(row=>row.kind==='stderr').base64,'base64').toString();
+  const trace=fs.readFileSync(bound.role.trace);const events=trace.toString().split('\n').filter(Boolean).map(line=>JSON.parse(line));
+  results.push({id,pass:negative?child.row.status!==0&&stderr.includes(negative):child.row.status===0&&stdout==='HARMLESS\n'&&stderr==='',status:child.row.status,expectedRefusal:negative,permission:events.some(row=>row.event==='permission-admitted'),hooks:events.some(row=>row.event==='synchronous-hooks-installed'),trace:{bytes:trace.length,sha256:hash(trace)},lifecycle:child.row});
+}
+verifyPackage(admitted.sourceRoot,admitted.admitted.rows);
+fs.writeFileSync(own+'/CONTROLS.json',JSON.stringify({results,passed:results.filter(row=>row.pass).length,total:12,actualAdmissionMembers:1010,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),productEvaluations:0,Workers:0,tarBytes:admitted.admitted.tar.length},null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({passed:results.filter(row=>row.pass).length,total:12,children:ledger.starts,productEvaluations:0}));process.exitCode=results.some(row=>!row.pass)?1:0;
+
+FILE reuse/auth.mjs
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export function readPinned(filename, pin, maximum = 16777216) {
+  const before = fs.lstatSync(filename);
+  if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || before.size > maximum) throw Error('AUTH_TYPE_SIZE');
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const opened = fs.fstatSync(descriptor);
+    if (opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw Error('AUTH_CHANGED');
+    const bytes = Buffer.alloc(pin.bytes);
+    let offset = 0;
+    while (offset < bytes.length) {
+      const count = fs.readSync(descriptor, bytes, offset, Math.min(65536, bytes.length - offset), offset);
+      if (!count) throw Error('AUTH_SHORT');
+      offset += count;
+    }
+    if (fs.readSync(descriptor, Buffer.alloc(1), 0, 1, offset) || hash(bytes) !== pin.sha256) throw Error('AUTH_HASH');
+    return bytes;
+  } finally { fs.closeSync(descriptor); }
+}
+export function pinExecutable(pin) {
+  const before = fs.lstatSync(pin.path);
+  if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || (before.mode & 4095) !== pin.mode) throw Error('TOOL_TYPE_SIZE_MODE');
+  const descriptor = fs.openSync(pin.path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  const digest = createHash('sha256'), buffer = Buffer.alloc(65536);
+  let size = 0;
+  try {
+    const opened = fs.fstatSync(descriptor);
+    if (opened.dev !== before.dev || opened.ino !== before.ino) throw Error('TOOL_CHANGED');
+    for (;;) {
+      const count = fs.readSync(descriptor, buffer, 0, buffer.length, null);
+      if (!count) break;
+      size += count;
+      if (size > pin.bytes) throw Error('TOOL_LONG');
+      digest.update(buffer.subarray(0, count));
+    }
+  } finally { fs.closeSync(descriptor); }
+  if (size !== pin.bytes || digest.digest('hex') !== pin.sha256) throw Error('TOOL_HASH');
+}
+export function errorRecord(reason) {
+  if (reason === undefined) return {kind:'undefined'};
+  if (reason === null) return {kind:'null'};
+  if (typeof reason !== 'object') return {kind:typeof reason, value:reason};
+  const row = {kind:'object'};
+  for (const key of ['name','message','code','errno','syscall','permission']) if (typeof reason[key] === 'string' || typeof reason[key] === 'number') row[key] = typeof reason[key] === 'string' ? reason[key].slice(0,1024) : reason[key];
+  return row;
+}
+export class Primary {
+  present = false;
+  reason;
+  secondary = [];
+  fail(reason) { if (!this.present) {this.present = true; this.reason = reason;} else this.secondary.push(errorRecord(reason)); }
+}
+export function publish(filename, bytes, finalDeadline, operations = fs) {
+  if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+  let descriptor, primary = new Primary();
+  try {
+    descriptor = operations.openSync(filename, 'wx+', 384);
+    if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+    operations.writeFileSync(descriptor, bytes);
+    operations.fsyncSync(descriptor);
+    if (operations.fstatSync(descriptor).size !== bytes.length) throw Error('PUBLICATION_SIZE');
+    const observed = Buffer.alloc(bytes.length);
+    let offset = 0;
+    while (offset < observed.length) { const count = operations.readSync(descriptor, observed, offset, observed.length-offset, offset); if (!count) throw Error('PUBLICATION_SHORT'); offset += count; }
+    if (hash(observed) !== hash(bytes)) throw Error('PUBLICATION_HASH');
+  } catch (reason) { primary.fail(reason); }
+  finally { if (descriptor !== undefined) try { operations.closeSync(descriptor); } catch(reason) { primary.fail(reason); } }
+  if (primary.present) throw primary.reason;
+  if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+  return {bytes:bytes.length,sha256:hash(bytes),qualified:true};
+}
+
+FILE PREPARED.json
+{
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL.json",
+    "bytes": 794550,
+    "mode": 420,
+    "sha256": "56ad847540e583706fe34e69832bf9c439a0b69e416c742941e3e45196ef7402"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "reused": 5,
+  "npmVersion": "10.9.7",
+  "npmMembers": 2039,
+  "npmLinks": 12,
+  "sourceInputs": 307,
+  "packageMembers": 1010,
+  "productImports": 0
+}
+
+FILE PUBLICATION.json
+{"keys":["seal","bootstrap","controls","raw","workCensus","publicationAt","deadline","productExecutions","Workers","helpers","knownRoles","originalSealPreserved","command"],"seal":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL-v2.json","bytes":795793,"mode":420,"sha256":"f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5"},"bootstrap":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/BOOTSTRAP-v2.sha256","bytes":2796,"mode":420,"sha256":"c16da3ceff48df98fca0ae09acb84048c4b1e5bc17da05ab29759139398b4037"},"controls":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/CONTROLS.json","bytes":9205,"mode":420,"sha256":"b8f49f87de185d210d643f353d8975bb32c038849d6182014c5561efaf778383"},"workCensus":{"files":1064,"bytes":6176695},"publicationAt":1788019771209,"deadline":1788020118869,"productExecutions":0,"Workers":0,"helpers":"Three PURE helpers: prepare, controls, publish. Three harmless children with exit/close/both EOF/capture closure. No active managed children.","knownRoles":"51 starts through this helper, followed by bounded publication; snapshot contains actual returned roles and launch enrolment. Final shell/Git receipts are separate.","originalSealPreserved":true,"command":"ROOT must bind literal SEAL-v2 size/hash, BOOTSTRAP-v2 hash and fresh grant path/size/hash, then /bin/zsh /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh; NOT authorized now."}
+FILE GRANT-v2.template.json
+{
+  "action": "execute-pipestatus-78-v1",
+  "sealSha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5",
+  "rootReceipt": "REQUIRES_FUTURE_ROOT_DURABLE_40_HEX_COMMIT",
+  "started": "REQUIRES_FUTURE_INTEGER_MS",
+  "deadline": "started+1800000"
+}

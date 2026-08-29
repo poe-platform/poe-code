@@ -1,0 +1,57 @@
+{
+  "action": "ROOT_B1_PUBLIC15_ACTUAL",
+  "authorization": "ROOT-2026-08-29-B1-R4-PUBLIC15-ONE-ATTEMPT-b087e5ce",
+  "finalPacketSha256": "3da56afc93588c0bdfa016d02341ed4d0e8e22cd3441d0ecea3f97651b97ccc1",
+  "startedUTC": "2026-08-29T15:08:17.066Z",
+  "latestStartUTC": "2026-08-29T15:21:24.888Z",
+  "expiresUTC": "2026-08-29T15:51:24.888Z",
+  "metadataHome": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/home",
+  "rootMessage": "Fresh ROOT ACTUAL B1-R4 GO referencing final-slot b087e5ce19424bff913d73f0dd68b56973e8d7d5 and binding5d8a638bb2320c1071d28d9aab1c1ed85e6a142e; ONE attempt, no retry or permissions expansion.",
+  "review": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4-final-slot/RECEIPT.json",
+    "bytes": 6208,
+    "sha256": "242621c6c21d00b37516d9fcc19433b86ca11fb7672229422794ed10afb4f89f",
+    "blob": "f92be20e0c67b1e2412c6d04ca1786c247560181",
+    "commit": "b087e5ce19424bff913d73f0dd68b56973e8d7d5"
+  },
+  "bounds": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "qualification": "Known-role functional profile; 1800s includes authorization/publication, earlier deadline wins. Initial shell and two synchronous builtin command-substitution slots conservatively charged, not full kernel census. Old8PASS2FAIL5UNRUN/pub78 preserved."
+}

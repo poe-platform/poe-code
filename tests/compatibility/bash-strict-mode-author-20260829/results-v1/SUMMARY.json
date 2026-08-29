@@ -1,0 +1,310 @@
+{
+  "role": "AUTHOR_RESOLVED_SUBSET_NOT_INDEPENDENT_ACCEPTANCE",
+  "date": "2026-08-29",
+  "sourceCommit": "928be5585f05c15867fbbb5f4b5debe153b0734e",
+  "presealCommit": "30af0d840b8b05b8386c14d86143d1ed3ccbd4ad",
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "sourceSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+  "inputCount": 292,
+  "status": "AUTHOR_SCOPED_PASS",
+  "terminal": {
+    "outer": "/tmp/bash-strict-unit2-launch-hy4rsN",
+    "started": "2026-08-29T04:55:03.364Z",
+    "signals": [],
+    "bytes": 339,
+    "role": "ONE_AUTHOR_VALIDATION_NOT_NATIVE_ORACLE",
+    "runnerSha256": "e41b400301fb73828f41081c7321e07293477a4bee4a03fa886f802c0d466316",
+    "sourceSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "bounds": {
+      "totalSeconds": 2700,
+      "children": 96,
+      "peak": 4,
+      "serial": true,
+      "caseSeconds": 30,
+      "childSeconds": 120,
+      "cleanupSeconds": 5,
+      "captureBytes": 134217728,
+      "scratchBytes": 805306368,
+      "childCaptureBytes": 8388608,
+      "loaderAdmissions": 32,
+      "regexWorkers": 8
+    },
+    "pid": 97781,
+    "code": 0,
+    "signal": null,
+    "closed": true,
+    "finished": "2026-08-29T04:55:39.457Z"
+  },
+  "elapsedMs": 35436,
+  "cohorts": [
+    {
+      "label": "source-public",
+      "cases": 45,
+      "pass": 45,
+      "fail": 0
+    },
+    {
+      "label": "source-apply",
+      "cases": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    {
+      "label": "source-redirections-v2",
+      "cases": 48,
+      "pass": 48,
+      "fail": 0
+    },
+    {
+      "label": "source-strict",
+      "cases": 50,
+      "pass": 50,
+      "fail": 0
+    },
+    {
+      "label": "source-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "source-coherence",
+      "cases": 18,
+      "pass": 18
+    },
+    {
+      "label": "installed-public",
+      "cases": 45,
+      "pass": 45,
+      "fail": 0
+    },
+    {
+      "label": "installed-apply",
+      "cases": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    {
+      "label": "installed-redirections-v2",
+      "cases": 48,
+      "pass": 48,
+      "fail": 0
+    },
+    {
+      "label": "installed-strict",
+      "cases": 50,
+      "pass": 50,
+      "fail": 0
+    },
+    {
+      "label": "installed-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "installed-coherence",
+      "cases": 18,
+      "pass": 18
+    },
+    {
+      "label": "moved-public",
+      "cases": 45,
+      "pass": 45,
+      "fail": 0
+    },
+    {
+      "label": "moved-apply",
+      "cases": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    {
+      "label": "moved-redirections-v2",
+      "cases": 48,
+      "pass": 48,
+      "fail": 0
+    },
+    {
+      "label": "moved-strict",
+      "cases": 50,
+      "pass": 50,
+      "fail": 0
+    },
+    {
+      "label": "moved-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "moved-coherence",
+      "cases": 18,
+      "pass": 18
+    },
+    {
+      "label": "omit-presence-check-restored",
+      "cases": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "label": "lose-fatal-boundary-restored",
+      "cases": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "label": "ignore-u-flag-restored",
+      "cases": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  ],
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "source/__consumer/consumer-source-true.mts(9,24): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "source/__consumer/consumer-source-true.mts(11,15): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'.",
+        "source/__consumer/consumer-source-true.mts(13,20): error TS2322: Type 'number' is not assignable to type 'string'.",
+        "source/__consumer/consumer-source-true.mts(15,21): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.",
+        "source/__consumer/consumer-source-true.mts(17,30): error TS2353: Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "source/__consumer/consumer-source-true.mts(19,15): error TS2353: Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+      ]
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "installed/consumer-installed-true.mts(9,24): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "installed/consumer-installed-true.mts(11,15): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'.",
+        "installed/consumer-installed-true.mts(13,20): error TS2322: Type 'number' is not assignable to type 'string'.",
+        "installed/consumer-installed-true.mts(15,21): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.",
+        "installed/consumer-installed-true.mts(17,30): error TS2353: Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "installed/consumer-installed-true.mts(19,15): error TS2353: Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+      ]
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "errors": [
+        "moved package/consumer-moved-true.mts(9,24): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "moved package/consumer-moved-true.mts(11,15): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'.",
+        "moved package/consumer-moved-true.mts(13,20): error TS2322: Type 'number' is not assignable to type 'string'.",
+        "moved package/consumer-moved-true.mts(15,21): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.",
+        "moved package/consumer-moved-true.mts(17,30): error TS2353: Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+        "moved package/consumer-moved-true.mts(19,15): error TS2353: Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "name": "omit-presence-check",
+      "detected": true,
+      "originalSha256": "03090401a1885dd1ea7364f127bb712749ad9c0efff72e521677e833dc7601e2",
+      "mutantSha256": "1f0e3a3466a4f2caf18c12a6ccb3d4a54b217ef80e09b9cb6853fbb76620aa38"
+    },
+    {
+      "name": "lose-fatal-boundary",
+      "detected": true,
+      "originalSha256": "03090401a1885dd1ea7364f127bb712749ad9c0efff72e521677e833dc7601e2",
+      "mutantSha256": "98ee9abdffd3c9ef17ae8ffb8ae5efe6aa03e7033e1472734d0e1f63f7fae9a9"
+    },
+    {
+      "name": "ignore-u-flag",
+      "detected": true,
+      "originalSha256": "03090401a1885dd1ea7364f127bb712749ad9c0efff72e521677e833dc7601e2",
+      "mutantSha256": "6f3f8958c4a8989516bc18ab45216d16fd19a728b033d15d672ac8b7fa7baf68"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    }
+  ],
+  "failures": [],
+  "cleanup": {
+    "directChildren": 36,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 26,
+    "boundedOwnedTotal": 62,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "package": {
+    "file": "virtual-bash-0.0.0.tgz",
+    "sha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+    "bytes": 865091,
+    "members": 950
+  },
+  "raw": {
+    "records": 191,
+    "bytes": 9143898,
+    "compressedBytes": 3551274,
+    "sha256": "2a7b3163dbb9aa1e49d4bc4cfc7225e152e1a5381a0abcd3d4520dcfd10bb343"
+  },
+  "captureBytes": 3034669,
+  "actualScratchBytes": 71023010,
+  "design": {
+    "original": 50,
+    "knownExecutedPerLayout": 39,
+    "additionalPerLayout": 11,
+    "openUnexecuted": [
+      "U06",
+      "U07",
+      "U17",
+      "U27",
+      "U28",
+      "U31",
+      "U32",
+      "U33",
+      "U34",
+      "U35",
+      "U36"
+    ],
+    "nativeGoldens": 0
+  },
+  "executionExclusions": {
+    "native": 0,
+    "private": 0,
+    "compiler": "one scoped production build and six strict consumer invocations; no rawHEAD build",
+    "engine": 0,
+    "network": 0,
+    "fullGate": 0
+  },
+  "retainedRoots": {
+    "preparation": "/tmp/strict-mode-author-preparation-IGGdKS",
+    "outer": "/tmp/bash-strict-unit2-launch-hy4rsN",
+    "run": "/tmp/strict-mode-author-YM54kF"
+  },
+  "qualification": "Resolved Unit2 only on c83 plus provisional unit1; 39 known design identities+11 author controls per layout. Eleven original design identities OPEN/OUTSIDE and UNRUN, no skipped-as-pass/native/private/network/fullgate/GNU exact diagnostic claim. Unit1-v2 is a versioned fixture, historical failures remain."
+}

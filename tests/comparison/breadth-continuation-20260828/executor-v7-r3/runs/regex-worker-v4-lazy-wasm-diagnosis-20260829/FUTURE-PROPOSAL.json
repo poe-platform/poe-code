@@ -1,0 +1,86 @@
+{
+  "schema": "UNRUN_PROPOSAL_ONLY",
+  "name": "NO_LAZY_WEBSOCKET_GLOBAL_V1",
+  "authorization": "NONE; no implementation or execution in this packet",
+  "preferredRoute": "Use the documented pinned Node --no-experimental-websocket startup option only in processes/Workers that execute installOffline. This prevents unnecessary lazy-global materialization instead of prewarming.",
+  "sourceSupport": "Node setupUndici deletes global WebSocket before user modules; option is EnvironmentOptions. Exact installed-binary/Worker argv qualification remains future.",
+  "explicitProfileDelta": {
+    "caseChildArgvAdded": [
+      "--no-experimental-websocket"
+    ],
+    "requestedWorkerExecArgv": [],
+    "effectiveWorkerExecArgvProposed": [
+      "--no-experimental-websocket",
+      "--import",
+      "<exact authenticated preload/config URL>"
+    ],
+    "globalCapability": "WebSocket absent, not stock Node and not restored as a usable global",
+    "childPermissionModel": "UNCHANGED",
+    "externalFSNetworkProcessWasmGuards": "UNCHANGED",
+    "environmentDataChannel": "UNCHANGED token +4-byte SAB",
+    "processEnvChange": false,
+    "WorkerEnvChange": false,
+    "workerDataChange": false,
+    "transferListChange": false
+  },
+  "futureAffectedBindings": [
+    "successor supervisor child argv",
+    "successor observer effective argv",
+    "exact effective-argv assessor and G11.1 instrumentation assertion",
+    "versioned profile/recipe/tools/source/authorization receipts"
+  ],
+  "notProposed": [
+    "allow WASM or native delegation",
+    "disable Permission Model",
+    "read fetch/Request/WebSocket values to prewarm",
+    "internal-module bypass or engine patch",
+    "NODE_OPTIONS ambient inheritance",
+    "blind descriptor-first restoration",
+    "repeat old failed cohort under its consumed authority"
+  ],
+  "finiteQualificationProposal": {
+    "status": "UNRUN / not an executable preseal",
+    "families": 6,
+    "maximumKnownOS": 6,
+    "maximumWorkers": 1,
+    "peakKnownOS": 3,
+    "minutes": 5,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728,
+    "rows": [
+      {
+        "id": "P01",
+        "role": "DATA",
+        "expected": "Exact profile/flag/entry schema accepts; missing flag rejects before launch."
+      },
+      {
+        "id": "P02",
+        "role": "DATA",
+        "expected": "Duplicate/extra flag and wrong effective argv order reject; requested argv remains empty."
+      },
+      {
+        "id": "P03",
+        "role": "ONE_HARMLESS_PARENT",
+        "expected": "Flagged startup establishes absent WebSocket without value/descriptor read; actual unchanged offline guard installation and closure; no WASM or HTTP invocation."
+      },
+      {
+        "id": "P04",
+        "role": "ONE_HARMLESS_WORKER",
+        "expected": "Same flagged profile effective before preload guard; exact four harmless modules load; one result42 and owned natural/termination receipts reconcile."
+      },
+      {
+        "id": "P05",
+        "role": "DATA",
+        "expected": "Unchanged external guard source hashes and denied-capability policy; no permission/default namespace widening."
+      },
+      {
+        "id": "P06",
+        "role": "DATA",
+        "expected": "Missing bootstrap/operation/Worker record remains UNKNOWN/unqualified; false/undefined presence and declared early-stage ordering remain exact."
+      }
+    ],
+    "constraints": "No old absent-flag runtime re-creation, no actual target/comparator, no full55 until separate ROOT authorization after independent review."
+  },
+  "fallback": "If public-flag or effective-argv contracts cannot be qualified without wider changes, retain the comparison HOLD rather than prewarm or weaken guards.",
+  "trackDisposition": "PAUSE after this packet; ROOT prioritizes coherent product/native Bash compatibility."
+}

@@ -1,0 +1,8 @@
+{
+  "source": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/package.json",
+  "field": "scripts.build:node",
+  "sourceFact": "The vendored build script selects index-fetch.js as its Node bundle entry.",
+  "buildExecuted": false,
+  "packageManagerExecuted": false,
+  "bundledSourceAndUnbundledTrace": "Both inspected as source; no binary reproduction claimed."
+}

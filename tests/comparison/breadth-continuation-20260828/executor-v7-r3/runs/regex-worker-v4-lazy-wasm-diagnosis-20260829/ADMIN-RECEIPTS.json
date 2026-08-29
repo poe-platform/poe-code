@@ -1,0 +1,54 @@
+{
+  "started": "2026-08-29T09:58:33.223Z",
+  "at": "2026-08-29T10:07:32.872Z",
+  "knownOS": 4,
+  "admin": [
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=no"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "cat-file",
+        "-s",
+        "86d15047cdbf203e79ef4d75a5e4ca7a57b28424:tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/stderr.raw"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "759\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "cat-file",
+        "blob",
+        "86d15047cdbf203e79ef4d75a5e4ca7a57b28424:tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/stderr.raw"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "(node:6938) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nfile:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs:37\n    throw Object.assign(new Error(`OFFLINE_DENIED:${operation}`), { code: 'OFFLINE_DENIED' });\n                        ^\n\nError: OFFLINE_DENIED:UNSUPPORTED_WASM_ADMISSION.instantiate\n    at WebAssembly.instantiate (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs:37:25)\n    at lazyllhttp (node:internal/deps/undici/undici:5971:32) {\n  code: 'OFFLINE_DENIED'\n}\n\nNode.js v22.22.2\n",
+      "stderr": ""
+    },
+    {
+      "exe": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/PRIMARY-SOURCES.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/LOCAL-BINDINGS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SOURCE-TRACE.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/FUTURE-PROPOSAL.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/README.md\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SCOPE.json\n",
+      "stderr": ""
+    }
+  ],
+  "runtimeNodeChildren": 0,
+  "Workers": 0,
+  "sourceLookupsVia": "web tool only; no local HTTP/NodeHTTP/curl/native-oracle launch",
+  "elapsedMs": 539649
+}

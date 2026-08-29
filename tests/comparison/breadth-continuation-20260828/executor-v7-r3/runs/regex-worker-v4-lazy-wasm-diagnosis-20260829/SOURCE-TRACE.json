@@ -1,0 +1,64 @@
+{
+  "schema": "LAZY_WASM_SOURCE_ADJUDICATION",
+  "classification": "SOURCE_PROVEN_AVOIDABLE_TRIGGER; NOT_A_NEW_RUNTIME_REPRODUCTION",
+  "steps": [
+    {
+      "id": 1,
+      "local": "executor-v3/offline.mjs:30-32,99-100",
+      "fact": "replace reads object[name]; replacing global WebSocket therefore obtains its value. Reading global fetch only obtains a data function, not invocation."
+    },
+    {
+      "id": 2,
+      "primary": "lib/internal/bootstrap/web/exposed-window-or-worker.js; lib/internal/util.js; src/node_util.cc",
+      "fact": "WebSocket is installed with a native lazy data property. Its getter synchronously requires internal/deps/undici/undici."
+    },
+    {
+      "id": 3,
+      "primary": "deps/undici/src/index-fetch.js -> lib/global.js -> dispatcher/agent.js -> dispatcher/client.js -> client-h1.js",
+      "fact": "Module-level imports reach client-h1; no application network request is needed for this import path."
+    },
+    {
+      "id": 4,
+      "primary": "deps/undici/src/lib/dispatcher/client-h1.js:lazyllhttp and module initialization",
+      "fact": "Initialization immediately starts lazyllhttp. Its first compile is called before the first await; instantiate is reached after awaited compilation. The module stores the promise and calls catch without an actual rejection handler."
+    },
+    {
+      "id": 5,
+      "local": "executor-v3/offline.mjs:100 before115",
+      "fact": "The WebSocket value is read before the same installation replaces WASM APIs. A later asynchronous instantiate lookup can therefore encounter the new deny function."
+    },
+    {
+      "id": 6,
+      "local": "guarded-operation.mjs:10-21; case.mjs:78",
+      "fact": "Installation precedes body dispatch. EARLY publication occurs only after body and cleanup, before assessment. The unrelated library promise is not awaited or enrolled by the operation."
+    },
+    {
+      "id": 7,
+      "retained": "G01.1/stderr.raw",
+      "fact": "Observed refusal is instantiate with lazyllhttp frame. This is consistent with the source chain; it does not add missing getter/compile/thread/caller telemetry."
+    }
+  ],
+  "ownership": "Undici module-level promise, outside harness owned body/cleanup promise and timer/descriptor accounting. strict unhandled-rejection setting is preserved.",
+  "earliestSourceTrigger": "installOffline global WebSocket replacement, before body dispatch and EARLY",
+  "actualOrigin": "No unique initiating stack or thread identity was captured; prior lazy-property state and exact runtime interleaving remain unobserved.",
+  "workerEvidence": {
+    "configCommittedBeforeNativeCall": "observer.mjs:70-72 precedes attempts increment77 and super89",
+    "journalBytes": 0,
+    "EARLY": "ABSENT",
+    "RESULT": "ABSENT",
+    "attempts": "UNKNOWN",
+    "created": "UNKNOWN",
+    "peak": "UNKNOWN",
+    "retired": "UNKNOWN",
+    "legacyCreated": 0,
+    "legacyCreatedMeaning": "completed-result counter only"
+  },
+  "descriptorWarning": "V8 native lazy data properties are not ordinary JS accessor pairs; GetOwnPropertyDescriptor can fetch their value. A descriptor-first guard rewrite is not established side-effect-free.",
+  "notEstablished": [
+    "actual network request",
+    "actual nested Worker entry/load/retirement",
+    "new product or comparator bug",
+    "binary rebuild equivalence",
+    "completion or safety of any proposed revision"
+  ]
+}

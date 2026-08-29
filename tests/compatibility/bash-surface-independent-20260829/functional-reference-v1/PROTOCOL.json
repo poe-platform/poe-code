@@ -1,0 +1,156 @@
+{
+  "schema": "functional-only-bash32-proposal-v1",
+  "decision": "NO_GO",
+  "profile": "TRUSTED_LITERAL_FUNCTIONAL_ONLY_NOT_OS_CONTAINMENT",
+  "root": "/private/tmp/safe-bash-surface-functional-v1-20260829-01",
+  "eligible": [
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B09",
+    "B10",
+    "B11",
+    "B12",
+    "B13",
+    "B14",
+    "B15",
+    "B16",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B29",
+    "B30",
+    "B31",
+    "B32",
+    "B33",
+    "B34",
+    "B35",
+    "B36",
+    "B37",
+    "B38",
+    "B39",
+    "B40"
+  ],
+  "unqualified": [
+    {
+      "id": "B26",
+      "reason": "UNQUALIFIED_TEMP_LOCATION",
+      "executions": 0
+    },
+    {
+      "id": "B27",
+      "reason": "UNQUALIFIED_TEMP_LOCATION",
+      "executions": 0
+    },
+    {
+      "id": "B28",
+      "reason": "UNQUALIFIED_OLD_PARSER_EXEC_INTERPRETATION",
+      "executions": 0
+    }
+  ],
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "allProcesses": 64,
+    "peakProcesses": 6,
+    "directBashStarts": 37,
+    "sourceBoundAdditionalStarts": 13,
+    "controllerStarts": 1,
+    "outerToolShellAllowance": 1,
+    "administrativeStarts": 12,
+    "workerStarts": 0,
+    "perStreamBytes": 65536,
+    "totalCaptureBytes": 33554432,
+    "totalWorkingBytes": 134217728,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144,
+    "programBytes": 4096,
+    "stdinBytes": 1024
+  },
+  "binary": {
+    "path": "/bin/bash",
+    "bytes": 1293840,
+    "mode": 365,
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": "GNU Bash 3.2.57(1)-release arm64-apple-darwin25",
+    "versionEvidenceCommit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+    "versionProbeAllowed": false
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "argv": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "EXACT_JSON_DECODED_PROGRAM",
+    "surface-case"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "CASE_ROOT/home",
+    "TMPDIR": "CASE_ROOT/tmp",
+    "PATH": "CASE_ROOT/empty-path"
+  },
+  "umask": 18,
+  "lookupExceptions": [
+    "B20",
+    "B21",
+    "B39"
+  ],
+  "externalExecutableSuccessAllowed": false,
+  "networkAllowed": false,
+  "osFence": false,
+  "preload": false,
+  "comparison": {
+    "nativeOnlyFirst": true,
+    "productCalls": 0,
+    "stdoutNormalization": "NONE",
+    "stderrNormalization": "NONE",
+    "statusNormalization": "NONE",
+    "snapshotMapping": "caseRoot prefix only -> virtual /; no output rewriting",
+    "snapshotFields": [
+      "path",
+      "type",
+      "mode",
+      "base64"
+    ],
+    "proposedLaterCandidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+    "proposedLaterPackageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"
+  },
+  "requires": [
+    "different-agent literal and launch source review",
+    "fresh ROOT actual grant",
+    "specific exec_command require_escalated approval; no prefix rule"
+  ],
+  "claimsDenied": [
+    "OS sandbox security",
+    "lossless descendant census",
+    "RSS bound",
+    "hard post-SIGKILL close deadline",
+    "Bash5.3 qualification",
+    "old9/40 containment rescore",
+    "product native fallback"
+  ]
+}

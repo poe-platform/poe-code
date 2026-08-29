@@ -10,6 +10,9 @@ import { environment, grants, record, text } from "./values.js";
 
 export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
 export type { NodeCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
+export { createNodeWorkerProvider } from "./worker-provider.js";
+export { NODE_ENGINE_ABI } from "./worker-types.js";
+export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
 
 function local(error: unknown): error is NodeProfileError | NodeUsageError { return error instanceof NodeProfileError || error instanceof NodeUsageError; }
 function providerValue(value: unknown): NodeRuntimeProvider {
@@ -39,6 +42,10 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
         const bounded = text(message, nodeLimits.errorBytes, "diagnostic");
         const output = "node: " + bounded + "\n";
         if (host) await host.diagnostic(output);
+        else {
+          const diagnosticHost = new NodeHost(owner, allowed, "/", "/");
+          await diagnosticHost.diagnostic(output);
+        }
       };
       try {
         owner.open();
@@ -77,9 +84,15 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
           reserve: (label, bytes) => {
             sessionHost();
             try { owner.check(); return owner.ledger.reserve("provider:" + text(label, 119, "provider reservation name"), bytes); }
-            catch (error) { owner.failure(error, error instanceof NodeProfileError ? "profile" : "execution"); throw error; }
+            catch (error) { owner.failure(error, "profile"); throw error; }
           },
           cutoff: () => { sessionHost(); owner.cutoff(); },
+          fail: reason => {
+            sessionHost();
+            const failure = record(reason, ["present", "value"]);
+            if (failure.present !== true) throw new TypeError("provider execution failure presence");
+            owner.failure(failure.value, "execution");
+          },
         });
         const prepare = provider.prepare;
         let prepared: unknown;
@@ -95,7 +108,7 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
           try { await diagnose(error.message); }
           catch (diagnosticFailure) { escaping = { present: true, value: diagnosticFailure }; }
         }
-        owner.capture(escaping.value, local(escaping.value) ? "profile" : "execution");
+        owner.capture(escaping.value, "profile");
       } finally {
         try { await owner.close(); } catch (error) { cleanup = { present: true, value: error }; }
         source = undefined; request = undefined; host = undefined; hold?.(); hold = undefined;

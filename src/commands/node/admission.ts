@@ -1,7 +1,8 @@
 import { NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
 import { text } from "./values.js";
 
-type Token = { value: string; kind: "word" | "string" | "number" | "operator" | "end"; line: boolean };
+export type NodeToken = { value: string; kind: "word" | "string" | "number" | "operator" | "end"; line: boolean };
+type Token = NodeToken;
 type Expression = { assignable: boolean; name?: string; literal?: string; member?: boolean };
 const forbidden = new Set(["eval", "Function", "Buffer", "global", "globalThis", "Worker", "SharedArrayBuffer", "Atomics", "Symbol", "BigInt", "setTimeout", "setInterval", "setImmediate", "queueMicrotask", "fetch", "WebAssembly", "module", "exports", "import", "export", "class", "super", "this", "yield"]);
 const prototypeKeys = new Set(["__proto__", "prototype", "constructor"]);
@@ -12,7 +13,7 @@ function refusal(): never { throw new NodeUsageError("source is outside the rest
 function moduleAllowed(value: string): boolean {
   return ["fs", "path", "process", "node:fs", "node:path", "node:process"].includes(value) || (value.startsWith("./") || value.startsWith("../") || value.startsWith("/")) && value.endsWith(".json") && !value.includes("\0");
 }
-function lex(source: string): Token[] {
+export function tokenizeNodeSource(source: string): NodeToken[] {
   const tokens: Token[] = [];
   let offset = 0;
   let line = false;
@@ -222,5 +223,5 @@ class Parser {
 }
 export function admitSource(source: string, print: boolean): void {
   text(source, nodeLimits.sourceBytes, "source bytes");
-  new Parser(lex(source)).parse(print);
+  new Parser(tokenizeNodeSource(source)).parse(print);
 }

@@ -73,6 +73,7 @@ export interface NodeHostServices {
   readonly delivered: (sequence: number) => void;
   readonly reserve: (label: string, bytes: number) => () => void;
   readonly cutoff: () => void;
+  readonly fail: (reason: NodeReason) => void;
 }
 export interface NodeSession {
   readonly start: () => Promise<NodeCompletion>;

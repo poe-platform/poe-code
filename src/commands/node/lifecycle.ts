@@ -83,7 +83,7 @@ export class NodeOwner implements HostOwner {
     const start = this.#session.start;
     let value: unknown;
     try { value = await this.job(start); }
-    catch (error) { this.capture(error, "execution"); throw error; }
+    catch (error) { this.failure(error, "execution"); throw error; }
     this.#completion = completion(value);
     if (this.#retired?.acquisition === "none" && this.#completion.kind !== "profileFailure") throw new TypeError("node provider completion without acquired Worker");
     return this.#completion;
@@ -108,7 +108,9 @@ export class NodeOwner implements HostOwner {
   }
   failure = (reason: unknown, origin: "profile" | "execution" = "execution"): void => {
     this.capture(reason, origin);
-    this.cutoff(); this.#cancel(reason);
+    this.cutoff();
+    if (!this.signal.aborted) this.#controller.abort(reason);
+    this.#cancel(reason);
     void this.close().catch(() => {});
   };
   capture(reason: unknown, origin: "profile" | "execution"): void {
@@ -122,7 +124,10 @@ export class NodeOwner implements HostOwner {
     this.#closed = true; this.cutoff();
     this.#close = Promise.resolve().then(async () => {
       if (this.#session) {
-        if (this.#primary) this.#cancel(this.#primary.value);
+        if (this.#primary) {
+          if (!this.signal.aborted) this.#controller.abort(this.#primary.value);
+          this.#cancel(this.#primary.value);
+        }
         try { const retire = this.#session.retire; this.#retired = retirement(await retire()); }
         catch (error) { this.#cleanup ??= { present: true, value: error }; }
       } else this.#retired = { acquisition: "none", exitCode: null };

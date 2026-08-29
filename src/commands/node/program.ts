@@ -1,5 +1,7 @@
 import { nodeLimits, type NodeSelector } from "./types.js";
 import { text } from "./values.js";
+import { lowerNodeSource } from "./lower.js";
+import { nodeValueRules } from "./rules.js";
 
 const library = String.raw`
 
@@ -10,6 +12,7 @@ const library = String.raw`
   const nativePromise = Promise;
   const nativeString = String;
   const nativeError = Error;
+${nodeValueRules}
   function unsupported() { const error = new nativeError('Unsupported restricted Node operation'); error.code = 'ERR_VNODE_UNSUPPORTED'; throw error; }
   function utf8(value, maximum) {
     if (typeof value !== 'string' || value.length > maximum) unsupported();
@@ -144,7 +147,7 @@ const library = String.raw`
     const size = utf8(result.text, 1048576);
     if (size > 1048576 - jsonBytes) unsupported();
     jsonBytes = jsonBytes + size;
-    const parsed = nativeJSON.parse(result.text);
+    const parsed = recordTree(nativeJSON.parse(result.text), 0);
     cache[key] = parsed;
     roots = roots + 1;
     return parsed;
@@ -153,6 +156,7 @@ const library = String.raw`
     const kind = typeof value;
     if (value === null || kind === 'string' || kind === 'number' || kind === 'boolean' || kind === 'undefined') return;
     if (kind !== 'object') unsupported();
+    if (category(value).kind === 'error' || category(value).kind === 'promise') unsupported();
     if (ancestors.length >= 128) unsupported();
     for (let index = 0; index < ancestors.length; index = index + 1) if (ancestors[index] === value) throw new TypeError('Cyclic JSON value');
     const path = ancestors.slice(); path.push(value);
@@ -163,7 +167,7 @@ const library = String.raw`
     } else for (let index = 0; index < keys.length; index = index + 1) jsonValue(value[keys[index]], path);
   }
   const safeJSON = nativeObject.freeze({
-    parse: function (value) { if (arguments.length !== 1) unsupported(); utf8(value, 1048576); return nativeJSON.parse(value); },
+    parse: function (value) { if (arguments.length !== 1) unsupported(); utf8(value, 1048576); return recordTree(nativeJSON.parse(value), 0); },
     stringify: function (value, replacer, space) {
       if (arguments.length !== 1 && arguments.length !== 3) unsupported();
       if (arguments.length === 3 && (replacer !== undefined || typeof space !== 'number' || space < 0 || space > 10 || space % 1 !== 0)) unsupported();
@@ -174,18 +178,22 @@ const library = String.raw`
     }
   });
   const safeObject = nativeObject.freeze({
-    keys: function (value) { if (arguments.length !== 1 || value === null || typeof value !== 'object') unsupported(); return nativeObject.keys(value); },
-    hasOwn: function (value, name) { if (arguments.length !== 2 || value === null || typeof value !== 'object' || typeof name !== 'string') unsupported(); return nativeObject.hasOwn(value, name); }
+    keys: function (value) { if (arguments.length !== 1) unsupported(); return ownKeys(value); },
+    hasOwn: function (value, name) { if (arguments.length !== 2 || typeof name !== 'string') unsupported(); const keys = ownKeys(value); for (let index = 0; index < keys.length; index = index + 1) if (keys[index] === name) return true; return false; }
   });
   const safeArray = nativeObject.freeze({ isArray: function (value) { if (arguments.length !== 1) unsupported(); return nativeArray.isArray(value); } });
   const safePromise = nativeObject.freeze({
-    resolve: function (value) { if (arguments.length !== 1) unsupported(); return nativePromise.resolve(value); },
-    reject: function (value) { if (arguments.length !== 1) unsupported(); return nativePromise.reject(value); },
-    race: function (value) { if (arguments.length !== 1 || !nativeArray.isArray(value) || value.length !== 0 || nativeObject.keys(value).length !== 0) unsupported(); return nativePromise.race(value); }
+    resolve: function (value) { if (arguments.length !== 1) unsupported(); if (value !== null && typeof value === 'object' && category(value).kind !== 'promise' && typeof value.then === 'function') unsupported(); return remember(nativePromise.resolve(value), 'promise', true); },
+    reject: function (value) { if (arguments.length !== 1) unsupported(); return remember(nativePromise.reject(value), 'promise', true); },
+    race: function (value) { if (arguments.length !== 1 || !nativeArray.isArray(value) || value.length !== 0 || nativeObject.keys(value).length !== 0) unsupported(); return remember(nativePromise.race(value), 'promise', true); }
   });
-  function errorConstructor(factory) { return function (message) { if (arguments.length > 1 || arguments.length === 1 && typeof message !== 'string') unsupported(); return arguments.length === 0 ? new factory() : new factory(message); }; }
+  function errorConstructor(factory) { return function (message) { if (arguments.length > 1 || arguments.length === 1 && typeof message !== 'string') unsupported(); return remember(arguments.length === 0 ? new factory() : new factory(message), 'error', false); }; }
   function stringConstructor(value) { if (arguments.length !== 1) unsupported(); return primitive(value); }
-  const returned = __vnodeGuest(require, console, process, safeJSON, safeObject, safeArray, safePromise, errorConstructor(Error), errorConstructor(TypeError), errorConstructor(RangeError), errorConstructor(SyntaxError), errorConstructor(ReferenceError), stringConstructor, __vnodeContext.filename, __vnodeContext.directory);
+  remember(process, 'facade', true); remember(process.env, 'env', false); remember(process.argv, 'array', false);
+  remember(process.stdin, 'facade', true); remember(process.stdout, 'facade', true); remember(process.stderr, 'facade', true);
+  remember(console, 'facade', true); remember(fs, 'facade', true); remember(path, 'facade', true);
+  remember(safeJSON, 'facade', true); remember(safeObject, 'facade', true); remember(safeArray, 'facade', true); remember(safePromise, 'facade', true);
+  const returned = __vnodeGuest(require, console, process, safeJSON, safeObject, safeArray, safePromise, errorConstructor(Error), errorConstructor(TypeError), errorConstructor(RangeError), errorConstructor(SyntaxError), errorConstructor(ReferenceError), stringConstructor, __vnodeContext.filename, __vnodeContext.directory, __vnodeRules);
   if (__vnodeContext.selector === 'print') {
     if (returned !== null && typeof returned !== 'undefined' && typeof returned !== 'string' && typeof returned !== 'number' && typeof returned !== 'boolean') {
       __vnodeRaw('printRefusal', null, null, null, null, null);
@@ -193,12 +201,14 @@ const library = String.raw`
     }
     logging('stdout', [returned]);
   }
+  __vnodeRaw('cutoff', null, null, null, null, null);
 })(__vnodeBridge, __vnodeContext, __vnodeEntry);
 `;
 
 export function buildNodeProgram(source: string, selector: NodeSelector): string {
-  const names = "require,console,process,JSON,Object,Array,Promise,Error,TypeError,RangeError,SyntaxError,ReferenceError,String" + (selector === "file" ? ",__vnodeFilename,__vnodeDirectory" : "");
-  const body = selector === "print" ? "return (\n" + source + "\n);" : source;
+  const names = "require,console,process,JSON,Object,Array,Promise,Error,TypeError,RangeError,SyntaxError,ReferenceError,String,__vnodeFilename,__vnodeDirectory,__vnodeRules";
+  const lowered = lowerNodeSource(source, selector);
+  const body = selector === "print" ? "return (\n" + lowered + "\n);" : lowered;
   const bindings = selector === "file" ? "const __filename = __vnodeFilename; const __dirname = __vnodeDirectory;\n" : "";
   const marker = "__vnodeBridge('entry', null, null, null, null, null);\n";
   const program = "const __vnodeEntry = function(" + names + ") {\n" + marker + bindings + body + "\n};\n" + library;

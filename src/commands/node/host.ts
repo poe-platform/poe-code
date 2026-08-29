@@ -1,7 +1,7 @@
 import { posix } from "node:path";
 import { types } from "node:util";
 import type { CommandContext } from "../../contracts/command.js";
-import { isErrnoCode } from "../../contracts/errors.js";
+import { isErrnoCode, isFsError } from "../../contracts/errors.js";
 import type { ByteSink } from "../../contracts/io.js";
 import { NodeProfileError, nodeLimits, type NodeGrants, type NodeGuestError, type NodeHostRequest, type NodeHostResponse, type NodeReason } from "./types.js";
 import { integer, NodeLedger, record, strings, text } from "./values.js";
@@ -9,9 +9,16 @@ import { integer, NodeLedger, record, strings, text } from "./values.js";
 export function fsDescriptor(error: unknown): NodeGuestError | undefined {
   try {
     if (error === null || typeof error !== "object" || types.isProxy(error) || Array.isArray(error)) return undefined;
+    let prototype: object | null = error;
+    let depth = 0;
+    while (prototype !== null) {
+      if (types.isProxy(prototype) || ++depth > 16) return undefined;
+      prototype = Object.getPrototypeOf(prototype) as object | null;
+    }
+    if (!isFsError(error)) return undefined;
     const fields: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
     for (const key of Reflect.ownKeys(error)) {
-      if (key === "stack") continue;
+      if (key === "stack" || key === "cause") continue;
       if (typeof key !== "string" || !["name", "message", "code", "errno", "path", "syscall", "dest"].includes(key)) return undefined;
       const descriptor = Object.getOwnPropertyDescriptor(error, key);
       if (!descriptor || !Object.hasOwn(descriptor, "value")) return undefined;
@@ -26,6 +33,29 @@ export function fsDescriptor(error: unknown): NodeGuestError | undefined {
 function localError(code: string): NodeGuestError { return { name: "Error", message: code === "ERR_VNODE_DENIED" ? "Virtual capability denied" : "Unsupported restricted Node operation", code, errno: null, path: null, syscall: null, dest: null }; }
 class FsOperationFailure { constructor(readonly reason: unknown) {} }
 function response(sequence: number, kind: NodeHostResponse["kind"], value: string | null = null, cacheKey: NodeHostResponse["cacheKey"] = null, error: NodeGuestError | null = null): NodeHostResponse { return { sequence, kind, text: value, error, cacheKey }; }
+export function readNodeHostRequest(value: unknown): NodeHostRequest {
+  const item = record(value, ["sequence", "op", "authority", "path", "flag", "text", "moduleKey"]);
+  const sequence = integer(item.sequence, nodeLimits.operations, "sequence");
+  if (sequence === 0) throw new NodeProfileError("request sequence");
+  let bytes = 0;
+  for (const field of ["op", "authority", "path", "flag", "moduleKey"] as const) {
+    if (item[field] !== null) { const entry = text(item[field], field === "path" ? nodeLimits.pathBytes : nodeLimits.metadataBytes, "request metadata"); bytes += Buffer.byteLength(entry); }
+  }
+  if (bytes > nodeLimits.metadataBytes) throw new NodeProfileError("request metadata");
+  if (item.text !== null) text(item.text, nodeLimits.operationBytes, "request payload");
+  const empty = item.path === null && item.flag === null;
+  const noBody = item.text === null;
+  const noModule = item.moduleKey === null;
+  const valid = item.op === "authorizeModule" && item.authority === "module" && empty && noBody && ["fs", "path", "process"].includes(item.moduleKey as string)
+    || item.op === "authorizeJson" && item.authority === "json" && typeof item.path === "string" && item.flag === "r" && noBody && noModule
+    || item.op === "readText" && ["json", "data"].includes(item.authority as string) && typeof item.path === "string" && item.flag === "r" && noBody && noModule
+    || item.op === "readText" && item.authority === "stdin" && item.path === null && item.flag === "r" && noBody && noModule
+    || item.op === "writeText" && item.authority === "data" && typeof item.path === "string" && (item.flag === "w" || item.flag === "wx") && typeof item.text === "string" && noModule
+    || item.op === "writeOutput" && ["stdout", "stderr"].includes(item.authority as string) && empty && typeof item.text === "string" && noModule
+    || item.op === "path" && item.authority === "path" && empty && typeof item.text === "string" && ["join", "resolve", "normalize", "dirname", "basename", "extname", "relative", "isAbsolute"].includes(item.moduleKey as string);
+  if (!valid) throw new TypeError("node protocol: operation shape");
+  return Object.freeze(item) as unknown as NodeHostRequest;
+}
 export interface HostOwner {
   readonly signal: AbortSignal;
   readonly ledger: NodeLedger;
@@ -57,27 +87,9 @@ export class NodeHost {
   #check(): void { this.owner.check(); }
   #settled(): void { this.owner.context.signal.throwIfAborted(); this.owner.signal.throwIfAborted(); }
   #admit(value: unknown): NodeHostRequest {
-    const item = record(value, ["sequence", "op", "authority", "path", "flag", "text", "moduleKey"]);
-    const sequence = integer(item.sequence, nodeLimits.operations, "sequence");
-    if (sequence !== this.#sequence + 1 || this.#active || this.#pending) throw new NodeProfileError("request sequence/delivery");
-    let bytes = 0;
-    for (const field of ["op", "authority", "path", "flag", "moduleKey"] as const) {
-      if (item[field] !== null) { const entry = text(item[field], field === "path" ? nodeLimits.pathBytes : nodeLimits.metadataBytes, "request metadata"); bytes += Buffer.byteLength(entry); }
-    }
-    if (bytes > nodeLimits.metadataBytes) throw new NodeProfileError("request metadata");
-    if (item.text !== null) text(item.text, nodeLimits.operationBytes, "request payload");
-    const empty = item.path === null && item.flag === null;
-    const noBody = item.text === null;
-    const noModule = item.moduleKey === null;
-    const valid = item.op === "authorizeModule" && item.authority === "module" && empty && noBody && ["fs", "path", "process"].includes(item.moduleKey as string)
-      || item.op === "authorizeJson" && item.authority === "json" && typeof item.path === "string" && item.flag === "r" && noBody && noModule
-      || item.op === "readText" && ["json", "data"].includes(item.authority as string) && typeof item.path === "string" && item.flag === "r" && noBody && noModule
-      || item.op === "readText" && item.authority === "stdin" && item.path === null && item.flag === "r" && noBody && noModule
-      || item.op === "writeText" && item.authority === "data" && typeof item.path === "string" && (item.flag === "w" || item.flag === "wx") && typeof item.text === "string" && noModule
-      || item.op === "writeOutput" && ["stdout", "stderr"].includes(item.authority as string) && empty && typeof item.text === "string" && noModule
-      || item.op === "path" && item.authority === "path" && empty && typeof item.text === "string" && ["join", "resolve", "normalize", "dirname", "basename", "extname", "relative", "isAbsolute"].includes(item.moduleKey as string);
-    if (!valid) throw new TypeError("node protocol: operation shape");
-    return Object.freeze(item) as unknown as NodeHostRequest;
+    const item = readNodeHostRequest(value);
+    if (item.sequence !== this.#sequence + 1 || this.#active || this.#pending) throw new NodeProfileError("request sequence/delivery");
+    return item;
   }
   async #stdin(maximum: number): Promise<Uint8Array> {
     if (this.#stdinActive) throw new NodeProfileError("concurrent stdin");
@@ -224,7 +236,7 @@ export class NodeHost {
   }
   async request(value: unknown): Promise<NodeHostResponse> {
     let item: NodeHostRequest;
-    try { this.#check(); item = this.#admit(value); } catch (error) { this.owner.failure(error, error instanceof NodeProfileError ? "profile" : "execution"); throw error; }
+    try { this.#check(); item = this.#admit(value); } catch (error) { this.owner.failure(error, "profile"); throw error; }
     this.#active = true; this.#sequence = item.sequence;
     let release: (() => void) | undefined;
     try {
@@ -246,12 +258,12 @@ export class NodeHost {
       this.#pending = { sequence: item.sequence, response: result, failure, release };
       release = undefined;
       return result;
-    } catch (error) { this.owner.failure(error, error instanceof NodeProfileError ? "profile" : "execution"); throw error; }
+    } catch (error) { this.owner.failure(error, "profile"); throw error; }
     finally { this.#active = false; release?.(); }
   }
   delivered(sequence: number): void {
     const pending = this.#pending;
-    if (!pending || sequence !== pending.sequence || this.#active) { const error = new NodeProfileError("postcopy delivery"); this.owner.failure(error); throw error; }
+    if (!pending || sequence !== pending.sequence || this.#active) { const error = new NodeProfileError("postcopy delivery"); this.owner.failure(error, "profile"); throw error; }
     this.#pending = undefined;
     pending.response = undefined; pending.failure = undefined; pending.release();
   }

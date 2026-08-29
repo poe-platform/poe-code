@@ -23,8 +23,13 @@ export function observeNodeFailure(reason: unknown): NodeObservation {
   } catch { fault = true; }
   return Object.freeze({ state: fields.name === null && fields.message === null && fields.code === null ? "unknown" : "captured", fault, ...fields });
 }
-export function publishNodeObservation(reason: unknown, publish: (observation: NodeObservation) => void): NodeObservationPublication {
+export async function publishNodeObservation(reason: unknown, publish: (observation: NodeObservation) => void | Promise<void>): Promise<NodeObservationPublication> {
   const observation = observeNodeFailure(reason);
-  try { publish(observation); return { observation, publisherFault: undefined }; }
+  try {
+    const returned = publish(observation);
+    if (returned !== undefined && (types.isProxy(returned) || !types.isPromise(returned))) throw new TypeError("node observation publisher completion");
+    if (await returned !== undefined) throw new TypeError("node observation publisher result");
+    return { observation, publisherFault: undefined };
+  }
   catch (error) { return { observation: Object.freeze({ ...observation, fault: true }), publisherFault: { present: true, value: error } }; }
 }

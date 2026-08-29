@@ -1,0 +1,66 @@
+{
+  "schema": "B2_R4_AUTHORED_DERIVATIONS",
+  "ownerBase": {
+    "name": "owner",
+    "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+    "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+    "blob": "e8313d521a454cf9b2f540a119c168c13de061b1",
+    "bytes": 8991,
+    "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+  },
+  "ownerVersion": "b0-r3-b2-negative-outcome-r4.1",
+  "ownerDerived": {
+    "bytes": 9386,
+    "sha256": "dcee418a8ed89650ada9f9933857f64932d3df82f19d5e1e996e07c394413b27"
+  },
+  "deltas": [
+    {
+      "name": "original common helper relocation",
+      "before": "'../stage-a-r2/common.mjs'",
+      "after": "'../legacy/stage-a-r2/common.mjs'"
+    },
+    {
+      "name": "finite clock fields before arithmetic",
+      "before": "assert.ok(Number.isFinite(started)&&seconds>reserve&&reserve>=5);",
+      "after": "assert.ok(Number.isFinite(started)&&Number.isFinite(seconds)&&Number.isFinite(reserve)&&seconds>reserve&&reserve>=5);"
+    },
+    {
+      "name": "natural exit evidence",
+      "before": "let child,exited=false,closed=false,",
+      "after": "let exitCode=null,exitSignal=null,signalCount=0,observeTimer;let child,exited=false,closed=false,"
+    },
+    {
+      "name": "signal evidence",
+      "before": "const signal=name=>{if(!child?.pid)return;",
+      "after": "const signal=name=>{if(!child?.pid)return;signalCount++;"
+    },
+    {
+      "name": "fixed per-role expected exit candidates; classifier decides credit",
+      "before": "closed=true;if(status!==0||signalValue!==null)",
+      "after": "closed=true;exitCode=status;exitSignal=signalValue;if(!(options.allowedExitCodes?.[role]??[0]).includes(status)||signalValue!==null)"
+    },
+    {
+      "name": "bounded live owned work census",
+      "before": "child.stdin.end(input);",
+      "after": "child.stdin.end(input);observeTimer=setInterval(()=>{try{options.observe?.();}catch(error){fail(error,'work-census');}},50);"
+    },
+    {
+      "name": "retire census timer",
+      "before": "clearTimeout(deadlineTimer);clearTimeout(killTimer);clearTimeout(drainTimer);",
+      "after": "clearInterval(observeTimer);clearTimeout(deadlineTimer);clearTimeout(killTimer);clearTimeout(drainTimer);"
+    },
+    {
+      "name": "return exact natural outcome",
+      "before": "return{stdout:path.join(directory,label+'.stdout')",
+      "after": "return{exitCode,exitSignal,exited,closed,signalCount,stdout:path.join(directory,label+'.stdout')"
+    }
+  ],
+  "tarBase": {
+    "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+    "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs",
+    "blob": "a530b96d6410f96ed730498290db1da006027efe",
+    "sha256": "318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"
+  },
+  "tarBodyChange": "Unchanged unpackVerified body; explicit wrapper imports/version only",
+  "createdBeforeStaging": true
+}

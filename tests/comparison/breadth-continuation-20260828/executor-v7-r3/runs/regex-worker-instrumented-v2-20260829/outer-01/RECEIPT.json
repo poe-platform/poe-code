@@ -1,0 +1,24 @@
+{
+  "schema": "HARMLESS_OUTER_V1",
+  "pid": 95175,
+  "closed": true,
+  "status": 1,
+  "signal": null,
+  "observed": [
+    109,
+    0
+  ],
+  "retained": [
+    109,
+    0
+  ],
+  "primaryPresent": false,
+  "primary": null,
+  "cleanup": [],
+  "signals": [],
+  "captureClosed": [
+    true,
+    true
+  ],
+  "qualified": true
+}

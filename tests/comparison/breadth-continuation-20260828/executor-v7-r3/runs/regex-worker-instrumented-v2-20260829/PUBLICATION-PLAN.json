@@ -1,0 +1,32 @@
+{
+  "schema": "PREPUBLICATION_COMPLETE_RECORD_CENSUS",
+  "at": "2026-08-29T08:47:29.703Z",
+  "started": "2026-08-29T08:33:40.007Z",
+  "elapsedMilliseconds": 829696,
+  "sourcePreseal": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "manifestSha256": "364258f39ea8e0ea0f88afc64332b6b9449cea7bfdfcc0e2abd490cecf9eaa2b",
+  "knownOwnedAlreadyClosed": 35,
+  "toolServiceReservation": 1,
+  "charged": 36,
+  "publicationRemaining": 2,
+  "prospectiveFinalKnownOwned": 37,
+  "prospectiveFinalCharged": 38,
+  "cap": 64,
+  "allAcquiredRuntimeChildrenClosed": 25,
+  "WorkerStarts": 0,
+  "rawQualified": 18,
+  "ordinaryFailed": 4,
+  "unsafeStop": 1,
+  "unrun": 32,
+  "controlCaptureBytes": 10597,
+  "retainedControlCaptureBytes": 10597,
+  "workBytes": 472593,
+  "recordCount": 270,
+  "administrativeCorrections": [
+    "pre-dispatch process global error",
+    "display counter reconciled from launch records",
+    "zero-entry preparation census preserved/replaced versionwise"
+  ],
+  "noControlsRerun": true,
+  "completionQualification": "Publication closure reported by the returning Git tools and final handoff; future completion is not asserted here."
+}

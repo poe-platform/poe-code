@@ -1,0 +1,9 @@
+{
+  "phase": "git-publication-helper",
+  "error": "process is not defined",
+  "origin": "Node REPL process global unavailable",
+  "childDispatched": false,
+  "observedToolErrorOnly": true,
+  "correction": "explicit finite Git tool environment",
+  "retirement": "no child acquired"
+}

@@ -1,0 +1,1911 @@
+{
+  "schema": "OWNED_EVIDENCE_CENSUS_V2",
+  "at": "2026-08-29T08:47:29.702Z",
+  "root": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+  "sourcePreseal": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "sealSha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a",
+  "entries": [
+    {
+      "path": "AUTH-INACTIVE.json",
+      "type": "regular",
+      "bytes": 237,
+      "mode": 420,
+      "sha256": "e5b2f549cf1e628dd1fbfa1497636236cae81b12e8f72987807d64a6eb27dbda"
+    },
+    {
+      "path": "AUTH.json",
+      "type": "regular",
+      "bytes": 355,
+      "mode": 384,
+      "sha256": "fa20611fb705843fea2667e768e0b8c0bcc0ff1262e9544ca245e64fe23955e0"
+    },
+    {
+      "path": "EVIDENCE-MANIFEST-zero-entry-PREPARATION-FAILURE.json",
+      "type": "regular",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "66d3142d491c5a45782ed0cfd0f77da8b2f13b279a9d736ed5ee37be50d6e09b"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "type": "regular",
+      "bytes": 8738,
+      "mode": 420,
+      "sha256": "4179dd5ecdbfa4d4d124fcd75852ae96d2c7449ccf7b6dc4215ce718504fdae2"
+    },
+    {
+      "path": "FINAL-ACCOUNTING.json",
+      "type": "regular",
+      "bytes": 1169,
+      "mode": 384,
+      "sha256": "38c2cb34627a109072fee042646d739169dfb72855e5a3dac9646352431c3396"
+    },
+    {
+      "path": "INSTRUMENTATION.json",
+      "type": "regular",
+      "bytes": 2398,
+      "mode": 420,
+      "sha256": "4386662b560e2617829183725dc368b3ef406e75e802bb6188dd331445e59e79"
+    },
+    {
+      "path": "OBSERVED-OUTCOMES.json",
+      "type": "regular",
+      "bytes": 9898,
+      "mode": 384,
+      "sha256": "823ba50ef2a701096021975b4591ce167b2aed38b358986a76429c0fff2d6e2d"
+    },
+    {
+      "path": "PLAN.json",
+      "type": "regular",
+      "bytes": 1867,
+      "mode": 420,
+      "sha256": "b9135278102903fdaa78d2fa12b2df5604df6e0acfdf8a97a77dff07bdfbcba5"
+    },
+    {
+      "path": "PRIOR-DRAFT.json",
+      "type": "regular",
+      "bytes": 2364,
+      "mode": 420,
+      "sha256": "8bde35ea28c24a5774b6fca7a36cf3e09692cb7790c6f28d37516fb51f9f3534"
+    },
+    {
+      "path": "README.md",
+      "type": "regular",
+      "bytes": 3143,
+      "mode": 420,
+      "sha256": "b40a3b90b2b3197cf8782a695320784d32ede8894392a9f7345d87113e92b73d"
+    },
+    {
+      "path": "REPORT.md",
+      "type": "regular",
+      "bytes": 3743,
+      "mode": 420,
+      "sha256": "a7553b5ce8a3d17a5038f36c79dbd5ed00b20ffd93fa4c824ad20a000a9237e1"
+    },
+    {
+      "path": "ROOT-AUTHORITY.txt",
+      "type": "regular",
+      "bytes": 2043,
+      "mode": 420,
+      "sha256": "77bad3c9b760b9da9f68b203e78c3f51b5114ff511e4d16fa835adc6012befc4"
+    },
+    {
+      "path": "SEAL.json",
+      "type": "regular",
+      "bytes": 6851,
+      "mode": 420,
+      "sha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a"
+    },
+    {
+      "path": "admin/ACCOUNTING-RECONCILIATION.json",
+      "type": "regular",
+      "bytes": 7758,
+      "mode": 384,
+      "sha256": "b1666170b9cc7c7b2e349e0c615e5d7c5c38c58511972db93d75d79f8e43e50b"
+    },
+    {
+      "path": "admin/PRE-LAUNCH.json",
+      "type": "regular",
+      "bytes": 7321,
+      "mode": 384,
+      "sha256": "b028e23d1510d4c148b9981518d7ef3840ec3071b727efb0445ef532018974bb"
+    },
+    {
+      "path": "admin/PREPARATION-FAILURE.json",
+      "type": "regular",
+      "bytes": 283,
+      "mode": 384,
+      "sha256": "51bf7b7f913e746d5c21328e744dda20bedd8ec7a7455723745cfbfbf816f5b0"
+    },
+    {
+      "path": "admin/git-2.stderr",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/git-2.stdout",
+      "type": "regular",
+      "bytes": 109,
+      "mode": 384,
+      "sha256": "f9ac8bd3417affc5fe28fe67554b2cc7ce45784436f791cce75764cc54423135"
+    },
+    {
+      "path": "admin/git-3.stderr",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/git-3.stdout",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/git-4.stderr",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/git-4.stdout",
+      "type": "regular",
+      "bytes": 2888,
+      "mode": 384,
+      "sha256": "c9e9287a42fbbd97970a7039f4dcf82a58517bb8b705e80ab78b9fde7bca153b"
+    },
+    {
+      "path": "admin/git-5.stderr",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/git-5.stdout",
+      "type": "regular",
+      "bytes": 41,
+      "mode": 384,
+      "sha256": "ddf296ab09646610bb24207c4033088468e5b660270f8d3e1e2d60988412d968"
+    },
+    {
+      "path": "capture.mjs",
+      "type": "regular",
+      "bytes": 3580,
+      "mode": 420,
+      "sha256": "bec2c39e33cc328501f81da286cba3282abc0eb703d8648fd6064b4f986f8d38"
+    },
+    {
+      "path": "case.mjs",
+      "type": "regular",
+      "bytes": 14772,
+      "mode": 420,
+      "sha256": "b0cc49e8c5a9da67b700bfe5e3875bc976cb76e52250541a08442e04904d152a"
+    },
+    {
+      "path": "common.mjs",
+      "type": "regular",
+      "bytes": 10558,
+      "mode": 420,
+      "sha256": "ce6e03d1b89b127052f946f616d3fed327af18850b7468aec19a382cd3c748d5"
+    },
+    {
+      "path": "controls.json",
+      "type": "regular",
+      "bytes": 3022,
+      "mode": 420,
+      "sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e"
+    },
+    {
+      "path": "fixtures.json",
+      "type": "regular",
+      "bytes": 1162,
+      "mode": 420,
+      "sha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1"
+    },
+    {
+      "path": "guarded-operation.mjs",
+      "type": "regular",
+      "bytes": 1711,
+      "mode": 420,
+      "sha256": "b39b15a79436e6b433084f0171b8fdde64c385af708edfea9988a8eaf2f79899"
+    },
+    {
+      "path": "observer.mjs",
+      "type": "regular",
+      "bytes": 9103,
+      "mode": 420,
+      "sha256": "b12c34100aef3a6d6f3062a5f30d8298d27d839986c51f63f8c431451491980d"
+    },
+    {
+      "path": "outer-01/RECEIPT.json",
+      "type": "regular",
+      "bytes": 321,
+      "mode": 384,
+      "sha256": "f0afca7836479c3b243f28fe6df159b9f0a7590819507ef2872fc33e165713d1"
+    },
+    {
+      "path": "outer-01/stderr.raw",
+      "type": "regular",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer-01/stdout.raw",
+      "type": "regular",
+      "bytes": 109,
+      "mode": 384,
+      "sha256": "ab6c5f1ee959e1d4f3bc37b998289d84b413a195e2116094c2cc4feeeb363f31"
+    },
+    {
+      "path": "package.json",
+      "type": "regular",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218"
+    },
+    {
+      "path": "policy.mjs",
+      "type": "regular",
+      "bytes": 3091,
+      "mode": 420,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    {
+      "path": "preload.mjs",
+      "type": "regular",
+      "bytes": 4915,
+      "mode": 420,
+      "sha256": "68c52d59c2e164dc0ea1b10677e87e80e9bd8125b7f8e6120bdc5a17f9b14c28"
+    },
+    {
+      "path": "runs/controls-01/AUTH.json",
+      "type": "regular",
+      "bytes": 355,
+      "mode": 384,
+      "sha256": "fa20611fb705843fea2667e768e0b8c0bcc0ff1262e9544ca245e64fe23955e0"
+    },
+    {
+      "path": "runs/controls-01/G01.1/CONFIG.json",
+      "type": "regular",
+      "bytes": 8574,
+      "mode": 384,
+      "sha256": "ce0d75b882e6b59299c247367096b3ea7491dabaafce7101ddb8ed7675955ef0"
+    },
+    {
+      "path": "runs/controls-01/G01.1/RESULT.json",
+      "type": "regular",
+      "bytes": 2171,
+      "mode": 384,
+      "sha256": "32f7edcfd7db9d82ce05bb4e2565d97891986d1a856869ee5a8131e3f2a02c79"
+    },
+    {
+      "path": "runs/controls-01/G01.1/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "6ded83ebddf15ea36d1208f82f1bc2f65cbd2712192b430c784f60a06516e9a1"
+    },
+    {
+      "path": "runs/controls-01/G01.1/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G01.1/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G01.1/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G01.1/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G01.1/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "ba10f3b3f244cf49a465d971ebf7619a8994d8c4b68789382b782df41a80e3c9"
+    },
+    {
+      "path": "runs/controls-01/G01.1/stdout.raw",
+      "type": "regular",
+      "bytes": 300,
+      "mode": 384,
+      "sha256": "d21c16bc960dba7e80491d5622329c5ff6d0c5e952ae28f57b752b6f03fb6f95"
+    },
+    {
+      "path": "runs/controls-01/G01.1/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G01.2/CONFIG.json",
+      "type": "regular",
+      "bytes": 8631,
+      "mode": 384,
+      "sha256": "9a6de73d4dc25191fdf3f6861b1e78b1ca3f8ac6a656d45f71044d1b9ab81eab"
+    },
+    {
+      "path": "runs/controls-01/G01.2/RESULT.json",
+      "type": "regular",
+      "bytes": 2168,
+      "mode": 384,
+      "sha256": "060b3830072040057b7bd7c065449271a396cae4aae8c45cbfa8abf993fdb68a"
+    },
+    {
+      "path": "runs/controls-01/G01.2/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "21178a8611b7697b9ed50bdc1a3aa68c47aac0206ec9e3df8dac2e1747e76c78"
+    },
+    {
+      "path": "runs/controls-01/G01.2/moved/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G01.2/moved/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G01.2/moved/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G01.2/moved/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G01.2/moved/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G01.2/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "3df05ece64d1389b3c077c9aec0e11cd13511e295bb853fcb07a27dfc18a9934"
+    },
+    {
+      "path": "runs/controls-01/G01.2/stdout.raw",
+      "type": "regular",
+      "bytes": 300,
+      "mode": 384,
+      "sha256": "e4ea743e8e7efcdd2d8a6f12c9b64d644cd221f9e3c174a89720044d7734221e"
+    },
+    {
+      "path": "runs/controls-01/G01.3/CONFIG.json",
+      "type": "regular",
+      "bytes": 8576,
+      "mode": 384,
+      "sha256": "53bf12e68587ea9118208e42d8864c3a1a93ef2bb4ad83bcd32c16f3d0e2abb2"
+    },
+    {
+      "path": "runs/controls-01/G01.3/RESULT.json",
+      "type": "regular",
+      "bytes": 1469,
+      "mode": 384,
+      "sha256": "0140e59c9047ac7d3cfb9d8732de2ca2530a5966f51abd799c4de0899d412a01"
+    },
+    {
+      "path": "runs/controls-01/G01.3/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "fb3a91c48f89ed8dc30a1d82840e39ae6c5e5ca9c7adeb278099e9e7ea7c3354"
+    },
+    {
+      "path": "runs/controls-01/G01.3/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G01.3/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G01.3/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G01.3/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G01.3/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "56fed94d43ef31e5a4066f4cad9844bfc0fd26fc49bea3cf5440b682ef712ff3"
+    },
+    {
+      "path": "runs/controls-01/G01.3/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "5a043215986fb119f888b67aaa50aa04e59840468cda7abfc1f8ac449165e099"
+    },
+    {
+      "path": "runs/controls-01/G01.3/worker.mjs",
+      "type": "regular",
+      "bytes": 35,
+      "mode": 420,
+      "sha256": "63142a0ae4f42f6b44c860ac182c395b4a6ebf150c103dada34dbc01089d865a"
+    },
+    {
+      "path": "runs/controls-01/G01.4/CONFIG.json",
+      "type": "regular",
+      "bytes": 8576,
+      "mode": 384,
+      "sha256": "4994088cf471435cf98a3f320188f22f351d9d32fcbdee5c06c903ec637cf08b"
+    },
+    {
+      "path": "runs/controls-01/G01.4/RESULT.json",
+      "type": "regular",
+      "bytes": 1469,
+      "mode": 384,
+      "sha256": "168c31377dd4813f9b3f04a2e66db7f8af14b053bf1d26f162eec78d6bc0941d"
+    },
+    {
+      "path": "runs/controls-01/G01.4/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "37d857bb716f8fc97a4a4ccec29ebb18c2ca1dc6c391fa7120b2011128c613b6"
+    },
+    {
+      "path": "runs/controls-01/G01.4/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G01.4/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G01.4/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G01.4/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G01.4/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "a521ecfb3587ab2147b88968807414922dc4824651e2b911d89bc0791467aaab"
+    },
+    {
+      "path": "runs/controls-01/G01.4/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "335e17042e5373b82958ee06186f69eff2930616fee16e537bfba1c8d9c54f76"
+    },
+    {
+      "path": "runs/controls-01/G01.4/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 384,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G01.5/CONFIG.json",
+      "type": "regular",
+      "bytes": 8573,
+      "mode": 384,
+      "sha256": "e4cccfdf51a1a269177dabf1a44f065e0a73920a055044c1976a5d31768e77df"
+    },
+    {
+      "path": "runs/controls-01/G01.5/RESULT.json",
+      "type": "regular",
+      "bytes": 1430,
+      "mode": 384,
+      "sha256": "b41629e422bb96f7454eff1066f8e69dc20ef9308e5c87baa7c945276d888556"
+    },
+    {
+      "path": "runs/controls-01/G01.5/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "21c358825f68f26f28674e7e2087ccfa3e63255522ee228f0716df70434f69d2"
+    },
+    {
+      "path": "runs/controls-01/G01.5/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G01.5/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G01.5/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G01.5/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G01.5/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "3cce36ed4a157aa72d93be03782cb8ba14d38fba31287bc796ff7c4aba1579c8"
+    },
+    {
+      "path": "runs/controls-01/G01.5/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "a9c08692e3bb3bc1ea868d1804752fab594b3be68b7e63122e59acd000f965f0"
+    },
+    {
+      "path": "runs/controls-01/G01.5/worker.mjs",
+      "type": "symlink-metadata-only",
+      "target": "matching.mjs",
+      "bytes": 12,
+      "mode": 493
+    },
+    {
+      "path": "runs/controls-01/G02.1/CONFIG.json",
+      "type": "regular",
+      "bytes": 8578,
+      "mode": 384,
+      "sha256": "d6cc07a466d7dfa0d2da18c81bc0c04a771e8ad51f2f9f1dc5e1ca98100ba2fc"
+    },
+    {
+      "path": "runs/controls-01/G02.1/RESULT.json",
+      "type": "regular",
+      "bytes": 2175,
+      "mode": 384,
+      "sha256": "4c0efff7a47920fd9b76be3f8f7e270eb9ae36f13d3e942637e40745d3cdb7e7"
+    },
+    {
+      "path": "runs/controls-01/G02.1/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "9d19bd2ed3ec1844e230f730132220d7bb7e01b2aeba70438283bf6ed8b0fa1d"
+    },
+    {
+      "path": "runs/controls-01/G02.1/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.1/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.1/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.1/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.1/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "de357c31b8860761d3f1abf7f7c10b0567f15e1648bcdc4a73aa112ebecac6e1"
+    },
+    {
+      "path": "runs/controls-01/G02.1/stdout.raw",
+      "type": "regular",
+      "bytes": 300,
+      "mode": 384,
+      "sha256": "627253182eebd53f4aebabe67ae2cf4047f0dc44d230a7d5c123aaadc1bc8594"
+    },
+    {
+      "path": "runs/controls-01/G02.1/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.2/CONFIG.json",
+      "type": "regular",
+      "bytes": 8576,
+      "mode": 384,
+      "sha256": "9032d7b7fe8bcd5dd900110beb6caa5f0151ba99c4e1793495a2bb3802e4ba34"
+    },
+    {
+      "path": "runs/controls-01/G02.2/RESULT.json",
+      "type": "regular",
+      "bytes": 1409,
+      "mode": 384,
+      "sha256": "e06801c7b53cc9ce1aa8d31028f8076ae883059d87f73b3e91be4eb2a0ec998f"
+    },
+    {
+      "path": "runs/controls-01/G02.2/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "5016a554cb1181d29dc10918dad5b64284fa9e852d83b5f885ac456c6fd2ae44"
+    },
+    {
+      "path": "runs/controls-01/G02.2/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.2/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.2/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.2/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.2/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "55a0440f0b997e4055c6016ccfcd776679cc857e6f8db1a066fe90c91e3d244b"
+    },
+    {
+      "path": "runs/controls-01/G02.2/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "7de040a40bb85f70382d995ed6265a6dfa48f64d035589921f1e578d458075e2"
+    },
+    {
+      "path": "runs/controls-01/G02.2/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.3/CONFIG.json",
+      "type": "regular",
+      "bytes": 8582,
+      "mode": 384,
+      "sha256": "b9147fcb311c6777ec5bb03030f07ba39618b9868041fd45a8a075fad90266d6"
+    },
+    {
+      "path": "runs/controls-01/G02.3/RESULT.json",
+      "type": "regular",
+      "bytes": 1604,
+      "mode": 384,
+      "sha256": "96d0329414311123bcc9ce454874f1b1148adae45ae45176d69f47b4a1124b41"
+    },
+    {
+      "path": "runs/controls-01/G02.3/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "8b62597a19bb7012cfe5c7e6abe42f9fcdd5c4ceabd90391a8484432d50ae4f7"
+    },
+    {
+      "path": "runs/controls-01/G02.3/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.3/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.3/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.3/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.3/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "1a073ae723650f62f974868a8ac4beff20638b1f52d90fbc2817016997bb28df"
+    },
+    {
+      "path": "runs/controls-01/G02.3/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "4aba2587fb6221360bc09ac26d84e5c801a141142366456a91d797ff59c68240"
+    },
+    {
+      "path": "runs/controls-01/G02.3/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.4/CONFIG.json",
+      "type": "regular",
+      "bytes": 8575,
+      "mode": 384,
+      "sha256": "bf1f10ca8b64ff6d8722aceca310485886c1be321b8b3ed467765944b261c59f"
+    },
+    {
+      "path": "runs/controls-01/G02.4/RESULT.json",
+      "type": "regular",
+      "bytes": 1408,
+      "mode": 384,
+      "sha256": "3696f52360561ecee6d1254d32e19605f92837c658ebaa7f2ebebb06fae33df1"
+    },
+    {
+      "path": "runs/controls-01/G02.4/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "63de32c77750e3c9f4064cd301bb99a16bb4fce188094a4e03739af6ea4275ee"
+    },
+    {
+      "path": "runs/controls-01/G02.4/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.4/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.4/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.4/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.4/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "7d8aeeb463052c4ddcd07ed3d461032de808b84dcabb254b93c8427d3f521c81"
+    },
+    {
+      "path": "runs/controls-01/G02.4/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "2cd7b50710eb74a9eb63460109276c8f011e0f3fb76193e58e0fb22a5aa404d1"
+    },
+    {
+      "path": "runs/controls-01/G02.4/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.5/CONFIG.json",
+      "type": "regular",
+      "bytes": 8578,
+      "mode": 384,
+      "sha256": "5600abdc5ad3421e2129e159b18a33eb4dc868032e1325849e32b3ddb7f38c72"
+    },
+    {
+      "path": "runs/controls-01/G02.5/RESULT.json",
+      "type": "regular",
+      "bytes": 1411,
+      "mode": 384,
+      "sha256": "d1af8d06a105b0a140d4eae2b675523a134ded0c7057911a2d72b33c74be629d"
+    },
+    {
+      "path": "runs/controls-01/G02.5/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "39e2a593a5f0f4c0b7eb741e3f29bc9e714f93d48ad9cf9eeab7107ab635d4cc"
+    },
+    {
+      "path": "runs/controls-01/G02.5/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.5/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.5/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.5/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.5/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "74011608a9d5d559f72c7a60da4b6c2abe93a1f55a011cddb1ddbad3c876b021"
+    },
+    {
+      "path": "runs/controls-01/G02.5/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "88f09d88ccc439c38508275a44e5d6924f8a8afe4bbcc6f8b4510bcacbc9af71"
+    },
+    {
+      "path": "runs/controls-01/G02.5/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.6/CONFIG.json",
+      "type": "regular",
+      "bytes": 8577,
+      "mode": 384,
+      "sha256": "f516e30f04bfdcc1da9a0522abc232fff1fb2ee6b4058f75d2d7fd286578eed5"
+    },
+    {
+      "path": "runs/controls-01/G02.6/RESULT.json",
+      "type": "regular",
+      "bytes": 1410,
+      "mode": 384,
+      "sha256": "f30f18fd7c601b4b0f4ea774a9364bb01c3bdd89b3846dbe457c25cf8601b059"
+    },
+    {
+      "path": "runs/controls-01/G02.6/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "3d0c6e26cdc4a0e0f68234b9b1e85e6e89fe2bd9d606179feb30559e56b5e0c4"
+    },
+    {
+      "path": "runs/controls-01/G02.6/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.6/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.6/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.6/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.6/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "f717fb5cb962f3e800305842864916c08f52ed399a7f7f877abd06fddc427e3f"
+    },
+    {
+      "path": "runs/controls-01/G02.6/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "c282b84f6117a565535729bd415039a0bd7757c70d17d07e025249280f062042"
+    },
+    {
+      "path": "runs/controls-01/G02.6/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G02.7/CONFIG.json",
+      "type": "regular",
+      "bytes": 8577,
+      "mode": 384,
+      "sha256": "3bdb4a7665fa3ac1cd7dd3d10ba472c275fff00cc8d307b463913374cad08fce"
+    },
+    {
+      "path": "runs/controls-01/G02.7/RESULT.json",
+      "type": "regular",
+      "bytes": 1410,
+      "mode": 384,
+      "sha256": "ef0acffcccd7228fa7029d1cfad13cf22c702e592c44562e0479a6f6bb08c2cf"
+    },
+    {
+      "path": "runs/controls-01/G02.7/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "53bb08cf53fbafe5bc9ef1167bdc81ccd88b69fc05b52e30891fc314827b18a4"
+    },
+    {
+      "path": "runs/controls-01/G02.7/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G02.7/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G02.7/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G02.7/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G02.7/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "867ac18775c4ac9584cc59b44446a756f49e65fc41bbf75f4b2156db5e9cd45a"
+    },
+    {
+      "path": "runs/controls-01/G02.7/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "3dab52f1a865faa7a4b05921f23b8b48f1556c973d722021dad1dec54bdf7102"
+    },
+    {
+      "path": "runs/controls-01/G02.7/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G03.1/CONFIG.json",
+      "type": "regular",
+      "bytes": 8582,
+      "mode": 384,
+      "sha256": "97404c1aaadbe2acb2d172f5769e3d326c46d72044cf148b27ca08f54233765a"
+    },
+    {
+      "path": "runs/controls-01/G03.1/RESULT.json",
+      "type": "regular",
+      "bytes": 2179,
+      "mode": 384,
+      "sha256": "aa153fcb4231af22e9af1a6aaff279b4ec85df562c9248131d3d91047cd7301a"
+    },
+    {
+      "path": "runs/controls-01/G03.1/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "cc2be090006ae8d060a8c495e53f15352e09d44ef08b182aea67caf826060f15"
+    },
+    {
+      "path": "runs/controls-01/G03.1/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G03.1/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G03.1/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G03.1/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G03.1/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "3634712c495005dfde0ba33f4193dfad56450cc0da6010c4483c1d3890c9bacc"
+    },
+    {
+      "path": "runs/controls-01/G03.1/stdout.raw",
+      "type": "regular",
+      "bytes": 300,
+      "mode": 384,
+      "sha256": "7f76c1002759ecca57566e374bbe943c174a6b7e9064b2fa30f77c07b180f507"
+    },
+    {
+      "path": "runs/controls-01/G03.1/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G03.2/CONFIG.json",
+      "type": "regular",
+      "bytes": 8583,
+      "mode": 384,
+      "sha256": "1677b279893ac3f5a51049e0a93ac2509bccb97dd2f66ab4c07a5f6f77e6c11d"
+    },
+    {
+      "path": "runs/controls-01/G03.2/RESULT.json",
+      "type": "regular",
+      "bytes": 1410,
+      "mode": 384,
+      "sha256": "e9da575152518f67d00824b6f205a090df3752871bc7281a80d63c15d2df539d"
+    },
+    {
+      "path": "runs/controls-01/G03.2/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "47e87db8028f8387e60207bb2080bf9f15b186d0561694ce497106cd62bad960"
+    },
+    {
+      "path": "runs/controls-01/G03.2/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G03.2/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G03.2/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G03.2/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G03.2/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "32f9f4f4790e2f4fdd3cc0198a5b3beaabbafb137cd88ea1047089f86a933336"
+    },
+    {
+      "path": "runs/controls-01/G03.2/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "db5f4914f777a0da865cbfc76697f727c2b12f115df7720ee55efc52eecd5114"
+    },
+    {
+      "path": "runs/controls-01/G03.2/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G03.3/CONFIG.json",
+      "type": "regular",
+      "bytes": 8582,
+      "mode": 384,
+      "sha256": "18cab05e48c088a5a81a3ceeaae97909e5aeb4da10fa6b1a99036f6e1e9d6bed"
+    },
+    {
+      "path": "runs/controls-01/G03.3/RESULT.json",
+      "type": "regular",
+      "bytes": 1409,
+      "mode": 384,
+      "sha256": "f67e3f8f1ceceaed3e1e2b2c0bd95cfadc387a7278cc3d033f855edda4c57776"
+    },
+    {
+      "path": "runs/controls-01/G03.3/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "1bafacd89b707787ad86c91d30e203e32cc4c567b6e0bb643b68f25d0fc45237"
+    },
+    {
+      "path": "runs/controls-01/G03.3/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G03.3/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G03.3/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G03.3/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G03.3/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "44571e99efbba69eadd0b9095b63b9333cbb05f8525ddbc84ffe1637374c245a"
+    },
+    {
+      "path": "runs/controls-01/G03.3/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "42122e57e9043a45dbfe07c266fdfecf11cba6a2ab0df85b2f148b2e9fe0ea1d"
+    },
+    {
+      "path": "runs/controls-01/G03.3/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G03.4/CONFIG.json",
+      "type": "regular",
+      "bytes": 8579,
+      "mode": 384,
+      "sha256": "0d2dde5797a304dd2e365c1340a49cf84728dda4919df849178ee923e9eafef7"
+    },
+    {
+      "path": "runs/controls-01/G03.4/RESULT.json",
+      "type": "regular",
+      "bytes": 1406,
+      "mode": 384,
+      "sha256": "b44e3ca2ffaf271e65497b9216f0909c219b49a66e7dc1966c676cf6151c1b06"
+    },
+    {
+      "path": "runs/controls-01/G03.4/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "db2ee130796ad8321b970439e10e73b124f6b88a6de930d01e55a9c08cb43221"
+    },
+    {
+      "path": "runs/controls-01/G03.4/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G03.4/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G03.4/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G03.4/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G03.4/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "95cce842791b9c0afc0b5b7a8266e1088d6a66c41f4c253a03cc724ffc01bdcf"
+    },
+    {
+      "path": "runs/controls-01/G03.4/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "640b711e2a6a5777af328ea7fcfb7c42456fb9c2550718261dcd7a6200719f2b"
+    },
+    {
+      "path": "runs/controls-01/G03.4/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G03.5/CONFIG.json",
+      "type": "regular",
+      "bytes": 8579,
+      "mode": 384,
+      "sha256": "0cb5d905ac11b22e85deefe8ace2db103aa8676bc0506adec84a9923cc87bc29"
+    },
+    {
+      "path": "runs/controls-01/G03.5/RESULT.json",
+      "type": "regular",
+      "bytes": 1448,
+      "mode": 384,
+      "sha256": "378d841fa5990f4bf8f770052c73edeff368875587348209b5eade82824c46fc"
+    },
+    {
+      "path": "runs/controls-01/G03.5/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "f377dda8b06828f79343ad88081a68b1a886f53e0880de662dcd15bac8c9b169"
+    },
+    {
+      "path": "runs/controls-01/G03.5/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G03.5/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G03.5/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G03.5/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G03.5/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "ee9c983081a433df3ed87849265f315430c69cd6d49552ba8e7b10d99c0b013c"
+    },
+    {
+      "path": "runs/controls-01/G03.5/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "2e17b664088f407e45ae9eab71986d28fb64020ccf6c6cdda6dd1075e404e5ec"
+    },
+    {
+      "path": "runs/controls-01/G03.5/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G04.1/CONFIG.json",
+      "type": "regular",
+      "bytes": 8574,
+      "mode": 384,
+      "sha256": "f0e757c1d12da6a42c04675d16ba739e18df2fb7bc9803ff9d29e65c4b7dd4a3"
+    },
+    {
+      "path": "runs/controls-01/G04.1/RESULT.json",
+      "type": "regular",
+      "bytes": 1407,
+      "mode": 384,
+      "sha256": "d3e6a45a95e0b904fdd88c105ed26ecd86c54d8394da9ff07dbd20daabbe24ca"
+    },
+    {
+      "path": "runs/controls-01/G04.1/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "d2f21032d252deeb72797ce857b08782fa5147c8c839871e6d706a7df08a1baf"
+    },
+    {
+      "path": "runs/controls-01/G04.1/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G04.1/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G04.1/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G04.1/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G04.1/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "7b710a5619d17130002ec2287bc9f9a2c5c86cc78bac5abca1d4eaa5edbbee3b"
+    },
+    {
+      "path": "runs/controls-01/G04.1/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "62acb6dea8073637f9a3175a4d1236b8e981cd1786a4bf2e258b443946d014e1"
+    },
+    {
+      "path": "runs/controls-01/G04.1/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G04.2/CONFIG.json",
+      "type": "regular",
+      "bytes": 8578,
+      "mode": 384,
+      "sha256": "c667af13c145191755e12eda2fcf0756a2a1f0505de9855552fb7af8d80fc24d"
+    },
+    {
+      "path": "runs/controls-01/G04.2/RESULT.json",
+      "type": "regular",
+      "bytes": 1405,
+      "mode": 384,
+      "sha256": "3929998f3eb51ba5ab7cf85bb61c6003383b8d3e94cc603e12a71b3ea524680b"
+    },
+    {
+      "path": "runs/controls-01/G04.2/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "1824e34610550e4f7709d935cb9609b0946c0e192e855f9b07842b02e62ee4c6"
+    },
+    {
+      "path": "runs/controls-01/G04.2/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G04.2/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G04.2/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G04.2/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G04.2/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "08268dcdcf68954c467d2dbefd0b7d74aaaab4c4dab4e6d53b97df37640b627b"
+    },
+    {
+      "path": "runs/controls-01/G04.2/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "e39504d78c2b30647a645cc087ec48cba6628403e22055d24582ff29853a9e60"
+    },
+    {
+      "path": "runs/controls-01/G04.2/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G04.3/CONFIG.json",
+      "type": "regular",
+      "bytes": 8578,
+      "mode": 384,
+      "sha256": "1b46a40fc63145252931aa459c7d2d3089d5178f143490f3541e7a741baafdee"
+    },
+    {
+      "path": "runs/controls-01/G04.3/RESULT.json",
+      "type": "regular",
+      "bytes": 1405,
+      "mode": 384,
+      "sha256": "62d6704557a96697cae355246bf5eb82ef0ee8889c3d21f7b318b3bc86e38e1e"
+    },
+    {
+      "path": "runs/controls-01/G04.3/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "5c45dc5e25f72b4071f6426c0d76afa0da353ceea54d13794c8baf0eeda41834"
+    },
+    {
+      "path": "runs/controls-01/G04.3/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G04.3/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G04.3/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G04.3/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G04.3/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "d9bd37cb27f8b98b839f049bca2032ce7691738da79e1c39bf86915f64abff46"
+    },
+    {
+      "path": "runs/controls-01/G04.3/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "d307298b293787c1b27fe0173c636961ddbcf2eac4593e6e5eb41096051e6c4e"
+    },
+    {
+      "path": "runs/controls-01/G04.3/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G04.4/CONFIG.json",
+      "type": "regular",
+      "bytes": 8576,
+      "mode": 384,
+      "sha256": "526fd812685c3783ae3b2d6a18a3b6fa45e0b31bfd7e3555cf9ae8a439a97097"
+    },
+    {
+      "path": "runs/controls-01/G04.4/RESULT.json",
+      "type": "regular",
+      "bytes": 1409,
+      "mode": 384,
+      "sha256": "5acebc8d3b96bd215adc7f440b2646f73c5499dca066e384b414c14c54eace5e"
+    },
+    {
+      "path": "runs/controls-01/G04.4/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "bec53da5357b18bf7a946334b3ae04c5f5bf6eb40ebe6cb6b577bc04bbbee7e5"
+    },
+    {
+      "path": "runs/controls-01/G04.4/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G04.4/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G04.4/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G04.4/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G04.4/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "4fb003a9bb3d9115180b94702985a912723a2f5fb5f37a04585eef2f2d9911b2"
+    },
+    {
+      "path": "runs/controls-01/G04.4/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "0a5a4c9d67f8b7c82388d4bb2e6f00ed9305a10eac3ea7730a21432441f718f9"
+    },
+    {
+      "path": "runs/controls-01/G04.4/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G04.5/CONFIG.json",
+      "type": "regular",
+      "bytes": 8577,
+      "mode": 384,
+      "sha256": "9183d6fdc18fae6f8130a14c7cda884d163e1ef92bfbeadf15605e02757c2f7c"
+    },
+    {
+      "path": "runs/controls-01/G04.5/RESULT.json",
+      "type": "regular",
+      "bytes": 1410,
+      "mode": 384,
+      "sha256": "1b1aa9cdbd441b2d7fe0271e6df7c297d58b711314bf816b0cddff3e11c685f3"
+    },
+    {
+      "path": "runs/controls-01/G04.5/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "fc42a5b64a1328fc12320e48c385871b09f9bd6adfd89903977e9843748e22a5"
+    },
+    {
+      "path": "runs/controls-01/G04.5/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G04.5/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G04.5/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G04.5/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G04.5/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "cfa172cd9c90a51152e329a7baed7dca577977768164e54c0845b5878f02f47b"
+    },
+    {
+      "path": "runs/controls-01/G04.5/stdout.raw",
+      "type": "regular",
+      "bytes": 242,
+      "mode": 384,
+      "sha256": "dcd60596b981f5566837f8831dbb98c698e24f8ef8c548ff4547c98f596a77bf"
+    },
+    {
+      "path": "runs/controls-01/G04.5/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/G05.1/CONFIG.json",
+      "type": "regular",
+      "bytes": 8587,
+      "mode": 384,
+      "sha256": "6ba5d63a0672c0c5a22da229f04b8a259b286701e3bdc9d564f4f5baa5d50077"
+    },
+    {
+      "path": "runs/controls-01/G05.1/RESULT.json",
+      "type": "regular",
+      "bytes": 2147,
+      "mode": 384,
+      "sha256": "8e07a3e519bc1e7f845691f30ec891dd1e8b6cc92765d19e3e2c1bcd48fbbb7d"
+    },
+    {
+      "path": "runs/controls-01/G05.1/SUPERVISION.json",
+      "type": "regular",
+      "bytes": 1499,
+      "mode": 384,
+      "sha256": "5f374a2d06d04d05cf2202328bbae4b603892bd8fe49062e14916212f61d793c"
+    },
+    {
+      "path": "runs/controls-01/G05.1/bre-worker.mjs",
+      "type": "regular",
+      "bytes": 162,
+      "mode": 420,
+      "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+    },
+    {
+      "path": "runs/controls-01/G05.1/foreign.mjs",
+      "type": "regular",
+      "bytes": 42,
+      "mode": 420,
+      "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+    },
+    {
+      "path": "runs/controls-01/G05.1/matching.mjs",
+      "type": "regular",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+    },
+    {
+      "path": "runs/controls-01/G05.1/protocol.mjs",
+      "type": "regular",
+      "bytes": 40,
+      "mode": 420,
+      "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+    },
+    {
+      "path": "runs/controls-01/G05.1/stderr.raw",
+      "type": "regular",
+      "bytes": 203,
+      "mode": 384,
+      "sha256": "15a45f6efe35f2da70c07d235b7770683e0dfecbe98910fc7451800229436c1e"
+    },
+    {
+      "path": "runs/controls-01/G05.1/stdout.raw",
+      "type": "regular",
+      "bytes": 263,
+      "mode": 384,
+      "sha256": "379ebe2535f1e519fd59efd090a3eb9d78ff92bcd0cc0377a2fc1e23a6bfe470"
+    },
+    {
+      "path": "runs/controls-01/G05.1/worker.mjs",
+      "type": "regular",
+      "bytes": 682,
+      "mode": 420,
+      "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+    },
+    {
+      "path": "runs/controls-01/REPORT.json",
+      "type": "regular",
+      "bytes": 45606,
+      "mode": 384,
+      "sha256": "42a58fcd9f5b3b942a4b56b9f78fa819e7206d836ac8efb1ca25a457e71b77a4"
+    },
+    {
+      "path": "supervisor.mjs",
+      "type": "regular",
+      "bytes": 11091,
+      "mode": 420,
+      "sha256": "8ee3a3e9f181ee8dfeb99ff361f2e7fd3489886388763cfaec13d3f51d7a421c"
+    }
+  ],
+  "totalBytes": 472593,
+  "excludes": [
+    "this manifest itself",
+    "later Git publication captures"
+  ],
+  "symlinksMetadataOnly": true,
+  "preparationFailure": {
+    "prior": "EVIDENCE-MANIFEST-zero-entry-PREPARATION-FAILURE.json",
+    "actualObservedEntryCount": 0,
+    "rejectedBeforePublication": true,
+    "correction": "self-contained local census accumulator; no replay of any controls or postguards"
+  }
+}

@@ -1,0 +1,2 @@
+{"event":"control-bootstrap","id":"G01.2","source":"harmless-only"}
+{"id":"G01.2","pass":false,"failures":["EXACT_WORKER_COUNT","DESIGNATED_QUALIFICATION_PREDICATE"],"created":0,"knownRetired":true,"resultBytes":2168,"resultSha256":"060b3830072040057b7bd7c065449271a396cae4aae8c45cbfa8abf993fdb68a"}

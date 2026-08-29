@@ -1,0 +1,32 @@
+{
+  "id": "G05.1",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-worker",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G05.1",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G05.1/CONFIG.json",
+    "6ba5d63a0672c0c5a22da229f04b8a259b286701e3bdc9d564f4f5baa5d50077"
+  ],
+  "pid": 95249,
+  "closed": true,
+  "status": 1,
+  "signal": null,
+  "observed": [
+    263,
+    203
+  ],
+  "retained": [
+    263,
+    203
+  ],
+  "failures": [],
+  "sentSignals": [],
+  "capturesClosed": true
+}

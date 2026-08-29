@@ -1,0 +1,14 @@
+{
+  "schema": "OWNED_EVIDENCE_CENSUS_V1",
+  "at": "2026-08-29T08:46:30.391Z",
+  "root": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+  "sourcePreseal": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "sealSha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a",
+  "entries": [],
+  "totalBytes": 0,
+  "excludes": [
+    "this manifest itself",
+    "future publication Git output and FINAL-PUBLICATION.json"
+  ],
+  "symlinksMetadataOnly": true
+}

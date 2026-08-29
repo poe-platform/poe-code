@@ -1,0 +1,1073 @@
+{
+  "schema": "HARMLESS_REGEX_CONTROLS_V1",
+  "unsafe": true,
+  "qualified": 18,
+  "ordinaryFailed": 4,
+  "unrun": 32,
+  "launched": 23,
+  "created": 0,
+  "knownOsProcesses": 24,
+  "conservativeCaptureAndCaseBytes": 298146,
+  "rows": [
+    {
+      "id": "G01.1",
+      "status": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 1,
+      "supervision": {
+        "id": "G01.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.1/CONFIG.json",
+          "ce0d75b882e6b59299c247367096b3ea7491dabaafce7101ddb8ed7675955ef0"
+        ],
+        "pid": 95177,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          300,
+          203
+        ],
+        "retained": [
+          300,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G01.2",
+      "status": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 1,
+      "supervision": {
+        "id": "G01.2",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.2",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.2/CONFIG.json",
+          "9a6de73d4dc25191fdf3f6861b1e78b1ca3f8ac6a656d45f71044d1b9ab81eab"
+        ],
+        "pid": 95179,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          300,
+          203
+        ],
+        "retained": [
+          300,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G01.3",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G01.3",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.3",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.3/CONFIG.json",
+          "53bf12e68587ea9118208e42d8864c3a1a93ef2bb4ad83bcd32c16f3d0e2abb2"
+        ],
+        "pid": 95180,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G01.4",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G01.4",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.4",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.4/CONFIG.json",
+          "4994088cf471435cf98a3f320188f22f351d9d32fcbdee5c06c903ec637cf08b"
+        ],
+        "pid": 95181,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G01.5",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G01.5",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.5",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.5/CONFIG.json",
+          "e4cccfdf51a1a269177dabf1a44f065e0a73920a055044c1976a5d31768e77df"
+        ],
+        "pid": 95182,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.1",
+      "status": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 1,
+      "supervision": {
+        "id": "G02.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.1/CONFIG.json",
+          "d6cc07a466d7dfa0d2da18c81bc0c04a771e8ad51f2f9f1dc5e1ca98100ba2fc"
+        ],
+        "pid": 95184,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          300,
+          203
+        ],
+        "retained": [
+          300,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.2",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.2",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.2",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.2/CONFIG.json",
+          "9032d7b7fe8bcd5dd900110beb6caa5f0151ba99c4e1793495a2bb3802e4ba34"
+        ],
+        "pid": 95185,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.3",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.3",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.3",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.3/CONFIG.json",
+          "b9147fcb311c6777ec5bb03030f07ba39618b9868041fd45a8a075fad90266d6"
+        ],
+        "pid": 95186,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.4",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.4",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.4",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.4/CONFIG.json",
+          "bf1f10ca8b64ff6d8722aceca310485886c1be321b8b3ed467765944b261c59f"
+        ],
+        "pid": 95193,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.5",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.5",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.5",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.5/CONFIG.json",
+          "5600abdc5ad3421e2129e159b18a33eb4dc868032e1325849e32b3ddb7f38c72"
+        ],
+        "pid": 95202,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.6",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.6",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.6",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.6/CONFIG.json",
+          "f516e30f04bfdcc1da9a0522abc232fff1fb2ee6b4058f75d2d7fd286578eed5"
+        ],
+        "pid": 95204,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G02.7",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G02.7",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.7",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.7/CONFIG.json",
+          "3bdb4a7665fa3ac1cd7dd3d10ba472c275fff00cc8d307b463913374cad08fce"
+        ],
+        "pid": 95221,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G03.1",
+      "status": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 1,
+      "supervision": {
+        "id": "G03.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.1/CONFIG.json",
+          "97404c1aaadbe2acb2d172f5769e3d326c46d72044cf148b27ca08f54233765a"
+        ],
+        "pid": 95225,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          300,
+          203
+        ],
+        "retained": [
+          300,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G03.2",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G03.2",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.2",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.2/CONFIG.json",
+          "1677b279893ac3f5a51049e0a93ac2509bccb97dd2f66ab4c07a5f6f77e6c11d"
+        ],
+        "pid": 95229,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G03.3",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G03.3",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.3",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.3/CONFIG.json",
+          "18cab05e48c088a5a81a3ceeaae97909e5aeb4da10fa6b1a99036f6e1e9d6bed"
+        ],
+        "pid": 95230,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G03.4",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G03.4",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.4",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.4/CONFIG.json",
+          "0d2dde5797a304dd2e365c1340a49cf84728dda4919df849178ee923e9eafef7"
+        ],
+        "pid": 95231,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G03.5",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G03.5",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.5",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G03.5/CONFIG.json",
+          "0cb5d905ac11b22e85deefe8ace2db103aa8676bc0506adec84a9923cc87bc29"
+        ],
+        "pid": 95232,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G04.1",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G04.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.1/CONFIG.json",
+          "f0e757c1d12da6a42c04675d16ba739e18df2fb7bc9803ff9d29e65c4b7dd4a3"
+        ],
+        "pid": 95239,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G04.2",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G04.2",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.2",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.2/CONFIG.json",
+          "c667af13c145191755e12eda2fcf0756a2a1f0505de9855552fb7af8d80fc24d"
+        ],
+        "pid": 95245,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G04.3",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G04.3",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.3",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.3/CONFIG.json",
+          "1b46a40fc63145252931aa459c7d2d3089d5178f143490f3541e7a741baafdee"
+        ],
+        "pid": 95246,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G04.4",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G04.4",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.4",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.4/CONFIG.json",
+          "526fd812685c3783ae3b2d6a18a3b6fa45e0b31bfd7e3555cf9ae8a439a97097"
+        ],
+        "pid": 95247,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G04.5",
+      "status": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "knownRetired": true,
+      "exit": 0,
+      "supervision": {
+        "id": "G04.5",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.5",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G04.5/CONFIG.json",
+          "9183d6fdc18fae6f8130a14c7cda884d163e1ef92bfbeadf15605e02757c2f7c"
+        ],
+        "pid": 95248,
+        "closed": true,
+        "status": 0,
+        "signal": null,
+        "observed": [
+          242,
+          203
+        ],
+        "retained": [
+          242,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G05.1",
+      "status": "UNSAFE_STOP",
+      "error": "Error: FILE_BOUND_METADATA",
+      "supervision": {
+        "id": "G05.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G05.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G05.1/CONFIG.json",
+          "6ba5d63a0672c0c5a22da229f04b8a259b286701e3bdc9d564f4f5baa5d50077"
+        ],
+        "pid": 95249,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          263,
+          203
+        ],
+        "retained": [
+          263,
+          203
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G05.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    }
+  ],
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualSemanticCalls": 0
+}

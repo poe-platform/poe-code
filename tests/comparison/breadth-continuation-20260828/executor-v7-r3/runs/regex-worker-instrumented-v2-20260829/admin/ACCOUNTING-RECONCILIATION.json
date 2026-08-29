@@ -1,0 +1,161 @@
+{
+  "schema": "AUTHOR_ACCOUNTING_RECONCILIATION_V1",
+  "reason": "The transient administration display counter lagged the preserved launch-record census by one Git call. No executor/capture counter changed; this record derives counts from individually recorded dispatches.",
+  "recordCharged": 36,
+  "knownOwned": 35,
+  "displayCounter": 35,
+  "noExtraRuntimeCalls": true,
+  "records": [
+    {
+      "role": "source-metadata",
+      "closed": true
+    },
+    {
+      "role": "source-read",
+      "closed": true
+    },
+    {
+      "role": "persistent-data-controller",
+      "closed": false
+    },
+    {
+      "role": "apply_patch",
+      "closed": true,
+      "status": 0
+    },
+    {
+      "role": "preseal-ownership-fix",
+      "closed": true,
+      "status": 0
+    },
+    {
+      "role": "preseal-authority-docs",
+      "closed": true,
+      "status": 0
+    },
+    {
+      "role": "git-2",
+      "pid": 94148,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829"
+      ],
+      "stdoutBytes": 109,
+      "stderrBytes": 0
+    },
+    {
+      "role": "git-3",
+      "pid": 94149,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/AUTH-INACTIVE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/PRIOR-DRAFT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/ROOT-AUTHORITY.txt",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/EVIDENCE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/AUTH.json"
+      ],
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "role": "git-4",
+      "pid": 94151,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "--only",
+        "-m",
+        "test: seal harmless RegexWorker instrumented successor v2",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/AUTH-INACTIVE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/PRIOR-DRAFT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/ROOT-AUTHORITY.txt",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/EVIDENCE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/AUTH.json"
+      ],
+      "stdoutBytes": 2888,
+      "stderrBytes": 0
+    },
+    {
+      "role": "capture-owner",
+      "closed": true,
+      "status": 1,
+      "receipt": "outer-01/RECEIPT.json"
+    },
+    {
+      "role": "supervisor",
+      "pid": 95175,
+      "closed": true,
+      "status": 1
+    },
+    {
+      "role": "case-children",
+      "count": 23,
+      "receipts": "runs/controls-01/REPORT.json"
+    },
+    {
+      "role": "git-5",
+      "pid": 2007,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "args": [
+        "rev-parse",
+        "73345acb^{commit}"
+      ],
+      "stdoutBytes": 41,
+      "stderrBytes": 0
+    },
+    {
+      "role": "publication-evidence-patch",
+      "closed": true,
+      "status": 0
+    }
+  ]
+}

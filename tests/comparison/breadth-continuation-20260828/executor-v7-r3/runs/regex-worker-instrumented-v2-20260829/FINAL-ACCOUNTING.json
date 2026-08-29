@@ -1,0 +1,30 @@
+{
+  "schema": "FINAL_AUTHOR_ACCOUNTING_V1",
+  "started": "2026-08-29T08:33:40.007Z",
+  "recorded": "2026-08-29T08:46:30.330Z",
+  "elapsedMilliseconds": 770323,
+  "deadline": "2026-08-29T09:03:40.007Z",
+  "knownOwnedClosedBeforePublication": 35,
+  "toolServiceReservation": 1,
+  "chargedBeforePublication": 36,
+  "publicationCallsReserved": 3,
+  "plannedFinalKnownOwned": 38,
+  "cap": 64,
+  "peakOwnedRuntime": 3,
+  "runtimeChildrenClosed": 25,
+  "caseChildrenClosed": 23,
+  "WorkersCreated": 0,
+  "knownUnknownRetirement": 0,
+  "sourceStandaloneBindings": 34,
+  "toolStandaloneBindings": 2,
+  "controlStreamBytes": 10597,
+  "streamLoss": 0,
+  "workBytesAtPreviousCensus": 440807,
+  "publicationIncluded": true,
+  "publicationCompletion": "See separately generated FINAL-PUBLICATION.json; this pre-publication count is not a claim that future Git calls already ran.",
+  "unknowns": [
+    "Source-read/outer-owner PIDs not supplied by exec tool; tool exit/session closure retained",
+    "Tool-service process is preexisting orchestration, separately charged conservatively; not a waiting owned CLI parent",
+    "No real Worker channel or nested load qualification"
+  ]
+}

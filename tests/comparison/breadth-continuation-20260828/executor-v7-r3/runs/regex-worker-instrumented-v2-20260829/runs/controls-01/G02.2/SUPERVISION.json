@@ -1,0 +1,32 @@
+{
+  "id": "G02.2",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-worker",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.2",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/case.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G02.2/CONFIG.json",
+    "9032d7b7fe8bcd5dd900110beb6caa5f0151ba99c4e1793495a2bb3802e4ba34"
+  ],
+  "pid": 95185,
+  "closed": true,
+  "status": 0,
+  "signal": null,
+  "observed": [
+    242,
+    203
+  ],
+  "retained": [
+    242,
+    203
+  ],
+  "failures": [],
+  "sentSignals": [],
+  "capturesClosed": true
+}

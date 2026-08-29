@@ -1,0 +1,158 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/PRESEAL.md",
+    "bytes": 3247,
+    "mode": 420,
+    "sha256": "169f0f245a1e0e01e5b2064d0a4896d7c736495fc44f836820faad632bb30498"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/admission.mjs",
+    "bytes": 4824,
+    "mode": 420,
+    "sha256": "e342a6ef3096b055f62b5f6613e49a99a8a40f694b3d92110b914ec1e1b7ebe8"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/owner.mjs",
+    "bytes": 11317,
+    "mode": 420,
+    "sha256": "7f0035e066545778999f9882a4f701aa97501e124ba204f3012f973b12f506f5"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/outer.mjs",
+    "bytes": 1843,
+    "mode": 420,
+    "sha256": "6366925db189416976a8549e9bc621b6e65439dac912e9fb61f74af0516d1f10"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/case-driver.mjs",
+    "bytes": 1451,
+    "mode": 420,
+    "sha256": "f56abd3051a8f77897f313697d336c90cde86be4f7f7f8dd0407de6050e67a74"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/prepare.mjs",
+    "bytes": 6428,
+    "mode": 420,
+    "sha256": "1cad15ce5335b05aa640f888d6f6b5b005e52c69f1724faca24a07e21531a9cc"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/controls.mjs",
+    "bytes": 6844,
+    "mode": 420,
+    "sha256": "0de7227158f00a21f56c03ad256e7f9471f9cfe42c5a661b0a420e4644031201"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch.sh",
+    "bytes": 1424,
+    "mode": 420,
+    "sha256": "7443fe1707c6346ad18600c550fa14b5dde55158bb780c3640160c798d3a2a17"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/host-protocols.mjs",
+    "bytes": 5203,
+    "mode": 420,
+    "sha256": "2fcfa24394c38a04b58831582511df8dca463db00f382239c5323cc3768a740c"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/auth.mjs",
+    "bytes": 3951,
+    "mode": 420,
+    "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/profile.mjs",
+    "bytes": 2114,
+    "mode": 420,
+    "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/guard.mjs",
+    "bytes": 2245,
+    "mode": 420,
+    "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/finalization.mjs",
+    "bytes": 850,
+    "mode": 420,
+    "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/direct-child.mjs",
+    "bytes": 5895,
+    "mode": 420,
+    "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh",
+    "bytes": 1432,
+    "mode": 420,
+    "sha256": "03ac0191474946baf903e0c8bd3c2003988d0518015c5fb15af22617c8407ca4"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/publish.mjs",
+    "bytes": 4592,
+    "mode": 420,
+    "sha256": "6a18912215282b60e19a40cdefa84e4268c2f57d5d14e03ad383779bdb80d4ca"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/HANDOFF.md",
+    "bytes": 5619,
+    "mode": 420,
+    "sha256": "d8cc33a468e291e1070ba9993aa04b25dd460b483f6cb4b18b3fd880b12a2b00"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/BOOTSTRAP-v2.sha256",
+    "bytes": 2796,
+    "mode": 420,
+    "sha256": "c16da3ceff48df98fca0ae09acb84048c4b1e5bc17da05ab29759139398b4037"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/corrected-build-artifact.tgz",
+    "bytes": 1005288,
+    "mode": 420,
+    "sha256": "6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5"
+  },
+  {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  {
+    "path": "/bin/zsh",
+    "bytes": 1361216,
+    "mode": 493,
+    "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57"
+  },
+  {
+    "path": "/usr/bin/shasum",
+    "bytes": 9979,
+    "mode": 493,
+    "sha256": "0812595f981a26f813d98dc380af14d4af427626c9339eda29eb849ae13de1e3"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/WINDOW-QUALIFICATION-v1.md",
+    "bytes": 4805,
+    "mode": 420,
+    "sha256": "b51de94025a3dd718ea59c3df8aac5e0a0f5d4cadcefcb8a9e859f25fb5c8d67"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/bind-window-v1.mjs",
+    "bytes": 4374,
+    "mode": 420,
+    "sha256": "eb3845724f1d60eb86eb836d8573a03c1dca538b14eac1ccb1641ce2ef13b5b3"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/GRANT-window-v1.template.json",
+    "bytes": 247,
+    "mode": 420,
+    "sha256": "72dcd3a7baf8bf0bd3da30752cd0639f154fae3975a7a532c743ca4700d2c04b"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/COMMAND-window-v1.txt",
+    "bytes": 689,
+    "mode": 420,
+    "sha256": "ecc2df67bf1cb05656014e3aa8f0c6c4c334545c7fea3faec1049cde3dc8e5d8"
+  }
+]

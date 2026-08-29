@@ -24,7 +24,8 @@ export type SetMethodOptions = {
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
-    stack: readonly string[]
+    stack: readonly string[],
+    thisValue?: SandboxValue
   ) => Promise<SandboxValue>;
 };
 
@@ -97,7 +98,7 @@ export async function callSetMethod(
         const values = [...target.values];
         for (let index = 0; index < values.length; index += 1) {
           const value = values[index];
-          await options.callClosure(callback, [value, value, target], stack);
+          await options.callClosure(callback, [value, value, target], stack, args[1]);
         }
       } finally {
         leaveCallback();

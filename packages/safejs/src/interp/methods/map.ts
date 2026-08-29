@@ -25,7 +25,8 @@ export type MapMethodOptions = {
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
-    stack: readonly string[]
+    stack: readonly string[],
+    thisValue?: SandboxValue
   ) => Promise<SandboxValue>;
 };
 
@@ -101,7 +102,7 @@ export async function callMapMethod(
         const entries = [...target.entries];
         for (let index = 0; index < entries.length; index += 1) {
           const [key, value] = entries[index]!;
-          await options.callClosure(callback, [value, key, target], stack);
+          await options.callClosure(callback, [value, key, target], stack, args[1]);
         }
       } finally {
         leaveCallback();

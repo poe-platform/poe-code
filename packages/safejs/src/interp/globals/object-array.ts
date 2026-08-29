@@ -279,7 +279,7 @@ async function arrayFromSandboxValues(
   args: readonly SandboxValue[],
   budget: Budget
 ): Promise<SandboxValue> {
-  const [items, mapFn] = args;
+  const [items, mapFn, thisValue] = args;
 
   const iterator = getSandboxIterator(items);
   const values =
@@ -296,7 +296,7 @@ async function arrayFromSandboxValues(
   const mappedValues: SandboxValue[] = [];
 
   for (const [index, value] of values.entries()) {
-    const result = await mapFn.call([value, index]);
+    const result = await mapFn.call([value, index], { stack: [], thisValue });
     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
       await result.synchronousPrefix;
     }

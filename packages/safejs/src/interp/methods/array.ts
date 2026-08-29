@@ -53,7 +53,8 @@ export type ArrayMethodOptions = {
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
-    stack: readonly string[]
+    stack: readonly string[],
+    thisValue?: SandboxValue
   ) => Promise<SandboxValue>;
 };
 
@@ -182,17 +183,17 @@ async function callArrayMethodUnlocked(
   switch (methodName) {
     case "map":
       return budgetProducedValue(
-        await mapArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        await mapArray(value, getRequiredCallback(methodName, args[0]), options, stack, args[1]),
         options.budget
       );
     case "filter":
       return budgetProducedValue(
-        await filterArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        await filterArray(value, getRequiredCallback(methodName, args[0]), options, stack, args[1]),
         options.budget
       );
     case "find":
       return budgetProducedValue(
-        await findInArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        await findInArray(value, getRequiredCallback(methodName, args[0]), options, stack, args[1]),
         options.budget
       );
     case "findIndex":
@@ -200,11 +201,18 @@ async function callArrayMethodUnlocked(
         value,
         getRequiredCallback(methodName, args[0]),
         options,
-        stack
+        stack,
+        args[1]
       );
     case "findLast":
       return budgetProducedValue(
-        await findLastInArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        await findLastInArray(
+          value,
+          getRequiredCallback(methodName, args[0]),
+          options,
+          stack,
+          args[1]
+        ),
         options.budget
       );
     case "findLastIndex":
@@ -212,12 +220,25 @@ async function callArrayMethodUnlocked(
         value,
         getRequiredCallback(methodName, args[0]),
         options,
-        stack
+        stack,
+        args[1]
       );
     case "some":
-      return await someInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      return await someInArray(
+        value,
+        getRequiredCallback(methodName, args[0]),
+        options,
+        stack,
+        args[1]
+      );
     case "every":
-      return await everyInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      return await everyInArray(
+        value,
+        getRequiredCallback(methodName, args[0]),
+        options,
+        stack,
+        args[1]
+      );
     case "reduce":
       return budgetProducedValue(
         await reduceArray(
@@ -243,11 +264,17 @@ async function callArrayMethodUnlocked(
         options.budget
       );
     case "forEach":
-      await forEachArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      await forEachArray(value, getRequiredCallback(methodName, args[0]), options, stack, args[1]);
       return undefined;
     case "flatMap":
       return budgetProducedValue(
-        await flatMapArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        await flatMapArray(
+          value,
+          getRequiredCallback(methodName, args[0]),
+          options,
+          stack,
+          args[1]
+        ),
         options.budget
       );
     case "flat":
@@ -428,7 +455,8 @@ async function mapArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxArray> {
   const length = value.length;
   const result = new Array(length) as SandboxArray;
@@ -438,7 +466,15 @@ async function mapArray(
       continue;
     }
 
-    result[index] = await callArrayCallback(callback, value[index], index, value, options, stack);
+    result[index] = await callArrayCallback(
+      callback,
+      value[index],
+      index,
+      value,
+      options,
+      stack,
+      thisValue
+    );
   }
 
   return result;
@@ -448,7 +484,8 @@ async function filterArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxArray> {
   const length = value.length;
   const result: SandboxArray = [];
@@ -458,7 +495,7 @@ async function filterArray(
       continue;
     }
 
-    if (await callArrayCallback(callback, value[index], index, value, options, stack)) {
+    if (await callArrayCallback(callback, value[index], index, value, options, stack, thisValue)) {
       result.push(value[index]);
     }
   }
@@ -470,9 +507,10 @@ async function findInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxValue> {
-  const index = await findIndexInArray(value, callback, options, stack);
+  const index = await findIndexInArray(value, callback, options, stack, thisValue);
   return index < 0 ? undefined : value[index];
 }
 
@@ -480,13 +518,14 @@ async function findIndexInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<number> {
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
     const entry = index in value ? value[index] : undefined;
-    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+    if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return index;
     }
   }
@@ -498,13 +537,14 @@ async function findLastInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxValue> {
   const length = value.length;
 
   for (let index = length - 1; index >= 0; index -= 1) {
     const entry = index in value ? value[index] : undefined;
-    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+    if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return entry;
     }
   }
@@ -516,13 +556,14 @@ async function findLastIndexInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<number> {
   const length = value.length;
 
   for (let index = length - 1; index >= 0; index -= 1) {
     const entry = index in value ? value[index] : undefined;
-    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+    if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return index;
     }
   }
@@ -534,7 +575,8 @@ async function someInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<boolean> {
   const length = value.length;
 
@@ -543,7 +585,7 @@ async function someInArray(
       continue;
     }
 
-    if (await callArrayCallback(callback, value[index], index, value, options, stack)) {
+    if (await callArrayCallback(callback, value[index], index, value, options, stack, thisValue)) {
       return true;
     }
   }
@@ -555,7 +597,8 @@ async function everyInArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<boolean> {
   const length = value.length;
 
@@ -564,7 +607,9 @@ async function everyInArray(
       continue;
     }
 
-    if (!(await callArrayCallback(callback, value[index], index, value, options, stack))) {
+    if (
+      !(await callArrayCallback(callback, value[index], index, value, options, stack, thisValue))
+    ) {
       return false;
     }
   }
@@ -664,7 +709,8 @@ async function forEachArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<void> {
   const length = value.length;
 
@@ -673,7 +719,7 @@ async function forEachArray(
       continue;
     }
 
-    await callArrayCallback(callback, value[index], index, value, options, stack);
+    await callArrayCallback(callback, value[index], index, value, options, stack, thisValue);
   }
 }
 
@@ -681,7 +727,8 @@ async function flatMapArray(
   value: SandboxArray,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxArray> {
   const length = value.length;
   const result: SandboxArray = [];
@@ -691,7 +738,15 @@ async function flatMapArray(
       continue;
     }
 
-    const mapped = await callArrayCallback(callback, value[index], index, value, options, stack);
+    const mapped = await callArrayCallback(
+      callback,
+      value[index],
+      index,
+      value,
+      options,
+      stack,
+      thisValue
+    );
     if (Array.isArray(mapped)) {
       for (let mappedIndex = 0; mappedIndex < mapped.length; mappedIndex += 1) {
         if (!(mappedIndex in mapped)) {
@@ -808,9 +863,10 @@ async function callArrayCallback(
   index: number,
   array: SandboxArray,
   options: ArrayMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  thisValue: SandboxValue
 ): Promise<SandboxValue> {
-  return options.callClosure(callback, [value, index, array], stack);
+  return options.callClosure(callback, [value, index, array], stack, thisValue);
 }
 
 function findNextDefinedIndex(

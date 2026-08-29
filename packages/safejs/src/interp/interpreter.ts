@@ -3389,22 +3389,25 @@ function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOption
     callClosure: (
       closure: Extract<InterpreterValue, { kind: "fn" }>,
       args: readonly SandboxValue[],
-      stack: readonly string[]
-    ) => invokeSandboxClosure(closure, args, context, stack)
+      stack: readonly string[],
+      thisValue?: SandboxValue
+    ) => invokeSandboxClosure(closure, args, context, stack, undefined, thisValue)
   };
 }
 
 function createMapMethodOptions(context: EvaluationContext): MapMethodOptions {
   return {
     budget: context.budget,
-    callClosure: (closure, args, stack) => invokeSandboxClosure(closure, args, context, stack)
+    callClosure: (closure, args, stack, thisValue) =>
+      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue)
   };
 }
 
 function createSetMethodOptions(context: EvaluationContext): SetMethodOptions {
   return {
     budget: context.budget,
-    callClosure: (closure, args, stack) => invokeSandboxClosure(closure, args, context, stack)
+    callClosure: (closure, args, stack, thisValue) =>
+      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue)
   };
 }
 

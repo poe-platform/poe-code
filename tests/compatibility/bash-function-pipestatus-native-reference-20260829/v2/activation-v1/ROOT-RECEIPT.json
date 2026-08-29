@@ -1,0 +1,30 @@
+{
+  "schema": "native26-root-binding-preparation-v1",
+  "rootDecision": "Accept scoped independent preexecution review and prepare authority slots ONLY; no actual launch in this phase",
+  "independentCommit": "83f99567f72e04b7b2355751305ed95e9541940e",
+  "independentReceiptSha256": "0233f45056a17fc87d3d1f8efd8a5937ff0a05ce5eb3c0acabb4f52311e6fbb3",
+  "runtimeReview": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REVIEW-ACCEPTANCE.json",
+    "bytes": 472,
+    "mode": 384,
+    "sha256": "2c35949395a504bb0b9a1cfe02f47526363052deb6d721b98e834c8f86ce0ae5",
+    "device": "16777232",
+    "inode": "188189896",
+    "uid": 501,
+    "descriptorClosed": true
+  },
+  "sourceCommit": "62c262a0c673908388748d7133a001978da4f968",
+  "executableSha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+  "readySha256": "7cad2e981d9008e90f64bc04d528ecc9da02458bd46859382d1028020c925b47",
+  "failedLookupNames": [
+    "function",
+    "__surface_missing_command__"
+  ],
+  "requiredBeforeLaunch": [
+    "different resolved-slot ACCEPT",
+    "fresh preflight with full600s remaining",
+    "exact require_escalated tool approval"
+  ],
+  "oldReviewNoncompliance": "b968fb51651deecc80b84893d061cfe9bc7b8246 >=52/48 preserved",
+  "noOSContainment": true
+}

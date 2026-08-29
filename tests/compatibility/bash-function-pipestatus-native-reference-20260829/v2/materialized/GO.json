@@ -1,0 +1,54 @@
+{
+  "schema": "function-pipestatus-root-grant-v2",
+  "decision": "GO",
+  "profile": "function-pipestatus-reference-v2",
+  "issuedEpochMs": 1788009057530,
+  "deadlineEpochMs": 1788011757530,
+  "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PRESEAL.json",
+    "mode": 384,
+    "bytes": 6772,
+    "sha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901"
+  },
+  "independentReviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REVIEW-ACCEPTANCE.json",
+    "mode": 384,
+    "bytes": 472,
+    "sha256": "2c35949395a504bb0b9a1cfe02f47526363052deb6d721b98e834c8f86ce0ae5"
+  },
+  "preprovision": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PREPROVISION.json",
+    "mode": 384,
+    "bytes": 731,
+    "sha256": "38aea97a822e1fcc3e8be02876b1bfec2b6d16d295dc922e3579f86089716740"
+  },
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 27,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 64,
+    "allKnownPeakProposalCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 26,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 19,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "failedLookupNames": [
+    "function",
+    "__surface_missing_command__"
+  ]
+}

@@ -7,17 +7,17 @@ import { gunzipSync } from 'node:zlib';
 import { own, repo, sha, objectHash, hashExecutable } from './prepare.mjs';
 
 assert.deepEqual(process.argv.slice(2), ['--run']);
-const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL.json')));
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR.json')));
+const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL-v2.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
 for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
-const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
-assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE-v2.json')));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE-v2.json'))), executor.source);
 assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version); assert.equal(await hashExecutable(process.execPath), seal.node.sha256);
 const baseBytes = await fs.readFile(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));
 assert.equal(sha(baseBytes), seal.baseEvidence);
 const base = JSON.parse(gunzipSync(Buffer.from(baseBytes.toString().trim(), 'base64'), { maxOutputLength: 67108864 }));
 const started = Date.now(), output = await fs.mkdtemp(path.join(os.tmpdir(), 'conditional-author-'));
-const campaignStart = started;
+const campaignStart = Date.parse(seal.masterGrantStarted);
 console.log(JSON.stringify({ output, source: executor.source, candidate: manifest.computedTree }));
 const receipt = { schema: 'conditional-author-result-v1', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
 let captured = 0, written = 0, childCount = 0, workerCount = 0, loaderReservations = 0;
@@ -222,6 +222,5 @@ receipt.actualScratchBytes = await scratchBytes();
 receipt.cleanup = { directChildren: childCount, observedProductWorkers: workerCount, implicitLoaderReservations: loaderReservations, boundedOwnedTotal: childCount + workerCount + loaderReservations, allClosed: receipt.children.every(row => row.closed), signals: receipt.children.flatMap(row => row.signals), noGlobalDescendantClaim: true };
 await save(); console.log(JSON.stringify({ output, status: receipt.status, failures: receipt.failures.length, package: receipt.package?.sha256 }));
 process.exitCode = receipt.status === 'AUTHOR_SCOPED_PASS' ? 0 : 1;
-
 
 

@@ -1,0 +1,25 @@
+[main ee7d38d72] Bind fresh r6 UTC window and unused outer capture slots
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 10 files changed, 995 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/COMMAND.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/bind.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch-preparation.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh

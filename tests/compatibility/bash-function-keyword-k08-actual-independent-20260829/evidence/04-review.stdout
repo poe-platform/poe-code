@@ -1,0 +1,20 @@
+commit 7dad7709c3c8e66a418da1a87d7936733955918e
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Sat Aug 29 11:16:48 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Sat Aug 29 11:16:48 2026 -0500
+
+    test: independently authenticate K08 v3 final activation slots
+
+ .../activation-review-v1/LOCATOR.json              |   1 +
+ .../activation-review-v1/PRESEAL.json              |  27 ++++++++
+ .../activation-review-v1/RECEIPT.json              |  76 +++++++++++++++++++++
+ .../activation-review-v1/REPORT.md                 |  17 +++++
+ .../activation-review-v1/RESULT.json               |  62 +++++++++++++++++
+ .../activation-review-v1/START.json                |   9 +++
+ .../activation-review-v1/check.mjs                 |  32 +++++++++
+ .../activation-review-v1/check.stderr              |   0
+ .../activation-review-v1/check.stdout              |   1 +
+ .../activation-review-v1/locator.stderr            |   0
+ .../activation-review-v1/locator.stdout            | Bin 0 -> 7656 bytes
+ 11 files changed, 225 insertions(+)

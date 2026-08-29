@@ -1,0 +1,946 @@
+{
+  "schema": "K08-POSTGUARDS-1",
+  "finished": "2026-08-29T16:35:25.921Z",
+  "sourceCount": 306,
+  "toolHashVerified": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "helperPins": 9,
+  "baselineShippingSets": [
+    {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app",
+      "members": 1006
+    },
+    {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved/node_modules/virtual-bash",
+      "members": 1006
+    }
+  ],
+  "isolatedMutants": 3,
+  "sourceBindingSha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17",
+  "lifecycleEvents": [
+    {
+      "id": "case-source-built-P01-keyword",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P01-legacy",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P02-top",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P03-frames",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P04-decimals",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P05-precedence",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P05-signed",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P06-repeated",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P07-quote",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P08-skipped",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P08-active",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P09-missing",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P09-empty",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P10-injection",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P11-write",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P11-readonly",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P12-below",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P12-at",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P12-above",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P14-command",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P14-division",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P14-let",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-source-built-P15-static",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "helpers-source-built",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P01-keyword",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P01-legacy",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P02-top",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P03-frames",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P04-decimals",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P05-precedence",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P05-signed",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P06-repeated",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P07-quote",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P08-skipped",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P08-active",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P09-missing",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P09-empty",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P10-injection",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P11-write",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P11-readonly",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P12-below",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P12-at",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P12-above",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P14-command",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P14-division",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P14-let",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-installed-P15-static",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "helpers-installed",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P01-keyword",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P01-legacy",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P02-top",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P03-frames",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P04-decimals",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P05-precedence",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P05-signed",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P06-repeated",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P07-quote",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P08-skipped",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P08-active",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P09-missing",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P09-empty",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P10-injection",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P11-write",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P11-readonly",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P12-below",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P12-at",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P12-above",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P14-command",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P14-division",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P14-let",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "case-physically-moved-P15-static",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "helpers-physically-moved",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "M01",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "M02",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "M03",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "N01",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    },
+    {
+      "id": "N02",
+      "events": [
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at",
+        "name,at"
+      ]
+    }
+  ],
+  "qualification": "Fresh read-only file-bound verification; no new restore/type/runtime execution, no new-path absence or historical continuous-state proof."
+}

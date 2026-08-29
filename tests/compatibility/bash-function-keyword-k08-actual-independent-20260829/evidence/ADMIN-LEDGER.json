@@ -1,0 +1,218 @@
+{
+  "schema": "k08-v3-actual-administration",
+  "started": 1788020410822,
+  "deadline": 1788021910822,
+  "starts": [
+    {
+      "index": 1,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1"
+      ],
+      "started": 1788020554654,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020554757,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/01.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/01.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 2,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788020736024,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020736103,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/02.stdout",
+        "bytes": 2252,
+        "sha256": "6d1086e46cbce8a110b28892c2b590259ff8688dd7a105a723e7192b9b4dd25a"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/02.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 3,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788020774082,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020774101,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/03.stdout",
+        "bytes": 164,
+        "sha256": "752269f46e639f8e95a8f34b94bbd283c3747910aa8dc770ed9ef40cb4e92a15"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/03.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 4,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1"
+      ],
+      "started": 1788020782272,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020782563,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/04.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/04.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 5,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1"
+      ],
+      "started": 1788020782564,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020782631,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/05.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/05.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 6,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "test(k08): preserve completed v3 frozen runtime evidence",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1"
+      ],
+      "started": 1788020782632,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020782918,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/06.stdout",
+        "bytes": 2843,
+        "sha256": "0426bfa48bffc9c57434eb681352eb572baee2d363128e6e031eba5deccc2914"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/06.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 7,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1"
+      ],
+      "started": 1788020805913,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788020805974,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/07.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/07.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captureBytes": 5259,
+  "adminMaximum": 7,
+  "allKnownMaximum": 86,
+  "runtimeMaximum": 79,
+  "peak": 3,
+  "captureMaximum": 100663296,
+  "workMaximum": 536870912
+}

@@ -1,0 +1,13 @@
+[main ea8bf1313] Preseal six L02 host-double dependency and raw-reason controls
+ 11 files changed, 94 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/DOUBLE-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/TERMINATE-SOURCE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/add-double.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/add-double.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/commit-source.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/commit-source.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/method.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/method.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/patch-double.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/patch-double.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/host-doubles.mjs

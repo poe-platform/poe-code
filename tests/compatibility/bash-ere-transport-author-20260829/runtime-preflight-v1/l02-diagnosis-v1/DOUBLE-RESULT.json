@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "role": "PURE_HOST_DOUBLE_SOURCE_CONFORMANT_SELECTED_CONTROL_FLOW_NOT_PRODUCT_EXECUTION",
+  "groups": [
+    {
+      "id": "D01_persistent_exit_hook_double_fault",
+      "pass": true,
+      "details": {
+        "setupThrow": false,
+        "terminationPromiseRejects": false,
+        "failedInstallations": 2,
+        "externalDoubleExit": true,
+        "ownerWait": "UNRESOLVED_DEPENDENCY",
+        "trace": [
+          "setup:once:exit",
+          "terminate:ref",
+          "terminate:stopThread",
+          "termination:once:exit",
+          "double:exit"
+        ]
+      }
+    },
+    {
+      "id": "D02_single_setup_fault_keeps_termination_registration",
+      "pass": true,
+      "details": {
+        "firstSetupReason": false,
+        "cleanupSettled": true,
+        "failedInstallations": 1,
+        "streamQualification": "Production setup stops before stream enrollment; this model does NOT prove its OS stream drain.",
+        "trace": [
+          "setup:once:exit",
+          "terminate:ref",
+          "terminate:stopThread",
+          "termination:once:exit",
+          "double:exit"
+        ]
+      }
+    },
+    {
+      "id": "D03_setup_false_cleanup_undefined_distinct_presence",
+      "pass": true,
+      "details": {
+        "setupPresent": true,
+        "setupValue": false,
+        "cleanupPresent": true,
+        "cleanupValueType": "undefined",
+        "ownerWait": "UNRESOLVED_DEPENDENCY",
+        "trace": [
+          "setup:once:exit",
+          "terminate:ref",
+          "terminate:forced-reject",
+          "double:exit"
+        ]
+      }
+    },
+    {
+      "id": "D04_installed_exit_and_failed_termination",
+      "pass": true,
+      "details": {
+        "exitObservedByOwner": true,
+        "cleanupRejectPresent": true,
+        "cleanupReasonType": "undefined",
+        "clean": false,
+        "trace": [
+          "setup:once:exit",
+          "terminate:ref",
+          "terminate:forced-reject",
+          "double:exit"
+        ]
+      }
+    },
+    {
+      "id": "D05_constructor_false_no_acquisition",
+      "pass": true,
+      "details": {
+        "constructorReason": false,
+        "WorkerAcquired": false,
+        "exitedWaiterResolvedWithoutAcquisition": true
+      }
+    },
+    {
+      "id": "D06_normal_exit_and_both_streams_gate_close",
+      "pass": true,
+      "details": {
+        "exitOnlyInsufficient": true,
+        "oneStreamInsufficient": true,
+        "bothStreamsJoined": true,
+        "trace": [
+          "setup:once:exit",
+          "terminate:ref",
+          "terminate:stopThread",
+          "termination:once:exit",
+          "double:exit"
+        ]
+      }
+    }
+  ],
+  "passed": 6,
+  "total": 6,
+  "actualWorkers": 0,
+  "productImports": 0,
+  "nativeTerminateInvocations": 0,
+  "unresolvedPromises": "D01/D03 are intentionally inert unresolved model promises with no handles/listeners on real resources; never awaited indefinitely. Sixteen microtask turns are a finite observation, not all-jobs or time proof.",
+  "sourceProvenance": "Pinned Node method live-handle/no-callback path plus owner.js start/catch/close wait edges; independent external double exit is not Node/OS evidence.",
+  "original5001Unchanged": true
+}

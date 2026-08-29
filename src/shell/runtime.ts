@@ -31,6 +31,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
 import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+import { publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
 import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
@@ -269,6 +270,14 @@ class Flow extends Error {
   constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1) {
     super(kind);
   }
+}
+
+const completedFlows = new WeakSet<Flow>();
+
+function completedExit(status: number, kind: Flow["kind"] = "exit", levels = 1): Flow {
+  const flow = new Flow(kind, status, levels);
+  completedFlows.add(flow);
+  return flow;
 }
 
 class ExecutionFailure extends Error {
@@ -1505,7 +1514,7 @@ export class Runtime {
   async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
     this.signal.throwIfAborted();
     let status: number;
-    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io);
+    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io, false, pipeline.negate);
     else {
       const pipes = pipeline.commands.slice(1).map(() => createBytePipe({
         highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
@@ -1597,14 +1606,16 @@ export class Runtime {
         if (selection.outcome.kind === "throw") throw selection.outcome.reason;
         return selection.outcome.value.exitCode;
       });
+      let statuses: number[];
       try {
-        const statuses = await interruptible(Promise.all(tasks), this.signal);
-        status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
+        statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
         for (const close of closing) clearImmediate(close);
         for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
         await Promise.all(pipes.map((pipe) => pipe.abort()));
       }
+      await this.publishStatus(state, statuses, io);
+      status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
     }
     if (pipeline.commands.length > 1) this.errexit(status, state, io);
     return pipeline.negate ? Number(status === 0) : status;
@@ -1624,10 +1635,30 @@ export class Runtime {
     if (status !== 0 && state.errexit && !io.execution?.ignoreErrexit) throw new Flow("exit", status);
   }
 
-  async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+  private async publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> {
+    this.signal.throwIfAborted();
+    if (io[invocationScope].failures.length) throw new NounsetDiagnosticFailure(io[invocationScope].failures[0]);
+    await publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
+  }
+
+  async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
     io[invocationScope].assertOpen();
-    const status = await this.executeCommand(command, state, io, fileShortcut);
-    if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional") this.errexit(status, state, io);
+    const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
+    let status: number;
+    try { status = await this.executeCommand(command, state, io, fileShortcut); }
+    catch (error) {
+      if (publishes && error instanceof Flow && completedFlows.has(error)) {
+        completedFlows.delete(error);
+        this.signal.throwIfAborted();
+        if (!io[invocationScope].failures.length) await this.publishStatus(state, [error.status], io);
+      }
+      throw error;
+    }
+    if (publishes) {
+      const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
+      await this.publishStatus(state, [reported], io);
+      this.errexit(status, state, io);
+    }
     return status;
   }
 
@@ -1779,10 +1810,13 @@ export class Runtime {
       this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
         await writeText(io.stderr, error.diagnostic);
-        this.errexit(1, state, io);
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(1, state, io);
         return 1;
       }
-      if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
+      if (errorCode(error) === "EPIPE") {
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(141, state, io);
+        return 141;
+      }
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
       if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {
         const detail = error instanceof ParameterExpansionFailure ? diagnostic ?? message(error) : message(error);
@@ -1793,17 +1827,17 @@ export class Runtime {
           diagnosticFailure = new NounsetDiagnosticFailure(reason);
           throw diagnosticFailure;
         }
-        throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       }
       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
       else {
         try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
         catch { this.signal.throwIfAborted(); }
       }
-      if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
-      if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
+      if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       const status = error instanceof CommandFailure ? error.status : 1;
-      this.errexit(status, state, io);
+      if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(status, state, io);
       return status;
     } finally {
       try {
@@ -3514,6 +3548,29 @@ export class Runtime {
         }
         if (command === "local" && !locals!.has(name)) {
           const saved = assignments.get(name) ?? saveVariable(state, name);
+          if (name === "PIPESTATUS" && arrayStore(state)?.get(name)) {
+            await this.prepareVariable(state, name, saved);
+            const store = requireArrays(state);
+            const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            const holding = store.owner.hold();
+            try {
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              const value = match[2] ?? "";
+              await textToken(operation, value, this.signal);
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                locals!.set(name, saved);
+                released = store.remove(name, tickets);
+                state.variables[name] = value;
+              });
+              await released;
+            } finally { try { await operation.close(); } finally { holding.release(); } }
+            assignments.delete(name);
+            continue;
+          }
           if (arrayStore(state)?.get(name)) {
             await this.prepareVariable(state, name, saved);
             const store = requireArrays(state);
@@ -3543,7 +3600,10 @@ export class Runtime {
           }
           if (arrayStore(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
-          if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
+          if (!assignments.has(name) && match[2] === undefined) {
+            if (name === "PIPESTATUS") state.variables[name] = "";
+            else delete state.variables[name];
+          }
           if (name === "OPTIND") {
             state.getopts ??= cloneGetoptsBinding(state);
             state.getopts.integer = false;
@@ -3671,16 +3731,16 @@ export class Runtime {
       if (args.length > 1) { await writeText(stderr, `${command}: too many arguments\n`); return 1; }
       if (args[0] !== undefined && !/^[+-]?\d+$/u.test(args[0])) {
         await writeText(stderr, `${command}: ${args[0]}: numeric argument required\n`);
-        throw new Flow(command, 2);
+        throw completedExit(2, command);
       }
       const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);
-      throw new Flow(command, status);
+      throw completedExit(status, command);
     }
     if (command === "break" || command === "continue") {
       const levels = args[0] === undefined ? 1 : Number(args[0]);
       if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeText(stderr, `${command}: invalid loop count\n`); return 1; }
       if (!state.loopDepth) { await writeText(stderr, `${command}: only meaningful in a loop\n`); return 0; }
-      throw new Flow(command, 0, Math.min(levels, state.loopDepth));
+      throw completedExit(0, command, Math.min(levels, state.loopDepth));
     }
     return undefined;
   }

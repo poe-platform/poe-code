@@ -1,0 +1,54 @@
+{
+  "schema": "ARCHIMEDES_REGEX_V4_PREEXECUTION_HANDOFF",
+  "sourceCommit": "131a898c3edb25edc34e2d26dfdcd28b74e7c015",
+  "sealSha256": "95d3707e7117e6101fd96549e823e7299ba0c058ea179eaf7336160d53a903ec",
+  "authSha256": "6516341020d57312dc2342203c68be47767025505307549ae3ce720a590a5d43",
+  "evidenceCommit": "723d809e61e86e055940d79b464282c5b69baa5f",
+  "report": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/REPORT.md",
+  "reviewRequested": [
+    "Deferred parent path/inode/hash/fsync/close authority after retirement",
+    "Raw outcome before assessor; all 55 missing-row/unreached callback source assumptions",
+    "Explicit G10.4 deferred-stage versus former child-fsync control distinction",
+    "Unchanged child permission and external guard; no new Worker channel"
+  ],
+  "actual": {
+    "fixtureQualifications": "2/2",
+    "intentionalChildFailures": 2,
+    "fixtureNodeStarts": 4,
+    "fixtureNodeRetired": 4,
+    "peak": 3,
+    "parentFilesAuthenticatedSyncedClosed": 6,
+    "rawObserved": 2072,
+    "rawRetained": 2072,
+    "Workers": 0,
+    "sourceParseOutcomes": "14/14",
+    "postSourceToolPriorBindings": 57
+  },
+  "held": {
+    "full55": true,
+    "harmlessWorkerControls": true,
+    "actualNestedProductLoad": true,
+    "target": true,
+    "comparator": true,
+    "semanticCohort": true,
+    "parentFaultInjection": "NOT_RUN"
+  },
+  "history": "V3 19 raw qualifiers /10 FAIL /1 STOP /25 UNRUN; G06.4 original primary and counters remain unpublished, not inferred.",
+  "currentGrantSpentOnFixtures": true,
+  "newFullCampaignRequiresRootGOAfterDifferentReview": true,
+  "publicationSoFar": {
+    "knownDirectOS": 32,
+    "toolServiceReservation": 1,
+    "elapsedMs": 734406,
+    "capOS": 48,
+    "capMs": 1200000
+  },
+  "futurePublicationPlan": {
+    "applyPatch": 1,
+    "gitAdd": 1,
+    "gitCommit": 1,
+    "scopedStatus": 1,
+    "prospectiveFinalKnownOS": 36,
+    "withinGrant": true
+  }
+}

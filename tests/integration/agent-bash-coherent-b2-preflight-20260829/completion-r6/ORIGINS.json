@@ -1,0 +1,191 @@
+[
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/HANDOFF.md",
+    "blob": "ffeb0aa66429a806e526a0885e8337a8bcd2bdb8",
+    "bytes": 3242,
+    "sha256": "444d1c14980b8c797b9a8203702a3772f2cd86adcd56f102cf59c19bb6fa6a0b",
+    "local": "origins/HANDOFF.md"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/RECIPE.json",
+    "blob": "3cc38f7e789fb85399f7981b415f275c0b7f3795",
+    "bytes": 593493,
+    "sha256": "487065c4454c01102b578a4d7ef1524514bf74d90e3a6d8dc1d9bde513b2a091",
+    "local": "origins/completion-r4/RECIPE.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/REGEX-CLOSURE.json",
+    "blob": "21e191fe96f7dd4763000cf69113e5a4b3b5e57e",
+    "bytes": 101812,
+    "sha256": "2d074a0fa78e95e5d16ede088bc2725ae9b5e7a3ed2a3c11a5bae428b4b4b4c4",
+    "local": "origins/completion-r4/REGEX-CLOSURE.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/classify.mjs",
+    "blob": "5e86d21afc169b4dd17757ce4e7e1927d66b8c0b",
+    "bytes": 4108,
+    "sha256": "e78d6ad9077c03d265635b42d40f75c303f0e0f7afb723acb6ee977d6424a40c",
+    "local": "origins/completion-r4/runtime/classify.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/controls.mjs",
+    "blob": "e5a62be3104faa810255b3f11935359271918d66",
+    "bytes": 3712,
+    "sha256": "9eaa570fd09d28a82729b0bd1f41f68083d34168cab0b35a5cd13bc2a5c489cd",
+    "local": "origins/completion-r4/runtime/controls.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/coordinator.mjs",
+    "blob": "f69dedc0a703cb80abf9db371313705709a68d74",
+    "bytes": 13181,
+    "sha256": "a391f4242ee549209dcd81c04634a3307e81843084565c45512aa1a4f30690ac",
+    "local": "origins/completion-r4/runtime/coordinator.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/fixture.mjs",
+    "blob": "24a959336b6a521cb5863277f504a527a8fa171d",
+    "bytes": 861,
+    "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e",
+    "local": "origins/completion-r4/runtime/fixture.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/launch.sh",
+    "blob": "da5e20d43198f73f468784cedbeaa1f6fe9dd745",
+    "bytes": 368,
+    "sha256": "a28833b82512939f9ee1ce6c60760f036b7932014ead97d9574b223d4a56d350",
+    "local": "origins/completion-r4/runtime/launch.sh"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/loader.mjs",
+    "blob": "a2a7dda0042822e3bd698f18395059f691e11257",
+    "bytes": 3058,
+    "sha256": "d4648aea3fe1f391e4fda437d62f0ce3d5de0e756f87146db1c60769d43b6e2b",
+    "local": "origins/completion-r4/runtime/loader.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/outer.mjs",
+    "blob": "3bdec312d8452c579bfc8a65ec25887bb4d138c4",
+    "bytes": 1219,
+    "sha256": "39a5b657cf01908927f185fc9e443e187336129448f0de09bca210bf6b9bbf01",
+    "local": "origins/completion-r4/runtime/outer.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/owner.mjs",
+    "blob": "8880be1392238d3246d08f0cfdff75b30e06a25c",
+    "bytes": 9386,
+    "sha256": "dcee418a8ed89650ada9f9933857f64932d3df82f19d5e1e996e07c394413b27",
+    "local": "origins/completion-r4/runtime/owner.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/support.mjs",
+    "blob": "c5b66c198db636abc9ec45dd12310a44afeced01",
+    "bytes": 6861,
+    "sha256": "0c5c0d1ab5dd31ecff4751f08191ae9218714038da39544f74fc14899876d344",
+    "local": "origins/completion-r4/runtime/support.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r4/runtime/tar.mjs",
+    "blob": "1cc3afcc812876862a3679a95244864d92535d9a",
+    "bytes": 2436,
+    "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865",
+    "local": "origins/completion-r4/runtime/tar.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/ARRAY-CASES.json",
+    "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+    "bytes": 3019,
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "local": "origins/runtime/harness/ARRAY-CASES.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/arrays.mjs",
+    "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+    "bytes": 2507,
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "local": "origins/runtime/harness/arrays.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/close-observer.mjs",
+    "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+    "bytes": 957,
+    "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+    "local": "origins/runtime/harness/close-observer.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/conditional.mjs",
+    "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "local": "origins/runtime/harness/conditional.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/extension-design.json",
+    "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+    "bytes": 14968,
+    "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+    "local": "origins/runtime/harness/extension-design.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/extension.mjs",
+    "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+    "bytes": 14101,
+    "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+    "local": "origins/runtime/harness/extension.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/loader.mjs",
+    "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+    "bytes": 1180,
+    "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+    "local": "origins/runtime/harness/loader.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/n14.mjs",
+    "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+    "bytes": 5599,
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+    "local": "origins/runtime/harness/n14.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/names.mjs",
+    "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+    "bytes": 879,
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "local": "origins/runtime/harness/names.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/redirection-cases.json",
+    "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+    "bytes": 2790,
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "local": "origins/runtime/harness/redirection-cases.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/redirections.mjs",
+    "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+    "bytes": 9613,
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "local": "origins/runtime/harness/redirections.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/resources.mjs",
+    "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+    "bytes": 1978,
+    "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+    "local": "origins/runtime/harness/resources.mjs"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/strict-design.json",
+    "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+    "bytes": 9222,
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "local": "origins/runtime/harness/strict-design.json"
+  },
+  {
+    "path": "tests/integration/agent-bash-coherent-b2-preflight-20260829/runtime/harness/strict.mjs",
+    "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+    "bytes": 11148,
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "local": "origins/runtime/harness/strict.mjs"
+  }
+]

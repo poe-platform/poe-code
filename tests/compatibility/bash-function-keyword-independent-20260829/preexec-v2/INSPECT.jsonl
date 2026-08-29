@@ -1,0 +1,4 @@
+{"role":"source-data-inspector","pid":56959,"started":"2026-08-29T12:53:47.346Z"}
+{"role":"status","pid":56978,"status":0,"signal":null,"stdoutBytes":78,"stderrBytes":0}
+{"role":"inventory","pid":56982,"status":0,"signal":null,"stdoutBytes":13267,"stderrBytes":0}
+{"finished":true}

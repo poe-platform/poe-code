@@ -1,0 +1,6 @@
+{
+  "decision": "PENDING",
+  "preseal": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d",
+  "scope": "harness-only-canonical-path-and-finalization",
+  "independentCommit": null
+}

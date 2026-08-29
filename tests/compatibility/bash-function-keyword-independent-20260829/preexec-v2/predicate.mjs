@@ -1,0 +1,1 @@
+export function refuses(grant,review,work,started){return (grant.decision!=='GO'||review.decision!=='ACCEPT'||grant.preseal!==process.env.B35_PRESEAL_SHA256||review.preseal!==grant.preseal||grant.work!==work||grant.calls!==54||Date.now()>grant.latestStartEpochMs||grant.expiresEpochMs-started<1500000);}

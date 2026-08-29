@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "bindings": [
+    {
+      "path": "PLAN.md",
+      "bytes": 1872,
+      "sha256": "63985a789a68a7f9ccef839817ee162caaecc1096a467ba6694d8f19b7ac734a"
+    },
+    {
+      "path": "STATE.json",
+      "bytes": 7474,
+      "sha256": "728ca59d66c57de6b14bf417278ba4c84784cf67f77a16caaf5f8fe0db875e58"
+    },
+    {
+      "path": "author-pure.mjs",
+      "bytes": 2693,
+      "sha256": "aedc1956e4add3c2adbf2673472b9426a5bf206f0574ad4f3e1e8553fe7d207f"
+    },
+    {
+      "path": "inspect.mjs",
+      "bytes": 2792,
+      "sha256": "d5d21724db8a9b5f22ec960629443602a9e309bfcf40980c03c2020be67dd2ca"
+    },
+    {
+      "path": "predicate.mjs",
+      "bytes": 304,
+      "sha256": "465dae77c45bb72584905f189dfb770b330828bd0ac09373969605f0f971e36b"
+    },
+    {
+      "path": "pure.mjs",
+      "bytes": 5224,
+      "sha256": "1f2c29585cf2591fbaf97da56245a7d43f95c6b7a98a7dc89c958817eb532e6f"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 8420,
+      "sha256": "d27fae60789ba74f1c4313a31df50f3807858b61a2315b7b2ffe1a2ecaf1de79"
+    },
+    {
+      "path": "frozen/COMMAND-PLAN.json",
+      "bytes": 82922,
+      "sha256": "ab4ee83e38d4e2b07deb01bf3f47bfdb728e586d1b40aecedd738698e9e53317"
+    },
+    {
+      "path": "frozen/COMMAND.template.txt",
+      "bytes": 573,
+      "sha256": "808fd96ac6abe2bfee4d332d48ee1816988f1362e0209cff66eb6d32e595b7c2"
+    },
+    {
+      "path": "frozen/GO.template.json",
+      "bytes": 893,
+      "sha256": "187274be947fdfb6f7507c41958ba9103d7c4bb872a5b0fceff6cf04c842b8c6"
+    },
+    {
+      "path": "frozen/PRESEAL.json",
+      "bytes": 6799,
+      "sha256": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d"
+    },
+    {
+      "path": "frozen/REVIEW.template.json",
+      "bytes": 197,
+      "sha256": "4682a1c81b49973ae433bf5b9cbca68d7727b526297fbe3216b01ee532306412"
+    },
+    {
+      "path": "frozen/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "path": "frozen/canonical.mjs",
+      "bytes": 867,
+      "sha256": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9"
+    },
+    {
+      "path": "frozen/case-adapter.mjs",
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    {
+      "path": "frozen/case-driver.mjs",
+      "bytes": 2559,
+      "sha256": "96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1"
+    },
+    {
+      "path": "frozen/controls-v2.mjs",
+      "bytes": 5178,
+      "sha256": "25d3557cc872ee969e35093ea4b71411edc872bc2d13d2954e04ca7d66a3c721"
+    },
+    {
+      "path": "frozen/direct-child.mjs",
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    {
+      "path": "frozen/finalization.mjs",
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    {
+      "path": "frozen/fixture-package.json.data",
+      "bytes": 5257,
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1"
+    },
+    {
+      "path": "frozen/guard.mjs",
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "path": "frozen/outer.mjs",
+      "bytes": 3005,
+      "sha256": "132597383fc3df48d804de6151933796a75598e6fd45193727fa5ad983985a14"
+    },
+    {
+      "path": "frozen/owner-finalization.mjs",
+      "bytes": 1999,
+      "sha256": "816e01ab2995247531d2c1fb194aaac0f16ff9056e7fd91177335c9a899ce6d8"
+    },
+    {
+      "path": "frozen/package-admission.mjs",
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    {
+      "path": "frozen/package.mjs",
+      "bytes": 3509,
+      "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+    },
+    {
+      "path": "frozen/parse-manifest.mjs",
+      "bytes": 2862,
+      "sha256": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708"
+    },
+    {
+      "path": "frozen/profile.mjs",
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "path": "frozen/supervisor.mjs",
+      "bytes": 14881,
+      "sha256": "c39ac7c7a9608aaed8d70b8780fd4d637178e6d7bdbe39b064bd26704abc36ee"
+    }
+  ],
+  "work": "/private/tmp/safe-bash-b35-independent-v2-bYDxTO",
+  "authorGroups": 12,
+  "novelGroups": 8,
+  "readinessChildren": 2,
+  "workerStarts": 0,
+  "productImports": 0,
+  "draftCorrection": "Before execution: relocated role bytes/hash propagated to exact SURFACE_ROLE metadata; unexecuted draft retained."
+}

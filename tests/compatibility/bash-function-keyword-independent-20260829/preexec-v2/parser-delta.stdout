@@ -1,0 +1,28 @@
+commit 52b6711e888361015acc38017be2a6b08509d8a7
+Author:     Kamil Jopek <kjopek@bamboo.quora.net>
+AuthorDate: Sat Aug 29 12:19:54 2026 +0000
+Commit:     Kamil Jopek <kjopek@bamboo.quora.net>
+CommitDate: Sat Aug 29 12:19:54 2026 +0000
+
+    feat(shell): parse bounded function keyword brace definitions
+
+diff --git a/src/shell/parser.ts b/src/shell/parser.ts
+index c9065ec21..8072ffd47 100644
+--- a/src/shell/parser.ts
++++ b/src/shell/parser.ts
+@@ -757,4 +757,15 @@ class Parser {
+       this.expect("done");
+       command = { kind: "for", name, ...(words ? { words } : {}), body, redirects: [] };
++    } else if (this.is("function")) {
++      this.advance();
++      if (this.current.kind !== "word" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error("Invalid function name");
++      const name = this.advance().value;
++      if (this.is("(")) {
++        this.advance();
++        this.expect(")");
++      }
++      this.newlines();
++      if (!this.is("{")) this.error("Expected brace function body");
++      command = { kind: "function", name, body: this.command(), redirects: [] };
+     } else if (this.current.kind === "word" && !compoundHead(this.current.word!) && this.peek().value === "(") {
+       const name = this.advance().value;

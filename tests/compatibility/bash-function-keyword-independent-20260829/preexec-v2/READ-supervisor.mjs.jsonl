@@ -1,0 +1,14 @@
+{"pid":59355,"names":["supervisor.mjs","COMMAND.template.txt","GO.template.json","REVIEW.template.json","ADDITIONAL-COMMAND-BINDINGS.json","package-admission.mjs","case-adapter.mjs","case-driver.mjs","parse-manifest.mjs","package.mjs","fixture-package.json.data","CONTROL-PRESEAL-v3.json","COMMAND-PLAN.json"]}
+{"mode":"100644","oid":"918fe0a6b4a5f5ff91dc89d55a56f4ed951caa44","bytes":14881,"name":"supervisor.mjs","sha256":"c39ac7c7a9608aaed8d70b8780fd4d637178e6d7bdbe39b064bd26704abc36ee"}
+{"mode":"100644","oid":"aa6e1a1db7aea9dbdc4d9204c0c9d82030c408c4","bytes":573,"name":"COMMAND.template.txt","sha256":"808fd96ac6abe2bfee4d332d48ee1816988f1362e0209cff66eb6d32e595b7c2"}
+{"mode":"100644","oid":"186b91841fd50e00f66d2a261dc2a4066a71692e","bytes":893,"name":"GO.template.json","sha256":"187274be947fdfb6f7507c41958ba9103d7c4bb872a5b0fceff6cf04c842b8c6"}
+{"mode":"100644","oid":"39d6f8e536ed8a4510533a97e21f143045d1d6cd","bytes":197,"name":"REVIEW.template.json","sha256":"4682a1c81b49973ae433bf5b9cbca68d7727b526297fbe3216b01ee532306412"}
+{"mode":"100644","oid":"bdec37e73d148f99de2647b7ecf8a411da963083","bytes":8117,"name":"ADDITIONAL-COMMAND-BINDINGS.json","sha256":"3d2adfce151f37404382ac1d192317cf9172f08b55f9af35422602e61cd01497"}
+{"mode":"100644","oid":"973aa38075d5c828a5318baf7bef30067deeab71","bytes":3896,"name":"package-admission.mjs","sha256":"cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"}
+{"mode":"100644","oid":"aefb0b10e8bdd4b1a1548b3f0f5db7f76accba62","bytes":4448,"name":"case-adapter.mjs","sha256":"19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"}
+{"mode":"100644","oid":"d462d5fcb6b37a79fda856f7d28047061a83bdd6","bytes":2559,"name":"case-driver.mjs","sha256":"96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1"}
+{"mode":"100644","oid":"37c4b0183195f6296273b3efdbd3813f639a3969","bytes":2862,"name":"parse-manifest.mjs","sha256":"9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708"}
+{"mode":"100644","oid":"27a8528635f3830900559ecf853b407df2a8b8b6","bytes":3509,"name":"package.mjs","sha256":"915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"}
+{"mode":"100644","oid":"c0cc226556519d6bc8b54ab5e243a7609712e599","bytes":5257,"name":"fixture-package.json.data","sha256":"431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1"}
+{"mode":"100644","oid":"aecb522f0e3a398e03e3930d9384a3d51c5ab68c","bytes":11857,"name":"CONTROL-PRESEAL-v3.json","sha256":"bb0771c8bc25f3de389e592322696730d76540cd58415fa07d103930b49c943a"}
+{"mode":"100644","oid":"317107e6335ba994af8ea3a5d87626e2e409a728","bytes":82922,"name":"COMMAND-PLAN.json","sha256":"ab4ee83e38d4e2b07deb01bf3f47bfdb728e586d1b40aecedd738698e9e53317"}

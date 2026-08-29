@@ -1,0 +1,23 @@
+[main 8c4d97054] test: preseal B2 final-binding data preparation
+ 21 files changed, 812 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/ADMISSION.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/REVIEW-BINDINGS.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/bind.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/01-review-tree.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/01-review-tree.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/01-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/02-review-paths.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/02-review-paths.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/02-review-paths.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/03-scope.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/03-scope.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/03-scope.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/04-review-blobs.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/04-review-blobs.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/04-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/05-add.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/capture/05-add.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/review-MEMBERSHIP-AND-AUTHORITY.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/review-PENDING-AUTHORITY.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1/review-RECEIPT.json

@@ -1,0 +1,21 @@
+{
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL.json",
+    "bytes": 794550,
+    "mode": 420,
+    "sha256": "56ad847540e583706fe34e69832bf9c439a0b69e416c742941e3e45196ef7402"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "reused": 5,
+  "npmVersion": "10.9.7",
+  "npmMembers": 2039,
+  "npmLinks": 12,
+  "sourceInputs": 307,
+  "packageMembers": 1010,
+  "productImports": 0
+}

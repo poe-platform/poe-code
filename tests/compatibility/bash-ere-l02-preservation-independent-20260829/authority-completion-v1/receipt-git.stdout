@@ -1,0 +1,35 @@
+{
+  "schema": "l02-r4-independent-preexec-v1",
+  "status": "SCOPED_PREEXEC_ACCEPT",
+  "createdAt": "2026-08-29T16:53:01.318Z",
+  "sourceCommit": "745c3e6db6088b617d1161e861015fe6d522bb74",
+  "authorEvidenceCommit": "ff58d8e017053a9791166f39b5c2e6652d8c9480",
+  "profileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+  "resolved": [
+    "F01",
+    "F02"
+  ],
+  "authorReplay": {
+    "passed": 10,
+    "total": 10
+  },
+  "independentNovel": {
+    "passed": 4,
+    "total": 4
+  },
+  "qualification": "PURE actual latch/gate plus SOURCE supervisor ordering; no actual Worker/13-cell execution",
+  "provision": {
+    "files": 390,
+    "bytes": 1381586,
+    "fullSet": true,
+    "caseRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES",
+    "receiptBytes": 87438,
+    "receiptSha256": "e59c6f557079256c3e764687dbe514851c9a4c799095f760967b766f4e48bd3d",
+    "inventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15"
+  },
+  "runtimeAuthorized": false,
+  "windowAssigned": false,
+  "actualWorkers": 0,
+  "actualProductCalls": 0,
+  "historicalHold": "bc3c9b9a4249cee27464b6d39f68c9798217dc2f unchanged"
+}

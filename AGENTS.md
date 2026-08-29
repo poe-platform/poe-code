@@ -168,6 +168,9 @@
 - A sparse witness is not a complete inventory; preserve that distinction in guards.
 - Establish trusted outer-owned raw startup capture before fallible admission or
   child launch, so early bootstrap failures do not depend on inner publication.
+- Generated and inherited compressed artifacts require regular-file, bounded
+  compressed-size/read and expected-hash admission before inflation or parsing.
+  Decode the same authenticated bytes and budget concurrently retained buffers.
 - Critical admission/launch dispatch uses sealed files and explicit arguments in
   self-contained entrypoints, not ambient cross-call REPL bindings. Establish
   capture/catch ownership before fallible state lookup; do not infer a shared-state

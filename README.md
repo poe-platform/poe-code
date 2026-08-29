@@ -135,6 +135,25 @@ limits are retained. Default80 and prior core/opt-in Node acceptances are unchan
 No native GNU5.3/full-Bash, coherent Node-plus-Unit3, Unit4, live-HEAD or global-gate
 acceptance follows.
 
+**ROOT-qualified Unit4/N14 source and semantic profile (August 29, 2026):** source
+`7196bace8ea2c141d5ed1020fef5bf721c321ace`, selected
+`bf079ada185a79aec864b068f3738ddc5520822e`, full954 SHA256
+`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`
+extends the accepted core with evaluated-scalar arithmetic nounset, incremental
+supported `set` option mutation, the three-option listing/replay subset, and
+diagnostic-failure propagation through an **exact, non-async returned invocation
+Promise**. Transformed/async promises are outside that N14 guarantee; raw falsy
+identity and caller/cleanup priorities remain intact. Default80 is unchanged.
+The basis is744 literal outcomes plus separate type/mutation/binding evidence;
+**the old campaign remains CLOSED/noncompliant** because expected package hash
+admission followed inflation. Package/loader identity was verified before consumer
+execution. A separate12-control prospective proof and one authenticated954-member
+parse correct the admission gate without rerunning or rescoring those outcomes.
+This is bounded source/semantic acceptance, not a compliant old end-to-end run.
+Five design IDs and native parity remain open; no full GNU listing/status, Bash,
+Node-plus-Unit4, live-HEAD or global-gate claim. See
+[the exact acceptance and limits](tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/ROOT-ACCEPTANCE.md).
+
 **Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
 finite 31-case × three-layout membership on selected `8437e4ed` and its exact
 858-file package `6b5863d5`: 15 original source passes plus 78 RUN02 passes

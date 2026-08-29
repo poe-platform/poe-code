@@ -59,6 +59,33 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
+## ROOT-qualified Unit4/N14 source and semantics — 2026-08-29
+
+ROOT accepts source `7196bace8ea2c141d5ed1020fef5bf721c321ace`, selected
+`bf079ada185a79aec864b068f3738ddc5520822e`, full954 SHA256
+`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`,
+on the accepted core through Unit3, without a Node/live-HEAD overlay. The finite
+profile covers evaluated-scalar arithmetic nounset, incremental supported `set`
+options, three-option listing/replay and N14 diagnostic provenance for the exact
+non-async returned invocation Promise. Transformed/async wrappers are not covered;
+caller, raw falsy reason and cleanup precedence remain preserved.
+
+Evidence is744 literal outcomes (672 author +48 prior novel +24 new identity),
+6 type groups/24 exact negatives,2 mutant kills/restores and2 binding refusals.
+The original campaign stays **CLOSED/noncompliant** with pre-inflate admission;
+expected package/loader identity was nevertheless bound before consumer execution.
+Separate12 prospective controls and one correctly admitted954-member parse do not
+rescore or repeat product execution. This is source/semantic qualification, not
+fully compliant old end-to-end validation. Future coherent runs must apply the
+correct admission gate contemporaneously.
+
+Five OPEN IDs/native parity, provisional status1, restricted arithmetic/listing
+and exact-Promise scope remain explicit in the
+[ROOT acceptance](../tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/ROOT-ACCEPTANCE.md).
+Default80, priorities, explicit opt-in Node's separate accepted composition,
+curl opt-in and npm/npx exclusions are unchanged. No full GNU/Bash, coherent
+Node-plus-Unit4, live-HEAD or global-gate acceptance follows; prior failures remain.
+
 ## ROOT-qualified conditional Unit3 profile — 2026-08-29
 
 ROOT accepts exact source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived

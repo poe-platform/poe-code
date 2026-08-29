@@ -3972,3 +3972,40 @@ that any implementation, command, fixture, or test currently exists.
   full-Bash/whole-HEAD/global-gate acceptance. Docs-only publication, no new runtime,
   native, Workers, product edits or raw cleanup. Historical records remain literal.
   Exact record: `tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md`.
+
+## 2026-08-29 — ROOT-qualified Unit4/N14 source and semantic acceptance
+
+- Exact source `7196bace8ea2c141d5ed1020fef5bf721c321ace`, selected composition
+  `bf079ada185a79aec864b068f3738ddc5520822e`,293 selected inputs, full954 package
+  SHA256 `3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`.
+  Accepted core through Unit3 only; no Node/live-HEAD overlay or default80 change.
+- ROOT accepts the finite source/semantic evidence in `be7d4b98`:744 literal
+  outcomes =672 author +48 prior novel +24 new identity; separate6 type groups/
+  24 exact negatives,2 loaded mutant kills/2 restores and2 binding refusals.
+  Source adjudication `c6992dfa` establishes expected package/loader identity before
+  consumer execution, not before the original package inflation/parsing.
+- The original campaign remains **CLOSED/noncompliant** with the required
+  pre-inflate admission ordering. No retrospective repair, rescore, or complete
+  end-to-end campaign-compliance claim. Prospective `aede1639`, preseal `9cbb83c9`,
+  separately passes12 controls (including loaded ordering-mutant kill/restore) and
+  one correctly admitted retained954-member inflate/parse, with no product rerun.
+  Future coherent actual validation must use the corrected gate contemporaneously.
+- Accepted profile: evaluated undefined scalar arithmetic reads under nounset
+  fail while present-empty reads remain0; existing checked64/indexed-refusal/lazy
+  semantics remain bounded. Supported `set` flags mutate incrementally before an
+  invalid-tail diagnostic; existing errexit/sh-mode policies remain. Bare `-o`/
+  `+o` expose only errexit/nounset/pipefail listing/replay, not the full GNU table.
+  N14 preserves private diagnostic provenance only through the exact non-async
+  returned invocation Promise, preserving raw falsy identity and caller/cleanup
+  precedence. Transformed/async promises do not inherit that guarantee.
+- Preserve original681/684, all N14/startup/fixture/admission/publication failures,
+  and the separate prospective cohort. Original40 direct children plus4 outer
+  roles closed;30 loader admissions are not individual observed loader exits.
+  Administrative census, private/source-only and resource qualifications remain;
+  no all-process, hard-RSS or native lifetime claim.
+- Five OPEN IDs: `U27`, `S-U27-INPUT-UNIT-v1`, `S-U28-PRESENCE-v1`,
+  `S-U31-STDIN-v1`, `E23-source-discard`. Native parity remains UNRUN; provisional
+  nounset status1 and diagnostic/listing/aggregate-DISCARD/invocation questions
+  are not GNU goldens or complete Bash compatibility. No Node-plus-Unit4,
+  live-HEAD/global-gate or comparator acceptance. This publication is docs-only.
+  Exact record: `tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/ROOT-ACCEPTANCE.md`.

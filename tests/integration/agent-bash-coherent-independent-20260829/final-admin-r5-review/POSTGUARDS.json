@@ -1,0 +1,90 @@
+{
+  "utc": "2026-08-29T15:49:28.131Z",
+  "bindingsVerified": 101,
+  "unusedPaths": 6,
+  "ownedFileCount": 43,
+  "ownedLogicalBytes": 239820,
+  "notRSS": true,
+  "notGlobalCensus": true,
+  "references": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/publish.mjs",
+      "lines": [
+        {
+          "line": 140,
+          "text": "    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) throw Error('Startup capture admission');"
+        },
+        {
+          "line": 144,
+          "text": "  ledger.charge(8192 - startupBytes);"
+        },
+        {
+          "line": 193,
+          "text": "    const startup = binding.outputs.startupCaptures.map(file => {"
+        },
+        {
+          "line": 195,
+          "text": "      if (!stat.isFile() || stat.size > 4096) throw Error('Startup reserved tail exceeded');"
+        },
+        {
+          "line": 199,
+          "text": "    const value = { schema: 'b1-publication-final-v2', atUTC: new Date().toISOString(), terminal, faults: { primaryPresent: state.primaryPresent, primary: state.primary, secondary: state.secondary }, knownStartsThroughReceipt: countPublication(auth.ownerAdmission, publisherStart, terminal.children).knownStarts, ownedRoleLedger: { prior: auth.ownerAdmission.starts, publisher: publisherStart, children: terminal.children, ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', namedUnusedReservations: ['git-add', 'git-commit', 'git-receipt'].filter(role => !terminal.children.some(child => child.role === role && child.pid)) }, knownChildRetirement: unknownChild ? 'UNKNOWN' : terminal.children.every(child => child.exitObserved && child.closeObserved) ? 'OBSERVED_FOR_RECORDED_CHILDREN_ONLY' : 'UNKNOWN', accounting: ledger.snapshot(), measuredBeforeFinalWrite: measured, reservedAfterCensusBytes: 1048576, noFullCensus: true, noGuaranteedDurableCapture: true, commitMayBeAbsent: true };"
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+      "lines": [
+        {
+          "line": 53,
+          "text": "    \"startupCaptures\": ["
+        },
+        {
+          "line": 54,
+          "text": "      \"/private/tmp/coherent-b1-r5-owner.stdout\","
+        },
+        {
+          "line": 55,
+          "text": "      \"/private/tmp/coherent-b1-r5-owner.stderr\","
+        },
+        {
+          "line": 56,
+          "text": "      \"/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout\","
+        },
+        {
+          "line": 57,
+          "text": "      \"/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr\""
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+      "lines": [
+        {
+          "line": 20,
+          "text": "  assert.equal(process.env.B1_ADMIN_ROOT_GO, 'ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION');"
+        },
+        {
+          "line": 37,
+          "text": "  const runtime = await owner.run('runtime-coordinator', packet.runtimeCommand.executable, packet.runtimeCommand.argv, 1620000);"
+        },
+        {
+          "line": 50,
+          "text": "    owner.rows.push({ id: `runtime-child-${child.pid}`, role: child.role, pid: child.pid, startUTC: new Date(Date.parse(runtime.row.startUTC) + child.elapsedMs).toISOString(), startObserved: true, exitObserved: true, closeObserved: true, stdoutEnd: null, stderrEnd: null, qualification: 'Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.', exitCode: exit.status, closeCode: close.status });"
+        },
+        {
+          "line": 61,
+          "text": "    owner.rows.push({ id: `publisher-child-${child.pid}`, role: child.role, pid: child.pid, startUTC: child.startedUTC, startObserved: true, exitObserved: true, closeObserved: true, stdoutEnd: null, stderrEnd: null, qualification: 'Publisher exit/close records; no inferred stream EOF.' });"
+        },
+        {
+          "line": 64,
+          "text": "  owner.persist(packet.slots.finalReceipt, { outcome: 'REPORTED_NOT_COHERENT_ACCEPTANCE', runtimeStatus: runtime.row.exitCode, publisherStatus: result.publication.row.exitCode, published: published.identity, snapshot: owner.snapshot(), ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', qualification: 'Direct tool return may externally qualify owner exit, not self-certified full census.' });"
+        },
+        {
+          "line": 67,
+          "text": "  if (owner) { owner.terminal = true; try { owner.persist(packet.slots.failureReceipt, { primaryPresent: true, primary: { type: reason === null ? 'null' : typeof reason, value: ['string', 'number', 'boolean'].includes(typeof reason) ? reason : undefined }, detail: reason instanceof Error ? reason.message.slice(0, 512) : undefined, snapshot: owner.snapshot(), ownerDisposition: 'EXIT_PENDING_EXTERNAL_OBSERVATION', result: 'UNKNOWN_OR_STOP_NO_RETRY' }); } catch {} }"
+        }
+      ]
+    }
+  ]
+}

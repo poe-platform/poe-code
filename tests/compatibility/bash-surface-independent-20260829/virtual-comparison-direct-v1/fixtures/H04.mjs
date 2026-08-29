@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const role=JSON.parse(fs.readFileSync(process.env.SURFACE_ROLE));
+const events=[];let timer,finish;
+const task=new Promise(resolve=>{finish=resolve;});
+let cleanupPromise;
+const cleanup=()=>cleanupPromise??=(async()=>{clearTimeout(timer);finish();await task;events.push('cleanup-settled');})();
+events.push('cleanup-registered');timer=setTimeout(()=>finish(),10000);events.push('resource-acquired');
+const controller=new AbortController();controller.signal.addEventListener('abort',()=>{void cleanup();},{once:true});
+controller.abort(0);await cleanup();await cleanup();
+if(controller.signal.reason!==0||events.join(',')!=='cleanup-registered,resource-acquired,cleanup-settled')throw Error('CLEANUP_IDENTITY');
+process.stdout.write(JSON.stringify({id:'H04',events,reason:0,extraOwnedChildren:0,extraWorkers:0,qualification:'harmless fixture lifecycle, not product private cleanup census',publicSettlement:{execObserved:true,disposeSettled:true,disposeRejected:false},profile:role.profile})+'\n');

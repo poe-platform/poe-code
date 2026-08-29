@@ -1,0 +1,92 @@
+{
+  "schema": "direct-profile-control-protocol-v1",
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "authority": "ROOT selects B and authorizes new scoped source/preseal plus6DATA/4harmless controls; no111product activation",
+  "phase": {
+    "started": 1787996811318,
+    "deadline": 1787998011318,
+    "knownOSMaximum": 48,
+    "peakKnownRoles": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "controlEnvelope": {
+    "dataIds": [
+      "D01",
+      "D02",
+      "D03",
+      "D04",
+      "D05",
+      "D06"
+    ],
+    "harmlessIds": [
+      "H01",
+      "H02",
+      "H03",
+      "H04"
+    ],
+    "normalHarmlessChildren": 4,
+    "unexpectedExtraChildCleanupCeiling": 2,
+    "unexpectedExtraWorkerCleanupCeiling": 2,
+    "unexpectedAdmissionIsStop": true,
+    "perFixtureMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "finalizationTailMs": 60000,
+    "perStreamBytes": 65536,
+    "nestedCaptureBytes": 8388608,
+    "loaderThreads": 0,
+    "productWorkers": 0
+  },
+  "launch": {
+    "owner": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "entry": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/controls.mjs",
+    "argv": [
+      "CONTROL-SEAL.json",
+      "<raw sha256>",
+      "/private/tmp/bash-surface-direct-profile-v1-W8SgWF/controls"
+    ],
+    "env": "Fresh PATH=/usr/bin:/bin HOME=capture LC_ALL=C LANG=C TZ=UTC; no NODE_OPTIONS. Case children use fresh exact role env and --permission; only owned app/role/trace read + exacttrace write; no child/worker/addon/WASI/inspector grant.",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "childCwd": "/private/tmp/bash-surface-direct-profile-v1-W8SgWF/controls",
+    "capture": "Outer metadata helper opens stdout/stderr before spawning controls owner. Owner opens each fixture stdout/stderr before acquisition; direct listeners enrolled before assertions.",
+    "processGroup": "No processgroup probes/signals; detached:false, ChildProcess-object signals only for necessary cleanup."
+  },
+  "subprocessTargets": {
+    "H01": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/extra-child.mjs",
+    "H02": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/extra-worker.mjs",
+    "executables": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+    ],
+    "nativeShellTargets": [],
+    "qualification": "Exact harmless self-terminating Node source. Enroll unexpected returned objects before assertions, attempt cleanup; unexpected admission STOP, not passed denial."
+  },
+  "product": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "identityKind": "DERIVED_COMPOSITION_NOT_GIT_OBJECT",
+    "closure": "Await Dirac accepted manifest/blob/archive locator recipe; no invalid Git lookup or product import",
+    "scripts": 37,
+    "fixtures": 4,
+    "plannedCalls": 111,
+    "actualCalls": 0,
+    "withheld": [
+      "B26",
+      "B27",
+      "B28"
+    ]
+  },
+  "claims": {
+    "denial": "Pinned Node permission behavior on sealed trusted code; not hostile-code OS sandbox",
+    "cleanup": "Actual public exec/dispose receipt only after awaited calls, accepted-contract interpretation separate; no middleware/private job census",
+    "threads": "Synchronous load hooks, zero custom loader-thread permission; no census of V8/libuv runtime threads",
+    "history": "M08 groupUNKNOWN immutable, previous native observations unchanged"
+  },
+  "presealOrder": [
+    "Write source/tool/fixture/protocol bytes",
+    "Hash actual regular files",
+    "Commit source and controlseal",
+    "Authenticate all seal/tool bytes before owner launch",
+    "Run exactly6DATA then4harmless unless STOP",
+    "Publish all raw results and unknowns; different review before any111 grant"
+  ]
+}

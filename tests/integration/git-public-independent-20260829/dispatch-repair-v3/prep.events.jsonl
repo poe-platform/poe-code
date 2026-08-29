@@ -1,0 +1,21 @@
+{"event":"outer-prep-capture-created","startedAt":"2026-08-29T03:44:33.393Z","startMs":1787975073393,"grant":"Fresh20min32ALLprocessespeak3 SOURCE/DATA/6harmlesscontrols then conditional ONEactual-v2","maxPrepSeconds":1200,"maxPrepProcesses":32,"actualActivated":false,"oldHold":"7497843d35f663b87048eeeeadc7a9fa0c5bfa37","sourceScope":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3"}
+{"event":"before-spawn","label":"initial-status","args":["status","--porcelain=v1","-z"]}
+{"event":"closed","label":"initial-status","pid":18358,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"initial-index","args":["diff","--cached","--binary"]}
+{"event":"closed","label":"initial-index","pid":18396,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"apply-patch-dispatch","conservativeEditingHelperReserve":1}
+{"event":"closed","label":"apply-patch-dispatch","pid":21525,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"apply-patch-byte-fixture","conservativeEditingHelperReserve":1}
+{"event":"closed","label":"apply-patch-byte-fixture","pid":22223,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"stage-control-freeze","args":["add","--","tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-FIXTURES.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-PRESEAL.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/PRECONTROL-TOOL.json"]}
+{"event":"closed","label":"stage-control-freeze","pid":22706,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"check-control-freeze","args":["diff","--cached","--check","--","tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-FIXTURES.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-PRESEAL.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/PRECONTROL-TOOL.json"]}
+{"event":"closed","label":"check-control-freeze","pid":22707,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"commit-control-freeze","args":["commit","--only","-m","test: preseal self-contained public80 dispatch controls","--","tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-FIXTURES.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/CONTROL-PRESEAL.json","tests/integration/git-public-independent-20260829/dispatch-repair-v3/PRECONTROL-TOOL.json"]}
+{"event":"closed","label":"commit-control-freeze","pid":22708,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"control-freeze-identity","args":["rev-parse","HEAD"]}
+{"event":"closed","label":"control-freeze-identity","pid":22714,"status":0,"signal":null,"errorPresent":false}
+{"event":"control-cli-enrolled-before-tool-exec","knownOwnedNestedTinyChildMaximum":1,"codeFrozen":"7b2cea72044957ab06faa374365cc98d12618515","toolRole":"exec-replaced pinned Python; no CLI agent","captureOpened":true}
+{"event":"control-cli-natural-close","exit":0,"signal":null,"realNestedChildren":1,"allConditionsPass":true}
+{"event":"before-spawn","label":"apply-patch-supplement-doc","conservativeEditingHelperReserve":1}
+{"event":"closed","label":"apply-patch-supplement-doc","pid":24217,"status":0,"signal":null,"errorPresent":false}

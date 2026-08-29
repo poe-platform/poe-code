@@ -1,0 +1,246 @@
+{
+  "toolExit": 0,
+  "toolSignal": null,
+  "toolResult": "b66e56",
+  "entry": {
+    "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-pikmhgvx",
+    "result": {
+      "primaryPresent": false,
+      "cleanupPresent": false,
+      "childAttempts": 0,
+      "children": [],
+      "execAttempted": false,
+      "closed": true,
+      "captureCloseFailures": []
+    }
+  },
+  "summaryPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-pikmhgvx/CONTROL-RESULT.json",
+  "summarySha256": "664525b8fa7570e90476ddccd02c49d3ff860f4c58634c6b7f1b366f549ae27f",
+  "summary": {
+    "rows": [
+      {
+        "id": "C01-missing-reference",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C01-missing-reference-btuihf92",
+        "result": {
+          "primaryPresent": true,
+          "cleanupPresent": false,
+          "childAttempts": 0,
+          "children": [],
+          "execAttempted": false,
+          "closed": true,
+          "primary": "name 'missing_reference_for_control' is not defined",
+          "primaryType": "NameError",
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "7819a63d1750356f913b2aeeb839e3a5264e4743941524c8677697e24b1514ed"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "6ed1b770cf1636ed8c8160d278ec60eb57e5424754c668f06583dd6a8b6a7ed3"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "4365dd4503055f3670199bbbcc37cf547a71f30cc8100a699d75dedd446a4310"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "id": "C02-preauth-throw",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C02-preauth-throw-96b5xij7",
+        "result": {
+          "primaryPresent": true,
+          "cleanupPresent": false,
+          "childAttempts": 0,
+          "children": [],
+          "execAttempted": false,
+          "closed": true,
+          "primary": "PREAUTH_SENTINEL",
+          "primaryType": "RuntimeError",
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "a1e484f23e04c660a8ab3d6e71d82a53e9daf18c86b39022387c00e75b3bcb45"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "3447c4dd2a864bb6d12ae98ae18fa50727346a963d24dd7d8fd92836fad3979b"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "3b7d7209c09b2a97f99c4bb630e90d22a77eb1ee0b01b56fd63a0893a8fd1498"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "id": "C03-exec-spawn-failure",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C03-exec-spawn-failure-h9jp9pz5",
+        "result": {
+          "primaryPresent": true,
+          "cleanupPresent": false,
+          "childAttempts": 0,
+          "children": [],
+          "execAttempted": true,
+          "closed": true,
+          "primary": "EXEC_SENTINEL",
+          "primaryType": "OSError",
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "b6dec6a9386807df2d7f9e030d68bfb1b3b0ce7d3e640e4ac3cb458a8002b5c3"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "3f991cc08eabfbf38ab9e8c42d9aafb420bb74ec0385620e40f0b00bfe03a808"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "f315d68d1afa968ef8f338423581b7d43edd4d788977260cd0ec4849d32f1e88"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "id": "C04-falsy-primary-cleanup",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C04-falsy-primary-cleanup-sa57vagu",
+        "result": {
+          "primaryPresent": true,
+          "cleanupPresent": true,
+          "childAttempts": 0,
+          "children": [],
+          "execAttempted": false,
+          "closed": true,
+          "primary": false,
+          "primaryType": "PrimaryValue",
+          "cleanup": "CLEANUP_SENTINEL",
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "6ba7b3fd576bb7b6bdc7b69d8286b2386ff90d098abfc61e475b5899a3acb5d2"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "035cd022aeb55ca2a65088bdae91afddc27bde63f725cacdb4f8c6a8a111ed9c"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "deeb608a0b5e49ed7703b88d0de8c1bed3276f2e5f198e6bd91f051259216ec2"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "id": "C05-normal-tiny-child",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C05-normal-tiny-child-zwbx3fdu",
+        "result": {
+          "primaryPresent": false,
+          "cleanupPresent": false,
+          "childAttempts": 1,
+          "children": [
+            {
+              "enrolledBeforeSpawn": true,
+              "closed": true,
+              "signals": [],
+              "pid": 22786,
+              "code": 0,
+              "stdout": "TINY_OK\n",
+              "stderr": "TINY_ERR\n"
+            }
+          ],
+          "execAttempted": false,
+          "closed": true,
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "84d5bf67ddadfdb8bf5ea7a810614fbe35f93a1cd99f0888c84e65091fd4b35e"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "4cad990ac20da8846d5d2e266a75f3a85e650f1471ce9f13dc0642d6f246dc07"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "e3e08de6963d9b1e296635ccd73f11d4d5252df09ea9a0dffd740e0371b100cb"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "e7eec230e6dc69e47f8e50cf7c6fd1ecefc73a8f02f5b95f8ffb3162f78c94c2"
+          }
+        ]
+      },
+      {
+        "id": "C06-capture-closure",
+        "pass": true,
+        "directory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/C06-capture-closure-6cwpjrr0",
+        "result": {
+          "primaryPresent": false,
+          "cleanupPresent": false,
+          "childAttempts": 0,
+          "children": [],
+          "execAttempted": false,
+          "closed": true,
+          "captureCloseFailures": []
+        },
+        "files": [
+          {
+            "path": "RESULT.json",
+            "sha256": "745a0a4e9bec7c646f543e34bbb1b57f0b9c1cc75e71f83a517b50ad523f5c0a"
+          },
+          {
+            "path": "events.jsonl",
+            "sha256": "b77071af4e7296050032bcfc61c03d3c786419ba9df39be281a085b67d773984"
+          },
+          {
+            "path": "stderr.raw",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "stdout.raw",
+            "sha256": "82530e99182d91bb702fcd5ffd8d45b0691255e59a70e52a90e4e35b7b41ccce"
+          }
+        ]
+      }
+    ],
+    "pass": 6,
+    "fail": 0,
+    "childAttempts": 1,
+    "realChildren": 1,
+    "product": 0,
+    "loader": 0,
+    "regex": 0,
+    "sourceSha256": "3270b11f5cdbc13b7c4f3ec9175d0938ded7b1f68571aea4e20f06f2d2173c77"
+  },
+  "originalRawStdoutSha256": "03e805627d1b8442ccc695f4ece0d0a6ce0ca253b661ee88c353566c92c0e546",
+  "originalRawStderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "qualification": "Six new control identities only; exec failure is synthetic; one actual harmless Python child; no product/loader/Regex.",
+  "allConditionsPass": true
+}

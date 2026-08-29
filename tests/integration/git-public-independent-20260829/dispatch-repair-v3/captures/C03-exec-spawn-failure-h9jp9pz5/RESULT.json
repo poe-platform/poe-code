@@ -1,0 +1,11 @@
+{
+  "primaryPresent": true,
+  "cleanupPresent": false,
+  "childAttempts": 0,
+  "children": [],
+  "execAttempted": true,
+  "closed": true,
+  "primary": "EXEC_SENTINEL",
+  "primaryType": "OSError",
+  "captureCloseFailures": []
+}

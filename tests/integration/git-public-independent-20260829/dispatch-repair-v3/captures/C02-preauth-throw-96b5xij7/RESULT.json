@@ -1,0 +1,11 @@
+{
+  "primaryPresent": true,
+  "cleanupPresent": false,
+  "childAttempts": 0,
+  "children": [],
+  "execAttempted": false,
+  "closed": true,
+  "primary": "PREAUTH_SENTINEL",
+  "primaryType": "RuntimeError",
+  "captureCloseFailures": []
+}

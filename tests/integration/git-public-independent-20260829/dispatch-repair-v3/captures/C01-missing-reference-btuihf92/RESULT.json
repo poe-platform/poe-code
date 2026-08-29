@@ -1,0 +1,11 @@
+{
+  "primaryPresent": true,
+  "cleanupPresent": false,
+  "childAttempts": 0,
+  "children": [],
+  "execAttempted": false,
+  "closed": true,
+  "primary": "name 'missing_reference_for_control' is not defined",
+  "primaryType": "NameError",
+  "captureCloseFailures": []
+}

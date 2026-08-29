@@ -1,0 +1,3 @@
+(node:28201) SecurityWarning: The flag --allow-child-process must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+AUTHOR_FINALIZATION_FAILURE {"present":true,"isUndefined":false,"name":null,"message":"Access to this API has been restricted"}

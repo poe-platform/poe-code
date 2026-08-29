@@ -1,0 +1,150 @@
+{
+  "schema": "startup-source-attribution-v1",
+  "checksRole": "8 source/data comparisons, NOT target/fence/semantic tests",
+  "checks": [
+    {
+      "id": "same-node-argv",
+      "pass": true
+    },
+    {
+      "id": "same-six-key-environment",
+      "pass": true
+    },
+    {
+      "id": "same-owned-cwd",
+      "pass": true
+    },
+    {
+      "id": "exact-original-profile-prefix",
+      "pass": true
+    },
+    {
+      "id": "four-direct-node-libraries-listed",
+      "pass": true
+    },
+    {
+      "id": "libsandbox-not-explicit-literal",
+      "pass": true
+    },
+    {
+      "id": "d03-regular-completion-not-eof",
+      "pass": true
+    },
+    {
+      "id": "historical-pair-results-retained",
+      "pass": true
+    }
+  ],
+  "history": [
+    {
+      "id": "F01",
+      "pid": 73818,
+      "started": 1787978069351,
+      "finished": 1787978069492,
+      "utcStart": "2026-08-29T04:34:29.351Z",
+      "utcFinish": "2026-08-29T04:34:29.492Z",
+      "status": null,
+      "signal": "SIGABRT",
+      "readiness": false,
+      "qualification": "Historical receipt, not rerun or rescore"
+    },
+    {
+      "id": "D01-unfenced-readiness",
+      "pid": 93673,
+      "started": 1787978924884,
+      "finished": 1787978924923,
+      "utcStart": "2026-08-29T04:48:44.884Z",
+      "utcFinish": "2026-08-29T04:48:44.923Z",
+      "status": 0,
+      "signal": null,
+      "readiness": true,
+      "qualification": "Historical receipt, not rerun or rescore"
+    },
+    {
+      "id": "D02-original-fence-readiness",
+      "pid": 93674,
+      "started": 1787978924925,
+      "finished": 1787978924949,
+      "utcStart": "2026-08-29T04:48:44.925Z",
+      "utcFinish": "2026-08-29T04:48:44.949Z",
+      "status": null,
+      "signal": "SIGABRT",
+      "readiness": false,
+      "qualification": "Historical receipt, not rerun or rescore"
+    },
+    {
+      "id": "D03-regular-fd-readiness",
+      "pid": 17408,
+      "started": 1787979984416,
+      "finished": 1787979984461,
+      "utcStart": "2026-08-29T05:06:24.416Z",
+      "utcFinish": "2026-08-29T05:06:24.461Z",
+      "status": null,
+      "signal": "SIGABRT",
+      "readiness": false,
+      "qualification": "Historical receipt, not rerun or rescore"
+    }
+  ],
+  "sourceReceipts": [
+    {
+      "commit": "2269ad58d915c2576270154f23ab3ff7d8540cfe",
+      "file": "ACTUAL-RESULTS.json",
+      "gitBlob": "4595f9d282fb8beb3ce12bd7adca944253967981",
+      "bytes": 3671,
+      "sha256": "185fed171e3443da2b6256bd7b1f0ffdf14fe770fa67c2549854eb4aaff75a70"
+    },
+    {
+      "commit": "f25e8b68b3c893cfe167b2516356d069b174b559",
+      "file": "diagnosis-v1/RESULTS.json",
+      "gitBlob": "fba2e9705d43a1df9fad586e348ed907548f0430",
+      "bytes": 4019,
+      "sha256": "581261adb99fec0a68a847340bf7ff58c2344c40dd03c321aa92c60b102b4d50"
+    },
+    {
+      "commit": "75e27a1715c4ac00e978adf5286a708a3e49e085",
+      "file": "capture-transport-v1/RESULTS.json",
+      "gitBlob": "ab03e3304d6f08fd6121924a532b88c017a6e5e4",
+      "bytes": 4223,
+      "sha256": "ecc34ee44bd054603c3ccc870b74c38a2f095edec59b12b2cd3678a7235ca1c4"
+    },
+    {
+      "commit": "134b94d90a4639aeb1c47c9688f6c010de8902ff",
+      "file": "capture-transport-v1/PLAN.json",
+      "gitBlob": "901c929af94034c477641f531d99a8ef954dcf9a",
+      "bytes": 4695,
+      "sha256": "e8e2253c0bbacbd9de3591b84b81f3916ee06ad8262086391b37a298793efb2f"
+    }
+  ],
+  "profilePrefixBytes": 5745,
+  "profileAddedBytes": 383,
+  "nodeDirectDependencies": [
+    "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+    "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+    "/usr/lib/libc++.1.dylib",
+    "/usr/lib/libSystem.B.dylib"
+  ],
+  "absentWrapperLiteral": "/usr/lib/libsandbox.1.dylib",
+  "absentWrapperLiteralMeaning": "Source difference only: no evidence this path needs a post-fence read; not a proposed allowance or cause",
+  "remainingBoundary": "No sandbox_init success/exec transition/loaded-image/native-entry witness",
+  "metadataCommandReceipt": {
+    "number": 9,
+    "label": "macho-linkage-metadata",
+    "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+    "args": [
+      "--macho",
+      "--dylibs-used",
+      "--rpaths",
+      "/usr/bin/sandbox-exec",
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+    ],
+    "started": 1787980747034,
+    "exit": true,
+    "close": true,
+    "errors": [],
+    "bytes": 904,
+    "pid": 45192,
+    "status": 0,
+    "signal": null,
+    "finished": 1787980747293
+  }
+}

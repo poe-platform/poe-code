@@ -1,0 +1,337 @@
+{
+  "schema": "startup-attribution-source-auth-v1",
+  "at": 1787980958062,
+  "files": [
+    {
+      "path": "FINDINGS.json",
+      "bytes": 4553,
+      "sha256": "02e612c6f441d0740d71238bf5ce79e47d101b30d031e9a4e9ce446363e84e95"
+    },
+    {
+      "path": "LINKAGE.stdout",
+      "bytes": 904,
+      "sha256": "2b76d4e19195374c9210b5e9932c2298cf75988fc7bf956688012375da071aaf"
+    },
+    {
+      "path": "METADATA.json",
+      "bytes": 8487,
+      "sha256": "368ee3b38024cc8bb70158bb3d8c90aeae811aa07c94c0edb24312e7aae837b8"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2353,
+      "sha256": "8cf237c4199f0313740009db69996b7a07d4f1ff43437f7def3020fde80fe913"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 7918,
+      "sha256": "07ad2cc80d6d88b76e175dc3d396341318ea3b61d015d8518b1a85e2c9cecd37"
+    },
+    {
+      "path": "admin.mjs",
+      "bytes": 4450,
+      "sha256": "fae7380bd99fd392ba1516920873196c38b5aec2283191cc3acc651df0cf256a"
+    },
+    {
+      "path": "metadata-admin.mjs",
+      "bytes": 4450,
+      "sha256": "fae7380bd99fd392ba1516920873196c38b5aec2283191cc3acc651df0cf256a"
+    }
+  ],
+  "raw": {
+    "path": "RAW-CAPTURE.json.gz.base64",
+    "encoding": "base64+LF(gzip(JSON+LF))",
+    "sourceBytes": 146671,
+    "jsonBytes": 201730,
+    "jsonSha256": "95875f3cd86125aa00b725636461cb1566997f417ea5f15c789630adc406be55",
+    "gzipBytes": 63385,
+    "gzipSha256": "2bc1743a8b0f6df0cacfd712a13b2cd5538786bb79a765463f0478dd3a8668dd",
+    "encodedSha256": "2ec350851c416055705d162a276fd073bc3172650489e0ca832f15e3e4b6286d"
+  },
+  "referenceRows": [
+    {
+      "ref": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3:tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/TOOL-REBINDING.json",
+      "header": "309fceca9b787eaf7308520d26d4b3e4ce69a6b9 blob 1859",
+      "sha256": "8b10b1e4d39216d0c551c5341789c636041b30b5f958f7ae9a400766a328ac86"
+    },
+    {
+      "ref": "86038b27d1bee03333f13560e374ad407db417b8:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+      "header": "27874ce680f8ab31c38e4f9ee98e366ce05d58f2 blob 6010",
+      "sha256": "0be2d726ef3bb3092b0fb02c8bcb1c2837b2d9a782bb75b5ea88b1cd53921d06"
+    },
+    {
+      "ref": "86038b27d1bee03333f13560e374ad407db417b8:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "header": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9 blob 7580",
+      "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+    },
+    {
+      "ref": "86038b27d1bee03333f13560e374ad407db417b8:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+      "header": "bb44d03dfe124a336db8964ef138b0c8d698b0e3 blob 6427",
+      "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+    }
+  ],
+  "currentMetadataToolPostHash": true,
+  "cache13MetadataEqual": true,
+  "role": "Source/DATA only; no runtime or fence acceptance",
+  "stateCutoff": {
+    "schema": "source-metadata-phase-v1",
+    "started": 1787980447269,
+    "deadline": 1787981647269,
+    "limits": {
+      "allProcesses": 40,
+      "peak": 3,
+      "captureBytes": 67108864,
+      "workBytes": 268435456
+    },
+    "direct": [
+      {
+        "number": 1,
+        "label": "initial-status",
+        "exe": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "status",
+          "--porcelain=v1",
+          "--untracked-files=no"
+        ],
+        "started": 1787980536822,
+        "errors": [],
+        "exit": true,
+        "close": true,
+        "pid": 35960,
+        "stderrEOF": true,
+        "stdoutEOF": true,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980537018
+      },
+      {
+        "number": 2,
+        "label": "bootstrap-helper",
+        "exe": "apply_patch",
+        "args": [],
+        "started": 1787980537019,
+        "errors": [],
+        "exit": true,
+        "close": true,
+        "pid": 35961,
+        "stderrEOF": true,
+        "stdoutEOF": true,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980537051
+      },
+      {
+        "number": 3,
+        "label": "reference-sources",
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.fsmonitor=false",
+          "cat-file",
+          "--batch"
+        ],
+        "started": 1787980553734,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 22084,
+        "pid": 36349,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980553782
+      },
+      {
+        "number": 4,
+        "label": "reference-linkage",
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "-c",
+          "core.fsmonitor=false",
+          "cat-file",
+          "--batch"
+        ],
+        "started": 1787980572978,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 0,
+        "pid": 36712,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980573013
+      },
+      {
+        "number": 5,
+        "label": "reference-linkage-input",
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.fsmonitor=false",
+          "cat-file",
+          "--batch"
+        ],
+        "started": 1787980586524,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 1153,
+        "pid": 37842,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980586572
+      },
+      {
+        "number": 6,
+        "label": "bind-metadata-only",
+        "executable": "apply_patch",
+        "args": [],
+        "started": 1787980703056,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 139,
+        "pid": 42671,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980703082
+      },
+      {
+        "number": 7,
+        "label": "apply-owned",
+        "executable": "apply_patch",
+        "args": [],
+        "started": 1787980703086,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 244,
+        "pid": 42672,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980703105
+      },
+      {
+        "number": 8,
+        "label": "apply-owned",
+        "executable": "apply_patch",
+        "args": [],
+        "started": 1787980735941,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 148,
+        "pid": 44535,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980735961
+      },
+      {
+        "number": 9,
+        "label": "macho-linkage-metadata",
+        "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+        "args": [
+          "--macho",
+          "--dylibs-used",
+          "--rpaths",
+          "/usr/bin/sandbox-exec",
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+        ],
+        "started": 1787980747034,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 904,
+        "pid": 45192,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980747293
+      },
+      {
+        "number": 10,
+        "label": "historical-receipt-auth",
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.fsmonitor=false",
+          "cat-file",
+          "--batch"
+        ],
+        "started": 1787980777074,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 16816,
+        "pid": 47491,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980778405
+      },
+      {
+        "number": 11,
+        "label": "apply-owned",
+        "executable": "apply_patch",
+        "args": [],
+        "started": 1787980921135,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 350,
+        "pid": 52751,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980921156
+      },
+      {
+        "number": 12,
+        "label": "owned-diff-check",
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "-c",
+          "core.fsmonitor=false",
+          "diff",
+          "--check",
+          "--",
+          "tests/compatibility/bash-surface-independent-20260829/provider-v1/startup-attribution-v1"
+        ],
+        "started": 1787980921157,
+        "exit": true,
+        "close": true,
+        "errors": [],
+        "bytes": 0,
+        "pid": 52752,
+        "status": 0,
+        "signal": null,
+        "finished": 1787980921210
+      }
+    ],
+    "active": 0,
+    "halted": false,
+    "captureBytes": 41977,
+    "prelaunchHelperFailure": {
+      "kind": "unsupported data URL import",
+      "children": 0,
+      "targetLaunches": 0
+    }
+  },
+  "scopeWorkSnapshotBytes": 444901
+}

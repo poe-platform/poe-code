@@ -1,0 +1,52 @@
+{
+  "time": "2026-08-29T07:38:31.491Z",
+  "analysisStatus": "UNSAFE_STOP",
+  "processesThroughThisController": 33,
+  "receipts": [
+    {
+      "id": "add",
+      "pid": 85896,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "closed": true,
+      "capturesClosed": true
+    },
+    {
+      "id": "commit",
+      "pid": 85956,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "closed": true,
+      "capturesClosed": true
+    }
+  ],
+  "evidenceManifestSha256": "bdc2e0ab0103c6c0fdaad53fcf7514ef88c05ed066bd1b1f58d1f1ef27f98c4e",
+  "finalReceiptCommitToolsNotYetExecuted": 3,
+  "sourceEvidenceCommit": "826906c06003119e839c819d6fee6d63f6c57fe1",
+  "publicationInspection": {
+    "processesThroughSourceCommitLookup": 35,
+    "receipt": {
+      "pid": 87513,
+      "status": 0,
+      "signal": null,
+      "stdout": "826906c06003119e839c819d6fee6d63f6c57fe1\n",
+      "stderr": "",
+      "error": null
+    },
+    "finalFourToolsPlanned": [
+      "git add explicit publication paths",
+      "git commit --only explicit publication paths",
+      "git log own PUBLICATION.json",
+      "git status owned scope"
+    ],
+    "plannedTotalKnownProcesses": 39,
+    "priorAnalysisGitChildren": 13,
+    "priorAnalysisGitChildrenClosed": 13
+  }
+}

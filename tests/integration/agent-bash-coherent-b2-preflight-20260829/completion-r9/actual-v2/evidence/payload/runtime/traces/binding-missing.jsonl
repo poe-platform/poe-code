@@ -1,0 +1,2 @@
+{"kind":"authenticated-source-prepared","url":"file:///private/tmp/safe-bash-b2-runtime-r9/physically-moved/__consumer/strict.mjs","member":"harness/strict.mjs","sha256":"c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"}
+{"kind":"binding-refusal","alteration":"missing","member":"dist/index.js","filename":"/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/index.js","identity":"B2_BINDING_REFUSAL:missing:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/index.js"}

@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-08-29T17:36:06.191Z",
+  "sessionId": 29532,
+  "launchChunk": "121882",
+  "terminalChunk": "168ea4",
+  "exitCode": 0,
+  "outputBytes": 0,
+  "singleRuntimeAttempt": true,
+  "toolReport": "Process exited with code 0",
+  "qualification": "Tool-observed terminal status; child exit/close evidence inspected separately"
+}

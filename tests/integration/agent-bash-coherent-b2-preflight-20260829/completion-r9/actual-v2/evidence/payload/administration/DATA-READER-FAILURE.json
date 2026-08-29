@@ -1,0 +1,8 @@
+{
+  "at": "2026-08-29T17:38:14.692Z",
+  "phase": "post-runtime DATA classification",
+  "exactToolMessage": "cases.map is not a function",
+  "cause": "DATA reader supplied stdout text where frozen classifier expects parsed JSONL records; runtime already exited0; no product retry",
+  "newOSChildren": 0,
+  "recordIs": "tool-message transcription, not invented process stderr"
+}

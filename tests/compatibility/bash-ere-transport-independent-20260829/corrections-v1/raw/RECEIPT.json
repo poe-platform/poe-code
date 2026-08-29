@@ -1,0 +1,22 @@
+{
+  "pid": 24538,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "observed": [
+    114,
+    0
+  ],
+  "retained": [
+    114,
+    0
+  ],
+  "errors": [],
+  "preflight": true,
+  "postflight": true
+}

@@ -1,0 +1,405 @@
+{
+  "schema": "PRIVATE_ERE_CORRECTIVE_REVIEW_PUBLICATION",
+  "verdict": "SOURCE_HOLD",
+  "review": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/REVIEW.json",
+    "bytes": 994,
+    "mode": 420,
+    "sha256": "3d5caff6eb5979f9cd52281389782ff75f78e579ca65ba5ad475d1c4316549cb"
+  },
+  "guards": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/REVIEW-PACKET-v2.md",
+      "bytes": 5556,
+      "mode": 420,
+      "sha256": "2fbabd8fa01459a2813afbd829f91415ed9d6f245a876d7a5dec4e20530a17fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/REVIEW-BINDINGS-v2.json",
+      "bytes": 12104,
+      "mode": 420,
+      "sha256": "81af535ad3fe6e4eeffc61626446369a675a56cf54fcd208b0dacb1e3da66b24"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/ROOT-POLICY-DECISION.md",
+      "bytes": 5278,
+      "mode": 420,
+      "sha256": "e21f3c309f7c4590a71768e3933af2d40f02c9abeae8a1fc17319b36cb9622b1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/ROOT-POLICY-MANIFEST.json",
+      "bytes": 4355,
+      "mode": 420,
+      "sha256": "d0f0d74724e1203bd0ff1444441631e01c384e870265fc8f7ec919845e870c3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/PROFILE-LEDGER.md",
+      "bytes": 1084,
+      "mode": 420,
+      "sha256": "81387ccb00c9949e65e28ba816ac62f33292967cd6d134555f4e1abdbe484a57"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/UNITS.md",
+      "bytes": 3557,
+      "mode": 420,
+      "sha256": "f43e8e9a13163edb52afc6239480e5e1c3c119f49c150ba3b53bf2ec71be49c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/PURE-CASES.json",
+      "bytes": 1064,
+      "mode": 420,
+      "sha256": "0ecd502fea3f13b6f88723876fa49d7ff1c03bd85361c0f13118d719af46dfb0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/REMAINING-VALIDATION-v2.json",
+      "bytes": 21746,
+      "mode": 420,
+      "sha256": "246523500f048dca3612774064cc53a48e599744fff0dfa5900dbdee72b1504e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/pure-controls.mjs.data",
+      "bytes": 9210,
+      "mode": 420,
+      "sha256": "f15fa2155b7e99e2199690ccc78017e7abb205602b0aa9ae4fbe10fb34565787"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/ACTUAL.json.gz.base64.data",
+      "bytes": 137261,
+      "mode": 420,
+      "sha256": "fcc447ced7f6f9e72b348e0b8c8a58e9ea36a98b09b2ee6eb1426408a8681ab6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/accounting.ts",
+      "bytes": 6780,
+      "mode": 420,
+      "sha256": "ac027226bbfc3851b4db3781ade874f7acceefc006d1b403f05df4812298a144"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/owner.ts",
+      "bytes": 6765,
+      "mode": 420,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/protocol.ts",
+      "bytes": 2815,
+      "mode": 420,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/root.ts",
+      "bytes": 12107,
+      "mode": 420,
+      "sha256": "9e0496ee8113ffb0d6a1e1044cdc04e72c2932b9cc9bcc154d641b5fbf49efd7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/validation.ts",
+      "bytes": 12676,
+      "mode": 420,
+      "sha256": "4a16dbca55444310fd7c1cf55a70c71ec8d653bd387cd379d3eee593bc3516fc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/wire-engine.ts",
+      "bytes": 1803,
+      "mode": 420,
+      "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "bytes": 1291,
+      "mode": 420,
+      "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/errors.js",
+      "bytes": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/limits.js",
+      "bytes": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/protocol.js",
+      "bytes": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/accounting.js",
+      "bytes": 6678,
+      "mode": 420,
+      "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/transport/validation.js",
+      "bytes": 12419,
+      "mode": 420,
+      "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/PLAN.md",
+      "bytes": 2208,
+      "mode": 420,
+      "sha256": "cdfd82e555c3b0d08ca4da5a8ecc124702d865ff5e5c21eafedd4870e497644a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/prepare.mjs",
+      "bytes": 5710,
+      "mode": 420,
+      "sha256": "1e29b81025ec1d23f38f77aee4190779d9e449cd9ee4b575ffd7e4eb465d6cce"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/parent.mjs",
+      "bytes": 2928,
+      "mode": 420,
+      "sha256": "ab983feac42edcb1472f1e0b7a0fe530410d126ed44ff71ff3028208b15855d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/dispatch.mjs",
+      "bytes": 2207,
+      "mode": 420,
+      "sha256": "0b3fba5487d2b056e9368240040bbfe2e2cfa2469aeb1283b836c3331d56aff4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/novel.mjs",
+      "bytes": 6676,
+      "mode": 420,
+      "sha256": "fcdd71694985054b743a40f7f624929cdc384f9d1690921b64780f4dbb513621"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/author.mjs",
+      "bytes": 9210,
+      "mode": 420,
+      "sha256": "f15fa2155b7e99e2199690ccc78017e7abb205602b0aa9ae4fbe10fb34565787"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/PURE-LOADS.json",
+      "bytes": 1384,
+      "mode": 384,
+      "sha256": "01ff95e0b93902cc6b5a7c647320dd936984ad8bdf649b03f52a70df20c3a0c3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-independent-20260829/corrections-v1/emitted/package.json",
+      "bytes": 19,
+      "mode": 420,
+      "sha256": "68633bef087551aed4dc83e2de8a5eb0a1a8657eba08cea04121f904020a15a2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  ],
+  "files": [
+    {
+      "path": "PLAN.md",
+      "bytes": 2208,
+      "mode": 420,
+      "sha256": "cdfd82e555c3b0d08ca4da5a8ecc124702d865ff5e5c21eafedd4870e497644a"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 924,
+      "mode": 384,
+      "sha256": "2f11a407c92ef6d7495db756fb66de8f9f908855c62eae6813ecf60ee1d48f08"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 9445,
+      "mode": 384,
+      "sha256": "a1242b76288e09d82ede0ef41d653a720ce6484f944ae9801f8d471446045109"
+    },
+    {
+      "path": "PURE-LOADS.json",
+      "bytes": 1384,
+      "mode": 384,
+      "sha256": "01ff95e0b93902cc6b5a7c647320dd936984ad8bdf649b03f52a70df20c3a0c3"
+    },
+    {
+      "path": "PURE-RESULT.json",
+      "bytes": 2171,
+      "mode": 420,
+      "sha256": "e7f55424550d51f8ccbbcfcc08d4c0282fa37600bf25f18aeadb383dfcfc5a6c"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 11277,
+      "mode": 420,
+      "sha256": "bc585e231b1b7b323a16fea8f020d467576e70bbd04e7a055f76188574f886b2"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 6505,
+      "mode": 384,
+      "sha256": "83ef2b7ee0a86114931e076c03643dc94f7879bd0b5c4bd6796fd7554dc702a8"
+    },
+    {
+      "path": "REVIEW.json",
+      "bytes": 994,
+      "mode": 420,
+      "sha256": "3d5caff6eb5979f9cd52281389782ff75f78e579ca65ba5ad475d1c4316549cb"
+    },
+    {
+      "path": "author.mjs",
+      "bytes": 9210,
+      "mode": 420,
+      "sha256": "f15fa2155b7e99e2199690ccc78017e7abb205602b0aa9ae4fbe10fb34565787"
+    },
+    {
+      "path": "dispatch.mjs",
+      "bytes": 2207,
+      "mode": 420,
+      "sha256": "0b3fba5487d2b056e9368240040bbfe2e2cfa2469aeb1283b836c3331d56aff4"
+    },
+    {
+      "path": "emitted/errors.js",
+      "bytes": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "emitted/limits.js",
+      "bytes": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "emitted/package.json",
+      "bytes": 19,
+      "mode": 420,
+      "sha256": "68633bef087551aed4dc83e2de8a5eb0a1a8657eba08cea04121f904020a15a2"
+    },
+    {
+      "path": "emitted/transport/accounting.js",
+      "bytes": 6678,
+      "mode": 420,
+      "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+    },
+    {
+      "path": "emitted/transport/protocol.js",
+      "bytes": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "emitted/transport/validation.js",
+      "bytes": 12419,
+      "mode": 420,
+      "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 6676,
+      "mode": 420,
+      "sha256": "fcdd71694985054b743a40f7f624929cdc384f9d1690921b64780f4dbb513621"
+    },
+    {
+      "path": "parent.mjs",
+      "bytes": 2928,
+      "mode": 420,
+      "sha256": "ab983feac42edcb1472f1e0b7a0fe530410d126ed44ff71ff3028208b15855d2"
+    },
+    {
+      "path": "parent.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "parent.stdout.raw",
+      "bytes": 164,
+      "mode": 420,
+      "sha256": "52866bd2333588e82ff0b5a5aede9652c1447cc66cabcdfe6433161dcbd3a9fa"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 5710,
+      "mode": 420,
+      "sha256": "1e29b81025ec1d23f38f77aee4190779d9e449cd9ee4b575ffd7e4eb465d6cce"
+    },
+    {
+      "path": "prepare.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prepare.stdout.raw",
+      "bytes": 770,
+      "mode": 420,
+      "sha256": "8bf2d1456361bee04b89a6a6607e294f0e545179e08f1d889f075fd70972ff2a"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 3345,
+      "mode": 420,
+      "sha256": "1cd17b84e645ca3a21e927ae110edc12226e1e7d4d9449b424bd785694c0df62"
+    },
+    {
+      "path": "raw/RECEIPT.json",
+      "bytes": 253,
+      "mode": 384,
+      "sha256": "a521559add252a5af63e7973ed6fb42b1ed8faa208874dd085790204418838a5"
+    },
+    {
+      "path": "raw/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/stdout.raw",
+      "bytes": 114,
+      "mode": 384,
+      "sha256": "8c5d9c2dff2fdcc050c4ae33168f0260ed638ddc11993435b75107140b4a9195"
+    }
+  ],
+  "totalFileBytes": 90909,
+  "controlCapture": {
+    "pid": 24538,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "observed": [
+      114,
+      0
+    ],
+    "retained": [
+      114,
+      0
+    ],
+    "errors": [],
+    "preflight": true,
+    "postflight": true
+  },
+  "authorPure": 12,
+  "independentPure": 12,
+  "loadedPureModules": 5,
+  "Workers": 0,
+  "ownerImports": 0,
+  "matchingCalls": 0,
+  "all60": "UNRUN",
+  "processes": {
+    "pureHelpersIncludingCaptureOwner": 2,
+    "fixtureChildren": 1,
+    "peak": 2,
+    "allOwnedRoleUpperBoundIncludingFinalGit": 44,
+    "cap": 48,
+    "qualification": "Conservative tool-route bound including shell/Git/patch allowances, not44 individually measured PIDs or universal census. Final Git remains prospective here."
+  },
+  "captureUpperBoundIncludingArchiveDecodeAndPublicationReserve": 8388608,
+  "workUpperBound": 16777216,
+  "preparationAdmissionRefusal": "PRESEAL-v3 text exceeded65536-byte helper cap; no retry/read-cap increase",
+  "checkpoint": "2026-08-29T11:33:43.733Z",
+  "runtimeGO": false
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "INDEPENDENT_PRIVATE_ERE_CORRECTIVE_SOURCE_REVIEW",
+  "verdict": "SOURCE_HOLD",
+  "sourceCommit": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "testedEngine": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb",
+  "packetCommit": "989faf94e2d292800aa485183a215410e7cfa000",
+  "independentPresealSha256": "a1242b76288e09d82ede0ef41d653a720ce6484f944ae9801f8d471446045109",
+  "authorPurePassed": 12,
+  "independentPurePassed": 12,
+  "sourceBlocker": "S-C01: explicit Worker-side entry/request/reply work has no established source-derived cumulative/prepaid accounting mapping. No-op visitors and the separate request ceiling are not that proof.",
+  "qualification": "Coverage blocker, not a dynamically established Worker quota violation or proof that every prepaid bound is insufficient. Author must provide exact existing coverage or request a source correction.",
+  "Workers": 0,
+  "ownerImports": 0,
+  "matchingCalls": 0,
+  "runtimeVariantsUnrun": 60,
+  "activationAuthorized": false
+}

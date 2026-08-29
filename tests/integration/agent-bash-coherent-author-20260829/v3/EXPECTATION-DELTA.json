@@ -1,0 +1,21 @@
+{
+  "prior": "6dfaa3f6447703515994a3145264ae6eb9184c1dd7f73b2b764f6945aabd544c",
+  "successor": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+  "ids": [
+    "C11",
+    "C14"
+  ],
+  "inputChanges": 0,
+  "otherAssertionChanges": 0,
+  "role": "UNRUN_SOURCE_DEFINED_EXPECTATION_CORRECTION_NOT_FAILURE_RESCORE",
+  "headers": [
+    {
+      "id": "hello changed",
+      "header": "index 5671f83..47688cf 100644"
+    },
+    {
+      "id": "hello patched",
+      "header": "index 5671f83..dfd61b5 100644"
+    }
+  ]
+}

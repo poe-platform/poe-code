@@ -1,0 +1,32 @@
+[
+  {
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+    "blob": "2ff4277a22de3991816aab7739266fd31b8fcefd",
+    "bytes": 137864,
+    "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+  },
+  {
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/EXECUTABLE-PRESEAL.json",
+    "blob": "67ad3ae995cb65e6b41c7d3203a3d100777bdae6",
+    "bytes": 4651,
+    "sha256": "b23d0aaea60126293a41a09563a66e20bf018fb45b9cfefc1725ffac2d8feb93"
+  },
+  {
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs",
+    "blob": "3e5f284b97520fc6b12243ce5df37fa32d7b9508",
+    "bytes": 15458,
+    "sha256": "6dfaa3f6447703515994a3145264ae6eb9184c1dd7f73b2b764f6945aabd544c"
+  },
+  {
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+    "blob": "bfd8345d39f13902d3f9459e3de5f83fd0b23793",
+    "bytes": 558790,
+    "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+  },
+  {
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+    "blob": "270c3c8e4734d983d339df24b9ba3b0310b330e6",
+    "bytes": 1390,
+    "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+  }
+]

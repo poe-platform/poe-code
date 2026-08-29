@@ -1,0 +1,4 @@
+{"started":"2026-08-29T09:16:32.416Z","pid":56888,"parent":56883,"phase":"--inspect","productExecutions":0}
+{"pid":56889,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null}
+{"pid":56890,"args":["cat-file","--batch"],"status":0,"signal":null}
+{"finished":"2026-08-29T09:16:32.500Z","children":2,"productExecutions":0}

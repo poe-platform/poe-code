@@ -175,6 +175,10 @@
   self-contained entrypoints, not ambient cross-call REPL bindings. Establish
   capture/catch ownership before fallible state lookup; do not infer a shared-state
   or cross-agent kernel cause from an undefined binding alone.
+- Resource census and closure helpers must be file-based, take explicit owned
+  roots, use invocation-local counters, and return one immutable snapshot.
+  Never use ambient REPL counters or reset/rebound globals, or substitute a
+  cumulative counter for a fresh sample.
 - Authenticate Git path inventories from NUL-delimited records and byte-exact
   paths, not C-quoted line displays; never reinterpret quoted display names as
   filenames or classify a wrong-tree harness capture as a product failure.

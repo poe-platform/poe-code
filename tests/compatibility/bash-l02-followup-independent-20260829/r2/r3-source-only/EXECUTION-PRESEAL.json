@@ -1,0 +1,192 @@
+{
+  "schema": 3,
+  "status": "PREEXEC_REVIEW_ONLY_NO_GRANT_NO_WINDOW",
+  "inherits": "8e78572c234c234c01469c852414f012349b5917",
+  "source": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "packageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/budget.mjs",
+      "size": 2364,
+      "sha256": "179c81488ac5b5287cd5d61d9ac90a64a231860286f4e6c5b06b19ebb9390a22"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/startup-receipt.mjs",
+      "size": 1693,
+      "sha256": "ec9da2e9670b153503b819d7c875e172ffedadcf38d1ea5b896aafa38f62fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/activation.mjs",
+      "size": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/supervisor.mjs",
+      "size": 5309,
+      "sha256": "75e06c5f30484f0fb123b176dd1d7137d89d3125b5457bedd196f8110035a58f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/admin-publication.mjs",
+      "size": 4474,
+      "sha256": "801b06eaae6d72f442a2064c63eec5c1cbd839372ff3608ffcf4c0072151c8cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/controls.mjs",
+      "size": 3360,
+      "sha256": "2a5caa1f11fb2745c24fdacc97637ce8aa967e04ecc6349ae574e5e768c9e9fa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs",
+      "size": 2588,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs",
+      "size": 12014,
+      "sha256": "30423812ddc5e82a9598878f63a628aa781987616e3239cedc8680ce661401a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "size": 3704880,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "inventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15",
+  "capsule": {
+    "schema": 1,
+    "files": 390,
+    "fileBytes": 1381586,
+    "format": "gzip JSON base64 files; authenticate text then gzip then decoded bytes",
+    "textBytes": 650133,
+    "textSha256": "ef426f733849c36e2d7889325a6df7b00a95ace44fd70bee5884649e59c8f02d",
+    "compressedBytes": 487599,
+    "compressedSha256": "965132a9a699de15e4129b6afaa1285f21cfe56e65b7586ded3aa7a1e483d307",
+    "decodedBytes": 1918022,
+    "decodedSha256": "cdfbc3c4780d2bca87265e2b3a40ea022884807a263f20cfc4ec9fa3937a4ece",
+    "maxDecodedBytes": 4194304,
+    "inventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15"
+  },
+  "entry": "activation.mjs",
+  "admin": {
+    "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "publishPaths": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/ROOT-GRANT.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/FUTURE-ACTUAL-01/ACTIVATION.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/FUTURE-ACTUAL-01/RUNTIME-RESULT.json"
+    ]
+  },
+  "imports": {
+    "budget.mjs": [
+      "node:fs",
+      "../followup-preparation-r2/journal.mjs"
+    ],
+    "startup-receipt.mjs": [
+      "node:fs",
+      "node:crypto",
+      "../followup-preparation-r2/journal.mjs"
+    ],
+    "activation.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "../followup-preparation-r2/journal.mjs",
+      "./budget.mjs",
+      "./supervisor.mjs"
+    ],
+    "supervisor.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "../preparation-r3/data-support.mjs",
+      "./budget.mjs",
+      "../followup-preparation-r2/journal.mjs",
+      "../followup-preparation-r2/receipt-gate.mjs"
+    ],
+    "admin-publication.mjs": [
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:crypto",
+      "../preparation-r3/owned-process.mjs",
+      "./startup-receipt.mjs",
+      "./budget.mjs"
+    ],
+    "controls.mjs": [
+      "node:assert",
+      "node:fs",
+      "node:url",
+      "./startup-receipt.mjs",
+      "./budget.mjs"
+    ]
+  },
+  "roleSlots": [
+    "fixed tool owner (trusted startup postcheck producer)",
+    "main zsh launcher",
+    "main env exec image",
+    "activation Node/supervisor",
+    "case Node 01-constructor-built",
+    "case Node 02-constructor-installed",
+    "case Node 03-constructor-moved",
+    "case Node 04-normal-built",
+    "case Node 05-normal-installed",
+    "case Node 06-normal-moved",
+    "case Node 07-post-built",
+    "case Node 08-post-installed",
+    "case Node 09-post-moved",
+    "case Node 10-single-built",
+    "case Node 11-single-installed",
+    "case Node 12-single-moved",
+    "case Node 13-persistent-built",
+    "publication zsh launcher",
+    "publication env exec image",
+    "publication Node",
+    "Git check-attr",
+    "Git scoped status",
+    "Git explicit add",
+    "Git explicit --only commit",
+    "Git rev-parse committed identity",
+    "Git scoped status",
+    "Git scoped diff --check"
+  ],
+  "cases": 13,
+  "Workers": 10,
+  "knownOS": 27,
+  "peakKnownOS": 3,
+  "peakWorkers": 1,
+  "wallMilliseconds": 600000,
+  "publicationReserveMilliseconds": 180000,
+  "captureBytes": 67108864,
+  "workingBytes": 268435456,
+  "derivedCapture": 6078464,
+  "derivedLogicalWork": 21594112,
+  "startupPolicy": "RESERVED_POSTCHECK_NOT_PREWRITE_ENFORCED",
+  "startupStreamCensus": "NOT_OBSERVED",
+  "GitPhysicalStorage": "TRUSTED_HOST_SHARED_INDEX_OBJECT_TEMP_EXCLUDED_UNOBSERVED",
+  "internalChildCapture": "ENFORCED_EXIT_CLOSE_END_AND_CLOSE_EVIDENCE_REQUIRED",
+  "unknownWorker": "NOT_RESOLVED_BY_TOOL_OR_PROCESS_RETURN_NO_NEXT_CASE_NO_ADMIN",
+  "futureExternalPostchecks": [
+    "runtime outer files after trusted tool return, before any admin",
+    "publication outer files after trusted tool return; receipt failure remains publication nonpass"
+  ],
+  "remainingGate": "different review + fresh rootGO with dates; no intrinsic initial-OS-startup bound"
+}

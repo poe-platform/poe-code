@@ -1,0 +1,125 @@
+{
+  "schema": "l02-r2-independent-findings-v1",
+  "status": "R2_GATE_FINDINGS_R3_FINAL_PREEXEC_PENDING",
+  "authorCommit": "8e78572c234c234c01469c852414f012349b5917",
+  "profileSha256": "b46dd4e58efdf4efb9244ae6beb1a046ab51c734a457a65ce7f898c1e5c2d808",
+  "authorReplay": {
+    "groups": 14,
+    "passes": 14,
+    "sourceUnchanged": true,
+    "helpers": 1,
+    "harmlessChildren": [
+      {
+        "pid": 60101,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEnded": true,
+        "stderrEnded": true,
+        "captureComplete": true,
+        "state": "RETIRED",
+        "primary": {
+          "present": false
+        },
+        "secondary": []
+      },
+      {
+        "pid": 60104,
+        "status": 7,
+        "exit": true,
+        "close": true,
+        "stdoutEnded": true,
+        "stderrEnded": true,
+        "captureComplete": true,
+        "state": "RETIRED",
+        "primary": {
+          "present": false
+        },
+        "secondary": []
+      }
+    ]
+  },
+  "novel": {
+    "groups": 6,
+    "passes": 5,
+    "helpers": 1,
+    "children": 0,
+    "failed": [
+      {
+        "id": "N02-end-flags-consistency",
+        "pass": false,
+        "evidence": [
+          {
+            "key": "stdoutEnded",
+            "value": false,
+            "disposition": "PASS",
+            "refused": false
+          },
+          {
+            "key": "stderrEnded",
+            "value": false,
+            "disposition": "PASS",
+            "refused": false
+          }
+        ],
+        "error": {
+          "name": "AssertionError",
+          "message": "false stream-ended flags must not qualify complete process capture"
+        }
+      }
+    ]
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "level": "DEMONSTRATED_PURE_GATE_INCONSISTENCY",
+      "source": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs:2",
+      "consumer": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs:3",
+      "cases": [
+        "N02 stdoutEnded false",
+        "N02 stderrEnded false"
+      ],
+      "actual": "judge returns PASS in both cases, despite false end flags and captureComplete true",
+      "expected": "Refuse inconsistent required process-stream completion fields",
+      "mechanism": "processRecord validates flag types; judge ownership conjunction omits stdoutEnded/stderrEnded. Required trace events do not reject contradictory summary flags.",
+      "minimumFix": "Require stdoutEnded and stderrEnded true for accepted processRecord/ownership. Keep required event chronology and all descriptor checks.",
+      "qualification": "Synthetic DATA inconsistency, not observed loss of runtime captures. Both real harmless child receipts had true end flags."
+    },
+    {
+      "id": "F02",
+      "level": "SOURCE_ONLY_UNKNOWN_LATCH_ORDERING",
+      "source": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/supervisor.mjs:3",
+      "returnSource": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/supervisor.mjs:5",
+      "consumer": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/admin-publication.mjs:2",
+      "sequence": [
+        "judge returns STOP_UNCONFIRMED",
+        "post-case census/cap/hash/unexpected-output checks run and can throw",
+        "unconfirmedWorker=true happens only after those checks",
+        "captureScope stores the error; return uses retained.length>0||unconfirmedWorker, still false",
+        "admin only checks runtime.outcome.retainedUnknown; exitCode2 is allowed by outer admission"
+      ],
+      "minimumFix": "Latch known STOP_UNCONFIRMED immediately after judge, before any fallible census/publication. Preserve that monotonic flag through capture/cleanup failures; prohibit ordinary admin after it. Separately fail closed when receipt reading/judgment fails before retirement is authenticated, or explicitly validate lifetime independently of semantic assertions.",
+      "qualification": "Control-flow proof only; supervisor/admin not executed, no real Worker admission, no claim of an observed leaked Worker."
+    }
+  ],
+  "rootR3Policy": {
+    "status": "RECEIVED_POLICY_AWAITING_IMMUTABLE_R3_DELTA",
+    "gitInternalStorage": "Explicit trusted/unobserved exclusion from256MiB logical work; not a physical disk bound",
+    "startup": "Owned-file redirect before Node, reserved+postchecked, not prewrite enforcement or stream EOF/fullcensus proof",
+    "requiredChanges": [
+      "Add131072 publication outer channel reserve; derived capture6078464 and work21594112 if all other r2 terms unchanged",
+      "Replace captureEnforced:true demand with explicit versioned qualified producer/admission schema",
+      "Keep actual child stream enforcement/exit-close settlement, deadline and unknown reference rules unchanged"
+    ],
+    "r2HoldsNotWaived": true
+  },
+  "scope": {
+    "actualProductCells": 0,
+    "Workers": 0,
+    "compilerBuildInstallNative": 0,
+    "supervisorExecution": 0,
+    "helpers": 2,
+    "harmlessChildren": 2,
+    "noAuthorEdits": true
+  }
+}

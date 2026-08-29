@@ -1,0 +1,149 @@
+{
+  "schema": "l02-r2-independent-novel-v1",
+  "groups": 6,
+  "passes": 5,
+  "rows": [
+    {
+      "id": "N01-nested-descriptor-no-getters",
+      "pass": true,
+      "evidence": [
+        {
+          "change": "load-hash",
+          "calls": 0,
+          "refused": true
+        },
+        {
+          "change": "event-code",
+          "calls": 0,
+          "refused": true
+        },
+        {
+          "change": "termination-route",
+          "calls": 0,
+          "refused": true
+        }
+      ]
+    },
+    {
+      "id": "N02-end-flags-consistency",
+      "pass": false,
+      "evidence": [
+        {
+          "key": "stdoutEnded",
+          "value": false,
+          "disposition": "PASS",
+          "refused": false
+        },
+        {
+          "key": "stderrEnded",
+          "value": false,
+          "disposition": "PASS",
+          "refused": false
+        }
+      ],
+      "error": {
+        "name": "AssertionError",
+        "message": "false stream-ended flags must not qualify complete process capture"
+      }
+    },
+    {
+      "id": "N03-close-role-order-and-process-close",
+      "pass": true,
+      "evidence": [
+        {
+          "change": "reversed-roles",
+          "refused": true
+        },
+        {
+          "change": "early-root-close",
+          "refused": true
+        },
+        {
+          "change": "missing-stderr-close",
+          "refused": true
+        }
+      ]
+    },
+    {
+      "id": "N04-duplicate-acquisition-events",
+      "pass": true,
+      "evidence": [
+        {
+          "kind": "constructed",
+          "refused": true
+        },
+        {
+          "kind": "termination-requested",
+          "refused": true
+        },
+        {
+          "kind": "worker-exit",
+          "refused": true
+        }
+      ]
+    },
+    {
+      "id": "N05-persistent-reference-and-presence",
+      "pass": true,
+      "evidence": [
+        {
+          "change": "baseline",
+          "expected": "STOP_UNCONFIRMED"
+        },
+        {
+          "change": "root-lost",
+          "expected": "refusal"
+        },
+        {
+          "change": "handle-lost",
+          "expected": "refusal"
+        },
+        {
+          "change": "charges-lost",
+          "expected": "refusal"
+        },
+        {
+          "change": "false-reason-string",
+          "expected": "refusal"
+        }
+      ]
+    },
+    {
+      "id": "N06-journal-first-reason-and-reserves",
+      "pass": true,
+      "evidence": [
+        {
+          "primary": "undefined",
+          "records": 20,
+          "writes": 21,
+          "closes": 1,
+          "firstReasonIdentity": true
+        },
+        {
+          "primary": null,
+          "records": 20,
+          "writes": 21,
+          "closes": 1,
+          "firstReasonIdentity": true
+        },
+        {
+          "primary": false,
+          "records": 20,
+          "writes": 21,
+          "closes": 1,
+          "firstReasonIdentity": true
+        },
+        {
+          "primary": 0,
+          "records": 20,
+          "writes": 21,
+          "closes": 1,
+          "firstReasonIdentity": true
+        }
+      ]
+    }
+  ],
+  "Workers": 0,
+  "productImports": 0,
+  "children": 0
+}

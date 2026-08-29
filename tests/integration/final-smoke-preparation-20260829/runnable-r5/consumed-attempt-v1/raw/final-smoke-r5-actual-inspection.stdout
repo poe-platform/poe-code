@@ -1,0 +1,23 @@
+INSPECTION_PID=15758
+FILE /private/tmp/final-smoke-r5-actual-root.stdout BYTES=746
+ROOT_ADMIN_PID=15634 TIME=2026-08-29T13:03:47Z
+UNUSED=/private/tmp/FINAL-SMOKE-R4-ROOT-GO.json
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829.outer.stdout
+UNUSED=/private/tmp/final-coherent-smoke-r5-20260829.outer.stderr
+UNUSED=/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/actual-evidence
+START role=packet-hash pid=15635
+WAIT role=packet-hash pid=15635 exit=0
+START role=grant-hash pid=15636
+WAIT role=grant-hash pid=15636 exit=0
+GRANT bytes=361 sha256=39d3b7e7ccc2010b0a3ce60e784580c0f03a1f5317023cb04ad4f52de48dd7eb
+LAUNCH_TIME=2026-08-29T13:03:48Z
+START role=activation-owner pid=15637
+WAIT role=activation-owner pid=15637 exit=78
+FILE /private/tmp/final-smoke-r5-actual-root.stderr BYTES=0
+FILE /private/tmp/final-coherent-smoke-r5-20260829.outer.stdout BYTES=0
+FILE /private/tmp/final-coherent-smoke-r5-20260829.outer.stderr BYTES=201
+{"phase":"captured-activation","primaryPresent":true,"primary":{"type":"object","message":"Expected values to be strictly equal:\n\n'link' !== 'symlink'\n"},"ownerExit":"PENDING_EXTERNAL_OBSERVATION"}
+ABSENT /private/tmp/final-coherent-smoke-r5-20260829/ACTIVATION.json
+ABSENT /private/tmp/final-coherent-smoke-r5-20260829/TERMINAL.json
+ABSENT /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/actual-evidence/PUBLICATION.json

@@ -1,0 +1,76 @@
+{
+  "schema": "conditional-independent-precode-v1",
+  "preparedAt": "2026-08-29T05:52:50.507Z",
+  "candidateHandoffAlreadyAvailable": true,
+  "candidateProductBodyInspected": false,
+  "actualGo": false,
+  "counts": {
+    "originalLiteral": 40,
+    "originalHost": 10,
+    "novel": 12,
+    "totalDesignIdentities": 62,
+    "productExecutions": 0,
+    "nativeExecutions": 0,
+    "compilerExecutions": 0
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2957,
+      "sha256": "4dbefe5322295a5856f6865a2cb7913a255595f222e48d41a2bc430f00fe514a"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 7501,
+      "sha256": "eac12fe33406477118cf5e770f1a180926eaa27e5bf69b870296f372189f5a00"
+    },
+    {
+      "path": "QUESTIONS.json",
+      "bytes": 2756,
+      "sha256": "98e44040adcf024c6b6534d056979f57aa3d3c051c830f87684d61f44c1c682d"
+    },
+    {
+      "path": "DESIGN-CASES.json",
+      "bytes": 13820,
+      "sha256": "609b5313f2b2d2f901464c4bff9afdd034140988ebec1eb6e668e090157ac0fd"
+    },
+    {
+      "path": "NOVEL-CASES.json",
+      "bytes": 6004,
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805"
+    },
+    {
+      "path": "CASE-MAP.json",
+      "bytes": 20688,
+      "sha256": "bc2ae9237f516fd56fd4eb40029b6e4847c2b90dddc89b1350e1356189ee96ad"
+    },
+    {
+      "path": "BASELINE.json",
+      "bytes": 136917,
+      "sha256": "3fe6445bd99e1320fc811c6fcd2314880cb60850b0f662e9d1ed37a6a2885abf"
+    },
+    {
+      "path": "public-positive.mts.fixture",
+      "bytes": 1028,
+      "sha256": "0f657348bc669ed4ba92d967563caeb92646d0d95e5f89dd91d64d6693f10753"
+    },
+    {
+      "path": "public-negative.mts.fixture",
+      "bytes": 323,
+      "sha256": "8ad51c124739bc5d921b58558a6e3ca9c1aa83df00aa72df32d117c9fc7910ea"
+    }
+  ],
+  "baselineSource": "928be5585f05c15867fbbb5f4b5debe153b0734e",
+  "baselineTree": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "baselinePackageSha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+  "rootRatificationOverridesOldProvisionalWording": true,
+  "heldExpectations": [
+    "N11 diagnostic route Q02",
+    "C05 raw unary ambiguity",
+    "C26 aggregate-v edge",
+    "Q01 errno variants",
+    "Q03 unsupported-option/bracket edges",
+    "Q05 non-C locale"
+  ],
+  "stop": "no candidate execution before final preseal and explicit ROOT actual GO"
+}

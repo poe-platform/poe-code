@@ -1,0 +1,44 @@
+# Independent conditional preparation — all execution held
+
+2026-08-29. Scope:source/DATA/design only. Forty original literal identities,
+ten original host protocols and twelve new independent identities are frozen;
+**zero product/native/type/Worker outcomes**. Candidate is available but requires
+separate final executable preseal and ROOT actual GO.
+
+Baseline292 selected inputs authenticated against stored blobs and accepted
+Unit2 manifest75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2.
+Independent canonical tree reconstruction matches26215b99cb379a9f825f803454f758fab5a3c8e9.
+The38 source-audit hooks are a reviewed subset, not38 new behavioral passes.
+Full950 package1fafce… is an inherited accepted binding, not repacked/reexecuted.
+No in-progress conditional product source is included in that baseline audit.
+
+## Early author questions
+
+Q01 exact errno matrix: design incorrectly says access includes EPERM; frozen
+predicates.ts has ENOENT/ENOTDIR/EACCES/EROFS, metadata adds ELOOP. Root does not
+implicitly ratify all those as absence. Distinguish false/unsupported2/unexpected
+error routing. Do not reuse blanket catch-all or mode bits as remote permission proof.
+Q02 diagnostic routing: clarify original caller stderr means current redirected
+logical IO; inherited Unit1 behavior suggests no bypass. N11 held on exact route.
+Q03 known open unary ambiguity/aggregate-v/unknown-option/bracket edge profiles:
+no silent native goldens; originals remain UNRUN. Reached unquoted extglob/collating
+refusal and quoted literals are already ratified; they are not reopened here.
+Q04 mechanical counting/work: exact AST-node/depth origins and shared patternwork
+mapping must be supplied before actual cap controls. Source matcher has pre-loop
+Array.from and silently failing classes; caller must pre-admit and validate.
+Q05 scope non-C virtual locale behavior explicitly; freeze C-only order meanwhile.
+See QUESTIONS.json. These are precise affected expectations/mechanisms, not a
+proof-before-code hold on root's already ratified grammar-complexity decision.
+
+Public type fixtures are inert .fixture files, not current consumer discovery.
+PROTOCOL.md separates future author50 PRODUCT groups from original40 GNU oracle
+identities. All expected bytes in new cases are root project policy, never
+claimed native output. Diagnostic exact-byte admission is deferred where unresolved;
+no arbitrary stderr-as-pass allowed in final executor.
+
+The initial instruction-read helper referenced an undefined local rt before
+any child/source execution. It was replaced with explicit bounded local imports;
+no kernel/cross-agent cause inferred, no candidate execution or safety stop.
+Instructions were read separately and never copied into evidence. Foreign tracked
+change seen initially:tests/compatibility/bash-conditional-author-20260829/inspect-result.mjs;
+it was not opened/edited/staged. Native/private/network/engine/XAN remain prohibited.

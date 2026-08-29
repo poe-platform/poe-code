@@ -1,0 +1,436 @@
+{
+  "differential": [
+    {
+      "id": "C01",
+      "role": "scalar-empty",
+      "program": "[[ \"\" ]]; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C02",
+      "role": "scalar-nonempty",
+      "program": "[[ x ]]; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C03",
+      "role": "no-IFS-splitting",
+      "program": "IFS=:; x=\"a:b c\"; [[ $x == \"a:b c\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C04",
+      "role": "no-pathname-expansion",
+      "program": "x=\"*\"; [[ $x == \"*\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C05",
+      "role": "quoted-operator-and-unary-arity",
+      "program": "[[ \"-n\" ]]; printf \"%s\\n\" \"$?\"; [[ -n ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "arity-native-unresolved",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C06",
+      "role": "quoted-closing-token",
+      "program": "[[ \"]]\" == \"]]\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C07",
+      "role": "basic-pattern",
+      "program": "[[ alpha == a* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C08",
+      "role": "quoted-pattern",
+      "program": "[[ alpha == \"a*\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C09",
+      "role": "mixed-pattern",
+      "program": "[[ \"a*b\" == \"a*\"? ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C10",
+      "role": "variable-pattern",
+      "program": "p=\"a*\"; [[ alpha == $p ]]; printf \"%s\\n\" \"$?\"; [[ alpha == \"$p\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C11",
+      "role": "negated-pattern-and-equals",
+      "program": "[[ beta != a* && beta = b* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C12",
+      "role": "backslash-literal",
+      "program": "[[ \"a*b\" == a\\*b ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C13",
+      "role": "brackets",
+      "program": "[[ b == [a-c] && z != [a-c] ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "C-profile-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C14",
+      "role": "extglob",
+      "program": "[[ ab == @(ab|cd) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-extglob",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C15",
+      "role": "and-skips-substitution",
+      "program": "[[ \"\" && $(printf bad > marker) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C16",
+      "role": "or-skips-nounset",
+      "program": "set -u; [[ x || $missing ]]; printf \"after\\n\"",
+      "qualification": "provisional-unit2",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C17",
+      "role": "precedence",
+      "program": "[[ x || \"\" && \"\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C18",
+      "role": "parentheses-negation",
+      "program": "[[ ! ( x && \"\" ) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C19",
+      "role": "expanded-operator-is-data",
+      "program": "x=\"||\"; [[ $x == \"||\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C20",
+      "role": "substitution-once",
+      "program": "[[ $(printf once >> visits; printf value) == v* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C21",
+      "role": "file-directory",
+      "program": "[[ -f file && -d dir && ! -f dir ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "VFS-profile",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C22",
+      "role": "dangling-symlink",
+      "program": "[[ -L dangling && ! -e dangling && -h link ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "VFS-profile",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C23",
+      "role": "size-access",
+      "program": "[[ -s file && ! -s empty && -r file && -w file && -x executable ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "adapter-access-qualified",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C24",
+      "role": "timestamps",
+      "program": "[[ newer -nt older && older -ot newer ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-timestamps",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C25",
+      "role": "presence-unset-empty",
+      "program": "unset x; [[ -v x ]]; printf \"%s\\n\" \"$?\"; x=; [[ -v x ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "presence-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C26",
+      "role": "sparse-presence",
+      "program": "a=(); a[3]=; [[ -v a[3] && ! -v a[0] && -v a[@] ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "array-selector-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C27",
+      "role": "option-query",
+      "program": "set -u; [[ -o nounset ]]; printf \"%s\\n\" \"$?\"; set +u; [[ -o nounset ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "provisional-unit2",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C28",
+      "role": "C-order",
+      "program": "[[ A < z && z > A ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "C-profile-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C29",
+      "role": "numeric-octal",
+      "program": "[[ 010 -eq 8 && -2 -lt 0 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "numeric-literal-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C30",
+      "role": "numeric-empty",
+      "program": "x=; [[ $x -eq 0 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "numeric-literal-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C31",
+      "role": "numeric-expression",
+      "program": "x=2; [[ x+1 -eq 3 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-arithmetic",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C32",
+      "role": "arithmetic-nounset",
+      "program": "set -u; [[ missing -eq 0 ]]; printf \"after\\n\"",
+      "qualification": "held-arithmetic-nounset",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C33",
+      "role": "ERE-and-captures",
+      "program": "p=\"(ab)+\"; [[ xxababyy =~ $p ]]; printf \"%s:%s:%s\\n\" \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C34",
+      "role": "quoted-ERE",
+      "program": "p=\"a.b\"; [[ axb =~ \"$p\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C35",
+      "role": "invalid-ERE",
+      "program": "p=\"[\"; [[ x =~ $p ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C36",
+      "role": "false-redirect-effect",
+      "program": "[[ \"\" ]] > out; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C37",
+      "role": "compound-function-and-pipeline",
+      "program": "f() [[ x == x ]]; f |& printf \"pipe\\n\"; [[ x ]] &> combined",
+      "qualification": "accepted-unit1-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C38",
+      "role": "errexit-condition-exception",
+      "program": "set -e; if [[ \"\" ]]; then printf bad; fi; printf \"after\\n\"",
+      "qualification": "existing-errexit-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C39",
+      "role": "errexit-standalone",
+      "program": "set -e; [[ \"\" ]]; printf bad",
+      "qualification": "existing-errexit-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C40",
+      "role": "missing-close",
+      "program": "[[ x == x",
+      "qualification": "syntax-native-status-unresolved",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    }
+  ],
+  "host": [
+    {
+      "id": "H01",
+      "role": "Caller already aborted before metadata",
+      "obligation": "Exact caller reason; no metadata acquisition.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H02",
+      "role": "Abort during cooperative metadata",
+      "obligation": "Await owned cleanup; distinguish unrelated provider rejection from caller abort.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H03",
+      "role": "Unvisited operand traps",
+      "obligation": "Counter/throwing FS and substitution handlers never entered by skipped branches.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H04",
+      "role": "Expansion/node/pattern admission boundaries",
+      "obligation": "Before-growth admission, shared visited-leaf counters, bounded zero/limit/over-limit neighbors.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H05",
+      "role": "Sink and diagnostic failure",
+      "obligation": "Raw sink rejection and budget failure preserve existing priorities; no false-predicate recast.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H06",
+      "role": "Redirect aliases and failures",
+      "obligation": "False condition still creates/truncates; same writer close once; failure cleanup awaited.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H07",
+      "role": "No registry dependency",
+      "obligation": "No test/[ plugin and deliberately shadowed names do not change [[ grammar/evaluation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H08",
+      "role": "Quote/AST/source ownership",
+      "obligation": "Quote fragments survive parse/display; single substitution; no live-source fallback or mutation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H09",
+      "role": "Unsupported regex and sibling isolation",
+      "obligation": "Initial refusal acquires zero workers and does not publish BASH_REMATCH; no sibling cancellation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H10",
+      "role": "Logical boundary unwind",
+      "obligation": "Visited nounset/control failures unwind functions/source correctly; isolated stage/subshell boundaries retain existing behavior.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    }
+  ]
+}

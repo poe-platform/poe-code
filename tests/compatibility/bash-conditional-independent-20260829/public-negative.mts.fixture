@@ -1,0 +1,6 @@
+import { parseShell, type ShellLimits } from 'virtual-bash';
+type Command = ReturnType<typeof parseShell>['lists'][number]['pipelines'][number]['commands'][number];
+const limits: Partial<ShellLimits> = { maxConditionalNodes: 8192 };
+const kind: Command['kind'] = 'conditional-alias';
+parseShell(1);
+void limits; void kind;

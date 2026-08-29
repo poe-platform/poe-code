@@ -1,0 +1,31 @@
+{
+  "schema": "B1-r3-layout-controls-v1",
+  "utc": "2026-08-29T14:37:00.635Z",
+  "pid": 1757,
+  "rows": [
+    {
+      "id": "L01",
+      "result": "PASS",
+      "scope": "Actual owned inert directory rename, not package installation"
+    },
+    {
+      "id": "L02",
+      "result": "PASS",
+      "scope": "Fresh exclusive manifest; installed manifest and trace unchanged"
+    },
+    {
+      "id": "L03",
+      "result": "PASS",
+      "scope": "Repeated layout/manifest refuses rather than overwrites"
+    },
+    {
+      "id": "L04",
+      "result": "PASS",
+      "scope": "Exact retained relative loader/policy resolution and finite layout domain; no hooks or Workers executed"
+    }
+  ],
+  "ownedScratchRemoved": true,
+  "productCalls": 0,
+  "Workers": 0,
+  "qualification": "One harmless Node controller; actual fs on new owned inert fixtures only. No full runtime/engine/loader proof."
+}

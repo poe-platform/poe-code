@@ -1,0 +1,27 @@
+{
+  "utc": "2026-08-29T14:31:11.307Z",
+  "pid": 90860,
+  "receipts": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs",
+      "bytes": 12887,
+      "sha256": "5f94ab64d58ebfa4c3ea7ff7dbdb16a8bafd8e8e37425c74615bc64583f2765a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs",
+      "bytes": 3920,
+      "sha256": "81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/bootstrap.mjs",
+      "bytes": 1369,
+      "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+    }
+  ],
+  "total": 33939
+}

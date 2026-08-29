@@ -3154,8 +3154,8 @@ describe("parse", () => {
     expect(() => parse('import { x as } from "name"')).toThrowError(
       "Unexpected token '}' at line 1, column 15."
     );
-    expect(() => parse('import { x as from } from "name"')).toThrowError(
-      "Unexpected token 'from' at line 1, column 15."
+    expect(() => parse('import { x as return } from "name"')).toThrowError(
+      "Unexpected token 'return' at line 1, column 15."
     );
     expect(() => parse('import * from "name"')).toThrowError("Expected 'as' at line 1, column 10.");
     expect(() => parse('import x, { y } from "name"')).toThrowError(

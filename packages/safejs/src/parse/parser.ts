@@ -1443,7 +1443,17 @@ class Parser {
       ];
     }
 
-    this.expectKeyword("from");
+    const fromToken = this.currentToken();
+    if (
+      fromToken.type !== "identifier" ||
+      fromToken.value !== "from" ||
+      fromToken.end.offset - fromToken.start.offset !== fromToken.value.length
+    ) {
+      throw new Error(
+        `Expected 'from' at line ${fromToken.start.line}, column ${fromToken.start.column}.`
+      );
+    }
+    this.index += 1;
     const sourceToken = this.currentToken();
     if (sourceToken.type !== "string") {
       throw unexpectedTokenError(sourceToken);

@@ -53,7 +53,6 @@ const KEYWORDS = new Set([
   "await",
   "yield",
   "import",
-  "from",
   "as",
   "true",
   "false",

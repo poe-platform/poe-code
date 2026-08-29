@@ -1,0 +1,91 @@
+{
+  "schema": "PRESEALED_FINITE_DATA_ONLY_CONTROLS_V1",
+  "attempts": 1,
+  "maximumCases": 12,
+  "childrenInsideController": 0,
+  "controllerTimeoutMs": 10000,
+  "stdoutBytes": 65536,
+  "stderrBytes": 65536,
+  "imports": [
+    "node:fs",
+    "node:fs/promises",
+    "node:path",
+    "node:url",
+    "node:crypto",
+    "node:assert/strict"
+  ],
+  "exclusions": [
+    "author runtime helper imports",
+    "owner/launcher/coordinator execution",
+    "product/comparator/engine modules",
+    "Workers",
+    "C11",
+    "network",
+    "private",
+    "native oracle",
+    "build/install"
+  ],
+  "rows": [
+    {
+      "id": "D01",
+      "description": "Selected source/retained receipt/tool size-mode-hash bindings; not full416/stage rereview",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D02",
+      "description": "Exact99schedule/operation/specimen/expectation hashes and layout order",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D03",
+      "description": "Changed operand and duplicated schedule counterexamples refuse data binding",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D04",
+      "description": "99+66=165 fresh calls; historical2 makes167 crossphase not fresh reuse",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D05",
+      "description": "322 process census; former128 rejects; peak5 topology",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D06",
+      "description": "Exact admission-only launcher predicate source confirmed; no actual launch",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D07",
+      "description": "Exact admission-only collector mode/status/schema/operation source confirmed",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D08",
+      "description": "Inactive14fieldcohort grant and two-reference AUTH template; wrong candidate/extra field counterchecks",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D09",
+      "description": "Owner proposal differs only exactrunID/phase literals; no executable owner instance",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D10",
+      "description": "257MiB partition unchanged; worst-case580.5MiBraw not falsely claimed to fit",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D11",
+      "description": "Retained multipart staged manifest authenticated; no refreshed engine/stage load claim",
+      "expected": "DATA_CHECK_PASS"
+    },
+    {
+      "id": "D12",
+      "description": "FairnessW03/W07 and scoped namespace caps remain explicit; unusedactualnamespace",
+      "expected": "DATA_CHECK_PASS"
+    }
+  ],
+  "credit": "DATA/source bookkeeping controls only; no engine semantics, actual mode acceptance, runtime authority, or new lifecycle proof"
+}

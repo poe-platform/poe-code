@@ -1,0 +1,40 @@
+{
+  "schema": "INACTIVE_TEMPLATE_NOT_AUTHORIZATION",
+  "active": false,
+  "uncommittedRootAuthority": true,
+  "reason": "No actual semantic GO; frozen launcher/collector reject cohort. A reviewed successor would require new source bindings; these unchanged-recipe values document the present contradiction.",
+  "proposedGrant": {
+    "role": "root",
+    "phase": "cohort",
+    "attempts": 1,
+    "runId": "semantic-20260829-v7r3-01",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01",
+    "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+    "reviewSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+    "planSha256": "9c8a87408a8769f1151cb937a3e5409140e17186da13a592af34e18ba770e736",
+    "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "reportProtocol": "BOUNDED_TERMINAL_V3",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "command": {
+      "entry": "coordinator.mjs",
+      "phase": "cohort",
+      "runId": "semantic-20260829-v7r3-01",
+      "nodeArgs": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=256"
+      ]
+    },
+    "acceptedAdmission": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/RESULT.json",
+      "sha256": "22d9624cb1cfd3154b6070a3cde96d0958a202f2042ef80df37b012430bd7de0"
+    }
+  },
+  "requiredSeparateAddenda": [
+    "root actual admission acceptance",
+    "semantic mode source/interface review",
+    "prospective322process limit decision",
+    "fresh root actualGO"
+  ],
+  "publishedInterfaceUnchanged": true
+}

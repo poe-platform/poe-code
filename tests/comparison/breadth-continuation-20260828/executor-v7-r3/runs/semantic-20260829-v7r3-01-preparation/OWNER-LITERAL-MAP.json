@@ -1,0 +1,32 @@
+{
+  "schema": "INERT_OWNER_LITERAL_PROPOSAL_V1",
+  "active": false,
+  "oldOwner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs",
+    "bytes": 7180,
+    "mode": 420,
+    "sha256": "27616cedb3ccd01757dac8b78b8e0202281d9d990e695fa19b9fdff9a76c2429"
+  },
+  "newOwnerData": "owner-proposed.mjs.data",
+  "newOwnerSha256": "e85b2ee59e4ae60b690cdf4cbfdcce5d23b953ced2c5d764c8b27dbd16d8013c",
+  "changes": [
+    {
+      "old": "const runId = 'admission-20260829-v7r3-02';",
+      "new": "const runId = 'semantic-20260829-v7r3-01';"
+    },
+    {
+      "old": "path.join(executor, 'launch.mjs'), 'admission', runId",
+      "new": "path.join(executor, 'launch.mjs'), 'cohort', runId"
+    }
+  ],
+  "relativeTopology": "Proposed home preparation/outer-adapter-v3, same relative executor/repository/activation depth as old owner; not a runnable instance.",
+  "unchangedCaptureLogic": true,
+  "unchangedAuthGuard": true,
+  "requiredOwnerSevenFileSealNotIssued": true,
+  "blockers": [
+    "S01",
+    "S02",
+    "S03"
+  ],
+  "qualification": "No owner launch/test, no change to consumed01/02 sources; exact literal delta only."
+}

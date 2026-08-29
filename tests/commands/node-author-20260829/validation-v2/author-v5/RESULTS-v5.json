@@ -1,0 +1,310 @@
+{
+  "schema": "node-author-v5-scoped-results",
+  "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+  "presealCommit": "2f18d06c8b97959bef02da76b1f43dcc0012ab00",
+  "presealSha256": "334ec31dd73b8908c2d8d0ca0c8ea3abeb0196b184b7442b4ea497001fdba13b",
+  "moduleManifestSha256": "5210a762b00e1ea614d881a4fb3a3aad1e4953601faca294d20fa0e4af4bbb9d",
+  "baseline": {
+    "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "inputs": 278,
+    "full898Sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+  },
+  "main": {
+    "identities": 27,
+    "perLayout": 27,
+    "executions": 81,
+    "passed": 81,
+    "failed": 0,
+    "focusedIdentities": 12,
+    "focusedExecutions": 36,
+    "workerIdentities": 15,
+    "workerExecutions": 45
+  },
+  "build": {
+    "code": 0,
+    "diagnostics": [],
+    "emissions": 956,
+    "declarations": 239,
+    "nodeJS": 15,
+    "nodeDeclarations": 15,
+    "strictProgram": true,
+    "engineCompilerRun": false
+  },
+  "types": [
+    {
+      "layout": "source",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positiveIdentities": 12,
+      "negativeIdentities": 12,
+      "positiveExit": 0,
+      "negativeExit": 2,
+      "diagnostics": 12,
+      "pass": true
+    }
+  ],
+  "typeReach": [
+    {
+      "layout": "source",
+      "total": 179,
+      "node": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ]
+    },
+    {
+      "layout": "installed",
+      "total": 179,
+      "node": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ]
+    },
+    {
+      "layout": "moved",
+      "total": 179,
+      "node": [
+        "commands/node/types.d.ts",
+        "commands/node/worker-types.d.ts",
+        "commands/node/worker-provider.d.ts",
+        "commands/node/index.d.ts"
+      ]
+    }
+  ],
+  "activity": {
+    "workers": 45,
+    "engineAttempts": 42,
+    "guestEntries": 42,
+    "entryReturns": 27,
+    "requests": 123,
+    "postcopy": 111,
+    "exits": 45,
+    "retired": 45,
+    "parentCleanup": 45
+  },
+  "loadSummary": [
+    {
+      "layout": "source",
+      "caseProcesses": 16,
+      "rows": 2204,
+      "unique": 148,
+      "nodeModule": 15,
+      "engine": 93
+    },
+    {
+      "layout": "installed",
+      "caseProcesses": 16,
+      "rows": 2204,
+      "unique": 148,
+      "nodeModule": 15,
+      "engine": 93
+    },
+    {
+      "layout": "moved",
+      "caseProcesses": 16,
+      "rows": 2204,
+      "unique": 148,
+      "nodeModule": 15,
+      "engine": 93
+    }
+  ],
+  "controls": [
+    {
+      "id": "source-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "builtin-edge",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "package-fallback",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "pass-nonzero",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    },
+    {
+      "id": "missing-receipt",
+      "loaded": true,
+      "code": 0,
+      "pass": true
+    },
+    {
+      "id": "tamper",
+      "loaded": true,
+      "code": 1,
+      "pass": true
+    }
+  ],
+  "judgeControls": [
+    {
+      "id": "J01",
+      "pass": true
+    },
+    {
+      "id": "J02",
+      "pass": true
+    },
+    {
+      "id": "J03",
+      "pass": true
+    },
+    {
+      "id": "J04",
+      "pass": true
+    },
+    {
+      "id": "J05",
+      "pass": true
+    },
+    {
+      "id": "J06",
+      "pass": true
+    },
+    {
+      "id": "J07",
+      "pass": true
+    },
+    {
+      "id": "J08",
+      "pass": true
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M05",
+      "mutantDetected": true,
+      "restorePass": true,
+      "pass": true
+    }
+  ],
+  "package": {
+    "bytes": 869722,
+    "entries": 958,
+    "sha256": "f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092",
+    "manifestSha256": "e69dc9759796f326e8c495e9255101a406fa449f30f53e04c219d4160949c322",
+    "baseline898ProjectionExact": true,
+    "offlineInstall": true,
+    "physicalMove": true,
+    "originAbsent": true
+  },
+  "emissionManifestSha256": "e4c733a9061efac52d803ad58cda230d8714a3e4ae7859d33ddb2de90f44c55a",
+  "loadsArchiveSha256": "a1c9150cbecbc57a85056bd90e238b6df2b68f7b9c773faffa4b0539afafa31b",
+  "engine": {
+    "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "authenticatedEmissions": 95,
+    "bytes": 1076164,
+    "actuallyLoadedJS": 93,
+    "role": "test-only PUBLIC archive; trusted optional injected provider, not intrinsically complete containment"
+  },
+  "raw": {
+    "bytes": 1019741,
+    "sha256": "c345d185b6e95966fbb491d3c0e5aad19aca2a18d26eca601e618198f0c20ef6",
+    "mode": 384
+  },
+  "captureManifestSha256": "5899be4406c71c0331823926b4c257d9dde1de3bf9984eb67cdcf453cca095e6",
+  "resources": {
+    "activationOS": 67,
+    "ownerAndChildren": 66,
+    "outerStartupOwner": 1,
+    "prepAndMetadataOSAtAssembly": 11,
+    "allOSAtAssembly": 78,
+    "finalPublicationOSReserved": 4,
+    "ceiling": 96,
+    "peakOwnedOS": 3,
+    "toolHostExcluded": true,
+    "captureBytes": 2281172,
+    "outerCaptureBytes": 407,
+    "innerCaptureBytes": 314,
+    "writeAccount": 164789849,
+    "scratchHighWater": 172058947,
+    "finalRawBytes": 4463466,
+    "notRSS": true,
+    "activationStart": "2026-08-29T05:14:44.466Z",
+    "activationEnd": "2026-08-29T05:17:53.371Z",
+    "grantStart": 1787979832154,
+    "assemblyTime": 1787980902381,
+    "deadline": 1787982532154
+  },
+  "retirement": {
+    "outer": {
+      "role": "node-v5-captured-dispatch",
+      "spawned": true,
+      "pid": 35192,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "bytes": 407,
+      "primary": null,
+      "cleanup": []
+    },
+    "inner": {
+      "spawned": true,
+      "pid": 35194,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "bytes": 314,
+      "timedOut": false,
+      "primary": null,
+      "cleanup": [],
+      "events": [
+        "captureOwned",
+        "authenticated",
+        "spawned",
+        "closed"
+      ],
+      "clean": true
+    },
+    "allChildrenClosed": true,
+    "allWorkersExited": true,
+    "allParentsCleaned": true,
+    "workRemoved": true,
+    "unsafe": false,
+    "stopped": null,
+    "archiveAuthenticatedBeforeCleanup": true
+  },
+  "sourcePostChecks": {
+    "presealInputs": true,
+    "node16NameAndHashCensus": true,
+    "fullBaselineProjection": true
+  },
+  "qualifications": [
+    "No new full61 suite score",
+    "Original W23 old loop deadline/callback winner remains unknown",
+    "W23-v2 diagnosticFault1 eachlayout; observation detail unknown, not claimed successful diagnosis",
+    "Source-built ESM execution, not direct TS runtime",
+    "PUBLIC95 authenticated/test-only,93 actualengine JSloads perlayout",
+    "No publicroot/default/packageexport changes, fullNode/native/RSS/alljobs/allocationcontainment claim"
+  ]
+}

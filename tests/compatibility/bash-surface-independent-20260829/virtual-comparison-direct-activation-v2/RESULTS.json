@@ -1,0 +1,112 @@
+{
+  "schema": "final-census-repair-data-results-v1",
+  "sourceCommit": "83f750e57470546a95782cb9ce54a81d4900127a",
+  "executableSealSha256": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "controlPresealSha256": "33c54aca34b42f0700f29cdd5344b2099241d4cad66356ce2082e1bbbe3f3667",
+  "controlSourceSha256": "4a2ce395c7af58d2eb5d9e588e993e7da394239a4069e375fc00ad676ea36ecf",
+  "helperSha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+  "scope": "PURE_DATA_HELPER_ONLY",
+  "groups": 6,
+  "finiteInputRows": 18,
+  "results": [
+    {
+      "id": "F01",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    },
+    {
+      "id": "F02",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    },
+    {
+      "id": "F03",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    },
+    {
+      "id": "F04",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    },
+    {
+      "id": "F05",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    },
+    {
+      "id": "F06",
+      "disposition": "PASS",
+      "scope": "PURE_DATA"
+    }
+  ],
+  "raw": {
+    "stdout": {
+      "bytes": 386,
+      "sha256": "8615d0b6d2b55d1347827d8f4d03030889dc6bea6a17b205bea95bb2eb59ad88",
+      "base64": "eyJzY2hlbWEiOiJmaW5hbC1jZW5zdXMtcHVyZS1kYXRhLXYxIiwiZ3JvdXBzIjo2LCJyZXN1bHRzIjpbeyJpZCI6IkYwMSIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn0seyJpZCI6IkYwMiIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn0seyJpZCI6IkYwMyIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn0seyJpZCI6IkYwNCIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn0seyJpZCI6IkYwNSIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn0seyJpZCI6IkYwNiIsImRpc3Bvc2l0aW9uIjoiUEFTUyIsInNjb3BlIjoiUFVSRV9EQVRBIn1dfQo="
+    },
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    }
+  },
+  "child": {
+    "number": 12,
+    "label": "six-pure-data-controls",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/finalization-controls.mjs"
+    ],
+    "started": 1788001353277,
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "bytes": 386,
+    "errors": [],
+    "pid": 90747,
+    "status": 0,
+    "signal": null,
+    "finished": 1788001353323
+  },
+  "unchanged": {
+    "profileFileCount": 17,
+    "caseCalls": 111,
+    "caseDisposition": "UNRUN",
+    "mechanismRetest": false,
+    "oldM08": "UNKNOWN unchanged",
+    "oldWiringF01": "HOLD unchanged"
+  },
+  "exactBinding": {
+    "roleCount": 111,
+    "layouts": [
+      {
+        "layout": "source-built",
+        "app": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/source-app",
+        "cases": 37
+      },
+      {
+        "layout": "installed",
+        "app": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/installed-app",
+        "cases": 37
+      },
+      {
+        "layout": "physically-moved",
+        "app": "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01/moved-app",
+        "cases": 37
+      }
+    ],
+    "commandTemplateSha256": "4ccb6fa0adb5d523c6effe874ce1ced0ef732c626aec8b561adcfb1376fbb077",
+    "goTemplateSha256": "2de0f3a88cf3b091b6b5ce44a4e36415bc394cd6a79276e05d61f1a1a5d9a25b",
+    "reviewTemplateSha256": "8853dca6eafc7e8e62522dcda7b62ebe4962f05cbcceee0487851538cf9a8eeb"
+  },
+  "authority": "No actual runtime; independent review and fresh ROOT GO required",
+  "captureCut": {
+    "knownStarts": 12,
+    "closed": 12,
+    "rawFileBytes": 2576980,
+    "scope": "through DATA controls; publication administration captured separately in retained phase tail"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "bindings": [
+    {
+      "path": "modules/storage.mjs",
+      "bytes": 3583,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "role": "EXACT_DATA_HELPER"
+    },
+    {
+      "path": "modules/state.mjs",
+      "bytes": 1824,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "role": "EXACT_DATA_HELPER"
+    },
+    {
+      "path": "modules/admission.mjs",
+      "bytes": 3973,
+      "sha256": "04c3cdacc18a2ef331e45ec8f0c4b9c7578ae944eccab9e472e38cc26e614bdc",
+      "role": "EXACT_DATA_HELPER"
+    },
+    {
+      "path": "modules/data-controls.mjs",
+      "bytes": 5389,
+      "sha256": "f23abe007f844edda13a2dd783af8a5c6c47d8492fde232ad2d870212d57e0ef",
+      "role": "EXACT_DATA_HELPER"
+    },
+    {
+      "path": "review-r2.mjs",
+      "bytes": 12853,
+      "sha256": "d61cad4992f97f35d15179f714fc25098445f4fc723fc349fffcd02a2189e3aa",
+      "role": "REVIEW_SOURCE"
+    },
+    {
+      "path": "CONTROL-PRESEAL.md",
+      "bytes": 1773,
+      "sha256": "67dab2b60d25e224c74b27a654577f3cc3ca0193506ea0232bee3fae2bc83a42",
+      "role": "REVIEW_SOURCE"
+    }
+  ],
+  "author": 6,
+  "novelGroups": 6,
+  "nestedChildren": 0
+}

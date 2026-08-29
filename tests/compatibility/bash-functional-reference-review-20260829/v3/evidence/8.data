@@ -1,0 +1,40 @@
+{
+  "schema": "functional-reference-root-grant-v3",
+  "decision": "NO_GO",
+  "profile": "functional-reference-v3",
+  "deadlineEpochMs": null,
+  "preseal": {
+    "bytes": 5602,
+    "mode": 420,
+    "sha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533"
+  },
+  "independentReviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json",
+    "mode": 384,
+    "bytes": null,
+    "sha256": null
+  },
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 80,
+    "knownPeakCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 37,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 13,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE"
+}

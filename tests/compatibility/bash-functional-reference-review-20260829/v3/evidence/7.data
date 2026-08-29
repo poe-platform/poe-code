@@ -1,0 +1,150 @@
+{
+  "schema": "functional-reference-v3-final-bindings",
+  "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "sourceRows": [
+    {
+      "mode": "100644",
+      "gitBlob": "a463f6ae163f5a43c5f239a8bcd81e3988b32542",
+      "path": "AUDIT.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "95e4a3cbd35812de519f6f5244a4eebe1bf39dd2",
+      "path": "AUTHORITY.md"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "6bb65e077e88503b0773b00c7d18084f46faa896",
+      "path": "CONTROL-PRESEAL.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "ab81626ce48c413ea2d8dd21c3ef6d7c774b9b4c",
+      "path": "CONTROLS.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "01c7be7c6210f21e9f3a0b2c4cfbb0446d469149",
+      "path": "INPUT-DELTA.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "9ec645cad53994ab050f811d15b4d18aa6ad1674",
+      "path": "PREPROVISION.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "fd99f3e34e68c1db6ed7a132031fcdd14f8b642b",
+      "path": "PROTOCOL.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "db6e78f0cde8ab4c956968252812bff90ed6436d",
+      "path": "REQUESTS.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "5dff32f80013d9257aad201a64d013572b0fb59e",
+      "path": "TOOLS.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "cbddd16ae0187160af05130cf27fd816081ccb10",
+      "path": "VERSION-PROVENANCE.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "726ab82e91ec4f353200869e0f0800040ab01e1d",
+      "path": "WRAPPER-TOOL.json"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "48badd4afc89781287df3163e0db440748dbd04f",
+      "path": "admission.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+      "path": "capture.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "a813852a3f7535b82209ed1d857f7c4e454713dd",
+      "path": "data-controls.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "aa2042b0d22790df47839b046964bb98df8abfd1",
+      "path": "entry.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "path": "group-observer.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+      "path": "lifecycle.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "path": "observer-state.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "edac0f2fb39bfea29e8d39abb50ceac52bca6504",
+      "path": "publication-admin.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+      "path": "state.mjs"
+    },
+    {
+      "mode": "100644",
+      "gitBlob": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+      "path": "storage.mjs"
+    }
+  ],
+  "sourceMembershipVerified": 21,
+  "presealFilesVerified": 24,
+  "templates": [
+    {
+      "path": "PRESEAL.json",
+      "bytes": 5602,
+      "sha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+      "mode": 420
+    },
+    {
+      "path": "GO.template.json",
+      "bytes": 1223,
+      "sha256": "60626d722fc3f76079ab87831e4c9530da6aedb5a67239b101116fb1d9a00baa",
+      "mode": 420
+    },
+    {
+      "path": "REVIEW-ACCEPTANCE.template.json",
+      "bytes": 362,
+      "sha256": "09a2c91c7725d3f104d90f43238f727714f86d461c6210dad340ac90d3c01c38",
+      "mode": 420
+    },
+    {
+      "path": "APPROVAL-REQUEST.template.json",
+      "bytes": 3252,
+      "sha256": "9243e5eb6c3db5fce5bee733740a2f59c0d8d447f1e3e38fe46fd476db00f6b7",
+      "mode": 420
+    }
+  ],
+  "controlPresealSha256": "70d45565ebb21f5d7899de8d6b138b8a004394ec10b9ffaf0ba62e382c5d449c",
+  "sourceEntry": {
+    "path": "entry.mjs",
+    "bytes": 7559,
+    "mode": 420,
+    "sha256": "29dee367786c98d4fc2e8f0dd448da5278a177b318b4a1a1f307d23cb51a9d30",
+    "role": "source-commit"
+  },
+  "inputDelta": "INPUT-DELTA.json",
+  "authority": "NONE_FOR_NATIVE; templates remain NO_GO/PENDING",
+  "claim": "Source metadata authentication, not additional runtime controls"
+}

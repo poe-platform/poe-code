@@ -1,0 +1,3 @@
+{"event":"START","at":"2026-08-29T07:56:12.273Z","children":0}
+{"event":"SEALED","originalSha256":"44e3dc9c296bb7cbb42b773f0741390836fb9eec2899654e136a058ec8cb963e","correctedSha256":"d61cad4992f97f35d15179f714fc25098445f4fc723fc349fffcd02a2189e3aa","substitutions":5}
+{"event":"RETURNED","exitCode":1,"children":0}

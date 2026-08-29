@@ -1,0 +1,31 @@
+{
+  "originalSha256": "44e3dc9c296bb7cbb42b773f0741390836fb9eec2899654e136a058ec8cb963e",
+  "correctedSha256": "d61cad4992f97f35d15179f714fc25098445f4fc723fc349fffcd02a2189e3aa",
+  "changes": [
+    [
+      "const stored=source.rows.find(",
+      "assert(['source-commit','author-evidence'].includes(pin.role),'ROLE');const authority=pin.role==='source-commit'?source:manifest;const stored=authority.rows.find("
+    ],
+    [
+      "stored.bytes===pin.bytes",
+      "stored.bytes===pin.bytes&&(parseInt(stored.mode,8)&511)===pin.mode"
+    ],
+    [
+      "root+'/REVIEW.capture.data'",
+      "root+'/REVIEW-r2.capture.data'"
+    ],
+    [
+      "['review.mjs','CONTROL-PRESEAL.md']",
+      "['review-r2.mjs','CONTROL-PRESEAL.md']"
+    ],
+    [
+      "root+'/RESULT.json'",
+      "root+'/RESULT-r2.json'"
+    ]
+  ],
+  "rolePolicy": [
+    "source-commit",
+    "author-evidence"
+  ],
+  "children": 0
+}

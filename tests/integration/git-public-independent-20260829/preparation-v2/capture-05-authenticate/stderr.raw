@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v2/authenticate.py", line 238, in <module>
+    main()
+    ~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v2/authenticate.py", line 113, in main
+    requests[HANDOFF + ':' + name] = local(name)
+                                     ~~~~~^^^^^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v2/authenticate.py", line 40, in local
+    metadata = target.lstat()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 661, in lstat
+    return os.lstat(self)
+           ~~~~~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/PACKAGE.tgz.base64'

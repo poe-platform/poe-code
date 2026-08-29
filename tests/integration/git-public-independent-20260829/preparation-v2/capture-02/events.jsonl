@@ -1,0 +1,8 @@
+{"start": 1787967528781651000, "pid": 53615, "cumulativeProcessSlots": 4}
+{"read": "tests/integration/git-public-20260829/SOURCE.json", "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450", "bytes": 220097}
+{"read": "tests/integration/git-public-20260829/run.mjs", "sha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4", "bytes": 29986}
+{"read": "tests/integration/apply-patch-public-independent-20260829/run.mjs", "sha256": "bf5df220810a002d34b36d2351abb67671947436418c46d89c592ec7f50745b1", "bytes": 16956}
+{"read": "tests/integration/git-public-20260829/m1a.mjs", "sha256": "53c30aa44ba4d07c1a891a40a6e3f5baba4021da5f6186ab73e503df57ecf116", "bytes": 33539}
+{"read": "tests/integration/git-public-20260829/m1a-public-v2.mjs", "sha256": "7b73d2e7df70a314fabfcea137ee1e25fec7e6dbca38f9f3981df19bf2f12962", "bytes": 33642}
+{"read": "tests/integration/git-public-20260829/run.mjs", "sha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4", "bytes": 29986}
+{"terminal": "natural", "productExecutions": 0}

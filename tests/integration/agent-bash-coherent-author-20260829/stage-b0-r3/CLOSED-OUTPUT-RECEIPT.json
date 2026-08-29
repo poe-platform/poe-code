@@ -1,0 +1,30 @@
+{
+  "role": "TRUSTED_CONTROLLER_CLOSED_OUTPUTS_BEFORE_PARSE",
+  "records": [
+    {
+      "path": "CONTROL-RESULT.json",
+      "bytes": 1636,
+      "sha256": "9b072a65431bde7645b34a00e025316d59f32a24e28f0016bf109a8f1f7a2ab0"
+    },
+    {
+      "path": "CONTROLLER-RESULT.json",
+      "bytes": 687,
+      "sha256": "9fa6419e35b9e1b47b83f48075c4a7e8829ec93c4011f78d78c0a2574156c600"
+    },
+    {
+      "path": "control-capture/events.jsonl",
+      "bytes": 1909,
+      "sha256": "db2046a932d0afb0adc8eb9b5ab103e6084d6b6d8f9b16fa3e6ed87ca3920cc8"
+    },
+    {
+      "path": "control-capture/00-controller.stdout",
+      "bytes": 74,
+      "sha256": "c12f509b84c8af9758a537d4e0cedb2e65a2a85b8edec9fd3bafec1a9507ba63"
+    },
+    {
+      "path": "control-capture/00-controller.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "matcher",
+  "before": "return candidate.position > incumbent.position;",
+  "after": "return candidate.position < incumbent.position;",
+  "base": "5427606266eb6c0d25edba6a32f5097769aa11cb3e9825d0328d5995f07007b7",
+  "changed": "f92d122f05550610f084e8dafa94b1a59c2956d1cd80108dfff3a2edf094a390"
+}

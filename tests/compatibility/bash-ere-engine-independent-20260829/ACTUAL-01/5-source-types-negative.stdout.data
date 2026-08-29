@@ -1,0 +1,3 @@
+source-consumer/negative.mts(4,15): error TS2345: Argument of type '"maxOutputBytes"' is not assignable to parameter of type 'EreResource'.
+source-consumer/negative.mts(6,15): error TS2339: Property 'push' does not exist on type 'readonly string[]'.
+source-consumer/negative.mts(7,17): error TS2322: Type 'string' is not assignable to type 'number'.

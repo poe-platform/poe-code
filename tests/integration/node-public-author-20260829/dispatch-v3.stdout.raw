@@ -1,0 +1,18 @@
+Success. Updated the following files:
+A tests/integration/node-public-author-20260829/public-node-v2.mjs
+A tests/integration/node-public-author-20260829/FIXTURE-V2.json
+Success. Updated the following files:
+A tests/integration/node-public-author-20260829/run-v4.mjs
+A tests/integration/node-public-author-20260829/launch-v4.py
+A tests/integration/node-public-author-20260829/CONTINUATION-v4.json
+A tests/integration/node-public-author-20260829/EXECUTOR-v4.json
+A tests/integration/node-public-author-20260829/EXECUTION-SEAL-v4.json
+[main 0046082b] test(node): version provider and registry fixtures with narrow continuation
+ 7 files changed, 1211 insertions(+)
+ create mode 100644 tests/integration/node-public-author-20260829/CONTINUATION-v4.json
+ create mode 100644 tests/integration/node-public-author-20260829/EXECUTION-SEAL-v4.json
+ create mode 100644 tests/integration/node-public-author-20260829/EXECUTOR-v4.json
+ create mode 100644 tests/integration/node-public-author-20260829/FIXTURE-V2.json
+ create mode 100644 tests/integration/node-public-author-20260829/launch-v4.py
+ create mode 100644 tests/integration/node-public-author-20260829/public-node-v2.mjs
+ create mode 100644 tests/integration/node-public-author-20260829/run-v4.mjs

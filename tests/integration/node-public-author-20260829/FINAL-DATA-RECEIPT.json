@@ -1,0 +1,31 @@
+{
+  "role": "AUTHOR_FINAL_DATA_POSTGUARDS_AND_PUBLICATION_PLAN",
+  "at": "2026-08-29T06:40:18.135Z",
+  "actualGrantElapsedSeconds": 851.708,
+  "verifiedRawEntries": 370,
+  "verifiedPackageSha256": "274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9",
+  "executorBindingsVerified": 99,
+  "sourcePreservationVerified": true,
+  "retainedAndOwnedArtifactFiles": 13207,
+  "retainedAndOwnedArtifactBytes": 196790693,
+  "observedDirectExecutionChildren": 82,
+  "observedCoordinators": 4,
+  "observedPythonOwners": 4,
+  "observedAdministrationDirect": 19,
+  "conservativeExecShellExtra": 4,
+  "conservativeEditingHelperExtra": 6,
+  "knownMeasuredDirectBeforePublication": 109,
+  "conservativeBeforePublication": 119,
+  "remainingPlannedPublication": {
+    "applyPatch": 1,
+    "editingHelperConservativeExtra": 1,
+    "gitStage": 1,
+    "gitCommit": 1,
+    "gitStatus": 1
+  },
+  "activeKnownChildren": 0,
+  "noGlobalDescendantOrIndependentPeakCapProof": true,
+  "publicationCapture": "/private/tmp/node-public-author-publication-RrDGJS",
+  "originalFailuresRetained": true,
+  "independentReviewRequired": true
+}

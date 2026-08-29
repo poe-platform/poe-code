@@ -1,0 +1,60 @@
+# Public Node opt-in — author handoff, independent review required
+
+2026-08-29. Implementation source commit **bb4dd0571a0335b20e29448bf88126ca02c1a32d**.
+No public acceptance is asserted. All four actual versions and their exits remain recorded.
+
+## Exact composition and package
+
+- Derived candidate **a6d20781d3c099fb7b3d36c10696beb06615af1b**, not a required stored Git object.
+- SOURCE.json SHA256 **8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949**;308 build inputs.
+- Base accepted26215b99cb379a9f825f803454f758fab5a3c8e9/full9501fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4.
+- Accepted module a2f3983da537b95bed65b8bc727ab93bc7e98ca3, acceptance1a15f7a520399a6fc73e910974ffa718b455c39c/rootb10faea3e04714dbddc796971a773fa0c61495f7.
+- New actual package **1010 members /922502 bytes /SHA256274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9**; PACKAGE.tgz.base64 reproduces exact bytes.
+- Fourteen other Node TS files and the existing index implementation beginning function local are byte-identical to accepted module. Added index wrappers/imported types only; MODULE-PRESERVATION.data.json binds this check.
+- Only README/package/root-index change among292 accepted base build inputs;16 module inputs added. Default plugin/runtime/parser/Unit2 files are inherited, no Unit3/live HEAD overlay.
+- Production changes: src/commands/node/index.ts, src/index.ts, package.json; narrow src/commands/node/README.md, root README.md and docs/COMMAND_PRIORITIES.md. PROJECT_LEDGER untouched.
+
+## API and boundaries
+
+Provider-required nodeCommands/createNodeCommands and NodeCommandsOptions extends NodeCommandOptions plus replace. The option is validated/snapshotted and stripped before createNodeCommand. Configuration validation is synchronous/inert; duplicate plugin setup rejects at the existing asynchronous Shell boundary. Explicit plugin only, exact virtual-bash/commands/node subpath and root exports:9 runtime/21 declared types. No private NodeOwner/host subpath. Default80 unchanged; no AgentCommandsOptions.node/npm/npx/dependencies/stub/default denial command/ambient engine/native fallback.
+
+Seven grants default denied;24 fixed maxima have no public override. Trusted host provider/static adapter URL/identity are configuration, not byte authentication or authorization. NP1-CJS-WRQ-L-SYNC-1/Worker-L is not full Node/CommonJS or all-jobs-settled. No engine is included in the package: actual engine tests use the existing authenticated PUBLIC95 emitted fixture plus package metadata/support, not private source or a new engine build.
+
+## Results — separate cohorts, no historical rescore
+
+| Cohort | Actual result |
+| --- | --- |
+| v1 setup | exit1; missing toolBindings lookup;1 development Git child,0 builds/product imports/Workers |
+| v2 setup | exit1; exact compiled/support/errors.js locator omitted;1 development Git child,0 builds/product imports/Workers |
+| v3 strict build/package/install/physical move | build0,1010 package members verified; scripts-disabled offline install and real parent-directory rename |
+| v3 retained Git/apply/redirection/strict/arrays/coherence |217/217 each source-built,installed,moved =651 |
+| v3 unchanged version-mapped Node module |61/61 each layout =183; not183 guest entries |
+| v3 initial public fixtures |21PASS/3FAIL per layout =63PASS/9FAIL; P06/P07/P17 retained |
+| v3 existing Git type processes |6/6 |
+| v3 new Node type processes |3 positive PASS,3 negative expectation FAIL, all raw diagnostics preserved |
+| v3 loaded controls |two discriminatory kills/restores; preflight-only collision mutant UNQUALIFIED with failing restored control;2 binding refusals |
+| v4 versioned public fixtures |P06/P07/P17:9/9 across three qualified layout instances |
+| v4 Node type processes |6/6:3 positives,3 negatives with18 expected code/line/message matches; full diagnostic columns captured, not a separate column predicate |
+| v4 replacement mutant |one actually forced-replacement kill + one restored PASS |
+
+Thus24 intended public identities/layout have composed author coverage through v3+v4, NOT one all-green execution. v3 exit1 stays exit1. The original collision-mutant apparent kill is not credited: removing preflight still leaves registry collision enforcement, and the old assertion failed on copied-object identity. v4 force-replacement changes both effective preflight and registration authority and was killed for return-vs-throw, then restored.
+
+FIXTURE-V2.json records exact changes: P06/P17 originally fabricated completion with retirement acquisition:none, which the module correctly refuses. Versioned fixtures spy on a real authorized Worker provider instead; six additional Workers validate default grants and inert preparation/start/retire ordering. P07 now snapshots the actual registered definition rather than the input object the registry copies. The type predicate now includes the actual optional boolean union. No production correction or weakened error contract.
+
+v4 uses authenticated source-emission/package copies and installed-package regular-file rehydration, then an actual physical rename; it does NOT repeat npm install/build or pretend to be the untouched original installed directory after that directory moved. Original retained source/moved roots compare unchanged before/after. Public24 remains a bounded design subset: P23 unavailable-Worker-permission branch UNRUN; P16 only malformed URL/wrong identity; P03 standalone registration, not an exhaustive standalone execution matrix. P13 includes W28/W29 without adding them to the public denominator. Root/subpath consumer types are finite selected coverage, not every possible host ABI consumer.
+
+## Capture, lifecycle and resources
+
+v1/v2/v3/v4:82 direct execution children,4 coordinator Nodes and4 outer Python capture owners. Each direct child closed; all four owned process groups were absent after natural coordinator closure, no outer rescue/signals. Main v3=69 children; narrow v4=11. Admin/edit/Git records in ADMIN.jsonl are separate. Editing-helper conservative reservations are NOT measured transitive descendants or an independently proven all-OS peak. Observed direct topology peaked at4 including one concurrent editor; no universal descendant/peak/RSS claim.
+
+Application Node Workers **139 starts/139 exits**, **124 guest entries**; **23 fixed internal-loader admissions**,0 RegexWorkers. Total admitted Worker categories162, within192; Node139 below144,loader23 below40. Internal-loader individual exit events are unobserved; only hosting-process retirement is established. Native/private/engine-build/oracle/network runs0. Source-owned operation/resource qualifications inherited from module remain; no claims about every native allocation or all guest jobs.
+
+Original direct-child captures total14744095 bytes across versions. Retained four scratch roots total181691418 bytes at their terminal observations, excluding publication copies; final publication receipt measures current storage separately. Capture artifact370 entries/27849950 original bytes, gzip9313163 bytes. These are bounded buffered evidence transformations, not a constant-memory claim. SHA256/tool binding reads use bounded streams. RAW-CAPTURES-v1.json.gz.base64 contains flat captures/receipts and preparation records, not vendored engine/dependency/source directories. Outer raw files/terminal receipts are also directly retained in actual-v1..v4.
+
+Preparation completed in1520.919s,27 known direct/shell roles plus9 conservative editing-helper slots=36, not a measured global census. Initial zero-child editing-expression parse failure has tool-transcript-only capture qualification; no instruction plaintext was persisted. Actual grant is one continuing60min/160-process budget across allowed ordinary repairs, not reset per version. ADMIN.jsonl plus external publication receipt account for final administration; keep reservation-vs-measurement distinction.
+
+## Review handoff
+
+Initial preseal627bfa0b9c2a40cbe72544e6f8d8b6f4e7c8eba04f3d589d3ddde67881400bae at bb4dd057; authenticated tool-map correction7177c5f7, support locator1197789e, versioned fixture/continuation0046082b. EXECUTOR-v3/v4 and their complete source/fixture/tool records, EVIDENCE-MANIFEST.json, raw archives, and PACKAGE.tgz.base64 are the reviewer inputs. Reconstruct SOURCE blobs, never substitute live HEAD or require derived tree storage. New independent execution needs ROOT authorization, not this author script's mere presence.
+
+Retain accepted module partial38-family mapping/E09 weak catch/W23 diagnostic/old loop UNKNOWN, private-resource/source-only and historical process-accounting qualifications. Unit2 eleven OPEN design IDs remain. No native oracle/fullNode/Bash/default integration/wholeHEAD/benchmark/performance/RSS acceptance follows. Product defects were not demonstrated by these author failures; independent review remains mandatory.

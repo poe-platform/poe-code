@@ -1,0 +1,326 @@
+GNU_5_3_15 expr.c
+196: static intmax_t	expr_streval (char *, int, struct lvalue *);
+1150: expr_streval (char *tok, int e, struct lvalue *lvalue)
+1162: /*itrace("expr_streval: %s: noeval = %d expanded=%d", tok, noeval, already_expanded);*/
+1190:   if ((v == 0 || invisible_p (v)) && unbound_vars_is_error)
+1198:       set_exit_status (EXECUTION_FAILURE);
+1213: 	  jump_to_top_level (DISCARD);
+1216: 	jump_to_top_level (FORCE_EOF);
+1398: 	  tokval = expr_streval (tokstr, e, &curlval);
+GNU_5_3_15 shell.c
+305: char *command_execution_string;	/* argument to -c option */
+332: static int run_one_command (char *);
+444:   command_execution_string = shell_script_filename = NULL;
+521:       command_execution_string = argv[arg_index];
+522:       if (command_execution_string == 0)
+541:       (!command_execution_string &&	/* No -c command and ... */
+696:   else if (command_execution_string)
+759:   if (command_execution_string)
+768:       run_one_command (command_execution_string);
+771:       with_input_from_string (command_execution_string, "-c");
+1157:       act_like_sh == 0 && command_execution_string && shell_level < 2)
+1393: 	case FORCE_EOF:
+1399: 	case DISCARD:
+1457: run_one_command (char *command)
+1471: 	case FORCE_EOF:
+1477: 	case DISCARD:
+1480: 	  command_error ("run_one_command", CMDERR_BADJUMP, code, 0);
+1483:    return (parse_and_execute (savestring (command), "-c", SEVAL_NOHIST|SEVAL_RESETLINE));
+GNU_5_3_15 builtins/evalstring.c
+308:    	(flags & SEVAL_RESETLINE) -> reset line_number to 1
+318:   volatile int should_jump_to_top_level, last_result;
+326:   lreset = flags & SEVAL_RESETLINE;
+351:   last_result = EXECUTION_SUCCESS;
+365: 	  last_result = EXECUTION_FAILURE;
+395: 	    case FORCE_EOF:	      
+423: 	    case DISCARD:
+426: 	      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */
+457: 	      last_result = EXECUTION_SUCCESS;
+480: 		      last_result = last_command_exit_value = EX_BADUSAGE;
+563: 		  last_result = (r < 0) ? EXECUTION_FAILURE : EXECUTION_SUCCESS;
+567: 		last_result = execute_command_internal
+586: 	  last_result = EX_BADUSAGE;	/* was EXECUTION_FAILURE */
+594: 	      last_command_exit_value = EX_BADUSAGE;
+621:   return (last_result);
+681: 	    case FORCE_EOF:
+685: 	    case DISCARD:		/* XXX */
+719: 	      code = DISCARD;
+748:       if (code == DISCARD)
+749: 	return -DISCARD;
+GNU_5_3_15 builtins/set.def
+703: 	{
+704: 	  list = list->next;
+705: 
+706: 	  /* `set --' unsets the positional parameters. */
+707: 	  if (arg[1] == '-')
+708: 	    force_assignment = 1;
+709: 
+710: 	  /* Until told differently, the old shell behaviour of
+711: 	     `set - [arg ...]' being equivalent to `set +xv [arg ...]'
+712: 	     stands.  Posix.2 says the behaviour is marked as obsolescent. */
+713: 	  else
+714: 	    {
+715: 	      change_flag ('x', '+');
+716: 	      change_flag ('v', '+');
+717: 	      opts_changed = 1;
+718: 	    }
+719: 
+720: 	  break;
+721: 	}
+722: 
+723:       if ((on_or_off = *arg) && (on_or_off == '-' || on_or_off == '+'))
+724: 	{
+725: 	  while (flag_name = *++arg)
+726: 	    {
+727: 	      if (flag_name == '?')
+728: 		{
+729: 		  builtin_usage ();
+730: 		  return (EXECUTION_SUCCESS);
+731: 		}
+732: 	      else if (flag_name == 'o') /* -+o option-name */
+733: 		{
+734: 		  char *option_name;
+735: 		  WORD_LIST *opt;
+736: 
+737: 		  opt = list->next;
+738: 
+739: 		  if (opt == 0)
+740: 		    {
+741: 		      list_minus_o_opts (-1, (on_or_off == '+'));
+742: 		      rv = sh_chkwrite (rv);
+743: 		      continue;
+744: 		    }
+745: 
+746: 		  option_name = opt->word->word;
+747: 
+748: 		  if (option_name == 0 || *option_name == '\0' ||
+749: 		      *option_name == '-' || *option_name == '+')
+750: 		    {
+751: 		      list_minus_o_opts (-1, (on_or_off == '+'));
+752: 		      continue;
+753: 		    }
+754: 		  list = list->next; /* Skip over option name. */
+755: 
+756: 		  opts_changed = 1;
+757: 		  if ((r = set_minus_o_option (on_or_off, option_name)) != EXECUTION_SUCCESS)
+758: 		    {
+759: 		      set_shellopts ();
+760: 		      return (r);
+761: 		    }
+762: 		}
+763: 	      else if (change_flag (flag_name, on_or_off) == FLAG_ERROR)
+764: 		{
+765: 		  s[0] = on_or_off;
+766: 		  s[1] = flag_name;
+767: 		  s[2] = '\0';
+768: 		  sh_invalidopt (s);
+769: 		  builtin_usage ();
+770: 		  set_shellopts ();
+771: 		  return (EXECUTION_FAILURE);
+772: 		}
+773: 	      opts_changed = 1;
+GNU_5_3_15 subst.c
+7488: array_length_reference (const char *s)
+7489: {
+7490:   int len;
+7491:   arrayind_t ind;
+7492:   char *akey;
+7493:   char *t, c;
+7494:   ARRAY *array;
+7495:   HASH_TABLE *h;
+7496:   SHELL_VAR *var;
+7497: 
+7498:   var = array_variable_part (s, 0, &t, &len);
+7499: 
+7500:   /* If unbound variables should generate an error, report one and return
+7501:      failure. */
+7502:   if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)
+7503:     {
+7504:       set_exit_status (EXECUTION_FAILURE);
+7505: #if 1
+7506:       /* If the array isn't subscripted with `@' or `*', it's an error. */
+7507:       if (ALL_ELEMENT_SUB (t[0]) == 0 || t[1] != RBRACK)
+7508:         return (INTMAX_MIN);		/* caller prints error */
+7509: #endif
+7510:       /* If the variable is subscripted with `@' or `*', ksh93 allows it to
+7511: 	 return 0. We treat it as a non-fatal error. */
+7512:       c = *--t;
+7513:       *t = '\0';
+7514:       err_unboundvar (s);
+7515:       *t = c;
+7516:       return (-1);
+7517:     }
+7518:   else if (var == 0 || invisible_p (var))
+7519:     return 0;
+7520: 
+7521:   /* We support a couple of expansions for variables that are not arrays.
+7522:      We'll return the length of the value for v[0], and 1 for v[@] or
+7523:      v[*].  Return 0 for everything else. */
+7524: 
+7525:   array = array_p (var) ? array_cell (var) : (ARRAY *)NULL;
+7526:   h = assoc_p (var) ? assoc_cell (var) : (HASH_TABLE *)NULL;
+7527: 
+7528:   if (ALL_ELEMENT_SUB (t[0]) && t[1] == RBRACK)
+7529:     {
+7530:       if (assoc_p (var))
+7531: 	return (h ? assoc_num_elements (h) : 0);
+7532:       else if (array_p (var))
+7533: 	return (array ? array_num_elements (array) : 0);
+7534:       else
+7535: 	return (var_isset (var) ? 1 : 0);
+7536:     }
+7537: 
+7538:   /* If an array variable is set, length expansions for unset elements
+7539:      return 0. This is compatible with ksh93. */
+7540:   if (assoc_p (var))
+7541:     {
+7542:       t[len - 1] = '\0';
+7543:       akey = expand_subscript_string (t, 0);
+7544:       t[len - 1] = RBRACK;
+7545:       if (akey == 0 || *akey == 0)
+GNU_5_3_15 error.c
+74: error_prolog (int print_lineno)
+75: {
+76:   char *ename;
+77:   int line;
+78: 
+79:   ename = get_name_for_error ();
+80:   line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;
+81: 
+82:   if (line > 0)
+83:     fprintf (stderr, "%s:%s%d: ", ename, gnu_error_format ? "" : _(" line "), line);
+84:   else
+85:     fprintf (stderr, "%s: ", ename);
+86: }
+87: 
+88: /* Return the name of the shell or the shell script for error reporting. */
+89: char *
+90: get_name_for_error (void)
+91: {
+92:   char *name;
+93: #if defined (ARRAY_VARS)
+94:   SHELL_VAR *bash_source_v;
+95:   ARRAY *bash_source_a;
+96: #endif
+97: 
+98:   name = (char *)NULL;
+99:   if (interactive_shell == 0)
+100:     {
+101: #if defined (ARRAY_VARS)
+102:       bash_source_v = find_variable ("BASH_SOURCE");
+103:       if (bash_source_v && array_p (bash_source_v) &&
+104: 	  (bash_source_a = array_cell (bash_source_v)))
+105: 	name = array_reference (bash_source_a, 0);
+106:       if (name == 0 || *name == '\0')	/* XXX - was just name == 0 */
+107: #endif
+108: 	name = dollar_vars[0];
+109:     }
+110:   if (name == 0 && shell_name && *shell_name)
+111:     name = base_pathname (shell_name);
+112:   if (name == 0)
+113: #if defined (PROGRAM)
+114:     name = PROGRAM;
+115: #else
+116:     name = "bash";
+117: #endif
+118: 
+119:   return (name);
+120: }
+121: 
+122: /* Report an error having to do with FILENAME.  This does not use
+123:    sys_error so the filename is not interpreted as a printf-style
+124:    format string. */
+125: void
+126: file_error (const char *filename)
+127: {
+128:   report_error ("%s: %s", filename, strerror (errno));
+129: }
+130: 
+131: void
+132: programming_error (const char *format, ...)
+133: {
+134:   va_list args;
+135:   char *h;
+136: 
+137: #if defined (JOB_CONTROL)
+138:   give_terminal_to (shell_pgrp, 0);
+139: #endif /* JOB_CONTROL */
+140: 
+141:   va_start (args, format);
+142: 
+143:   vfprintf (stderr, format, args);
+144:   fprintf (stderr, "\n");
+145:   va_end (args);
+146: 
+147: #if defined (HISTORY)
+148:   if (remember_on_history)
+149:     {
+150:       h = last_history_line ();
+151:       fprintf (stderr, _("last command: %s\n"), h ? h : "(null)");
+152:     }
+GNU_5_3_15 error.c
+442:   report_error ("%s: %s", s, _(bash_badsub_errmsg));
+443: }
+444: #endif
+445: 
+446: void
+447: err_unboundvar (const char *s)
+448: {
+449:   report_error (_("%s: unbound variable"), s);
+450: }
+451: 
+452: void
+453: err_readonly (const char *s)
+454: {
+455:   report_error (_("%s: readonly variable"), s);
+FROZEN_PRODUCT runtime
+3199: 
+3200:   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
+3201:     const { command, args, stdout, stderr } = context;
+3202:     if (command === ":" || command === "true") return 0;
+3203:     if (command === "false") return 1;
+3204:     if (command === "shopt") return this.shoptBuiltin(context, state);
+3205:     if (command === "let") return this.letBuiltin(context, state);
+3206:     if (command === "getopts") return this.getoptsBuiltin(context, state);
+3207:     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
+3208:     if (command === "pwd") {
+3209:       if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeText(stderr, "pwd: invalid option\n"); return 2; }
+3210:       const path = args.at(-1) === "-P" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
+3211:       await writeText(stdout, `${path}\n`);
+3212:       return 0;
+3213:     }
+3214:     if (command === "cd") return this.changeDirectory(context, state, args, diagnose);
+3215:     if (command === "set") {
+3216:       let index = 0;
+3217:       let positionals = false;
+3218:       while (index < args.length) {
+3219:         const option = args[index]!;
+3220:         if (option === "--") { index++; positionals = true; break; }
+3221:         if (option === "-") { index++; positionals = index < args.length; break; }
+3222:         const flags = /^[-+]([eu]*o|[eu]+)$/u.exec(option)?.[1];
+3223:         const named = flags?.endsWith("o");
+3224:         const name = named ? args[index + 1] : undefined;
+3225:         if (flags && (!named || name === "pipefail" || name === "errexit" || name === "nounset")) {
+3226:           const enabled = option.startsWith("-");
+3227:           for (const flag of flags) {
+3228:             if (flag === "e" || flag === "o" && name === "errexit") state.errexit = enabled;
+3229:             else if (flag === "u" || flag === "o" && name === "nounset") state.nounset = enabled;
+3230:             else if (flag === "o" && name === "pipefail") state.pipefail = enabled;
+3231:           }
+3232:           index += named ? 2 : 1;
+3233:           continue;
+3234:         }
+3235:         if (/^[+-]/u.test(option)) {
+3236:           await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+3237:           if (state.profile === "sh" && suppressSpecial) return 2;
+3238:           throw new Flow("exit", 2);
+3239:         }
+3240:         positionals = true;
+3241:         break;
+3242:       }
+3243:       if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+3244:       if (args.length) return 0;
+3245:       await writeText(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+3246:       return 2;
+3247:     }
+3248:     if (command === "shift") {

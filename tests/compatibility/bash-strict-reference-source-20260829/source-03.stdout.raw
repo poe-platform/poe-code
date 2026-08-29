@@ -1,0 +1,298 @@
+GNU_5_3_15 subst.c
+7500:   /* If unbound variables should generate an error, report one and return
+7501:      failure. */
+7502:   if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)
+7503:     {
+7504:       set_exit_status (EXECUTION_FAILURE);
+7505: #if 1
+7506:       /* If the array isn't subscripted with `@' or `*', it's an error. */
+7507:       if (ALL_ELEMENT_SUB (t[0]) == 0 || t[1] != RBRACK)
+7508:         return (INTMAX_MIN);		/* caller prints error */
+7509: #endif
+7510:       /* If the variable is subscripted with `@' or `*', ksh93 allows it to
+7511: 	 return 0. We treat it as a non-fatal error. */
+7512:       c = *--t;
+7513:       *t = '\0';
+7514:       err_unboundvar (s);
+7515:       *t = c;
+7516:       return (-1);
+7517:     }
+7518:   else if (var == 0 || invisible_p (var))
+7519:     return 0;
+7520: 
+7521:   /* We support a couple of expansions for variables that are not arrays.
+7522:      We'll return the length of the value for v[0], and 1 for v[@] or
+7523:      v[*].  Return 0 for everything else. */
+7524: 
+7525:   array = array_p (var) ? array_cell (var) : (ARRAY *)NULL;
+7526:   h = assoc_p (var) ? assoc_cell (var) : (HASH_TABLE *)NULL;
+7527: 
+7528:   if (ALL_ELEMENT_SUB (t[0]) && t[1] == RBRACK)
+7529:     {
+7530:       if (assoc_p (var))
+7531: 	return (h ? assoc_num_elements (h) : 0);
+7532:       else if (array_p (var))
+7533: 	return (array ? array_num_elements (array) : 0);
+7534:       else
+7535: 	return (var_isset (var) ? 1 : 0);
+7536:     }
+7537: 
+7538:   /* If an array variable is set, length expansions for unset elements
+7539:      return 0. This is compatible with ksh93. */
+7540:   if (assoc_p (var))
+7541:     {
+7542:       t[len - 1] = '\0';
+7543:       akey = expand_subscript_string (t, 0);
+GNU_5_3_15 expr.c
+1150: expr_streval (char *tok, int e, struct lvalue *lvalue)
+1151: {
+1152:   SHELL_VAR *v;
+1153:   char *value;
+1154:   intmax_t tval;
+1155:   int initial_depth;
+1156: #if defined (ARRAY_VARS)
+1157:   arrayind_t ind;
+1158:   int tflag, aflag;
+1159:   array_eltstate_t es;
+1160: #endif
+1161: 
+1162: /*itrace("expr_streval: %s: noeval = %d expanded=%d", tok, noeval, already_expanded);*/
+1163:   /* If we are suppressing evaluation, just short-circuit here instead of
+1164:      going through the rest of the evaluator. */
+1165:   if (noeval)
+1166:     return (0);
+1167: 
+1168:   initial_depth = expr_depth;
+1169: 
+1170: #if defined (ARRAY_VARS)
+1171:   tflag = (array_expand_once && already_expanded) ? AV_NOEXPAND : 0;	/* for a start */
+1172: #if 0 /* TAG:bash-5.4 https://lists.gnu.org/archive/html/bug-bash/2024-12/msg00193.html */
+1173:   if (this_shell_builtin == let_builtin && shell_compatibility_level > 51)
+1174:     tflag |= AV_NOEXPAND;	/* we didn't quote subscripts */
+1175: #endif
+1176: #endif
+1177: 
+1178:   /* [[[[[ */
+1179: #if defined (ARRAY_VARS)
+1180:   aflag = tflag;	/* use a different variable for now */
+1181:   if (shell_compatibility_level > 51)
+1182:     aflag |= AV_ATSTARKEYS;
+1183:   v = (e == ']') ? array_variable_part (tok, tflag, (char **)0, (int *)0) : find_variable (tok);
+1184: #else
+1185:   v = find_variable (tok);
+1186: #endif
+1187:   if (v == 0 && e != ']')
+1188:     v = find_variable_last_nameref (tok, 0);  
+1189: 
+1190:   if ((v == 0 || invisible_p (v)) && unbound_vars_is_error)
+1191:     {
+1192: #if defined (ARRAY_VARS)
+1193:       value = (e == ']') ? array_variable_name (tok, tflag, (char **)0, (int *)0) : tok;
+1194: #else
+1195:       value = tok;
+1196: #endif
+1197: 
+1198:       set_exit_status (EXECUTION_FAILURE);
+1199:       err_unboundvar (value);
+1200: 
+1201: #if defined (ARRAY_VARS)
+1202:       if (e == ']')
+1203: 	FREE (value);	/* array_variable_name returns new memory */
+1204: #endif
+1205: 
+1206:       if (no_longjmp_on_fatal_error && interactive_shell)
+1207: 	sh_longjmp (evalbuf, 1);
+1208: 
+1209:       if (interactive_shell)
+1210: 	{
+1211: 	  expr_unwind ();
+1212: 	  top_level_cleanup ();
+1213: 	  jump_to_top_level (DISCARD);
+1214: 	}
+1215:       else
+1216: 	jump_to_top_level (FORCE_EOF);
+1217:     }
+1218: 
+1219: #if defined (ARRAY_VARS)
+1220:   init_eltstate (&es);
+1221:   es.ind = -1;
+1222:   /* If the second argument to get_array_value doesn't include AV_ALLOWALL,
+1223:      we don't allow references like array[@].  In this case, get_array_value
+1224:      is just like get_variable_value in that it does not return newly-allocated
+1225:      memory or quote the results.  AFLAG is set above and is either AV_NOEXPAND
+1226:      or 0. */
+1227:   value = (e == ']') ? get_array_value (tok, aflag, &es) : get_variable_value (v);
+1228:   ind = es.ind;
+1229:   flush_eltstate (&es);
+1230: #else
+1231:   value = get_variable_value (v);
+1232: #endif
+1233: 
+1234:   if (expr_depth < initial_depth)
+1235:     {
+1236:       if (no_longjmp_on_fatal_error && interactive_shell)
+1237: 	sh_longjmp (evalbuf, 1);
+1238:       return (0);
+GNU_5_3_15 shell.c
+1457: run_one_command (char *command)
+1458: {
+1459:   int code;
+1460: 
+1461:   code = setjmp_nosigs (top_level);
+1462: 
+1463:   if (code != NOT_JUMPED)
+1464:     {
+1465: #if defined (PROCESS_SUBSTITUTION)
+1466:       unlink_fifo_list ();
+1467: #endif /* PROCESS_SUBSTITUTION */
+1468:       switch (code)
+1469: 	{
+1470: 	  /* Some kind of throw to top_level has occurred. */
+1471: 	case FORCE_EOF:
+1472: 	  return last_command_exit_value = 127;
+1473: 	case ERREXIT:
+1474: 	case EXITPROG:
+1475: 	case EXITBLTIN:
+1476: 	  return last_command_exit_value;
+1477: 	case DISCARD:
+1478: 	  return last_command_exit_value = 1;
+1479: 	default:
+1480: 	  command_error ("run_one_command", CMDERR_BADJUMP, code, 0);
+1481: 	}
+1482:     }
+1483:    return (parse_and_execute (savestring (command), "-c", SEVAL_NOHIST|SEVAL_RESETLINE));
+1484: }
+1485: #endif /* ONESHOT */
+GNU_5_3_15 builtins/evalstring.c
+377: 	  switch (code)
+378: 	    {
+379: 	    case ERREXIT:
+380: 	      /* variable_context -> 0 is what eval.c:reader_loop() does in
+381: 		 these circumstances.  Don't bother with cleanup here because
+382: 		 we don't want to run the function execution cleanup stuff
+383: 		 that will cause pop_context and other functions to run.
+384: 		 We call reset_local_contexts() instead, which just frees
+385: 		 context memory.
+386: 		 XXX - change that if we want the function context to be
+387: 		 unwound. */
+388: 	      if (exit_immediately_on_error && variable_context)
+389: 	        {
+390: 	          discard_unwind_frame ("pe_dispose");
+391: 	          reset_local_contexts (); /* not in a function */
+392: 	        }
+393: 	      should_jump_to_top_level = 1;
+394: 	      goto out;
+395: 	    case FORCE_EOF:	      
+396: 	    case EXITPROG:
+397: 	      if (command)
+398: 		run_unwind_frame ("pe_dispose");
+399: 	      /* Remember to call longjmp (top_level) after the old
+400: 		 value for it is restored. */
+401: 	      should_jump_to_top_level = 1;
+402: 	      goto out;
+403: 
+404: 	    case EXITBLTIN:
+405: 	      if (command)
+406: 		{
+407: 		  if (variable_context && signal_is_trapped (0))
+408: 		    {
+409: 		      /* Let's make sure we run the exit trap in the function
+410: 			 context, as we do when not running parse_and_execute.
+411: 			 The pe_dispose unwind frame comes before any unwind-
+412: 			 protects installed by the string we're evaluating, so
+413: 			 it will undo the current function scope. */
+414: 		      dispose_command (command);
+415: 		      discard_unwind_frame ("pe_dispose");
+416: 		    }
+417: 		  else
+418: 		    run_unwind_frame ("pe_dispose");
+419: 		}
+420: 	      should_jump_to_top_level = 1;
+421: 	      goto out;
+422: 
+423: 	    case DISCARD:
+424: 	      if (command)
+425: 		run_unwind_frame ("pe_dispose");
+426: 	      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */
+427: 	      set_pipestatus_from_exit (last_command_exit_value);
+428: 	      
+429: 	      if (subshell_environment)
+430: 		{
+431: 		  should_jump_to_top_level = 1;
+432: 		  goto out;
+433: 		}
+434: 	      else
+GNU_5_3_15 error.c
+74: error_prolog (int print_lineno)
+75: {
+76:   char *ename;
+77:   int line;
+78: 
+79:   ename = get_name_for_error ();
+80:   line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;
+81: 
+82:   if (line > 0)
+83:     fprintf (stderr, "%s:%s%d: ", ename, gnu_error_format ? "" : _(" line "), line);
+84:   else
+85:     fprintf (stderr, "%s: ", ename);
+86: }
+87: 
+88: /* Return the name of the shell or the shell script for error reporting. */
+89: char *
+90: get_name_for_error (void)
+91: {
+92:   char *name;
+93: #if defined (ARRAY_VARS)
+94:   SHELL_VAR *bash_source_v;
+95:   ARRAY *bash_source_a;
+96: #endif
+97: 
+98:   name = (char *)NULL;
+99:   if (interactive_shell == 0)
+100:     {
+101: #if defined (ARRAY_VARS)
+102:       bash_source_v = find_variable ("BASH_SOURCE");
+103:       if (bash_source_v && array_p (bash_source_v) &&
+104: 	  (bash_source_a = array_cell (bash_source_v)))
+105: 	name = array_reference (bash_source_a, 0);
+106:       if (name == 0 || *name == '\0')	/* XXX - was just name == 0 */
+107: #endif
+108: 	name = dollar_vars[0];
+109:     }
+110:   if (name == 0 && shell_name && *shell_name)
+111:     name = base_pathname (shell_name);
+112:   if (name == 0)
+113: #if defined (PROGRAM)
+114:     name = PROGRAM;
+115: #else
+116:     name = "bash";
+117: #endif
+118: 
+119:   return (name);
+GNU_5_3_15 error.c
+165: /* Print an error message and, if `set -e' has been executed, exit the
+166:    shell.  Used in this file by file_error and programming_error.  Used
+167:    outside this file mostly to report substitution and expansion errors,
+168:    and for bad invocation options. */
+169: void
+170: report_error (const char *format, ...)
+171: {
+172:   va_list args;
+173: 
+174:   error_prolog (1);
+175: 
+176:   va_start (args, format);
+177: 
+178:   vfprintf (stderr, format, args);
+179:   fprintf (stderr, "\n");
+180: 
+181:   va_end (args);
+182:   if (exit_immediately_on_error)
+183:     {
+184:       if (last_command_exit_value == 0)
+185: 	last_command_exit_value = EXECUTION_FAILURE;
+186:       exit_shell (last_command_exit_value);
+187:     }
+188: }
+189: 
+190: void

@@ -1,0 +1,1293 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "bytes": 59208,
+      "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 2130
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "bytes": 25533,
+      "sha256": "063da6502b5472c1a126f86fcdb4fc8c351ae1d3a1510cb2167ff0b6be3b066f",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 867
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    }
+  ],
+  "sourceBytesRead": 524059,
+  "cumulativeSourceBytes": 1933580,
+  "distinctSources": 7,
+  "requests": [
+    {
+      "file": "subst.c",
+      "start": 7500,
+      "end": 7543
+    },
+    {
+      "file": "expr.c",
+      "start": 1150,
+      "end": 1238
+    },
+    {
+      "file": "shell.c",
+      "start": 1457,
+      "end": 1485
+    },
+    {
+      "file": "builtins/evalstring.c",
+      "start": 377,
+      "end": 434
+    },
+    {
+      "file": "error.c",
+      "start": 74,
+      "end": 119
+    },
+    {
+      "file": "error.c",
+      "start": 165,
+      "end": 190
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 7500,
+          "text": "  /* If unbound variables should generate an error, report one and return"
+        },
+        {
+          "line": 7501,
+          "text": "     failure. */"
+        },
+        {
+          "line": 7502,
+          "text": "  if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)"
+        },
+        {
+          "line": 7503,
+          "text": "    {"
+        },
+        {
+          "line": 7504,
+          "text": "      set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 7505,
+          "text": "#if 1"
+        },
+        {
+          "line": 7506,
+          "text": "      /* If the array isn't subscripted with `@' or `*', it's an error. */"
+        },
+        {
+          "line": 7507,
+          "text": "      if (ALL_ELEMENT_SUB (t[0]) == 0 || t[1] != RBRACK)"
+        },
+        {
+          "line": 7508,
+          "text": "        return (INTMAX_MIN);\t\t/* caller prints error */"
+        },
+        {
+          "line": 7509,
+          "text": "#endif"
+        },
+        {
+          "line": 7510,
+          "text": "      /* If the variable is subscripted with `@' or `*', ksh93 allows it to"
+        },
+        {
+          "line": 7511,
+          "text": "\t return 0. We treat it as a non-fatal error. */"
+        },
+        {
+          "line": 7512,
+          "text": "      c = *--t;"
+        },
+        {
+          "line": 7513,
+          "text": "      *t = '\\0';"
+        },
+        {
+          "line": 7514,
+          "text": "      err_unboundvar (s);"
+        },
+        {
+          "line": 7515,
+          "text": "      *t = c;"
+        },
+        {
+          "line": 7516,
+          "text": "      return (-1);"
+        },
+        {
+          "line": 7517,
+          "text": "    }"
+        },
+        {
+          "line": 7518,
+          "text": "  else if (var == 0 || invisible_p (var))"
+        },
+        {
+          "line": 7519,
+          "text": "    return 0;"
+        },
+        {
+          "line": 7520,
+          "text": ""
+        },
+        {
+          "line": 7521,
+          "text": "  /* We support a couple of expansions for variables that are not arrays."
+        },
+        {
+          "line": 7522,
+          "text": "     We'll return the length of the value for v[0], and 1 for v[@] or"
+        },
+        {
+          "line": 7523,
+          "text": "     v[*].  Return 0 for everything else. */"
+        },
+        {
+          "line": 7524,
+          "text": ""
+        },
+        {
+          "line": 7525,
+          "text": "  array = array_p (var) ? array_cell (var) : (ARRAY *)NULL;"
+        },
+        {
+          "line": 7526,
+          "text": "  h = assoc_p (var) ? assoc_cell (var) : (HASH_TABLE *)NULL;"
+        },
+        {
+          "line": 7527,
+          "text": ""
+        },
+        {
+          "line": 7528,
+          "text": "  if (ALL_ELEMENT_SUB (t[0]) && t[1] == RBRACK)"
+        },
+        {
+          "line": 7529,
+          "text": "    {"
+        },
+        {
+          "line": 7530,
+          "text": "      if (assoc_p (var))"
+        },
+        {
+          "line": 7531,
+          "text": "\treturn (h ? assoc_num_elements (h) : 0);"
+        },
+        {
+          "line": 7532,
+          "text": "      else if (array_p (var))"
+        },
+        {
+          "line": 7533,
+          "text": "\treturn (array ? array_num_elements (array) : 0);"
+        },
+        {
+          "line": 7534,
+          "text": "      else"
+        },
+        {
+          "line": 7535,
+          "text": "\treturn (var_isset (var) ? 1 : 0);"
+        },
+        {
+          "line": 7536,
+          "text": "    }"
+        },
+        {
+          "line": 7537,
+          "text": ""
+        },
+        {
+          "line": 7538,
+          "text": "  /* If an array variable is set, length expansions for unset elements"
+        },
+        {
+          "line": 7539,
+          "text": "     return 0. This is compatible with ksh93. */"
+        },
+        {
+          "line": 7540,
+          "text": "  if (assoc_p (var))"
+        },
+        {
+          "line": 7541,
+          "text": "    {"
+        },
+        {
+          "line": 7542,
+          "text": "      t[len - 1] = '\\0';"
+        },
+        {
+          "line": 7543,
+          "text": "      akey = expand_subscript_string (t, 0);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 1150,
+          "text": "expr_streval (char *tok, int e, struct lvalue *lvalue)"
+        },
+        {
+          "line": 1151,
+          "text": "{"
+        },
+        {
+          "line": 1152,
+          "text": "  SHELL_VAR *v;"
+        },
+        {
+          "line": 1153,
+          "text": "  char *value;"
+        },
+        {
+          "line": 1154,
+          "text": "  intmax_t tval;"
+        },
+        {
+          "line": 1155,
+          "text": "  int initial_depth;"
+        },
+        {
+          "line": 1156,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1157,
+          "text": "  arrayind_t ind;"
+        },
+        {
+          "line": 1158,
+          "text": "  int tflag, aflag;"
+        },
+        {
+          "line": 1159,
+          "text": "  array_eltstate_t es;"
+        },
+        {
+          "line": 1160,
+          "text": "#endif"
+        },
+        {
+          "line": 1161,
+          "text": ""
+        },
+        {
+          "line": 1162,
+          "text": "/*itrace(\"expr_streval: %s: noeval = %d expanded=%d\", tok, noeval, already_expanded);*/"
+        },
+        {
+          "line": 1163,
+          "text": "  /* If we are suppressing evaluation, just short-circuit here instead of"
+        },
+        {
+          "line": 1164,
+          "text": "     going through the rest of the evaluator. */"
+        },
+        {
+          "line": 1165,
+          "text": "  if (noeval)"
+        },
+        {
+          "line": 1166,
+          "text": "    return (0);"
+        },
+        {
+          "line": 1167,
+          "text": ""
+        },
+        {
+          "line": 1168,
+          "text": "  initial_depth = expr_depth;"
+        },
+        {
+          "line": 1169,
+          "text": ""
+        },
+        {
+          "line": 1170,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1171,
+          "text": "  tflag = (array_expand_once && already_expanded) ? AV_NOEXPAND : 0;\t/* for a start */"
+        },
+        {
+          "line": 1172,
+          "text": "#if 0 /* TAG:bash-5.4 https://lists.gnu.org/archive/html/bug-bash/2024-12/msg00193.html */"
+        },
+        {
+          "line": 1173,
+          "text": "  if (this_shell_builtin == let_builtin && shell_compatibility_level > 51)"
+        },
+        {
+          "line": 1174,
+          "text": "    tflag |= AV_NOEXPAND;\t/* we didn't quote subscripts */"
+        },
+        {
+          "line": 1175,
+          "text": "#endif"
+        },
+        {
+          "line": 1176,
+          "text": "#endif"
+        },
+        {
+          "line": 1177,
+          "text": ""
+        },
+        {
+          "line": 1178,
+          "text": "  /* [[[[[ */"
+        },
+        {
+          "line": 1179,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1180,
+          "text": "  aflag = tflag;\t/* use a different variable for now */"
+        },
+        {
+          "line": 1181,
+          "text": "  if (shell_compatibility_level > 51)"
+        },
+        {
+          "line": 1182,
+          "text": "    aflag |= AV_ATSTARKEYS;"
+        },
+        {
+          "line": 1183,
+          "text": "  v = (e == ']') ? array_variable_part (tok, tflag, (char **)0, (int *)0) : find_variable (tok);"
+        },
+        {
+          "line": 1184,
+          "text": "#else"
+        },
+        {
+          "line": 1185,
+          "text": "  v = find_variable (tok);"
+        },
+        {
+          "line": 1186,
+          "text": "#endif"
+        },
+        {
+          "line": 1187,
+          "text": "  if (v == 0 && e != ']')"
+        },
+        {
+          "line": 1188,
+          "text": "    v = find_variable_last_nameref (tok, 0);  "
+        },
+        {
+          "line": 1189,
+          "text": ""
+        },
+        {
+          "line": 1190,
+          "text": "  if ((v == 0 || invisible_p (v)) && unbound_vars_is_error)"
+        },
+        {
+          "line": 1191,
+          "text": "    {"
+        },
+        {
+          "line": 1192,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1193,
+          "text": "      value = (e == ']') ? array_variable_name (tok, tflag, (char **)0, (int *)0) : tok;"
+        },
+        {
+          "line": 1194,
+          "text": "#else"
+        },
+        {
+          "line": 1195,
+          "text": "      value = tok;"
+        },
+        {
+          "line": 1196,
+          "text": "#endif"
+        },
+        {
+          "line": 1197,
+          "text": ""
+        },
+        {
+          "line": 1198,
+          "text": "      set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 1199,
+          "text": "      err_unboundvar (value);"
+        },
+        {
+          "line": 1200,
+          "text": ""
+        },
+        {
+          "line": 1201,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1202,
+          "text": "      if (e == ']')"
+        },
+        {
+          "line": 1203,
+          "text": "\tFREE (value);\t/* array_variable_name returns new memory */"
+        },
+        {
+          "line": 1204,
+          "text": "#endif"
+        },
+        {
+          "line": 1205,
+          "text": ""
+        },
+        {
+          "line": 1206,
+          "text": "      if (no_longjmp_on_fatal_error && interactive_shell)"
+        },
+        {
+          "line": 1207,
+          "text": "\tsh_longjmp (evalbuf, 1);"
+        },
+        {
+          "line": 1208,
+          "text": ""
+        },
+        {
+          "line": 1209,
+          "text": "      if (interactive_shell)"
+        },
+        {
+          "line": 1210,
+          "text": "\t{"
+        },
+        {
+          "line": 1211,
+          "text": "\t  expr_unwind ();"
+        },
+        {
+          "line": 1212,
+          "text": "\t  top_level_cleanup ();"
+        },
+        {
+          "line": 1213,
+          "text": "\t  jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 1214,
+          "text": "\t}"
+        },
+        {
+          "line": 1215,
+          "text": "      else"
+        },
+        {
+          "line": 1216,
+          "text": "\tjump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 1217,
+          "text": "    }"
+        },
+        {
+          "line": 1218,
+          "text": ""
+        },
+        {
+          "line": 1219,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1220,
+          "text": "  init_eltstate (&es);"
+        },
+        {
+          "line": 1221,
+          "text": "  es.ind = -1;"
+        },
+        {
+          "line": 1222,
+          "text": "  /* If the second argument to get_array_value doesn't include AV_ALLOWALL,"
+        },
+        {
+          "line": 1223,
+          "text": "     we don't allow references like array[@].  In this case, get_array_value"
+        },
+        {
+          "line": 1224,
+          "text": "     is just like get_variable_value in that it does not return newly-allocated"
+        },
+        {
+          "line": 1225,
+          "text": "     memory or quote the results.  AFLAG is set above and is either AV_NOEXPAND"
+        },
+        {
+          "line": 1226,
+          "text": "     or 0. */"
+        },
+        {
+          "line": 1227,
+          "text": "  value = (e == ']') ? get_array_value (tok, aflag, &es) : get_variable_value (v);"
+        },
+        {
+          "line": 1228,
+          "text": "  ind = es.ind;"
+        },
+        {
+          "line": 1229,
+          "text": "  flush_eltstate (&es);"
+        },
+        {
+          "line": 1230,
+          "text": "#else"
+        },
+        {
+          "line": 1231,
+          "text": "  value = get_variable_value (v);"
+        },
+        {
+          "line": 1232,
+          "text": "#endif"
+        },
+        {
+          "line": 1233,
+          "text": ""
+        },
+        {
+          "line": 1234,
+          "text": "  if (expr_depth < initial_depth)"
+        },
+        {
+          "line": 1235,
+          "text": "    {"
+        },
+        {
+          "line": 1236,
+          "text": "      if (no_longjmp_on_fatal_error && interactive_shell)"
+        },
+        {
+          "line": 1237,
+          "text": "\tsh_longjmp (evalbuf, 1);"
+        },
+        {
+          "line": 1238,
+          "text": "      return (0);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "selected": [
+        {
+          "line": 1457,
+          "text": "run_one_command (char *command)"
+        },
+        {
+          "line": 1458,
+          "text": "{"
+        },
+        {
+          "line": 1459,
+          "text": "  int code;"
+        },
+        {
+          "line": 1460,
+          "text": ""
+        },
+        {
+          "line": 1461,
+          "text": "  code = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 1462,
+          "text": ""
+        },
+        {
+          "line": 1463,
+          "text": "  if (code != NOT_JUMPED)"
+        },
+        {
+          "line": 1464,
+          "text": "    {"
+        },
+        {
+          "line": 1465,
+          "text": "#if defined (PROCESS_SUBSTITUTION)"
+        },
+        {
+          "line": 1466,
+          "text": "      unlink_fifo_list ();"
+        },
+        {
+          "line": 1467,
+          "text": "#endif /* PROCESS_SUBSTITUTION */"
+        },
+        {
+          "line": 1468,
+          "text": "      switch (code)"
+        },
+        {
+          "line": 1469,
+          "text": "\t{"
+        },
+        {
+          "line": 1470,
+          "text": "\t  /* Some kind of throw to top_level has occurred. */"
+        },
+        {
+          "line": 1471,
+          "text": "\tcase FORCE_EOF:"
+        },
+        {
+          "line": 1472,
+          "text": "\t  return last_command_exit_value = 127;"
+        },
+        {
+          "line": 1473,
+          "text": "\tcase ERREXIT:"
+        },
+        {
+          "line": 1474,
+          "text": "\tcase EXITPROG:"
+        },
+        {
+          "line": 1475,
+          "text": "\tcase EXITBLTIN:"
+        },
+        {
+          "line": 1476,
+          "text": "\t  return last_command_exit_value;"
+        },
+        {
+          "line": 1477,
+          "text": "\tcase DISCARD:"
+        },
+        {
+          "line": 1478,
+          "text": "\t  return last_command_exit_value = 1;"
+        },
+        {
+          "line": 1479,
+          "text": "\tdefault:"
+        },
+        {
+          "line": 1480,
+          "text": "\t  command_error (\"run_one_command\", CMDERR_BADJUMP, code, 0);"
+        },
+        {
+          "line": 1481,
+          "text": "\t}"
+        },
+        {
+          "line": 1482,
+          "text": "    }"
+        },
+        {
+          "line": 1483,
+          "text": "   return (parse_and_execute (savestring (command), \"-c\", SEVAL_NOHIST|SEVAL_RESETLINE));"
+        },
+        {
+          "line": 1484,
+          "text": "}"
+        },
+        {
+          "line": 1485,
+          "text": "#endif /* ONESHOT */"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "selected": [
+        {
+          "line": 377,
+          "text": "\t  switch (code)"
+        },
+        {
+          "line": 378,
+          "text": "\t    {"
+        },
+        {
+          "line": 379,
+          "text": "\t    case ERREXIT:"
+        },
+        {
+          "line": 380,
+          "text": "\t      /* variable_context -> 0 is what eval.c:reader_loop() does in"
+        },
+        {
+          "line": 381,
+          "text": "\t\t these circumstances.  Don't bother with cleanup here because"
+        },
+        {
+          "line": 382,
+          "text": "\t\t we don't want to run the function execution cleanup stuff"
+        },
+        {
+          "line": 383,
+          "text": "\t\t that will cause pop_context and other functions to run."
+        },
+        {
+          "line": 384,
+          "text": "\t\t We call reset_local_contexts() instead, which just frees"
+        },
+        {
+          "line": 385,
+          "text": "\t\t context memory."
+        },
+        {
+          "line": 386,
+          "text": "\t\t XXX - change that if we want the function context to be"
+        },
+        {
+          "line": 387,
+          "text": "\t\t unwound. */"
+        },
+        {
+          "line": 388,
+          "text": "\t      if (exit_immediately_on_error && variable_context)"
+        },
+        {
+          "line": 389,
+          "text": "\t        {"
+        },
+        {
+          "line": 390,
+          "text": "\t          discard_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 391,
+          "text": "\t          reset_local_contexts (); /* not in a function */"
+        },
+        {
+          "line": 392,
+          "text": "\t        }"
+        },
+        {
+          "line": 393,
+          "text": "\t      should_jump_to_top_level = 1;"
+        },
+        {
+          "line": 394,
+          "text": "\t      goto out;"
+        },
+        {
+          "line": 395,
+          "text": "\t    case FORCE_EOF:\t      "
+        },
+        {
+          "line": 396,
+          "text": "\t    case EXITPROG:"
+        },
+        {
+          "line": 397,
+          "text": "\t      if (command)"
+        },
+        {
+          "line": 398,
+          "text": "\t\trun_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 399,
+          "text": "\t      /* Remember to call longjmp (top_level) after the old"
+        },
+        {
+          "line": 400,
+          "text": "\t\t value for it is restored. */"
+        },
+        {
+          "line": 401,
+          "text": "\t      should_jump_to_top_level = 1;"
+        },
+        {
+          "line": 402,
+          "text": "\t      goto out;"
+        },
+        {
+          "line": 403,
+          "text": ""
+        },
+        {
+          "line": 404,
+          "text": "\t    case EXITBLTIN:"
+        },
+        {
+          "line": 405,
+          "text": "\t      if (command)"
+        },
+        {
+          "line": 406,
+          "text": "\t\t{"
+        },
+        {
+          "line": 407,
+          "text": "\t\t  if (variable_context && signal_is_trapped (0))"
+        },
+        {
+          "line": 408,
+          "text": "\t\t    {"
+        },
+        {
+          "line": 409,
+          "text": "\t\t      /* Let's make sure we run the exit trap in the function"
+        },
+        {
+          "line": 410,
+          "text": "\t\t\t context, as we do when not running parse_and_execute."
+        },
+        {
+          "line": 411,
+          "text": "\t\t\t The pe_dispose unwind frame comes before any unwind-"
+        },
+        {
+          "line": 412,
+          "text": "\t\t\t protects installed by the string we're evaluating, so"
+        },
+        {
+          "line": 413,
+          "text": "\t\t\t it will undo the current function scope. */"
+        },
+        {
+          "line": 414,
+          "text": "\t\t      dispose_command (command);"
+        },
+        {
+          "line": 415,
+          "text": "\t\t      discard_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 416,
+          "text": "\t\t    }"
+        },
+        {
+          "line": 417,
+          "text": "\t\t  else"
+        },
+        {
+          "line": 418,
+          "text": "\t\t    run_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 419,
+          "text": "\t\t}"
+        },
+        {
+          "line": 420,
+          "text": "\t      should_jump_to_top_level = 1;"
+        },
+        {
+          "line": 421,
+          "text": "\t      goto out;"
+        },
+        {
+          "line": 422,
+          "text": ""
+        },
+        {
+          "line": 423,
+          "text": "\t    case DISCARD:"
+        },
+        {
+          "line": 424,
+          "text": "\t      if (command)"
+        },
+        {
+          "line": 425,
+          "text": "\t\trun_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 426,
+          "text": "\t      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */"
+        },
+        {
+          "line": 427,
+          "text": "\t      set_pipestatus_from_exit (last_command_exit_value);"
+        },
+        {
+          "line": 428,
+          "text": "\t      "
+        },
+        {
+          "line": 429,
+          "text": "\t      if (subshell_environment)"
+        },
+        {
+          "line": 430,
+          "text": "\t\t{"
+        },
+        {
+          "line": 431,
+          "text": "\t\t  should_jump_to_top_level = 1;"
+        },
+        {
+          "line": 432,
+          "text": "\t\t  goto out;"
+        },
+        {
+          "line": 433,
+          "text": "\t\t}"
+        },
+        {
+          "line": 434,
+          "text": "\t      else"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "selected": [
+        {
+          "line": 74,
+          "text": "error_prolog (int print_lineno)"
+        },
+        {
+          "line": 75,
+          "text": "{"
+        },
+        {
+          "line": 76,
+          "text": "  char *ename;"
+        },
+        {
+          "line": 77,
+          "text": "  int line;"
+        },
+        {
+          "line": 78,
+          "text": ""
+        },
+        {
+          "line": 79,
+          "text": "  ename = get_name_for_error ();"
+        },
+        {
+          "line": 80,
+          "text": "  line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;"
+        },
+        {
+          "line": 81,
+          "text": ""
+        },
+        {
+          "line": 82,
+          "text": "  if (line > 0)"
+        },
+        {
+          "line": 83,
+          "text": "    fprintf (stderr, \"%s:%s%d: \", ename, gnu_error_format ? \"\" : _(\" line \"), line);"
+        },
+        {
+          "line": 84,
+          "text": "  else"
+        },
+        {
+          "line": 85,
+          "text": "    fprintf (stderr, \"%s: \", ename);"
+        },
+        {
+          "line": 86,
+          "text": "}"
+        },
+        {
+          "line": 87,
+          "text": ""
+        },
+        {
+          "line": 88,
+          "text": "/* Return the name of the shell or the shell script for error reporting. */"
+        },
+        {
+          "line": 89,
+          "text": "char *"
+        },
+        {
+          "line": 90,
+          "text": "get_name_for_error (void)"
+        },
+        {
+          "line": 91,
+          "text": "{"
+        },
+        {
+          "line": 92,
+          "text": "  char *name;"
+        },
+        {
+          "line": 93,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 94,
+          "text": "  SHELL_VAR *bash_source_v;"
+        },
+        {
+          "line": 95,
+          "text": "  ARRAY *bash_source_a;"
+        },
+        {
+          "line": 96,
+          "text": "#endif"
+        },
+        {
+          "line": 97,
+          "text": ""
+        },
+        {
+          "line": 98,
+          "text": "  name = (char *)NULL;"
+        },
+        {
+          "line": 99,
+          "text": "  if (interactive_shell == 0)"
+        },
+        {
+          "line": 100,
+          "text": "    {"
+        },
+        {
+          "line": 101,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 102,
+          "text": "      bash_source_v = find_variable (\"BASH_SOURCE\");"
+        },
+        {
+          "line": 103,
+          "text": "      if (bash_source_v && array_p (bash_source_v) &&"
+        },
+        {
+          "line": 104,
+          "text": "\t  (bash_source_a = array_cell (bash_source_v)))"
+        },
+        {
+          "line": 105,
+          "text": "\tname = array_reference (bash_source_a, 0);"
+        },
+        {
+          "line": 106,
+          "text": "      if (name == 0 || *name == '\\0')\t/* XXX - was just name == 0 */"
+        },
+        {
+          "line": 107,
+          "text": "#endif"
+        },
+        {
+          "line": 108,
+          "text": "\tname = dollar_vars[0];"
+        },
+        {
+          "line": 109,
+          "text": "    }"
+        },
+        {
+          "line": 110,
+          "text": "  if (name == 0 && shell_name && *shell_name)"
+        },
+        {
+          "line": 111,
+          "text": "    name = base_pathname (shell_name);"
+        },
+        {
+          "line": 112,
+          "text": "  if (name == 0)"
+        },
+        {
+          "line": 113,
+          "text": "#if defined (PROGRAM)"
+        },
+        {
+          "line": 114,
+          "text": "    name = PROGRAM;"
+        },
+        {
+          "line": 115,
+          "text": "#else"
+        },
+        {
+          "line": 116,
+          "text": "    name = \"bash\";"
+        },
+        {
+          "line": 117,
+          "text": "#endif"
+        },
+        {
+          "line": 118,
+          "text": ""
+        },
+        {
+          "line": 119,
+          "text": "  return (name);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "selected": [
+        {
+          "line": 165,
+          "text": "/* Print an error message and, if `set -e' has been executed, exit the"
+        },
+        {
+          "line": 166,
+          "text": "   shell.  Used in this file by file_error and programming_error.  Used"
+        },
+        {
+          "line": 167,
+          "text": "   outside this file mostly to report substitution and expansion errors,"
+        },
+        {
+          "line": 168,
+          "text": "   and for bad invocation options. */"
+        },
+        {
+          "line": 169,
+          "text": "void"
+        },
+        {
+          "line": 170,
+          "text": "report_error (const char *format, ...)"
+        },
+        {
+          "line": 171,
+          "text": "{"
+        },
+        {
+          "line": 172,
+          "text": "  va_list args;"
+        },
+        {
+          "line": 173,
+          "text": ""
+        },
+        {
+          "line": 174,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 175,
+          "text": ""
+        },
+        {
+          "line": 176,
+          "text": "  va_start (args, format);"
+        },
+        {
+          "line": 177,
+          "text": ""
+        },
+        {
+          "line": 178,
+          "text": "  vfprintf (stderr, format, args);"
+        },
+        {
+          "line": 179,
+          "text": "  fprintf (stderr, \"\\n\");"
+        },
+        {
+          "line": 180,
+          "text": ""
+        },
+        {
+          "line": 181,
+          "text": "  va_end (args);"
+        },
+        {
+          "line": 182,
+          "text": "  if (exit_immediately_on_error)"
+        },
+        {
+          "line": 183,
+          "text": "    {"
+        },
+        {
+          "line": 184,
+          "text": "      if (last_command_exit_value == 0)"
+        },
+        {
+          "line": 185,
+          "text": "\tlast_command_exit_value = EXECUTION_FAILURE;"
+        },
+        {
+          "line": 186,
+          "text": "      exit_shell (last_command_exit_value);"
+        },
+        {
+          "line": 187,
+          "text": "    }"
+        },
+        {
+          "line": 188,
+          "text": "}"
+        },
+        {
+          "line": 189,
+          "text": ""
+        },
+        {
+          "line": 190,
+          "text": "void"
+        }
+      ]
+    }
+  ]
+}

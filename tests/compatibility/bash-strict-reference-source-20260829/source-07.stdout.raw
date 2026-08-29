@@ -1,0 +1,295 @@
+FROZEN arithmetic.ts stored blob
+170:   const evaluate = (node: Arithmetic): bigint => {
+171:     if (++steps > 10_000) throw new Error("Arithmetic operation limit exceeded");
+172:     let value: bigint;
+173:     if (node.kind === "literal") return node.value;
+174:     if (node.kind === "name") {
+175:       if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
+176:       visiting.add(node.name);
+177:       try { return evaluate(parseArithmetic(variables[node.name] ?? "0")); }
+178:       finally { visiting.delete(node.name); }
+179:     }
+180:     if (node.kind === "conditional") return evaluate(evaluate(node.condition) ? node.yes : node.no);
+181:     if (node.kind === "unary") {
+182:       const operand = evaluate(node.operand);
+183:       if (node.operator === "+") value = operand;
+184:       else if (node.operator === "-") value = -operand;
+185:       else if (node.operator === "!") value = BigInt(!operand);
+186:       else if (node.operator === "~") value = ~operand;
+187:       else {
+188:         value = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+189:         variables[(node.operand as Extract<Arithmetic, { kind: "name" }>).name] = String(value);
+190:         if (node.postfix) value = operand;
+191:       }
+192:     } else {
+193:       if (node.operator === "=") value = evaluate(node.right);
+194:       else {
+195:         const left = evaluate(node.left);
+196:         if (node.operator === "&&") return left ? BigInt(evaluate(node.right) !== 0n) : 0n;
+197:         if (node.operator === "||") return left ? 1n : BigInt(evaluate(node.right) !== 0n);
+198:         if (node.operator === ",") return evaluate(node.right);
+199:         value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, left, evaluate(node.right), node.right.start ?? 0);
+200:       }
+201:       if (precedence[node.operator] === 2) variables[(node.left as Extract<Arithmetic, { kind: "name" }>).name] = String(BigInt.asIntN(64, value));
+202:     }
+203:     return BigInt.asIntN(64, value);
+204:   };
+205:   try {
+206:     if (program.error) throw program.error;
+207:     return evaluate(program.tree!);
+208:   } catch (error) {
+209:     if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+210:     if (error instanceof ShellSyntaxError) {
+211:       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
+212:       const reason = error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
+213:       throw new Error(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
+214:     }
+215:     throw error;
+216:   }
+217: }
+218: 
+ARRAY_FUNCTION_ANCHORS [{"line":97,"text":"    VUNSETATTR (var, att_invisible);"},{"line":134,"text":"    VUNSETATTR (var, att_invisible);"},{"line":225,"text":"  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"},{"line":248,"text":"  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"},{"line":275,"text":"\tentry = make_new_array_variable (nameref_cell (entry));"},{"line":278,"text":"    entry = make_new_array_variable (name);"},{"line":476,"text":"\t  var = (flags & 2) ? make_new_assoc_variable (nameref_cell (var)) : make_new_array_variable (nameref_cell (var));"},{"line":481,"text":"    var = (flags & 2) ? make_new_assoc_variable (name) : make_new_array_variable (name);"},{"line":507,"text":"assign_array_from_string (const char *name, char *value, int flags)"},{"line":551,"text":"  VUNSETATTR (var, att_invisible);\t/* no longer invisible */"},{"line":929,"text":"    VUNSETATTR (var, att_invisible);\t/* no longer invisible */"}]
+GNU_5_3_15 subst.c
+12444: exp_jump_to_top_level (int v)
+12445: {
+12446:   set_pipestatus_from_exit (last_command_exit_value);
+12447: 
+12448:   /* Cleanup code goes here. */
+12449:   expand_no_split_dollar_star = 0;	/* XXX */
+12450:   if (expanding_redir)
+12451:     undo_partial_redirects ();
+12452:   expanding_redir = 0;
+12453:   assigning_in_environment = 0;
+12454: 
+12455:   if (parse_and_execute_level == 0)
+12456:     top_level_cleanup ();			/* from sig.c */
+12457: 
+12458:   jump_to_top_level (v);
+GNU_5_3_15 subst.c
+11163:   return ret;
+11164: }
+11165: #endif
+11166: 
+11167: /* Handle a variable assignment error in default mode. */
+11168: static inline void
+11169: bash_variable_assignment_error (int force_exit)
+11170: {
+11171:   if (interactive_shell == 0 && force_exit)
+11172:     exp_jump_to_top_level (FORCE_EOF);
+11173:   else if (interactive_shell == 0)
+11174:     exp_jump_to_top_level (DISCARD);	/* XXX - maybe change later */
+11175:   else
+11176:     exp_jump_to_top_level (DISCARD);
+11177: }
+11178: 
+GNU_5_3_15 subst.c
+10158: 
+10159:   *indexp = sindex;
+10160: 
+10161:   /* All the cases where an expansion can possibly generate an unbound
+10162:      variable error. */
+10163:   if (want_substring || want_patsub || want_casemod || c == '@' || c == '#' || c == '%' || c == RBRACE)
+10164:     {
+10165:       if (var_is_set == 0 && unbound_vars_is_error && ((name[0] != '@' && name[0] != '*') || name[1]) && all_element_arrayref == 0)
+10166: 	{
+10167: 	  set_exit_status (EXECUTION_FAILURE);
+10168: 	  err_unboundvar (name);
+10169: 	  FREE (value);
+10170: 	  FREE (temp);
+10171: 	  free (name);
+10172: 	  return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);
+10173: 	}
+10174:     }
+10175:     
+10176:   /* If this is a substring spec, process it and add the result. */
+10177:   if (want_substring)
+GNU_5_3_15 eval.c
+90:       if (code != NOT_JUMPED)
+91: 	{
+92: 	  indirection_level = our_indirection_level;
+93: 
+94: 	  switch (code)
+95: 	    {
+96: 	      /* Some kind of throw to top_level has occurred. */
+97: 	    case ERREXIT:
+98: 	      /* POSIX says to exit on error "as if by executing the
+99: 		 exit special built-in utility with no arguments," so we
+100: 		 don't reset any local contexts and keep the execution
+101: 		 context in a shell function if we were executing one. */
+102: 	      if (exit_immediately_on_error && posixly_correct == 0)
+103: 		reset_local_contexts ();	/* not in a function */
+104: 	    case FORCE_EOF:
+105: 	    case EXITPROG:
+106: 	    case EXITBLTIN:
+107: 	      current_command = (COMMAND *)NULL;
+108: 	      EOF_Reached = EOF;
+109: 	      goto exec_done;
+110: 
+111: 	    case DISCARD:
+112: 	      /* Make sure the exit status is reset to a non-zero value, but
+113: 		 leave existing non-zero values (e.g., > 128 on signal)
+114: 		 alone. */
+115: 	      if (last_command_exit_value == 0)
+116: 		set_exit_status (EXECUTION_FAILURE);
+117: 	      if (subshell_environment)
+118: 		{
+119: 		  current_command = (COMMAND *)NULL;
+120: 		  EOF_Reached = EOF;
+121: 		  goto exec_done;
+122: 		}
+123: 	      /* Obstack free command elements, etc. */
+124: 	      if (current_command)
+125: 		{
+GNU_5_3_15 builtins/evalstring.c
+423: 	    case DISCARD:
+424: 	      if (command)
+425: 		run_unwind_frame ("pe_dispose");
+426: 	      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */
+427: 	      set_pipestatus_from_exit (last_command_exit_value);
+428: 	      
+429: 	      if (subshell_environment)
+430: 		{
+431: 		  should_jump_to_top_level = 1;
+432: 		  goto out;
+433: 		}
+434: 	      else
+435: 		{
+436: #if 0
+437: 		  dispose_command (command);	/* pe_dispose does this */
+438: #endif
+439: #if defined (HAVE_POSIX_SIGNALS)
+440: 		  sigprocmask (SIG_SETMASK, (sigset_t *)&pe_sigmask, (sigset_t *)NULL);
+441: #endif
+442: 		  continue;
+443: 		}
+444: 
+445: 	    default:
+446: 	      command_error ("parse_and_execute", CMDERR_BADJUMP, code, 0);
+447: 	      break;
+448: 	    }
+449: 	}
+GNU_5_3_15 builtins/common.c
+127: void
+128: builtin_usage (void)
+129: {
+130:   if (this_command_name && *this_command_name)
+131:     fprintf (stderr, _("%s: usage: "), this_command_name);
+132:   fprintf (stderr, "%s\n", _(current_builtin->short_doc));
+133:   fflush (stderr);
+134: }
+135: 
+136: /* Return if LIST is NULL else barf and jump to top_level.  Used by some
+137:    builtins that do not accept arguments. */
+138: void
+139: no_args (WORD_LIST *list, int fatal)
+140: {
+141:   if (list)
+142:     {
+143:       builtin_error (_("too many arguments"));
+144:       top_level_cleanup ();
+145:       set_exit_status (EX_BADUSAGE);
+146:       /* for now, the caller determines whether this is a fatal error */
+147:       if (interactive_shell == 0 && fatal)
+GNU_5_3_15 builtins/common.c
+196: sh_invalidopt (const char *s)
+198:   builtin_error (_("%s: invalid option"), s);
+202: sh_invalidoptname (const char *s)
+204:   builtin_error (_("%s: invalid option name"), s);
+GNU_5_3_15 builtins/set.def
+293: list_minus_o_opts (int mode, int reusable)
+294: {
+295:   register int	i;
+296:   int *on_or_off, value;
+297: 
+298:   for (i = 0; o_options[i].name; i++)
+299:     {
+300:       if (o_options[i].letter)
+301: 	{
+302: 	  value = 0;
+303: 	  on_or_off = find_flag (o_options[i].letter);
+304: 	  if (on_or_off == FLAG_UNKNOWN)
+305: 	    on_or_off = &value;
+306: 	  if (mode == -1 || mode == *on_or_off)
+307: 	    print_minus_o_option (o_options[i].name, *on_or_off, reusable);
+308: 	}
+309:       else
+310: 	{
+311: 	  value = GET_BINARY_O_OPTION_VALUE (i, o_options[i].name);
+312: 	  if (mode == -1 || mode == value)
+313: 	    print_minus_o_option (o_options[i].name, value, reusable);
+314: 	}
+GNU_5_3_15 flags.c
+226: change_flag (int flag, int on_or_off)
+227: {
+228:   int *value, old_value;
+229: 
+230: #if defined (RESTRICTED_SHELL)
+231:   /* Don't allow "set +r" in a shell which is `restricted'. */
+232:   if (restricted && flag == 'r' && on_or_off == FLAG_OFF)
+233:     return (FLAG_ERROR);
+234: #endif /* RESTRICTED_SHELL */
+235: 
+236:   value = find_flag (flag);
+237: 
+238:   if ((value == (int *)FLAG_UNKNOWN) || (on_or_off != FLAG_ON && on_or_off != FLAG_OFF))
+239:     return (FLAG_ERROR);
+240: 
+241:   old_value = *value;
+242:   *value = (on_or_off == FLAG_ON) ? 1 : 0;
+243: 
+244:   /* Special cases for a few flags. */
+245:   switch (flag)
+246:     {
+247: #if defined (BANG_HISTORY)
+248:     case 'H':
+249:       history_expansion = histexp_flag;
+250:       if (on_or_off == FLAG_ON)
+GNU_5_3_15 array.c
+81: array_create(void)
+88: 	r->num_elements = 0;
+90: 	head = array_create_element(-1, (char *)NULL);	/* dummy head */
+110: 	a->num_elements = 0;
+132: 	a1 = array_create();
+136: 		new = array_create_element(element_index(ae), element_value(ae));
+156: 	a = array_create ();
+159: 		n = array_create_element (element_index(p), element_value(p));
+GNU_5_3_15 array.h
+121: #define array_num_elements(a)	((a)->num_elements)
+131: #define array_empty(a)		((a)->num_elements == 0)
+GNU_5_3_15 arrayfunc.c
+97:     VUNSETATTR (var, att_invisible);
+134:     VUNSETATTR (var, att_invisible);
+225:   VUNSETATTR (entry, att_invisible);	/* no longer invisible */
+248:   VUNSETATTR (entry, att_invisible);	/* no longer invisible */
+507: assign_array_from_string (const char *name, char *value, int flags)
+551:   VUNSETATTR (var, att_invisible);	/* no longer invisible */
+929:     VUNSETATTR (var, att_invisible);	/* no longer invisible */
+GNU_5_3_15 arrayfunc.c
+507: assign_array_from_string (const char *name, char *value, int flags)
+508: {
+509:   SHELL_VAR *var;
+510:   int vflags;
+511: 
+512:   vflags = 1;
+513:   if (flags & ASS_MKASSOC)
+514:     vflags |= 2;
+515:   vflags |= 4;		/* we want to handle noassign variables ourselves */
+516: 
+517:   var = find_or_make_array_variable (name, vflags);
+518:   if (var == 0 || noassign_p (var))
+519:     return (var);
+520: 
+521:   return (assign_array_var_from_string (var, value, flags));
+522: }
+523: 
+524: /* Sequentially assign the indices of indexed array variable VAR from the
+525:    words in LIST. */
+526: SHELL_VAR *
+527: assign_array_var_from_word_list (SHELL_VAR *var, WORD_LIST *list, int flags)
+528: {
+529:   register arrayind_t i;
+530:   register WORD_LIST *l;
+531:   ARRAY *a;
+532: 
+533:   a = array_cell (var);
+534:   i = (flags & ASS_APPEND) ? array_max_index (a) + 1 : 0;

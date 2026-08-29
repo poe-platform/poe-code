@@ -1,0 +1,771 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 6410
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "bytes": 59208,
+      "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 2130
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/let.def",
+      "bytes": 3424,
+      "sha256": "fd5b44c8398fb5c8500a2a05d63b92d2db8c6baead340218f41fd10d2f7df017",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 130
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "bytes": 30119,
+      "sha256": "ec6b093d992985412690dcfb359710a2bd237a9fc28be96a9ed3791d5c810d1c",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1048
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "bytes": 26063,
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1084
+    }
+  ],
+  "sourceBytesRead": 782341,
+  "cumulativeSourceBytes": 7069695,
+  "distinctSources": 16,
+  "requests": [
+    {
+      "file": "arrayfunc.c",
+      "start": 535,
+      "end": 556
+    },
+    {
+      "file": "arrayfunc.c",
+      "start": 906,
+      "end": 935
+    },
+    {
+      "file": "execute_cmd.c",
+      "start": 1808,
+      "end": 1843
+    },
+    {
+      "file": "subst.c",
+      "start": 4283,
+      "end": 4300
+    },
+    {
+      "file": "shell.c",
+      "start": 759,
+      "end": 778
+    },
+    {
+      "file": "builtins/let.def",
+      "pattern": "evalexp|return",
+      "limit": 12
+    },
+    {
+      "file": "builtins/set.def",
+      "pattern": "SHORT_DOC",
+      "limit": 2
+    },
+    {
+      "file": "builtins/common.c",
+      "start": 80,
+      "end": 95
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "selected": [
+        {
+          "line": 535,
+          "text": ""
+        },
+        {
+          "line": 536,
+          "text": "  for (l = list; l; l = l->next, i++)"
+        },
+        {
+          "line": 537,
+          "text": "    {"
+        },
+        {
+          "line": 538,
+          "text": "      if (a && i < 0)\t/* overflow */"
+        },
+        {
+          "line": 539,
+          "text": "\t{"
+        },
+        {
+          "line": 540,
+          "text": "\t  char *num;"
+        },
+        {
+          "line": 541,
+          "text": ""
+        },
+        {
+          "line": 542,
+          "text": "\t  num = itos (i);"
+        },
+        {
+          "line": 543,
+          "text": "\t  report_error (\"%s[%s]: %s\", var->name, num, bash_badsub_errmsg);"
+        },
+        {
+          "line": 544,
+          "text": "\t  free (num);"
+        },
+        {
+          "line": 545,
+          "text": "\t  return (var);\t\t/* XXX */"
+        },
+        {
+          "line": 546,
+          "text": "\t}"
+        },
+        {
+          "line": 547,
+          "text": ""
+        },
+        {
+          "line": 548,
+          "text": "      bind_array_var_internal (var, i, 0, l->word->word, flags & ~ASS_APPEND);"
+        },
+        {
+          "line": 549,
+          "text": "    }"
+        },
+        {
+          "line": 550,
+          "text": ""
+        },
+        {
+          "line": 551,
+          "text": "  VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 552,
+          "text": ""
+        },
+        {
+          "line": 553,
+          "text": "  return var;"
+        },
+        {
+          "line": 554,
+          "text": "}"
+        },
+        {
+          "line": 555,
+          "text": ""
+        },
+        {
+          "line": 556,
+          "text": "WORD_LIST *"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "selected": [
+        {
+          "line": 906,
+          "text": "/* Perform a compound array assignment:  VAR->name=( VALUE ).  The"
+        },
+        {
+          "line": 907,
+          "text": "   VALUE has already had the parentheses stripped. FLAGS are ASS_"
+        },
+        {
+          "line": 908,
+          "text": "   assignment flags. */"
+        },
+        {
+          "line": 909,
+          "text": "SHELL_VAR *"
+        },
+        {
+          "line": 910,
+          "text": "assign_array_var_from_string (SHELL_VAR *var, char *value, int flags)"
+        },
+        {
+          "line": 911,
+          "text": "{"
+        },
+        {
+          "line": 912,
+          "text": "  WORD_LIST *nlist;"
+        },
+        {
+          "line": 913,
+          "text": "  int aflags, r;"
+        },
+        {
+          "line": 914,
+          "text": ""
+        },
+        {
+          "line": 915,
+          "text": "  if (value == 0)"
+        },
+        {
+          "line": 916,
+          "text": "    return var;"
+        },
+        {
+          "line": 917,
+          "text": ""
+        },
+        {
+          "line": 918,
+          "text": "  nlist = expand_compound_array_assignment (var, value, flags);"
+        },
+        {
+          "line": 919,
+          "text": "  /* This is where we set ASS_NOEXPAND and ASS_ONEWORD if we need to, since"
+        },
+        {
+          "line": 920,
+          "text": "     expand_compound_array_assignment performs word expansions. Honors"
+        },
+        {
+          "line": 921,
+          "text": "     array_expand_once; allows @ and * as associative array keys. */"
+        },
+        {
+          "line": 922,
+          "text": "  aflags = flags | (array_expand_once ? ASS_NOEXPAND : 0) | ASS_ALLOWALLSUB;"
+        },
+        {
+          "line": 923,
+          "text": "  r = assign_compound_array_list (var, nlist, aflags);"
+        },
+        {
+          "line": 924,
+          "text": ""
+        },
+        {
+          "line": 925,
+          "text": "  if (nlist)"
+        },
+        {
+          "line": 926,
+          "text": "    dispose_words (nlist);"
+        },
+        {
+          "line": 927,
+          "text": ""
+        },
+        {
+          "line": 928,
+          "text": "  if (var)"
+        },
+        {
+          "line": 929,
+          "text": "    VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 930,
+          "text": ""
+        },
+        {
+          "line": 931,
+          "text": "  return (r == 0 ? (SHELL_VAR *)0 : var);"
+        },
+        {
+          "line": 932,
+          "text": "}"
+        },
+        {
+          "line": 933,
+          "text": ""
+        },
+        {
+          "line": 934,
+          "text": "/* Quote globbing chars and characters in $IFS before the `=' in an assignment"
+        },
+        {
+          "line": 935,
+          "text": "   statement (usually a compound array assignment) to protect them from"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "selected": [
+        {
+          "line": 1808,
+          "text": "  invert = (tcom->flags & CMD_INVERT_RETURN) != 0;"
+        },
+        {
+          "line": 1809,
+          "text": "  tcom->flags &= ~CMD_INVERT_RETURN;"
+        },
+        {
+          "line": 1810,
+          "text": ""
+        },
+        {
+          "line": 1811,
+          "text": "  result = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 1812,
+          "text": ""
+        },
+        {
+          "line": 1813,
+          "text": "  /* If we're inside a function while executing this subshell, we"
+        },
+        {
+          "line": 1814,
+          "text": "     need to handle a possible `return'. */"
+        },
+        {
+          "line": 1815,
+          "text": "  function_value = 0;"
+        },
+        {
+          "line": 1816,
+          "text": "  if (return_catch_flag)"
+        },
+        {
+          "line": 1817,
+          "text": "    function_value = setjmp_nosigs (return_catch);"
+        },
+        {
+          "line": 1818,
+          "text": ""
+        },
+        {
+          "line": 1819,
+          "text": "  /* If we're going to exit the shell, we don't want to invert the return"
+        },
+        {
+          "line": 1820,
+          "text": "     status. */"
+        },
+        {
+          "line": 1821,
+          "text": "  if (result == EXITPROG || result == EXITBLTIN)"
+        },
+        {
+          "line": 1822,
+          "text": "    invert = 0, return_code = last_command_exit_value;"
+        },
+        {
+          "line": 1823,
+          "text": "  else if (result)"
+        },
+        {
+          "line": 1824,
+          "text": "    return_code = (last_command_exit_value == EXECUTION_SUCCESS) ? EXECUTION_FAILURE : last_command_exit_value;"
+        },
+        {
+          "line": 1825,
+          "text": "  else if (function_value)"
+        },
+        {
+          "line": 1826,
+          "text": "    return_code = return_catch_value;"
+        },
+        {
+          "line": 1827,
+          "text": "  else"
+        },
+        {
+          "line": 1828,
+          "text": "    return_code = execute_command_internal ((COMMAND *)tcom, asynchronous, NO_PIPE, NO_PIPE, fds_to_close);"
+        },
+        {
+          "line": 1829,
+          "text": ""
+        },
+        {
+          "line": 1830,
+          "text": "  /* If we are asked to, invert the return value. */"
+        },
+        {
+          "line": 1831,
+          "text": "  if (invert)"
+        },
+        {
+          "line": 1832,
+          "text": "    return_code = (return_code == EXECUTION_SUCCESS) ? EXECUTION_FAILURE"
+        },
+        {
+          "line": 1833,
+          "text": "\t\t\t\t\t\t     : EXECUTION_SUCCESS;"
+        },
+        {
+          "line": 1834,
+          "text": ""
+        },
+        {
+          "line": 1835,
+          "text": "  /* Check for terminating signals before we return to our caller, which we"
+        },
+        {
+          "line": 1836,
+          "text": "     expect to exit immediately anyway. */"
+        },
+        {
+          "line": 1837,
+          "text": "  CHECK_TERMSIG;"
+        },
+        {
+          "line": 1838,
+          "text": ""
+        },
+        {
+          "line": 1839,
+          "text": "  /* If we were explicitly placed in a subshell with (), we need"
+        },
+        {
+          "line": 1840,
+          "text": "     to do the `shell cleanup' things, such as running traps[0]. */"
+        },
+        {
+          "line": 1841,
+          "text": "  if (user_subshell && signal_is_trapped (0))"
+        },
+        {
+          "line": 1842,
+          "text": "    {"
+        },
+        {
+          "line": 1843,
+          "text": "      last_command_exit_value = return_code;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 4283,
+          "text": "call_expand_word_internal (WORD_DESC *w, int q, int i, int *c, int *e)"
+        },
+        {
+          "line": 4284,
+          "text": "{"
+        },
+        {
+          "line": 4285,
+          "text": "  WORD_LIST *result;"
+        },
+        {
+          "line": 4286,
+          "text": ""
+        },
+        {
+          "line": 4287,
+          "text": "  result = expand_word_internal (w, q, i, c, e);"
+        },
+        {
+          "line": 4288,
+          "text": "  if (result == &expand_word_error || result == &expand_word_fatal)"
+        },
+        {
+          "line": 4289,
+          "text": "    {"
+        },
+        {
+          "line": 4290,
+          "text": "      /* By convention, each time this error is returned, w->word has"
+        },
+        {
+          "line": 4291,
+          "text": "\t already been freed (it sometimes may not be in the fatal case,"
+        },
+        {
+          "line": 4292,
+          "text": "\t but that doesn't result in a memory leak because we're going"
+        },
+        {
+          "line": 4293,
+          "text": "\t to exit in most cases). */"
+        },
+        {
+          "line": 4294,
+          "text": "      w->word = (char *)NULL;"
+        },
+        {
+          "line": 4295,
+          "text": "      last_command_exit_value = EXECUTION_FAILURE;"
+        },
+        {
+          "line": 4296,
+          "text": "      exp_jump_to_top_level ((result == &expand_word_error) ? DISCARD : FORCE_EOF);"
+        },
+        {
+          "line": 4297,
+          "text": "      /* NOTREACHED */"
+        },
+        {
+          "line": 4298,
+          "text": "      return (NULL);"
+        },
+        {
+          "line": 4299,
+          "text": "    }"
+        },
+        {
+          "line": 4300,
+          "text": "  else"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "selected": [
+        {
+          "line": 759,
+          "text": "  if (command_execution_string)"
+        },
+        {
+          "line": 760,
+          "text": "    {"
+        },
+        {
+          "line": 761,
+          "text": "      startup_state = 2;"
+        },
+        {
+          "line": 762,
+          "text": ""
+        },
+        {
+          "line": 763,
+          "text": "      if (debugging_mode)"
+        },
+        {
+          "line": 764,
+          "text": "\tstart_debugger ();"
+        },
+        {
+          "line": 765,
+          "text": ""
+        },
+        {
+          "line": 766,
+          "text": "#if defined (ONESHOT)"
+        },
+        {
+          "line": 767,
+          "text": "      executing = shell_initialized = 1;"
+        },
+        {
+          "line": 768,
+          "text": "      run_one_command (command_execution_string);"
+        },
+        {
+          "line": 769,
+          "text": "      exit_shell (last_command_exit_value);"
+        },
+        {
+          "line": 770,
+          "text": "#else /* ONESHOT */"
+        },
+        {
+          "line": 771,
+          "text": "      with_input_from_string (command_execution_string, \"-c\");"
+        },
+        {
+          "line": 772,
+          "text": "      goto read_and_execute;"
+        },
+        {
+          "line": 773,
+          "text": "#endif /* !ONESHOT */"
+        },
+        {
+          "line": 774,
+          "text": "    }"
+        },
+        {
+          "line": 775,
+          "text": ""
+        },
+        {
+          "line": 776,
+          "text": "  /* Get possible input filename and set up default_buffered_input or"
+        },
+        {
+          "line": 777,
+          "text": "     default_input as appropriate. */"
+        },
+        {
+          "line": 778,
+          "text": "  if (shell_script_filename)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/let.def",
+      "selected": [
+        {
+          "line": 64,
+          "text": "If the last ARG evaluates to 0, let returns 1; let returns 0 otherwise."
+        },
+        {
+          "line": 97,
+          "text": "      return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 102,
+          "text": "      ret = evalexp (list->word->word, EXP_EXPANDED, &expok);"
+        },
+        {
+          "line": 104,
+          "text": "\treturn (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 107,
+          "text": "  return ((ret == 0) ? EXECUTION_FAILURE : EXECUTION_SUCCESS);"
+        },
+        {
+          "line": 121,
+          "text": "      return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 125,
+          "text": "  ret = evalexp (exp, EXP_EXPANDED, &expok);"
+        },
+        {
+          "line": 127,
+          "text": "  return (((ret == 0) || (expok == 0)) ? EXECUTION_FAILURE : EXECUTION_SUCCESS);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "selected": [
+        {
+          "line": 55,
+          "text": "$SHORT_DOC set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]"
+        },
+        {
+          "line": 794,
+          "text": "$SHORT_DOC unset [-f] [-v] [-n] [name ...]"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "selected": [
+        {
+          "line": 80,
+          "text": "   shell. */"
+        },
+        {
+          "line": 81,
+          "text": ""
+        },
+        {
+          "line": 82,
+          "text": "static void"
+        },
+        {
+          "line": 83,
+          "text": "builtin_error_prolog (void)"
+        },
+        {
+          "line": 84,
+          "text": "{"
+        },
+        {
+          "line": 85,
+          "text": "  char *name;"
+        },
+        {
+          "line": 86,
+          "text": ""
+        },
+        {
+          "line": 87,
+          "text": "  name = get_name_for_error ();"
+        },
+        {
+          "line": 88,
+          "text": "  fprintf (stderr, \"%s: \", name);"
+        },
+        {
+          "line": 89,
+          "text": ""
+        },
+        {
+          "line": 90,
+          "text": "  if (interactive_shell == 0)"
+        },
+        {
+          "line": 91,
+          "text": "    fprintf (stderr, _(\"line %d: \"), executing_line_number ());"
+        },
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "  if (this_command_name && *this_command_name)"
+        },
+        {
+          "line": 94,
+          "text": "    fprintf (stderr, \"%s: \", this_command_name);"
+        },
+        {
+          "line": 95,
+          "text": "}"
+        }
+      ]
+    }
+  ]
+}

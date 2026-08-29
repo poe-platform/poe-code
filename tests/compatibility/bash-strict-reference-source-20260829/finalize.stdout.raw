@@ -1,0 +1,160 @@
+GNU_5_3_15 arrayfunc.c
+535: 
+536:   for (l = list; l; l = l->next, i++)
+537:     {
+538:       if (a && i < 0)	/* overflow */
+539: 	{
+540: 	  char *num;
+541: 
+542: 	  num = itos (i);
+543: 	  report_error ("%s[%s]: %s", var->name, num, bash_badsub_errmsg);
+544: 	  free (num);
+545: 	  return (var);		/* XXX */
+546: 	}
+547: 
+548:       bind_array_var_internal (var, i, 0, l->word->word, flags & ~ASS_APPEND);
+549:     }
+550: 
+551:   VUNSETATTR (var, att_invisible);	/* no longer invisible */
+552: 
+553:   return var;
+554: }
+555: 
+556: WORD_LIST *
+GNU_5_3_15 arrayfunc.c
+906: /* Perform a compound array assignment:  VAR->name=( VALUE ).  The
+907:    VALUE has already had the parentheses stripped. FLAGS are ASS_
+908:    assignment flags. */
+909: SHELL_VAR *
+910: assign_array_var_from_string (SHELL_VAR *var, char *value, int flags)
+911: {
+912:   WORD_LIST *nlist;
+913:   int aflags, r;
+914: 
+915:   if (value == 0)
+916:     return var;
+917: 
+918:   nlist = expand_compound_array_assignment (var, value, flags);
+919:   /* This is where we set ASS_NOEXPAND and ASS_ONEWORD if we need to, since
+920:      expand_compound_array_assignment performs word expansions. Honors
+921:      array_expand_once; allows @ and * as associative array keys. */
+922:   aflags = flags | (array_expand_once ? ASS_NOEXPAND : 0) | ASS_ALLOWALLSUB;
+923:   r = assign_compound_array_list (var, nlist, aflags);
+924: 
+925:   if (nlist)
+926:     dispose_words (nlist);
+927: 
+928:   if (var)
+929:     VUNSETATTR (var, att_invisible);	/* no longer invisible */
+930: 
+931:   return (r == 0 ? (SHELL_VAR *)0 : var);
+932: }
+933: 
+934: /* Quote globbing chars and characters in $IFS before the `=' in an assignment
+935:    statement (usually a compound array assignment) to protect them from
+GNU_5_3_15 execute_cmd.c
+1808:   invert = (tcom->flags & CMD_INVERT_RETURN) != 0;
+1809:   tcom->flags &= ~CMD_INVERT_RETURN;
+1810: 
+1811:   result = setjmp_nosigs (top_level);
+1812: 
+1813:   /* If we're inside a function while executing this subshell, we
+1814:      need to handle a possible `return'. */
+1815:   function_value = 0;
+1816:   if (return_catch_flag)
+1817:     function_value = setjmp_nosigs (return_catch);
+1818: 
+1819:   /* If we're going to exit the shell, we don't want to invert the return
+1820:      status. */
+1821:   if (result == EXITPROG || result == EXITBLTIN)
+1822:     invert = 0, return_code = last_command_exit_value;
+1823:   else if (result)
+1824:     return_code = (last_command_exit_value == EXECUTION_SUCCESS) ? EXECUTION_FAILURE : last_command_exit_value;
+1825:   else if (function_value)
+1826:     return_code = return_catch_value;
+1827:   else
+1828:     return_code = execute_command_internal ((COMMAND *)tcom, asynchronous, NO_PIPE, NO_PIPE, fds_to_close);
+1829: 
+1830:   /* If we are asked to, invert the return value. */
+1831:   if (invert)
+1832:     return_code = (return_code == EXECUTION_SUCCESS) ? EXECUTION_FAILURE
+1833: 						     : EXECUTION_SUCCESS;
+1834: 
+1835:   /* Check for terminating signals before we return to our caller, which we
+1836:      expect to exit immediately anyway. */
+1837:   CHECK_TERMSIG;
+1838: 
+1839:   /* If we were explicitly placed in a subshell with (), we need
+1840:      to do the `shell cleanup' things, such as running traps[0]. */
+1841:   if (user_subshell && signal_is_trapped (0))
+1842:     {
+1843:       last_command_exit_value = return_code;
+GNU_5_3_15 subst.c
+4283: call_expand_word_internal (WORD_DESC *w, int q, int i, int *c, int *e)
+4284: {
+4285:   WORD_LIST *result;
+4286: 
+4287:   result = expand_word_internal (w, q, i, c, e);
+4288:   if (result == &expand_word_error || result == &expand_word_fatal)
+4289:     {
+4290:       /* By convention, each time this error is returned, w->word has
+4291: 	 already been freed (it sometimes may not be in the fatal case,
+4292: 	 but that doesn't result in a memory leak because we're going
+4293: 	 to exit in most cases). */
+4294:       w->word = (char *)NULL;
+4295:       last_command_exit_value = EXECUTION_FAILURE;
+4296:       exp_jump_to_top_level ((result == &expand_word_error) ? DISCARD : FORCE_EOF);
+4297:       /* NOTREACHED */
+4298:       return (NULL);
+4299:     }
+4300:   else
+GNU_5_3_15 shell.c
+759:   if (command_execution_string)
+760:     {
+761:       startup_state = 2;
+762: 
+763:       if (debugging_mode)
+764: 	start_debugger ();
+765: 
+766: #if defined (ONESHOT)
+767:       executing = shell_initialized = 1;
+768:       run_one_command (command_execution_string);
+769:       exit_shell (last_command_exit_value);
+770: #else /* ONESHOT */
+771:       with_input_from_string (command_execution_string, "-c");
+772:       goto read_and_execute;
+773: #endif /* !ONESHOT */
+774:     }
+775: 
+776:   /* Get possible input filename and set up default_buffered_input or
+777:      default_input as appropriate. */
+778:   if (shell_script_filename)
+GNU_5_3_15 builtins/let.def
+64: If the last ARG evaluates to 0, let returns 1; let returns 0 otherwise.
+97:       return (EXECUTION_FAILURE);
+102:       ret = evalexp (list->word->word, EXP_EXPANDED, &expok);
+104: 	return (EXECUTION_FAILURE);
+107:   return ((ret == 0) ? EXECUTION_FAILURE : EXECUTION_SUCCESS);
+121:       return (EXECUTION_FAILURE);
+125:   ret = evalexp (exp, EXP_EXPANDED, &expok);
+127:   return (((ret == 0) || (expok == 0)) ? EXECUTION_FAILURE : EXECUTION_SUCCESS);
+GNU_5_3_15 builtins/set.def
+55: $SHORT_DOC set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]
+794: $SHORT_DOC unset [-f] [-v] [-n] [name ...]
+GNU_5_3_15 builtins/common.c
+80:    shell. */
+81: 
+82: static void
+83: builtin_error_prolog (void)
+84: {
+85:   char *name;
+86: 
+87:   name = get_name_for_error ();
+88:   fprintf (stderr, "%s: ", name);
+89: 
+90:   if (interactive_shell == 0)
+91:     fprintf (stderr, _("line %d: "), executing_line_number ());
+92: 
+93:   if (this_command_name && *this_command_name)
+94:     fprintf (stderr, "%s: ", this_command_name);
+95: }

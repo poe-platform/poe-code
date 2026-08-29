@@ -1,0 +1,239 @@
+{
+  "role": "FIXED_C83_SOURCE_WITH_SEPARATE_PROVISIONAL_REDIRECTION_DIFF",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "acceptedBy": "9dca6b405f7059bd54848422d27a80afdf80e504",
+  "sourceManifestSha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450",
+  "selected": [
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "mode": "100644",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "mode": "100644",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "mode": "100644",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/syntax.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+      "bytes": 5471,
+      "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+      "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/cancellation.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "mode": "100644",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "mode": "100644",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "ecff8bf185cd542940607a79ee5257f292e844f5",
+      "mode": "100644",
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/getopts.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "bb502b076063c0fb95766911648dba788000f8b4",
+      "mode": "100644",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "mode": "100644",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "mode": "100644",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "mode": "100644",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "518cd9e9107b1270f5e5dc98b18bebe7ec7f6a00",
+      "bytes": 38763,
+      "sha256": "c27fd9dc218ae20be18c99eec7ab037910f222ef927cbdec75c3c513f512a779",
+      "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "mode": "100644",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "7660086a09c9dedbdd86bd15ae10ea729886654e",
+      "bytes": 195094,
+      "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "mode": "100644",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "accepted coherent78 unchanged"
+    }
+  ],
+  "provisionalRedirection": {
+    "sourceCommit": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+    "candidate": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+    "sourceSha256": "d181f7d3b5acfcb5521dd5cc26be0aa4f2ac15b3fed1df4b8c729f25b5e34b17",
+    "diffSha256": "82dc25df0f4e773764a2ae63f5a0871adbf8a816635d274b3738ff12ec74e312",
+    "scope": "review-pending; no unit2 changes included"
+  },
+  "children": [
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "diff",
+        "1e9b83d7^",
+        "1e9b83d7",
+        "--",
+        "src/shell/parser.ts",
+        "src/shell/runtime.ts",
+        "src/shell/display.ts"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "native": 0,
+  "product": 0,
+  "compiler": 0,
+  "workers": 0
+}

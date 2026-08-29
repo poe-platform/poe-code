@@ -1,0 +1,173 @@
+{
+  "date": "2026-08-29",
+  "status": "ELEVEN_ROWS_SOURCE_MAPPED_NATIVE_UNRUN",
+  "originalIDs": [
+    "U06",
+    "U07",
+    "U17",
+    "U27",
+    "U28",
+    "U31",
+    "U32",
+    "U33",
+    "U34",
+    "U35",
+    "U36"
+  ],
+  "sourceFiles": 17,
+  "sourceBytesRead": 7484749,
+  "failedStage05ReadBytesCharged": 395210,
+  "correctedArithmeticReadBytesCharged": 19844,
+  "sourceReadLimitBytes": 12582912,
+  "nativeExecutions": 0,
+  "productExecutions": 0,
+  "successfulSourceReadStages": 7,
+  "preservedPreparationRefusals": [
+    "product arithmetic derived-object exit128",
+    "SOURCE-05 missing successful arithmetic authority"
+  ],
+  "metadataChildrenClosed": 12,
+  "extraClosedMetadataRole": "corrected git cat-file blob observed by outer shell",
+  "plannedExplicitProcessRolesThroughPublication": 47,
+  "maximumOwnedProcesses": 48,
+  "originalOPENStatesPreserved": true,
+  "full950PackageExecutedOrRebuilt": false,
+  "liveHEADUsedAsSource": false,
+  "references": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "bytes": 30119,
+      "sha256": "ec6b093d992985412690dcfb359710a2bd237a9fc28be96a9ed3791d5c810d1c",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1048
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "bytes": 59208,
+      "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 2130
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "bytes": 25533,
+      "sha256": "063da6502b5472c1a126f86fcdb4fc8c351ae1d3a1510cb2167ff0b6be3b066f",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 867
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "config-top.h",
+      "bytes": 8247,
+      "sha256": "16142a6ae0e1732ba2090f2b4f522e4b9632d3d645724501336379c074b80e60",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 212
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 6410
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "eval.c",
+      "bytes": 10406,
+      "sha256": "21bfede320d640a219fc0ffa66d7b90d8f1fae87605847d4d06e6e058c4e7051",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 424
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "flags.c",
+      "bytes": 10554,
+      "sha256": "5696d846e008e46ec754d55acd1d29d328e4966af4d8577245d2cddfcd50d468",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 382
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "bytes": 26063,
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1084
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.c",
+      "bytes": 28361,
+      "sha256": "0f2ee790d9c4851b66fdff46ac9e289c30d88241e232ef062d10c06f344e7019",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1231
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.h",
+      "bytes": 5625,
+      "sha256": "9cb9af1ad5165cce13780a331d68dfadb6c6e5342815fd225793fc7036bfa53d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 183
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/let.def",
+      "bytes": 3424,
+      "sha256": "fd5b44c8398fb5c8500a2a05d63b92d2db8c6baead340218f41fd10d2f7df017",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 130
+    },
+    {
+      "role": "FROZEN_PRODUCT_STORED_BLOB",
+      "name": "arithmetic.ts",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "authority": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+    }
+  ]
+}

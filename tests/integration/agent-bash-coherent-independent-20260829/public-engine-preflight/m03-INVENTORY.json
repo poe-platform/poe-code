@@ -1,0 +1,331 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95b001ea88d9681d964b1a80723f68454fc2fbf3",
+    "bytes": 2520,
+    "path": "tests/integration/node-public-independent-20260829/ACTUAL-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f40901f0c4ac8c6d31b30b0de12a78f284ff0ec6",
+    "bytes": 43907,
+    "path": "tests/integration/node-public-independent-20260829/AUTHOR-CORRECTIONS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "64d4ce6851e73113bcab38ca02631d250c6f5981",
+    "bytes": 3285,
+    "path": "tests/integration/node-public-independent-20260829/BINDINGS-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3ee48f8e994333ec4bca7bc750351a8c6d86f588",
+    "bytes": 3043,
+    "path": "tests/integration/node-public-independent-20260829/BINDINGS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "51b6555f6061b54524e15e991618f7daf8cbb677",
+    "bytes": 1912,
+    "path": "tests/integration/node-public-independent-20260829/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4f325552a6f255431b55c5028360720bed073caf",
+    "bytes": 3273,
+    "path": "tests/integration/node-public-independent-20260829/NATIVE-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "df52ab7386d014043c10910a3da89eaceb5701ad",
+    "bytes": 2757,
+    "path": "tests/integration/node-public-independent-20260829/NOVEL-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "90050f78454b177d6924735bbc69040e06bde3c9",
+    "bytes": 2193,
+    "path": "tests/integration/node-public-independent-20260829/PREP-RESULTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c29d7df7c01b43ba6fbb279ef87ccede20aaad77",
+    "bytes": 1790,
+    "path": "tests/integration/node-public-independent-20260829/PREP.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cb90a5a253b2a89876603986988a98777edff379",
+    "bytes": 4935277,
+    "path": "tests/integration/node-public-independent-20260829/RECIPE-v2.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c4f1fefc7423235bb4fb49a339c1401ace995e10",
+    "bytes": 4935269,
+    "path": "tests/integration/node-public-independent-20260829/RECIPE.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "535b8dc873c2675a580bba6f0da13b00273ffe29",
+    "bytes": 15557,
+    "path": "tests/integration/node-public-independent-20260829/REPORT.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f0ec6eb2972c7662c03953f5f2e390b4a5ca2b40",
+    "bytes": 8813981,
+    "path": "tests/integration/node-public-independent-20260829/actual-v1/EVIDENCE.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "eebca8361d845828a7e5c70870ecf362366d1872",
+    "bytes": 2109394,
+    "path": "tests/integration/node-public-independent-20260829/actual-v1/RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e8fe416aedfc4d5ea0621c6071d2a1365282402a",
+    "bytes": 349217,
+    "path": "tests/integration/node-public-independent-20260829/actual-v1/TERMINAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e11f122428e8ddb801694efb9e402be057d8ef5f",
+    "bytes": 210,
+    "path": "tests/integration/node-public-independent-20260829/actual-v1/stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "99ee4409fd18fff4684aee0800d1fb9b1a76298b",
+    "bytes": 537,
+    "path": "tests/integration/node-public-independent-20260829/actual-v1/stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "343df68130b2cdd1421d5cf5fa9d0f9f6cdfa7c8",
+    "bytes": 11619,
+    "path": "tests/integration/node-public-independent-20260829/assemble.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "99ec4422e15621d0f7565a8faea8ec95275ebdd9",
+    "bytes": 7719,
+    "path": "tests/integration/node-public-independent-20260829/launch.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0a884d4187ee7054ecc710607a9778f5e8e46122",
+    "bytes": 9033,
+    "path": "tests/integration/node-public-independent-20260829/m01-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "655e1ef3081965f6cbbc12cbbcfe98856dd9680e",
+    "bytes": 12403,
+    "path": "tests/integration/node-public-independent-20260829/m02-INVENTORY.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3323a8aca0e46c5ea5927585aade0b30bd3da4d2",
+    "bytes": 4813,
+    "path": "tests/integration/node-public-independent-20260829/m02-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d8c2356cbdcf68d3109d8b7a80614ef69f20888d",
+    "bytes": 370933,
+    "path": "tests/integration/node-public-independent-20260829/m03-INPUTS.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e7212304c2ecaf65b295f88fb5d351d15b09688",
+    "bytes": 376145,
+    "path": "tests/integration/node-public-independent-20260829/m03-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d9a5f5ed2a11c5540843dc42e2f4be32f2bddbf5",
+    "bytes": 5213733,
+    "path": "tests/integration/node-public-independent-20260829/m04-INPUTS.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b98a195154be6a9ffdbc43c2c9460cad44fd31a7",
+    "bytes": 5177337,
+    "path": "tests/integration/node-public-independent-20260829/m04-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "56a503bef53cc96526e693858a079d774a245c4e",
+    "bytes": 24518,
+    "path": "tests/integration/node-public-independent-20260829/m04-SPECS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6177200ad6d6834d9ab16567ce7812b661e66f29",
+    "bytes": 15720313,
+    "path": "tests/integration/node-public-independent-20260829/m05-INPUTS.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a6c90cd27524e9b2507d4312a2531fdfceba6876",
+    "bytes": 15719485,
+    "path": "tests/integration/node-public-independent-20260829/m05-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "19a6427f3cf1b6c9c06e75d6b9e09a075c4695db",
+    "bytes": 71381,
+    "path": "tests/integration/node-public-independent-20260829/m06-INPUTS.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1556dad0dbcdb02610fe474b7c8830346ed3a080",
+    "bytes": 70221,
+    "path": "tests/integration/node-public-independent-20260829/m06-RAW.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89d062c7d9aebfe3bd6d9f70b49337c1bfc10db0",
+    "bytes": 1211,
+    "path": "tests/integration/node-public-independent-20260829/m06-SPECS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e5b5d276fd1161d629e5b9ef09b09b047e8545c1",
+    "bytes": 3443,
+    "path": "tests/integration/node-public-independent-20260829/metadata.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "82d48d0d646bdb626573446070522c74eeac92f9",
+    "bytes": 71198,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/moved.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d84d5346fa0a0cd8cee223461e1194c7f8a1ae6",
+    "bytes": 119,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/moved.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a8dba2b51b83fac3a46e92e5cf6a00b81f8a7a99",
+    "bytes": 69198,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/rehydrated.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d84d5346fa0a0cd8cee223461e1194c7f8a1ae6",
+    "bytes": 119,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/rehydrated.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "82d48d0d646bdb626573446070522c74eeac92f9",
+    "bytes": 71198,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/restored.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2d84d5346fa0a0cd8cee223461e1194c7f8a1ae6",
+    "bytes": 119,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/restored.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "455be16e8e63253299cfd34b4bb9d0769997d934",
+    "bytes": 5051,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/startup.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6fc1edf9613eafadf6dc3e972ff76d576c509798",
+    "bytes": 72443,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/wrong-import-target.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-independent-20260829/native-actual-v1/wrong-import-target.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "87bd133e8f64156732fea8fbee20b01b128de870",
+    "bytes": 1253,
+    "path": "tests/integration/node-public-independent-20260829/native-consumer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3d121235f435b834962684d2c45088741903b182",
+    "bytes": 1577,
+    "path": "tests/integration/node-public-independent-20260829/native-guard.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f11231d117eaf168f88d6032db03203511abc340",
+    "bytes": 7902,
+    "path": "tests/integration/node-public-independent-20260829/native-run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5f2db3af71bf95e6620f4a9b59be0ba8b6a5f61b",
+    "bytes": 8063,
+    "path": "tests/integration/node-public-independent-20260829/novel.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "974ee3de5631e7262c39a921f058d081895ba0c9",
+    "bytes": 2200,
+    "path": "tests/integration/node-public-independent-20260829/seal.mjs"
+  }
+]

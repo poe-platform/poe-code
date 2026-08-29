@@ -1,0 +1,42 @@
+[
+  {
+    "path": "workflows.mjs",
+    "bytes": 16736,
+    "sha256": "9f391d19046fa4817c9d425c263d4ee4a8611909f89a59cf9f752de56ae08f8d"
+  },
+  {
+    "path": "consumer.mjs",
+    "bytes": 3933,
+    "sha256": "6063918e5ac63db02389283796f8196598f7833868769c2c7617ea08b1f4204d"
+  },
+  {
+    "path": "run.mjs",
+    "bytes": 12890,
+    "sha256": "725de3f5fc2a9822e62d68cd5d305d08cfe1c80356cc1475f9b40874fd5aa193"
+  },
+  {
+    "path": "bootstrap.mjs",
+    "bytes": 1369,
+    "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+  },
+  {
+    "path": "launch.sh",
+    "bytes": 395,
+    "sha256": "89a49ce65ae4648ffd1d1cdce1874fddf442a03404d4558a5a1291def95af5cd"
+  },
+  {
+    "path": "publish.mjs",
+    "bytes": 13280,
+    "sha256": "380900151ecc5fa2b05cbba157d9fe3eb65401d88b62a26e7824b8a8742d1281"
+  },
+  {
+    "path": "policy.mjs",
+    "bytes": 4556,
+    "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+  },
+  {
+    "path": "publication.sh",
+    "bytes": 297,
+    "sha256": "4262c6d46e8410d3ecccfd34f796b3895da1c727d1ed7e21deeb35e9365da403"
+  }
+]

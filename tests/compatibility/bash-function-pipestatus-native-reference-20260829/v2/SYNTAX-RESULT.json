@@ -1,0 +1,77 @@
+{
+  "children": [
+    {
+      "name": "admission",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "entry",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "observation",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "capture",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "lifecycle",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "group-observer",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "observer-state",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "state",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "storage",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    }
+  ],
+  "allRetired": true
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "function-pipestatus-controls-v2",
+  "results": [
+    {
+      "id": "D01",
+      "status": "PASS",
+      "assertions": 30,
+      "error": null
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "assertions": 7,
+      "error": null
+    },
+    {
+      "id": "D04",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D05",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D06",
+      "status": "PASS",
+      "assertions": 5,
+      "error": null
+    },
+    {
+      "id": "D07",
+      "status": "PASS",
+      "assertions": 8,
+      "error": null
+    },
+    {
+      "id": "D08",
+      "status": "PASS",
+      "assertions": 9,
+      "error": null
+    },
+    {
+      "id": "D09",
+      "status": "PASS",
+      "assertions": 9,
+      "error": null
+    },
+    {
+      "id": "D10",
+      "status": "PASS",
+      "assertions": 6,
+      "error": null
+    },
+    {
+      "id": "D11",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    },
+    {
+      "id": "D12",
+      "status": "PASS",
+      "assertions": 4,
+      "error": null
+    }
+  ],
+  "assertionCount": 106,
+  "pass": 12,
+  "fail": 0,
+  "nativeStarts": 0,
+  "fixtures": 2,
+  "controllerChildren": 2,
+  "allKnownFixtureChildrenRetired": true,
+  "deadline": 1788008309971.145
+}

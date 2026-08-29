@@ -1,0 +1,1 @@
+unset PIPESTATUS; printf "<%s>\n" "${PIPESTATUS[@]}"

@@ -1,0 +1,1 @@
+false | true; value=$(printf "child:<%s>\n" "${PIPESTATUS[@]}"; false); printf "%s parent:<%s>\n" "$value" "${PIPESTATUS[@]}"

@@ -1,0 +1,117 @@
+d41176a15f26a0ee10a3759567a6b1d1c10d5634 blob 5280
+import fs from 'node:fs';
+import {spawn} from 'node:child_process';
+import {observeOwnedGroup,signalOwnedGroup} from './group-observer.mjs';
+import {cleanupTimes} from './state.mjs';
+import {finalizeCaptures} from './capture.mjs';
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+export async function runManaged(spec,{storage,ledger,signal,perCaseMs=3000,termMs=2000,killMs=1000}){
+ const row={id:spec.id,started:Date.now(),exit:false,close:false,status:null,signal:null,stop:null,errors:[],signals:[],groupObservations:[],group:{state:'unknown'},capture:[],filesVerified:false,receiptPublished:false,regularCaptureCompletion:false,streamEOF:null};
+ const handles=[];let child,firstStop=null,killSent=false,retired=false,enrolled=false;
+ const fault=(reason,error)=>{row.stop??=reason;if(error)row.errors.push({phase:reason,name:error.name,code:error.code??null,message:String(error.message??error).slice(0,128)});if(firstStop===null)firstStop=Date.now();};
+ const observe=()=>{const observed=child?.pid?observeOwnedGroup(child.pid):{state:'unknown',error:{kind:'NO_PID'}};row.group=observed;const previous=row.groupObservations.at(-1);if(!previous||previous.state!==observed.state||previous.afterKill!==killSent)row.groupObservations.push({...observed,at:Date.now(),afterKill:killSent});return observed;};
+ const send=kind=>{const at=Date.now();if(kind==='SIGTERM')row.termAttemptAt=at;const result=signalOwnedGroup(child.pid,kind);row.signals.push({signal:kind,at,...result});if(!result.sent&&result.error?.fields?.code?.value!=='ESRCH')fault('SIGNAL_ERROR');};
+ try{
+  storage.checkTime();storage.scan();for(const name of ['stdout','stderr']){const filename=spec.captureRoot+'/'+name;const descriptor=fs.openSync(filename,fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);const stat=fs.fstatSync(descriptor);handles.push({name,path:filename,fd:descriptor,ino:stat.ino});}
+  ledger.enter(spec.role);enrolled=true;storage.record({event:'CHILD_ENROLLED',id:spec.id,executable:spec.executable,args:spec.args,at:Date.now()});
+  child=spawn(spec.executable,spec.args,{env:spec.env,cwd:spec.cwd,detached:true,shell:false,stdio:['pipe',handles[0].fd,handles[1].fd]});
+  child.on('spawn',()=>{row.spawnObserved=true;ledger.confirm(spec.role);});
+  child.on('error',error=>fault('CHILD_ERROR',error));child.on('exit',(status,exitSignal)=>{row.exit=true;row.status=status;row.signal=exitSignal;if(exitSignal!==null)fault('SIGNALLED_EXIT');});child.on('close',()=>{row.close=true;});child.stdin.on('error',error=>{if(error.code==='EPIPE')row.stdinEpipe=true;else fault('STDIN_ERROR',error);});child.stdin.on('finish',()=>{row.stdinFinished=true;});row.pid=child.pid;child.stdin.end(spec.stdin??Buffer.alloc(0));
+  while(true){
+   const now=Date.now();if(signal?.aborted)fault('CALLER_ABORT');if(now>=row.started+perCaseMs)fault('CASE_DEADLINE');
+   try{storage.checkTime();for(const handle of handles){if(fs.fstatSync(handle.fd).size>65536)throw Error('PER_STREAM_CAPTURE_CAP');}storage.scan();}catch(error){fault('CAPTURE_OR_STORAGE',error);}
+   if(row.close){const group=observe();if(group.state==='absent'&&row.exit){retired=true;break;}fault(group.state==='unknown'?'UNKNOWN_GROUP':'RESIDUAL_GROUP');}
+   if(firstStop!==null){if(row.signals.length===0&&child.pid)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;if(!killSent&&now>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}if(now>=times.endAt){observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');break;}}
+   await pause(10);
+  }
+ }catch(error){fault('LAUNCH_OR_MONITOR',error);}
+ finally{
+  if(child&&!retired){if(firstStop===null)firstStop=Date.now();if(child.pid&&row.signals.length===0)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;
+   if(child.pid&&row.signals.length===0)send('SIGTERM');
+   while(Date.now()<times.endAt){if(row.close){const group=observe();if(row.exit&&group.state==='absent'){retired=true;break;}}if(!killSent&&Date.now()>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}await pause(10);}
+   observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');
+  }
+  if(!child&&enrolled){row.noProcessCreated=true;retired=true;}
+  if(child&&!row.close){child.stdin.destroy();child.unref();}
+  const finalized=finalizeCaptures(handles);row.capture=finalized.captures;row.errors.push(...finalized.errors);row.regularCaptureCompletion=finalized.success&&retired&&row.exit&&row.close;if(!finalized.success)fault('CAPTURE_FINALIZATION');
+  if(row.exit&&!row.spawnObserved)fault('MISSING_SPAWN_OBSERVER');if(enrolled&&retired)ledger.retire(row.spawnObserved===true);row.retired=retired;row.finished=Date.now();
+  try{storage.record({event:'CHILD_TERMINAL',row});}catch(error){fault('TERMINAL_PUBLICATION',error);try{storage.terminal({event:'TERMINAL_PUBLICATION_FAILED',id:row.id,stop:row.stop,exit:row.exit,close:row.close,group:row.group,retired,errors:row.errors});}catch(secondary){row.errors.push({phase:'EMERGENCY_PUBLICATION',message:String(secondary.message).slice(0,128)});}}
+ }
+ return row;
+}
+
+c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1 blob 1888
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+export function finalizeCaptures(handles,maximum=65536,operations=fs){
+ const captures=[],errors=[];
+ for(const handle of handles){const result={name:handle.name,flush:false,size:false,hash:false,close:false,bytes:null,sha256:null,base64:null};
+  try{operations.fsyncSync(handle.fd);result.flush=true;}catch(error){errors.push({phase:'flush',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});}
+  try{const stat=operations.fstatSync(handle.fd);result.bytes=stat.size;if(!stat.isFile()||stat.ino!==handle.ino||stat.nlink!==1||stat.size>maximum)throw Error('CAPTURE_IDENTITY_OR_SIZE');result.size=true;const bytes=Buffer.alloc(stat.size);let offset=0;while(offset<bytes.length){const amount=operations.readSync(handle.fd,bytes,offset,bytes.length-offset,offset);if(amount===0)throw Error('CAPTURE_SHORT_READ');offset+=amount;}const after=operations.fstatSync(handle.fd);if(after.size!==stat.size||after.ino!==stat.ino||after.mtimeMs!==stat.mtimeMs)throw Error('CAPTURE_CHANGED');result.sha256=createHash('sha256').update(bytes).digest('hex');result.base64=bytes.toString('base64');result.hash=true;}catch(error){errors.push({phase:'size-hash',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});}
+  try{operations.closeSync(handle.fd);result.close=true;}catch(error){errors.push({phase:'close',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});try{operations.closeSync(handle.fd);result.cleanupClose=true;}catch(secondary){result.cleanupClose=false;errors.push({phase:'close-cleanup',name:handle.name,code:secondary.code??null,message:String(secondary.message).slice(0,128)});}}
+  captures.push(result);
+ }
+ return {captures,errors,success:errors.length===0&&captures.every(row=>row.flush&&row.size&&row.hash&&row.close)};
+}
+
+6c84cd315be15174ecc45e2f36694d6ef25ff34b blob 3583
+import fs from 'node:fs';
+import path from 'node:path';
+export class Storage{
+ constructor(root,{capture=33554432,work=134217728,emergency=65536,deadline=Infinity}={}, {now=Date.now,terminalOperations=fs}={}){this.root=root;this.captureLimit=capture;this.workLimit=work;this.emergency=emergency;this.deadline=deadline;this.samples=[];this.emergencyUsed=false;this.now=now;this.terminalOperations=terminalOperations;this.terminalState=null;}
+ checkTime(){if(this.now()>this.deadline)throw Error('FINALIZATION_DEADLINE');}
+ scan(){let bytes=0,entries=0;const visit=directory=>{for(const name of fs.readdirSync(directory)){if(++entries>4096)throw Error('STORAGE_ENTRIES');const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('STORAGE_SYMLINK');if(stat.isDirectory())visit(filename);else{if(!stat.isFile())throw Error('STORAGE_FILE_TYPE');bytes+=stat.size;}}};visit(this.root);this.last={bytes,entries,at:this.now()};if(bytes>this.captureLimit||bytes>this.workLimit)throw Error('OBSERVED_STORAGE_CAP');return this.last;}
+ admit(bytes){this.checkTime();const sample=this.scan();if(!Number.isSafeInteger(bytes)||bytes<0||bytes>262144||sample.bytes+bytes+this.emergency>this.captureLimit||sample.bytes+bytes+this.emergency>this.workLimit)throw Error('BEFORE_WRITE_STORAGE_CAP');}
+ write(filename,value,{append=false}={}){const bytes=Buffer.isBuffer(value)?value:Buffer.from(value);if(!filename.startsWith(this.root+'/'))throw Error('WRITE_SCOPE');this.admit(bytes.length);this.checkTime();const descriptor=fs.openSync(filename,append?fs.constants.O_WRONLY|fs.constants.O_APPEND|fs.constants.O_NOFOLLOW:fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);let primary;try{this.checkTime();fs.writeFileSync(descriptor,bytes);this.checkTime();fs.fsyncSync(descriptor);}catch(error){primary=error;}finally{try{fs.closeSync(descriptor);}catch(error){primary??=error;}}if(primary)throw primary;this.checkTime();this.scan();}
+ record(value){this.write(path.join(this.root,'JOURNAL.jsonl'),JSON.stringify(value)+'\n',{append:true});}
+ terminal(value){
+  this.checkTime();
+  if(this.emergencyUsed)return false;
+  this.emergencyUsed=true;
+  const state=this.terminalState={qualified:false,opened:false,wrote:false,flushed:false,closed:false,late:false,primary:null,secondary:[]};
+  const operations=this.terminalOperations;
+  let descriptor;
+  const failure=(phase,error)=>{if(state.primary===null)state.primary={phase,error};else state.secondary.push({phase,error});};
+  try{
+   const bytes=Buffer.from(JSON.stringify(value)+'\n');
+   if(bytes.length>this.emergency)throw Error('EMERGENCY_SIZE');
+   this.checkTime();
+   descriptor=operations.openSync(path.join(this.root,'TERMINAL-STOP.json'),fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
+   state.opened=true;
+   this.checkTime();operations.writeFileSync(descriptor,bytes);state.wrote=true;
+   this.checkTime();operations.fsyncSync(descriptor);state.flushed=true;
+   this.checkTime();
+  }catch(error){failure('PUBLICATION',error);}
+  finally{
+   if(descriptor!==undefined){
+    try{operations.closeSync(descriptor);state.closed=true;}
+    catch(error){failure('CLOSE',error);try{operations.closeSync(descriptor);state.closed=true;}catch(secondary){failure('CLOSE_CLEANUP',secondary);}}
+   }
+   state.late=this.now()>this.deadline;
+   try{this.checkTime();}catch(error){failure('FINAL_DEADLINE',error);}
+  }
+  if(state.primary!==null)throw state.primary.error;
+  state.qualified=true;
+  return true;
+ }
+}
+
+60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841 blob 759
+import {kill as trustedKill} from 'node:process';
+import {classifyGroup,errorFields} from './observer-state.mjs';
+export const binding=Object.freeze({module:'node:process',export:'kill',ambientProcessUsed:false});
+export function observeOwnedGroup(pid){if(!Number.isSafeInteger(pid)||pid<=1)return {state:'unknown',error:{kind:'INVALID_OWNED_PID'}};try{trustedKill(-pid,0);return classifyGroup(false);}catch(reason){return classifyGroup(true,reason);}}
+export function signalOwnedGroup(pid,signal){if(!Number.isSafeInteger(pid)||pid<=1||!['SIGTERM','SIGKILL'].includes(signal))return {sent:false,error:{kind:'SIGNAL_ARGUMENT_REFUSED'}};try{trustedKill(-pid,signal);return {sent:true,error:null};}catch(reason){return {sent:false,error:errorFields(reason)};}}
+
+76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7 blob 1240
+export function errorFields(reason){
+ const result={thrownType:reason===null?'null':typeof reason,fields:{}};
+ for(const key of ['name','code','errno','syscall']){
+  let owner=reason,descriptor,depth=0;try{while(owner!==null&&(typeof owner==='object'||typeof owner==='function')&&depth++<4){descriptor=Object.getOwnPropertyDescriptor(owner,key);if(descriptor)break;owner=Object.getPrototypeOf(owner);}}catch{result.fields[key]={presence:'uninspectable'};continue;}
+  if(!descriptor){result.fields[key]={presence:'absent'};continue;}
+  if(!Object.hasOwn(descriptor,'value')){result.fields[key]={presence:'accessor-not-invoked'};continue;}
+  const value=descriptor.value;if(typeof value==='string'){result.fields[key]=value.length<=128?{presence:'value',value}:{presence:'over-limit',length:value.length};}else if(typeof value==='number'&&Number.isSafeInteger(value)){result.fields[key]={presence:'value',value};}else{result.fields[key]={presence:'unsupported',valueType:typeof value};}
+ }return result;
+}
+export function classifyGroup(threw,reason){if(!threw)return {state:'present',error:null};const error=errorFields(reason);return {state:error.fields.code.presence==='value'&&error.fields.code.value==='ESRCH'?'absent':'unknown',error};}
+

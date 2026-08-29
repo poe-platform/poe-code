@@ -1,0 +1,74 @@
+{
+  "status": "AUTHOR_PREEXEC_READY_FOR_DIFFERENT_REVIEW",
+  "nativeAuthority": false,
+  "nativeStarts": 0,
+  "programs": 26,
+  "inputFixtures": 0,
+  "emptyStdin": 26,
+  "controls": 12,
+  "assertions": 106,
+  "syntaxChildren": 9,
+  "harmlessLifecycleChildren": 2,
+  "allElevenKnownChildrenRetired": true,
+  "controllerImagesThroughControls": 3,
+  "sourceDelta": [
+    {
+      "path": "admission.mjs",
+      "before": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa",
+      "after": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+      "changed": true
+    },
+    {
+      "path": "entry.mjs",
+      "before": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+      "after": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+      "changed": true
+    },
+    {
+      "path": "observation.mjs",
+      "before": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "after": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "changed": true
+    },
+    {
+      "path": "capture.mjs",
+      "before": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "after": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "changed": false
+    },
+    {
+      "path": "lifecycle.mjs",
+      "before": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "after": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "changed": false
+    },
+    {
+      "path": "group-observer.mjs",
+      "before": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "after": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "changed": false
+    },
+    {
+      "path": "observer-state.mjs",
+      "before": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "after": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "changed": false
+    },
+    {
+      "path": "state.mjs",
+      "before": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "after": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "changed": false
+    },
+    {
+      "path": "storage.mjs",
+      "before": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "after": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "changed": false
+    }
+  ],
+  "presealSha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+  "controlsSha256": "3d19d225fed8f5dcc4288fa77978ba79a999fd1031c2129f09030a66e4e278a1",
+  "commandSha256": "256789485b602f9f11f5414f45d33516ecc72d26abf08fe6e4a0dfbded7774e4",
+  "fixedPreparationDeadline": 1788008309971.145
+}

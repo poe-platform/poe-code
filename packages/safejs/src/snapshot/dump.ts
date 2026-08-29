@@ -1,3 +1,5 @@
+import type { AsyncLocalStorage } from "node:async_hooks";
+
 import type { RunResult, RunSnapshot } from "../run.js";
 import { serializeSafeJSSnapshot } from "./dump-format.js";
 import { SandboxError } from "../interp/budget.js";
@@ -5,6 +7,7 @@ import { SandboxError } from "../interp/budget.js";
 const RUN_DUMP_CONTROLLER = Symbol("SafeJS.run-dump-controller");
 
 export type DumpOptions = {
+  mode?: "capture" | "replay";
   onFailure?: "throw" | "checkpoint";
 };
 
@@ -12,11 +15,12 @@ type DumpController = {
   fail(error: unknown): void;
   finalize(snapshot: RunSnapshot): void;
   onYield(createSnapshot: () => RunSnapshot): void;
-  requestCurrentSnapshot(): Promise<string>;
+  requestCurrentSnapshot(options?: DumpOptions): Promise<string>;
   requestSnapshot(options?: DumpOptions): Promise<string>;
 };
 
 export type RunLifecycle = {
+  hostCallbackContext: AsyncLocalStorage<boolean>;
   hostCallbackDepth: number;
 };
 
@@ -90,8 +94,8 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
 
       settlePendingSnapshot(createSnapshot());
     },
-    requestCurrentSnapshot() {
-      assertDumpAllowed();
+    requestCurrentSnapshot(options = {}) {
+      assertDumpAllowed(options);
       if (failed !== undefined) {
         return Promise.reject(failed.error);
       }
@@ -104,10 +108,10 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
         }
       }
 
-      return this.requestSnapshot();
+      return this.requestSnapshot(options);
     },
     requestSnapshot(options = {}) {
-      assertDumpAllowed();
+      assertDumpAllowed(options);
       if (failed !== undefined) {
         if (
           (options.onFailure === "checkpoint" ||
@@ -136,6 +140,13 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
         }
       }
 
+      if (
+        options.mode === "replay" &&
+        (latestSnapshot !== undefined || latestSnapshotFactory !== undefined)
+      ) {
+        return this.requestCurrentSnapshot(options);
+      }
+
       if (pendingRequest !== undefined) {
         return pendingRequest.promise;
       }
@@ -157,8 +168,11 @@ export function createDumpController(lifecycle?: RunLifecycle): DumpController {
     }
   };
 
-  function assertDumpAllowed(): void {
-    if ((lifecycle?.hostCallbackDepth ?? 0) > 0) {
+  function assertDumpAllowed(options: DumpOptions): void {
+    if (
+      (lifecycle?.hostCallbackDepth ?? 0) > 0 &&
+      (options.mode !== "replay" || lifecycle?.hostCallbackContext.getStore() === true)
+    ) {
       throw new SandboxError("reentry");
     }
   }

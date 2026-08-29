@@ -10,6 +10,8 @@ vi.mock("node:fs/promises", async () => {
 const { createSandboxClosure, createSandboxPromise } = await import("../interp/values.js");
 const { hashSource } = await import("../parse/hash.js");
 const { run } = await import("../run.js");
+const { restore } = await import("../restore.js");
+const { declareHostOperation } = await import("../interp/host-bridge.js");
 const { attachSignalDumpHandler } = await import("./signal-dump.js");
 
 async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
@@ -38,6 +40,53 @@ describe("runner signal dump handling", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("recovers a signal-requested checkpoint while an injected host call is pending", async () => {
+    const source = "return await checkpoint()";
+    const gate = createDeferred<number>();
+    const paused = createDeferred<void>();
+    const signalProcess = createProcessDouble();
+    const captured = vi.fn();
+    const onError = vi.fn();
+    const execution = run(source, {
+      bindings: {
+        checkpoint: declareHostOperation(async () => {
+          paused.resolve();
+          return gate.promise;
+        }, "re-issue")
+      }
+    });
+    const cleanup = attachSignalDumpHandler(execution, {
+      process: signalProcess,
+      onSnapshot: captured,
+      onError,
+      stderr: createStreamDouble()
+    });
+
+    try {
+      await paused.promise;
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      signalProcess.emit("SIGUSR1");
+      await flushMicrotasks();
+
+      expect(onError).not.toHaveBeenCalled();
+      expect(captured).toHaveBeenCalledTimes(1);
+      const snapshot = restore(JSON.parse(captured.mock.calls[0]![0]), { source });
+      expect(snapshot.hostCalls).toEqual([
+        expect.objectContaining({ lifecycle: "running", operation: "checkpoint" })
+      ]);
+      await expect(
+        run(source, {
+          snapshot,
+          bindings: { checkpoint: declareHostOperation(async () => 13, "re-issue") }
+        })
+      ).resolves.toMatchObject({ ok: true, returnValue: 13 });
+    } finally {
+      cleanup();
+      gate.resolve(13);
+      await execution;
+    }
   });
 
   it("writes a dump file at the configured path on SIGUSR1 mid-run", async () => {

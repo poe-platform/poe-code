@@ -276,7 +276,7 @@ function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): 
 
   lifecycle.hostCallbackDepth += 1;
   try {
-    const result = invoke();
+    const result = lifecycle.hostCallbackContext.run(true, invoke);
     if (isPromiseLike(result)) {
       return Promise.resolve(result).finally(() => {
         lifecycle.hostCallbackDepth -= 1;

@@ -4,7 +4,7 @@ import { basename, dirname, join } from "node:path";
 
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { RunResult } from "../run.js";
-import { dumpCurrent } from "../snapshot/dump.js";
+import { dump } from "../snapshot/dump.js";
 
 type SignalName = "SIGUSR1";
 
@@ -32,7 +32,6 @@ export function attachSignalDumpHandler(
     writeFile?: WriteDumpFile;
   } = {}
 ): () => void {
-  const dumpResult = options.dumpResult ?? dumpCurrent;
   const signalProcess = options.process ?? process;
   const stderr = options.stderr ?? process.stderr;
   const writeDumpFile = options.writeFile ?? nodeWriteFile;
@@ -52,7 +51,10 @@ export function attachSignalDumpHandler(
 
   async function writeDump(signal: SignalName): Promise<void> {
     try {
-      const snapshot = await dumpResult(result);
+      const snapshot =
+        options.dumpResult === undefined
+          ? await dump(result, { mode: "replay" })
+          : await options.dumpResult(result);
       if (options.dumpPath !== undefined) {
         const parentPath = dirname(options.dumpPath);
         const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${randomUUID()}.tmp`);

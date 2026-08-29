@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import { hashSource } from "./parse/hash.js";
 import { withRunResources } from "./interp/resources.js";
 import { createReplayableRandom } from "./random.js";
@@ -165,7 +167,10 @@ export type RunResult = WithRunSnapshot<InterpreterResult>;
 const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  const lifecycle = { hostCallbackDepth: 0 };
+  const lifecycle = {
+    hostCallbackDepth: 0,
+    hostCallbackContext: new AsyncLocalStorage<boolean>()
+  };
   const dumpController = createDumpController(lifecycle);
   const promiseTracker = createSandboxPromiseRejectionTracker();
   let completedSnapshot: RunSnapshot | undefined;
@@ -500,6 +505,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         dumpController.fail(error);
         throw error;
       } finally {
+        lifecycle.hostCallbackContext.disable();
         options.signal?.removeEventListener("abort", captureCancellationSnapshot);
         leaveInputReplay?.();
         leaveHostReplay?.();

@@ -6,6 +6,27 @@ script state from the source and replays that history. Completed host operations
 are not invoked again. A still-pending operation follows its declared recovery
 policy: re-issue or external reconciliation.
 
+## External checkpoints during host waits
+
+An independent embedding caller can request
+`await dump(execution, { mode: "replay" })` using the original `run()` promise
+while an injected host operation is still pending. This serializes the latest
+yielded replay checkpoint without waiting for the operation to finish. If the
+run has not yielded yet, the request waits for its first yield or completion.
+No automatic snapshot backend is required. Restore the resulting JSON with
+`restore(JSON.parse(saved), { source })` and pass that snapshot to `run()` with
+the required capabilities and pending-operation recovery policies.
+
+The default `mode: "capture"` retains next-yield behavior and rejects capture
+while an injected host call is active. Replay mode also rejects requests made
+from inside the same run's host callback, including after an asynchronous wait.
+It does not serialize live native execution or promise objects: pending host
+operations still require re-issue or genuine external reconciliation. The
+signal dump handler selects replay mode for operator-requested checkpoints.
+Completed and failed-run dumping retain their existing `onFailure` behavior.
+
+## Execution and cancellation
+
 Cancellation preserves the most recently captured checkpoint instead of replacing
 its replay history with an unwind-time snapshot. Adding or removing an
 `AbortSignal` on resume does not add promise-settlement events to that history.

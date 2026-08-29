@@ -1,0 +1,2 @@
+{"id":"N10","pass":false,"error":"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n","created":1,"disposed":1}
+{"summary":{"cases":1,"pass":0,"fail":1}}

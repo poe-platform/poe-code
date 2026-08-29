@@ -1,0 +1,8 @@
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(9,24): error TS9999: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, "replace">'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(11,15): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(13,20): error TS2322: Type 'number' is not assignable to type 'string'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(15,21): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(17,30): error TS2353: Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, "replace">'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(19,15): error TS2353: Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(25,7): error TS2322: Type 'ConditionalExpression' is not assignable to type 'string'.
+/private/tmp/safe-bash-b2-r6-harmless-controls/harmless-controls/consumer-negative.mts(27,17): error TS2339: Property 'notAProperty' does not exist on type '{ kind: "conditional"; expression: ConditionalExpression; source: string; } & { redirects: Redirect[]; line?: number; sourceName?: string; }'.

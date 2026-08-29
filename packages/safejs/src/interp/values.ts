@@ -402,7 +402,10 @@ export function measureSandboxData(
     usage += 1;
     if (Array.isArray(value)) {
       usage += value.length;
-      for (const entry of value) visit(entry);
+      for (let index = 0; index < value.length; index += 1) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, index);
+        if (descriptor !== undefined && "value" in descriptor) visit(descriptor.value);
+      }
       return;
     }
     if (isSandboxMap(value)) {
@@ -439,7 +442,9 @@ export function measureSandboxData(
 
     const entries = isSandboxArguments(value)
       ? getSandboxArgumentEntries(value)
-      : Object.entries(value);
+      : Object.entries(Object.getOwnPropertyDescriptors(value))
+          .filter(([, descriptor]) => descriptor.enumerable)
+          .map(([key, descriptor]) => [key, "value" in descriptor ? descriptor.value : undefined]);
     usage += entries.length;
     for (const [key, entry] of entries) {
       usage += key.length;

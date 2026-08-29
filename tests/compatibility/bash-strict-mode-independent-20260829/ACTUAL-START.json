@@ -1,0 +1,20 @@
+{
+  "startedMs": 1787980624277,
+  "grant": "Latest conditional ROOT actual strict-mode review after committed preseal",
+  "presealCommit": "0159295905a4adfaa2079537df94e6b5c1c4aea8",
+  "executionSealSha256": "e79f3804e4eae96c7c495bb668b622c5d6c8f7777fa9fa5ca9f51a9eef2fb114",
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "packageSha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+  "namespace": "actual-v1",
+  "attempt": 1,
+  "outerCapture": "Exclusive CLI stdout/stderr before Python startup; then outer event/raw captures before admission",
+  "bounds": {
+    "seconds": 3600,
+    "allOsProcesses": 128,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824,
+    "caseSeconds": 30,
+    "buildSeconds": 120
+  }
+}

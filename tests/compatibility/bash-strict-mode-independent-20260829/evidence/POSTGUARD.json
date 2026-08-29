@@ -1,0 +1,210 @@
+{
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "packageSha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+  "sourceInputs": 292,
+  "sourceMembers": 288,
+  "distMembers": 948,
+  "movedPackage": 950,
+  "restoredMutantPackage": 950,
+  "sourceModeLengthHashExact": true,
+  "ownedPackageInventoryExact": true,
+  "executorFilesUnchanged": 65,
+  "toolChecks": [
+    {
+      "name": "typescript",
+      "originalRegular": 132,
+      "originalLinks": 0,
+      "copiedExact": true,
+      "originalRecordedEntriesUnchanged": true,
+      "notOriginalWholeDirectoryAppendProof": true
+    },
+    {
+      "name": "@types/node",
+      "originalRegular": 74,
+      "originalLinks": 0,
+      "copiedExact": true,
+      "originalRecordedEntriesUnchanged": true,
+      "notOriginalWholeDirectoryAppendProof": true
+    },
+    {
+      "name": "undici-types",
+      "originalRegular": 41,
+      "originalLinks": 0,
+      "copiedExact": true,
+      "originalRecordedEntriesUnchanged": true,
+      "notOriginalWholeDirectoryAppendProof": true
+    },
+    {
+      "name": "npm",
+      "originalRegular": 2027,
+      "originalLinks": 12,
+      "copiedExact": true,
+      "originalRecordedEntriesUnchanged": true,
+      "notOriginalWholeDirectoryAppendProof": true
+    }
+  ],
+  "resources": {
+    "internalLoaderAdmissions": 29,
+    "bootstrapWitnesses": 29,
+    "regexCreates": 0,
+    "regexExits": 0,
+    "individualInternalExitsObserved": false,
+    "allDirectChildrenClosed": true,
+    "directChildren": 39,
+    "coordinator": 1,
+    "pythonOwner": 1,
+    "knownRuntimeProcessLifetimes": 41,
+    "execShellAdditionalConservativeRole": 1,
+    "maximumSimultaneousKnownRuntime": 3,
+    "globalCensus": false
+  },
+  "moduleLoadCounts": [
+    {
+      "label": "source-public",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-apply",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-redirections-v2",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-strict",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-novel",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-arrays",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "source-coherence",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-public",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-apply",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-redirections-v2",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-strict",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-novel",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-arrays",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "installed-coherence",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-public",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-apply",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-redirections-v2",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-strict",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-novel",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-arrays",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "moved-coherence",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "omit-presence-check",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "omit-presence-check-restored",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "lose-fatal-boundary",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "lose-fatal-boundary-restored",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "ignore-u-flag",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "ignore-u-flag-restored",
+      "loads": 233,
+      "distinct": 233
+    },
+    {
+      "label": "binding-missing",
+      "loads": 0,
+      "expectedBindingRefusal": true
+    },
+    {
+      "label": "binding-changed",
+      "loads": 51,
+      "distinct": 51
+    }
+  ],
+  "privatePostguard": "None; no private access or attestation",
+  "retainedRoot": "/private/tmp/bash-strict-independent-active-4HIBEb/strict-mode-independent-zBGdKv"
+}

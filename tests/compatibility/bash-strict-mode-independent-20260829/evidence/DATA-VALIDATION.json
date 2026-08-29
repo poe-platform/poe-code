@@ -1,0 +1,173 @@
+{
+  "archiveRecords": 173,
+  "allPayloadHashesVerified": true,
+  "originalBytes": 9901591,
+  "noExecution": true,
+  "hostNovelObservations": [
+    {
+      "layout": "source-novel",
+      "cases": [
+        {
+          "id": "N13",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N14",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N15",
+          "actual": {
+            "kind": "throw",
+            "limit": "maxOutputBytes",
+            "writes": 0,
+            "forbiddenCalls": 0
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N16",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1,
+            "cleaned": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        }
+      ]
+    },
+    {
+      "layout": "installed-novel",
+      "cases": [
+        {
+          "id": "N13",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N14",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N15",
+          "actual": {
+            "kind": "throw",
+            "limit": "maxOutputBytes",
+            "writes": 0,
+            "forbiddenCalls": 0
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N16",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1,
+            "cleaned": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        }
+      ]
+    },
+    {
+      "layout": "moved-novel",
+      "cases": [
+        {
+          "id": "N13",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N14",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N15",
+          "actual": {
+            "kind": "throw",
+            "limit": "maxOutputBytes",
+            "writes": 0,
+            "forbiddenCalls": 0
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        },
+        {
+          "id": "N16",
+          "actual": {
+            "kind": "throw",
+            "sameReason": true,
+            "writes": 1,
+            "cleaned": 1
+          },
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false,
+          "unhandledCount": 0
+        }
+      ]
+    }
+  ]
+}

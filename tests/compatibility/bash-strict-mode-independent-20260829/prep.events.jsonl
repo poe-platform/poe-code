@@ -33,3 +33,6 @@
 {"event":"before-spawn","label":"stage-preseal","args":["add","--","tests/compatibility/bash-strict-mode-independent-20260829"]}
 {"event":"closed","label":"stage-preseal","pid":38526,"status":0,"signal":null,"errorPresent":false}
 {"event":"before-spawn","label":"commit-preseal","args":["commit","--only","-m","test(shell): preseal independent strict-mode Unit2 review","--","tests/compatibility/bash-strict-mode-independent-20260829"]}
+{"event":"closed","label":"commit-preseal","pid":38529,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"preseal-commit","args":["rev-parse","HEAD"]}
+{"event":"closed","label":"preseal-commit","pid":38534,"status":0,"signal":null,"errorPresent":false}

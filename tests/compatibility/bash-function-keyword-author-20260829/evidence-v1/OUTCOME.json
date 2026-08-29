@@ -1,0 +1,544 @@
+{
+  "schema": "b35-author-stop-v1",
+  "sourceCommit": "52b6711e888361015acc38017be2a6b08509d8a7",
+  "packetCommit": "978e4b6c2",
+  "composition": "1f4c5f4e25e0302146cf2735e4164ee09eb73a390a98d56ac33b94e6e57c16fd",
+  "seal": {
+    "bytes": 5742,
+    "sha256": "5b4cb28461e69fdda2e39bca117aa99d608e49b2284d944dcb60966db67ca02e"
+  },
+  "status": "STOP_NO_RETRY",
+  "resultPin": {
+    "bytes": 198666,
+    "sha256": "8f5357655bbd7341acfea5c7e51cd5da8d1215f7253657d2505610967f373263"
+  },
+  "primary": {
+    "kind": "object",
+    "name": "Error",
+    "message": "DENIAL_RECEIPT"
+  },
+  "rawStartupReason": {
+    "code": "ERR_ACCESS_DENIED",
+    "permission": "FileSystemRead",
+    "resource": "/tmp",
+    "status": 1,
+    "stderrBytes": 646,
+    "stderrSha256": "e38ccfcf39da649342eddd082b24c14e3d8187d1a77dfe2171e267bb17330def"
+  },
+  "sourceInference": "Noncanonical /tmp physical-parent binding conflicts with Node startup realpath access before guard readiness; no B35 product defect established. Fresh canonical-path proposal requires root decision, no permissions widened here.",
+  "build": {
+    "status": 0,
+    "qualifiedDirect": true
+  },
+  "strictTypes": {
+    "source-built": "PASS",
+    "installed": "UNRUN",
+    "physically-moved": "UNRUN"
+  },
+  "package": {
+    "bytes": 978812,
+    "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+    "decodedLimit": 33554432,
+    "events": [
+      "lstat-type-size",
+      "bounded-read",
+      "postread-identity",
+      "exact-hash",
+      "descriptor-closed",
+      "concurrent-buffers-reserved",
+      "decoded",
+      "parsed"
+    ],
+    "admitted": {
+      "result": {
+        "members": 1002,
+        "payloadBytes": 5022429,
+        "decodedBytes": 5785088,
+        "extractionCalls": 0
+      },
+      "compressedBytes": 978812,
+      "decodedBytes": 5785088,
+      "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d"
+    },
+    "admissionLedger": {
+      "current": 0,
+      "peak": 36630397,
+      "maximum": 67108864
+    },
+    "format": "deterministic regular-file ustar/gzip author pack, not npm pack"
+  },
+  "caseOutcomes": [
+    {
+      "layout": "source-built",
+      "id": "K01",
+      "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+      "legacySha256": "8596acc5a0e66d1cc265811af22bce3a7214286a2c6c9815dd5fa6ba83e0394e",
+      "disposition": "STARTUP_STOP_NO_CASE_CREDIT",
+      "reason": "Node ERR_ACCESS_DENIED resource /tmp before permission-admitted/synchronous-hooks-installed witness"
+    },
+    {
+      "layout": "source-built",
+      "id": "K02",
+      "programSha256": "71bba44fc50935e11eefbfb47a8ad59baf64ec8faae7cc4457154fcc3715bc6d",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K03",
+      "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "legacySha256": "adb5b51d3b0ea0f33facf9c1545a7c710da4b760b5f748576a252e1a041e636c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K04",
+      "programSha256": "d9453bae3c7a46e73729ea0cae34f1927bcec33238b6a61e1dcd20bbadce6ec9",
+      "legacySha256": "7be885512b1530aa26b1c73f44a9fca5f25d8d608b320340d8ced2a4f212b4cf",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K05",
+      "programSha256": "702f91d9be1fb5af0fd5c3602de24f1d892829e044c49dd8c936d95e1591a44f",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K06",
+      "programSha256": "2785bdea1d2a9b347b3d570157292ead478bdef0594761876b5f5e4102aff1ea",
+      "legacySha256": "da3ce7c950a3735b5ce8e765e4e95ce64bd05736916e2cfbb06db963398b1b0e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K07",
+      "programSha256": "42786a0c76e339324a7dec790958f01cb68dd87ff243add08a75a3e1b8238b6c",
+      "legacySha256": "bb8ce3738c6b084f603a9927b47b27249b7e3c33af3670a91a81b91334a1de5e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K08",
+      "programSha256": "7189ed1f258fe32a07880de7382e677458bc301acd23bb8825fcd8f01ed1fbbc",
+      "legacySha256": "7d461fe8f5e4fa1af33ba8c7d8677d61d39eb3e8c17406bbc17b3f507e87462c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K09",
+      "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K10",
+      "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K11",
+      "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K12",
+      "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K13",
+      "programSha256": "5a579fbb091e97360bc1010030458f3a9ca66a9c72c421f4d3a0b03059ffef6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "K14",
+      "programSha256": "7e250b17fad6a84fcc6991223e8db89b7995e9be403fb41fd62c0ab469b0bdce",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "R01",
+      "programSha256": "78623f13d8d1f6dcaa1d7779387824463c499bc6cb074c00273f22db5ab96c6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "R02",
+      "programSha256": "da39ce89615b621aac0d3572ae0b3e7fa2a81477fb8be403ced3a64234764c11",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "R03",
+      "programSha256": "e6bd27df3968bd187cc58c5c6223bf6e5052acd55de127e6fa28af7798968a07",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "source-built",
+      "id": "R04",
+      "programSha256": "3e41ad143cd9bdd6e6b425655f125833230d371f119c2b20a7a41ac02acf8227",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K01",
+      "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+      "legacySha256": "8596acc5a0e66d1cc265811af22bce3a7214286a2c6c9815dd5fa6ba83e0394e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K02",
+      "programSha256": "71bba44fc50935e11eefbfb47a8ad59baf64ec8faae7cc4457154fcc3715bc6d",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K03",
+      "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "legacySha256": "adb5b51d3b0ea0f33facf9c1545a7c710da4b760b5f748576a252e1a041e636c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K04",
+      "programSha256": "d9453bae3c7a46e73729ea0cae34f1927bcec33238b6a61e1dcd20bbadce6ec9",
+      "legacySha256": "7be885512b1530aa26b1c73f44a9fca5f25d8d608b320340d8ced2a4f212b4cf",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K05",
+      "programSha256": "702f91d9be1fb5af0fd5c3602de24f1d892829e044c49dd8c936d95e1591a44f",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K06",
+      "programSha256": "2785bdea1d2a9b347b3d570157292ead478bdef0594761876b5f5e4102aff1ea",
+      "legacySha256": "da3ce7c950a3735b5ce8e765e4e95ce64bd05736916e2cfbb06db963398b1b0e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K07",
+      "programSha256": "42786a0c76e339324a7dec790958f01cb68dd87ff243add08a75a3e1b8238b6c",
+      "legacySha256": "bb8ce3738c6b084f603a9927b47b27249b7e3c33af3670a91a81b91334a1de5e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K08",
+      "programSha256": "7189ed1f258fe32a07880de7382e677458bc301acd23bb8825fcd8f01ed1fbbc",
+      "legacySha256": "7d461fe8f5e4fa1af33ba8c7d8677d61d39eb3e8c17406bbc17b3f507e87462c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K09",
+      "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K10",
+      "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K11",
+      "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K12",
+      "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K13",
+      "programSha256": "5a579fbb091e97360bc1010030458f3a9ca66a9c72c421f4d3a0b03059ffef6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "K14",
+      "programSha256": "7e250b17fad6a84fcc6991223e8db89b7995e9be403fb41fd62c0ab469b0bdce",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "R01",
+      "programSha256": "78623f13d8d1f6dcaa1d7779387824463c499bc6cb074c00273f22db5ab96c6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "R02",
+      "programSha256": "da39ce89615b621aac0d3572ae0b3e7fa2a81477fb8be403ced3a64234764c11",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "R03",
+      "programSha256": "e6bd27df3968bd187cc58c5c6223bf6e5052acd55de127e6fa28af7798968a07",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "installed",
+      "id": "R04",
+      "programSha256": "3e41ad143cd9bdd6e6b425655f125833230d371f119c2b20a7a41ac02acf8227",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K01",
+      "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+      "legacySha256": "8596acc5a0e66d1cc265811af22bce3a7214286a2c6c9815dd5fa6ba83e0394e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K02",
+      "programSha256": "71bba44fc50935e11eefbfb47a8ad59baf64ec8faae7cc4457154fcc3715bc6d",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K03",
+      "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "legacySha256": "adb5b51d3b0ea0f33facf9c1545a7c710da4b760b5f748576a252e1a041e636c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K04",
+      "programSha256": "d9453bae3c7a46e73729ea0cae34f1927bcec33238b6a61e1dcd20bbadce6ec9",
+      "legacySha256": "7be885512b1530aa26b1c73f44a9fca5f25d8d608b320340d8ced2a4f212b4cf",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K05",
+      "programSha256": "702f91d9be1fb5af0fd5c3602de24f1d892829e044c49dd8c936d95e1591a44f",
+      "legacySha256": "6e5731e3d858ca9da179b03047f22d24532e9731c4031ff6e9d604bb247c2fd7",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K06",
+      "programSha256": "2785bdea1d2a9b347b3d570157292ead478bdef0594761876b5f5e4102aff1ea",
+      "legacySha256": "da3ce7c950a3735b5ce8e765e4e95ce64bd05736916e2cfbb06db963398b1b0e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K07",
+      "programSha256": "42786a0c76e339324a7dec790958f01cb68dd87ff243add08a75a3e1b8238b6c",
+      "legacySha256": "bb8ce3738c6b084f603a9927b47b27249b7e3c33af3670a91a81b91334a1de5e",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K08",
+      "programSha256": "7189ed1f258fe32a07880de7382e677458bc301acd23bb8825fcd8f01ed1fbbc",
+      "legacySha256": "7d461fe8f5e4fa1af33ba8c7d8677d61d39eb3e8c17406bbc17b3f507e87462c",
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K09",
+      "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K10",
+      "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K11",
+      "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K12",
+      "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K13",
+      "programSha256": "5a579fbb091e97360bc1010030458f3a9ca66a9c72c421f4d3a0b03059ffef6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "K14",
+      "programSha256": "7e250b17fad6a84fcc6991223e8db89b7995e9be403fb41fd62c0ab469b0bdce",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "R01",
+      "programSha256": "78623f13d8d1f6dcaa1d7779387824463c499bc6cb074c00273f22db5ab96c6d",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "R02",
+      "programSha256": "da39ce89615b621aac0d3572ae0b3e7fa2a81477fb8be403ced3a64234764c11",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "R03",
+      "programSha256": "e6bd27df3968bd187cc58c5c6223bf6e5052acd55de127e6fa28af7798968a07",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "R04",
+      "programSha256": "3e41ad143cd9bdd6e6b425655f125833230d371f119c2b20a7a41ac02acf8227",
+      "legacySha256": null,
+      "disposition": "UNRUN"
+    }
+  ],
+  "summary": {
+    "plannedPrimaryCases": 54,
+    "completedPrimaryCases": 0,
+    "startupStops": 1,
+    "unadmittedPrimaryCases": 53,
+    "completedMetamorphicComparisons": 0,
+    "plannedMetamorphicComparisons": 24,
+    "mutants": "3 UNRUN",
+    "bindingRefusals": "2 UNRUN",
+    "nativeCalls": 0,
+    "regexJobs": "not admitted/observed; no case startup witness",
+    "asyncLoaders": 0
+  },
+  "retirement": {
+    "runtimeKnownStarts": 4,
+    "owner": "exec_command session95117 reported process exit1 and B35_AUTHOR_STOP; no group claim",
+    "knownChildren": [
+      {
+        "id": "build",
+        "pid": 10411,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "capturesQualified": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      {
+        "id": "types-source-built",
+        "pid": 11378,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "capturesQualified": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      {
+        "id": "case-source-built-K01",
+        "pid": 11856,
+        "status": 1,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "capturesQualified": true,
+        "forced": false,
+        "knownOutstanding": 0
+      }
+    ],
+    "sourceMetadataStarts": 23,
+    "authorAdminStartsAtCollection": 3,
+    "activeRuntime": 0,
+    "qualification": "direct owned roles only; owner secondary flush/close failures are not separately published by frozen outer and absence cannot be inferred"
+  },
+  "census": {
+    "beforeTerminal": {
+      "root": "/tmp/safe-bash-b35-author-xSdFBJ",
+      "at": 1788006685805,
+      "bytes": 49055077,
+      "entries": 3943,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "postStopProspective": {
+      "root": "/tmp/safe-bash-b35-author-xSdFBJ",
+      "at": 1788006857859,
+      "bytes": 49253994,
+      "entries": 3944,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    "delta": 198917,
+    "knownTerminalFiles": {
+      "result": 198666,
+      "ownerStdout": 251,
+      "ownerStderr": 0
+    },
+    "qualification": "two timestamped file-based invocation-local immutable samples; not historical peak/RSS/whole-phase proof"
+  },
+  "capsule": {
+    "encodedBytes": 5374329,
+    "encodedSha256": "77fa61e91c6f45821fc7570b0633d2ec17dbbbcb6715e206d71ce691ea346cf9",
+    "compressedBytes": 4030745,
+    "compressedSha256": "54c200394a5d15ce76c5e5800c169c36ac741be7c897caa9a69c243c25941e24",
+    "decodedBytes": 8981891,
+    "decodedSha256": "3c5958da1778d817dde550faa13768b2fa69433c83324a230b805e7f5c3b2525",
+    "records": 100,
+    "recordBytes": 6718265
+  },
+  "historical": "All prior native observations/accounting HOLD unchanged; no rescore"
+}

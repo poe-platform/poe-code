@@ -1,0 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+export function collect(roots,requests,maximum){
+ const allowed=new Set(roots);let total=0;const rows=[];
+ for(const request of requests){if(!allowed.has(request.root)||path.isAbsolute(request.name)||request.name.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('COLLECTION_SCOPE');const filename=path.join(request.root,request.name),before=fs.lstatSync(filename);if(!before.isFile()||before.isSymbolicLink()||before.size>16777216||total+before.size>maximum)throw Error('COLLECTION_TYPE_SIZE');const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);let bytes;try{const opened=fs.fstatSync(descriptor);if(opened.dev!==before.dev||opened.ino!==before.ino||opened.size!==before.size)throw Error('COLLECTION_CHANGED');bytes=Buffer.alloc(before.size);let offset=0;while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,Math.min(65536,bytes.length-offset),offset);if(!count)throw Error('COLLECTION_SHORT');offset+=count;}const after=fs.fstatSync(descriptor);if(after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw Error('COLLECTION_MUTATED');}finally{fs.closeSync(descriptor);}total+=bytes.length;rows.push(Object.freeze({label:request.label,root:request.root,name:request.name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),base64:bytes.toString('base64')}));}
+ return Object.freeze({at:new Date().toISOString(),kind:'exact requested file collection, not a resource peak/census',totalBytes:total,rows:Object.freeze(rows)});
+}

@@ -498,7 +498,7 @@ class Lexer {
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
-        parts.push({ kind: "variable", name, quoted });
+        parts.push({ kind: "variable", name, quoted, line });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
   }

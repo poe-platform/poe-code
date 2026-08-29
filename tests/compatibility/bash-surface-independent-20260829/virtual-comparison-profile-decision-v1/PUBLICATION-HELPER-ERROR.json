@@ -1,0 +1,8 @@
+{
+  "kind": "REPL_SOURCE_SYNTAX",
+  "message": "[9:69-9:109]: Unexpected token: 'identifier'",
+  "phase": "constructing proposal text",
+  "childrenLaunched": 0,
+  "filesWrittenByFailedCall": 0,
+  "qualification": "Helper parse failure before execution, not a control or product result."
+}

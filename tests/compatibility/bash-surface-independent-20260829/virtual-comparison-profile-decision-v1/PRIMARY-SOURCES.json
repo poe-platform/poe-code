@@ -1,0 +1,25 @@
+{
+  "schema": "primary-source-reading-v1",
+  "version": "Node v22.22.2",
+  "references": [
+    {
+      "id": "P1",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/process.md",
+      "lines": "2174-2208",
+      "subject": "Global getBuiltinModule API"
+    },
+    {
+      "id": "P2",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/permissions.md",
+      "lines": "12-19,34-59,170-198",
+      "subject": "Permission flags, trusted-code limits, worker inheritance and filesystem caveats"
+    },
+    {
+      "id": "P3",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/module.md",
+      "lines": "295-345,858-958",
+      "subject": "Async register Worker permission; synchronous registerHooks and thread distinction"
+    }
+  ],
+  "qualification": "Public primary documentation only; no local binary probe or behavior qualification"
+}

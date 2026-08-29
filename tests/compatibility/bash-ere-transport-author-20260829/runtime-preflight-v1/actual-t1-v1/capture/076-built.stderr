@@ -1,0 +1,6 @@
+Warning: Detected unsettled top-level await at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/CASES/076-built/case-runner.mjs:28
+  else{const outcome=await settle(execute(input('a',config.id==='P06/outside-overall'?'ab':'a')));assert.equal(outcome.ok,false);if(config.id.startsWith('L02/'))assert.equal(outcome.value,false);else if(config.id==='L06/startup-timeout')code(outcome.value,'STARTUP_TIMEOUT');else if(config.id==='L06/request-timeout')code(outcome.value,'REQUEST_TIMEOUT');else if(config.id==='L07/unexpected-exit')code(outcome.value,'WORKER_EXIT');else if(config.id==='L07/worker-error'||config.id==='B04/crash-unproved')assert.equal(outcome.value,state.errors[0]);else code(outcome.value,'PROTOCOL');if(config.id.startsWith('B04/')){assert.equal(root.usage.engine.work,131072);const again=await settle(execute());assert.equal(again.ok,false);assert.equal(state.constructed,1);}}
+                     ^
+
+
+

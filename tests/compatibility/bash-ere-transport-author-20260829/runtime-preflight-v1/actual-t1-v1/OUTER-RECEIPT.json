@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "phase": "ACTUAL_T1_PUBLICATION",
+  "recordedAt": "2026-08-29T14:36:15.862Z",
+  "attempt": 1,
+  "grantSpent": true,
+  "actualCommandSession": 88129,
+  "outerExit": 2,
+  "knownActual": {
+    "supervisorStarts": 1,
+    "caseStarts": 76,
+    "caseCloses": 76,
+    "WorkerStartsInCompleteReceipts": 60,
+    "WorkerRetirementsInCompleteReceipts": 60,
+    "missingCellWorkerTelemetry": 1
+  },
+  "administration": {
+    "completedScopedGit": 1,
+    "remaining": {
+      "patchWrapperAllowance": 2,
+      "gitAdd": 1,
+      "gitCommit": 1,
+      "gitIdentity": 1,
+      "gitStatus": 1
+    },
+    "existingDirectDataControllerRole": 1,
+    "totalConservativeAdministrativeRoles": 8,
+    "limit": 10
+  },
+  "knownRoleEnvelope": 85,
+  "roleLimit": 146,
+  "peakConservative": 3,
+  "noUniversalCensus": true,
+  "allActualToolsClosed": true,
+  "cell76WorkerRetirementQualified": false,
+  "rootsRetained": true,
+  "publicationNoAdditionalRuntime": true,
+  "finalCommitCaptureQualification": "Final commit/identity/status outputs trail the commit and remain separately retained."
+}

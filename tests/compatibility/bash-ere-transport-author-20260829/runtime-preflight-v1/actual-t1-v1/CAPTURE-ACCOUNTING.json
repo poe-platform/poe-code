@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "at": "2026-08-29T14:37:17.215Z",
+  "distinctRawExecutionChannels": {
+    "caseStdout": 6253,
+    "caseStderr": 1003,
+    "finalOwnerStdout": 60514,
+    "ownerStderr": 0,
+    "outerStdout": 0,
+    "outerStderr": 0,
+    "total": 67770
+  },
+  "archiveSnapshot": {
+    "ownerStdout": 60419,
+    "allStreamBytes": 67675,
+    "laterOwnerPublicationEventExcluded": true
+  },
+  "supervisorAccounting": {
+    "reportedCaptureBytes": 290339,
+    "includes": "owner log + case channels + read receipts up to stop; not a disjoint category to sum with raw channels"
+  },
+  "storage": {
+    "retainedArchiveCopyBytes": 5657653,
+    "archiveDecodedBytes": 21499087,
+    "archiveRawFileBytes": 15511403,
+    "rootRetention": "Original CASES, ACTUAL-01, archive, installed grant retained; no delete or live-child ownership release",
+    "notRSS": true
+  },
+  "reasonIdentity": {
+    "supervisorStopPrimary": "present/object only",
+    "cell76": "no result/trace; original raw reject detail unavailable",
+    "serializedDiagnosticsAreNotRawIdentity": true
+  }
+}

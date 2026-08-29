@@ -3917,3 +3917,28 @@ that any implementation, command, fixture, or test currently exists.
 - Trusted explicit provider/test loader is not product authentication. Public
   opt-in integration is separate; this docs-only record changes no product/defaults.
   Exact decision: `tests/commands/node-independent-20260829/actual-review-v1/ROOT-ACCEPTANCE.md`.
+
+### 2026-08-29 — ROOT qualified public opt-in Node acceptance
+
+- ROOT accepts source `bb4dd0571a0335b20e29448bf88126ca02c1a32d`, derived
+  `a6d20781d3c099fb7b3d36c10696beb06615af1b`, full1010 package SHA256
+  `274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9`, based on
+  independent review `27f557ad6a18e06da5438e0d08d8b7ec2a703d94`. Includes accepted
+  Unit2 and module `a2f3983d`, not pending Unit3/Unit4/current HEAD. Prior module
+  acceptance `b10faea3e04714dbddc796971a773fa0c61495f7` and failures remain intact.
+- Scope942 expected outcomes =651 retained +183 version-mapped module +72
+  version-mapped public +36 independent, NOT942 successful guest commands.
+  Separate2 native Node package-resolution controls,4 mutant/restoration pairs,
+  2 binding refusals; strict build/offline install/physical move/12 type processes.
+- 151 observed Node Workers retired,133 guest entries,23 fixed loader admissions.
+  78 recorded execution processes are NOT an ALL-process census. Individual
+  internal-loader exits, universal accounting/peak/byte bounds, unexecuted/partial
+  families, E09's weaker assertion, W23 detail/old-loop UNKNOWN and inherited
+  qualifications remain. No all-jobs/RSS/whole-guest or host-authorization proof.
+- Root/exact `virtual-bash/commands/node` APIs remain explicit opt-in with a required
+  trusted provider/static entry, seven default-denied grants and24 fixed limits.
+  Default80 unchanged; zero runtime dependencies, no engine bundling/auto-import
+  or native fallback. Restricted NP1/Worker-L, not full Node/Bash or an overall win.
+- Docs-only publication: no runtime/product logic/compiler/Worker/native execution;
+  original author/helper captures and historical status entries are preserved.
+  Exact decision: `tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md`.

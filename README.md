@@ -8,19 +8,20 @@ tools; and piping, stdin, and full shell support.
 
 ## Status
 
-**Explicit opt-in Node integration candidate (August 29, 2026):** `nodeCommands`,
+**Qualified explicit opt-in Node integration (August 29, 2026):** `nodeCommands`,
 `createNodeCommands` and `createNodeCommand` require a trusted qualifying provider.
 The exact `virtual-bash/commands/node` subpath and root expose the restricted
 NP1-CJS-WRQ-L-SYNC-1 / Worker-L APIs; **default80 does not include Node**.
-ROOT accepted module `a2f3983d` with its finite coverage/resource qualifications;
-public integration still requires separate independent review and ROOT acceptance.
+ROOT accepted public source `bb4dd057` / selected composition `a6d20781` through
+independent review `27f557ad`, retaining module `a2f3983d`'s qualifications.
+This includes accepted Unit2, not pending Unit3/Unit4 or the moving worktree.
 No engine is bundled, discovered, installed or imported implicitly; npm/npx and
 native evaluation/subprocess fallbacks remain excluded. The static adapter URL and
 identity are configuration, not byte authentication or host authorization.
 
-Proposed consumer usage below is part of the author validation candidate, not yet
-an independent public acceptance. The host supplies an already authorized adapter
-and VFS; the adapter implements the documented default-only engine ABI.
+The usage below requires a host-supplied, already authorized adapter and VFS;
+the adapter implements the documented default-only engine ABI. Public import,
+installation and relocation checks do not authenticate that host-supplied engine.
 
 ```ts
 import { Shell, agentCommands, createNodeWorkerProvider, nodeCommands } from "virtual-bash";
@@ -48,8 +49,13 @@ Worker-L may abandon guest continuations after entry return; it is not all-jobs-
 settled, full Node/CommonJS, hard RSS or a whole-invocation5s guarantee. `.cjs`,
 inline eval/primitive print and noninteractive stdin have a finite synchronous
 text/JSON/path profile, not ESM/TLA, package search, local JS require, Buffer,
-async FS or `process.exit`. See [module limits](src/commands/node/README.md) and
-[author integration evidence](tests/integration/node-public-author-20260829/README.md).
+async FS or `process.exit`. See [module limits](src/commands/node/README.md),
+[qualified ROOT acceptance](tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md)
+and [independent evidence](tests/integration/node-public-independent-20260829/REPORT.md).
+The 942 expected outcomes are not all successful guest commands. W23 diagnostic
+detail, E09/partial-family coverage, individual internal-loader exits and universal
+process/resource accounting remain qualified; no full Node/Bash or overall-winner
+claim follows. Original author/module failures remain preserved.
 
 TypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses
 TypeScript, `tsx`, and `node:test`. The package is currently private/unpublished;
@@ -178,8 +184,9 @@ distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
 includes accepted `apply_patch` and read-only M1A+M1B `git`, with root/subpath APIs
 and exactly 80 defaults. Git keeps all 24 fixed numeric caps and its declared
 storage/configuration/format refusals; packed support is bounded, not full Git
-compatibility. The Node scaffold/provider remain pending, not accepted product
-Node support. This status does not certify the moving worktree.
+compatibility. Restricted Node now has qualified public opt-in acceptance with an
+explicit trusted provider; it is not a default command or full Node compatibility.
+This status does not certify the moving worktree.
 `safejs` is not Node, and `patch` is not `apply_patch`.
 “Without the npm stuff” excludes npm/npx product commands only; npm, Node and
 TypeScript development tooling remain. The counts in that table are supplied by

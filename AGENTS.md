@@ -68,6 +68,10 @@
   SafeJS requires injected legitimate runtime hooks; never install/load a private
   package implicitly, vendor the engine or modify the private poe-code checkout.
   Proposed upstream patches are not approved integrations or replay guarantees.
+- Node is explicit opt-in with a required trusted provider/static engine adapter;
+  entry URLs and identity strings are configuration, not byte authentication or
+  host authorization. Never auto-load/bundle an engine or add native fallbacks.
+  Preserve restricted Worker-L retirement semantics, not full Node/all-jobs/RSS claims.
 
 ## Streams, invocation and filesystem safety
 

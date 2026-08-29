@@ -8,18 +8,26 @@ and historical expectations are unchanged.
 
 ## Authoritative request
 
-**2026-08-29 Node status:** ROOT qualified-accepted restricted module `a2f3983d`
-through independent evidence `1a15f7a5`; its partial-family, diagnostic and resource
-qualifications remain. Explicit-provider root/exact `commands/node` public
-integration is an author candidate, not yet independently accepted. `nodeCommands`
-and `createNodeCommands` require provider configuration, preserve seven denied-by-
-default grants/fixed24 limits, and add Node only when explicitly installed.
-Default80, `AgentCommandsOptions`, npm/npx exclusions and curl opt-in are unchanged.
-No bundled/ambient engine, private access or native fallback; trusted-host ABI,
-static adapter authorization and NP1/Worker-L limitations remain explicit.
-See `tests/integration/node-public-author-20260829/README.md` for the exact candidate,
-future/current author results and inherited qualifications; no live-HEAD or full
-Node/Bash compatibility acceptance follows.
+**2026-08-29 Node status:** ROOT qualified-accepted explicit-provider public source
+`bb4dd057` / derived composition `a6d20781`, through independent `27f557ad`.
+Full1010 package SHA256 is
+`274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9`.
+This preserves restricted module `a2f3983d` / acceptance `b10faea3`; the selected
+composition includes accepted Unit2, not pending Unit3/Unit4 or current HEAD.
+`nodeCommands` and `createNodeCommands` require trusted provider configuration,
+preserve seven denied-by-default grants/fixed24 limits, and add Node only when
+explicitly installed. Root and exact `virtual-bash/commands/node` imports are
+qualified; default80, `AgentCommandsOptions`, npm/npx exclusions and curl opt-in
+are unchanged. No bundled/ambient engine, private access or native fallback;
+static entry/identity are not byte authentication or host authorization.
+The 942 expected outcomes (651 retained +183 module +72 public +36 independent),
+two native Node package-resolution controls and separate type/mutation checks
+are finite evidence, not all successful guest commands. Partial/unexecuted
+families, E09, W23 UNKNOWN, internal-loader exits and universal accounting gaps
+remain. See `tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md`
+and `REPORT.md` in that directory. NP1/Worker-L is not full Node/Bash, RSS or
+all-jobs-settled support; no live-HEAD/overall-winner claim follows. Historical
+missing/pending entries below retain their original dated scope and failures.
 
 The following counts and shares are **USER-PROVIDED**, not independently verified
 statistics. Shares are transcribed, not recalculated or normalized. The exact

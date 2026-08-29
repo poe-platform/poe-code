@@ -1,0 +1,87 @@
+{
+  "sourceAuthority": [
+    {
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/EXECUTOR-v5.json",
+      "mode": "100644",
+      "blob": "cf94df918cb6c32c23e45acf20a692b83dbb6efb",
+      "bytes": 19555,
+      "sha256": "1a12da2b00cb2ec0ea19e6bbd7de55d937667725d9d054cb302d9c53a9030ee0"
+    },
+    {
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json",
+      "mode": "100644",
+      "blob": "cbce5f039417a2ca96dd967b678f5fdaf0ad8b47",
+      "bytes": 230044,
+      "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+    },
+    {
+      "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+      "mode": "100644",
+      "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    }
+  ],
+  "admitted": {
+    "inputs": 293,
+    "trees": 125
+  },
+  "controls": {
+    "authentic": 1,
+    "negative": [
+      {
+        "kind": "path",
+        "refused": true
+      },
+      {
+        "kind": "mode",
+        "refused": true
+      },
+      {
+        "kind": "blob",
+        "refused": true
+      },
+      {
+        "kind": "missing",
+        "refused": true
+      },
+      {
+        "kind": "extra",
+        "refused": true
+      },
+      {
+        "kind": "duplicate",
+        "refused": true
+      },
+      {
+        "kind": "root",
+        "refused": true
+      }
+    ]
+  },
+  "changed": [
+    {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+      "bytes": 203623,
+      "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+      "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace"
+    }
+  ],
+  "old636": "Exact inherited frozen fixture bytes checked against old109-member executor; no author RAW decompression needed.",
+  "newAuthor36": {
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "mode": "100644",
+    "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+    "bytes": 5599,
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+  },
+  "priorNovel48": {
+    "sha256": "2019f537a7af54530c3ae23cfa6c395fc5426f5eda9f3d097eebcafd66e4a6d1",
+    "unchanged": true
+  },
+  "dataAdmission": "No encoded DATA used or decompressed. Generic4MiB text admission used except old executor rows explicitly bounded8MiB and exact expected hash. Known5916905 encoded record exception was unnecessary.",
+  "sourceCause": "Private diagnostic recorded after outcome selection against exact publicPromise, before raw rejection unwrap; consume on exact rawReturn; WeakMap reset on root close; no raw reason key/equality/truthiness. Runtime-only candidate difference.",
+  "history": "cd06468e681/684 and all original author bootstrap/cap/staging failures preserved. No old results rescored."
+}

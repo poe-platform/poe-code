@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "oldAttempt": {
+    "commit": "5001adc71a9c1549822843d9cdd3bc2410fcf357",
+    "matrixSha256": "a194dd04d5553820359a4c07a0f6b6703a97638919ccd5dad74fdfc5e7068bc4",
+    "PASS": 75,
+    "nonpass": 1,
+    "UNRUN": 59,
+    "originalEligibleIdentities": 47,
+    "cells": 135
+  },
+  "newSource": "Every old cell depends on owner lifecycle; old75 remain historical, not unchanged-candidate runtime passes. New followup covers a selected repair path; remaining135 obligations require versioned source/close-rejection assertions and fresh grants.",
+  "allVariantPartition": {
+    "eligiblePrivate": 47,
+    "nonpublicDeferred": 6,
+    "publicCORE70Deferred": 7,
+    "total": 60
+  },
+  "nonpublic": [
+    {
+      "id": "L07/messageerror",
+      "fixture": "Owned static Worker bridge; after exactly one successful real post, deliver one explicitly injected messageerror with a retained sentinel via its existing emitter route. No arbitrary module URL.",
+      "assertions": [
+        "actual post count1",
+        "raw sentinel identity at execute rejection",
+        "one acquisition/no retry",
+        "unknown spent grant not refunded",
+        "actual Worker exit +both stdio joins"
+      ],
+      "proof": "Handler-route injection only, not native deserialization-event proof",
+      "gate": "ROOT approval of this explicit proof-role substitution; otherwise native messageerror obligation remains HOLD",
+      "plannedCells": 3,
+      "plannedWorkers": 3,
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    },
+    {
+      "id": "B07/capture-byte-overflow",
+      "bounds": {
+        "maxExpansionBytes": 4096,
+        "maxExpansionFields": 64
+      },
+      "pattern": "^([a]+)$",
+      "subject": {
+        "ascii": "a",
+        "repeat": 2049
+      },
+      "derived": {
+        "patternBytes": 4096,
+        "subjectBytes": 4096,
+        "work": 131072,
+        "states": 512,
+        "allocationUnits": 40960,
+        "captureBytes": 4096,
+        "captureSlots": 64
+      },
+      "predicate": "execute rejects same-module EreProfileLimitError; resource===captureBytes; exact resource is preserved by root.js:235-237. Two full participating captures would require4098 bytes.",
+      "gate": "Before runtime seal, source/counter witness must establish work/states/allocation do not fail first. If any earlier cap wins, classify EARLIER_LIMIT, not capture PASS. No lower-limit hook/state injection or silent F/A/W increase.",
+      "plannedCells": 3,
+      "plannedWorkers": 3,
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    },
+    {
+      "id": "B07/capture-slot-overflow",
+      "bounds": {
+        "maxExpansionBytes": 4096,
+        "maxExpansionFields": 1
+      },
+      "pattern": "(a)",
+      "subject": "a",
+      "derived": {
+        "work": 131072,
+        "states": 8,
+        "allocationUnits": 32896,
+        "captureBytes": 4096,
+        "captureSlots": 1
+      },
+      "predicate": "execute rejects same-module EreProfileLimitError with resource===captureSlots; overall+group require2 slots.",
+      "gate": "Source admission must establish compile/match states fit8 and other limits do not preempt; otherwise EARLIER_LIMIT. No altered product cap.",
+      "plannedCells": 3,
+      "plannedWorkers": 3,
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    },
+    {
+      "id": "A01/expr-contract-pins",
+      "recipe": "Authenticate exact ROOT-selected accepted public artifact and its source/declaration manifest. Byte-compare legacy Expr implementation, RegexExecutionOptions and descriptor/reply declarations against that baseline. Run only the two previously accepted Expr consumer identities supplied by that manifest, with exact expected stdout/stderr/status and load closure.",
+      "gate": "Private25-entry artifact lacks public Expr/declarations. ROOT must supply the exact accepted public artifact/consumer bindings; no guessed current HEAD, API shape or historical pass inheritance.",
+      "plannedConsumers": 2,
+      "plannedWorkers": "No ERE Worker credit; Expr backend authority separately bound",
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    },
+    {
+      "id": "A04/positive-new-method",
+      "recipe": "Compile the provided INERT positive.mts.data against exact private root.d.ts closure, no execution. Checks openSession/execute/close callable parameter/return types without inventing input shape.",
+      "gate": "Fresh exact declaration/tool closure and compiler GO; current task executes no typecheck",
+      "plannedTypeProcesses": 1,
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    },
+    {
+      "id": "A04/negative-old-union",
+      "recipe": "Against ROOT-selected unchanged PUBLIC declarations, add shell-ere operation to an existing well-typed RegexExecutionOptions/legacy descriptor fixture and require exact excess-property/assignability diagnostic at that added field; first compile its unchanged positive counterpart.",
+      "gate": "Exact public exported type path, baseline positive fixture and required fields are missing from this private capsule. Do NOT invent a root export or count a missing-import diagnostic as the negative.",
+      "plannedTypeProcesses": 1,
+      "status": "UNRUN",
+      "bindingUpdate": "new private25 package + owner/root successor; all public artifact and counter-priority gaps unchanged"
+    }
+  ],
+  "publicMapping": {
+    "path": "../preparation-r3/DEFERRED.md",
+    "unchanged": true,
+    "CORE70CaseMapSha256": "6437a80825871347d82e9b1d8f4208ffd69ed612a1d4ee23818f0332f01f6625",
+    "ids": [
+      "B01/root-descendants",
+      "B02/fresh-independent-exec",
+      "C01/readonly-capture-target",
+      "C02/public-expansion-limit",
+      "C02/public-output-limit",
+      "C02/sink-raw-false",
+      "C03/short-circuited-regex"
+    ],
+    "status": "UNRUN/private transport cannot discharge"
+  },
+  "oldCell76": "persistent double fault/unknown telemetry remains nonpass; source inference and pure models do not supply missing historical exit evidence"
+}

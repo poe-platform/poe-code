@@ -1,0 +1,69 @@
+{
+  "schema": "node-module-public79-baseline-v1",
+  "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "sourceManifest": "tests/integration/apply-patch-public-20260829/SOURCE-v2.json",
+  "sourceManifestSha256": "da431477e0cf1072370b8e55cdebce80e33dbf9cac8471656854572b363b9d0d",
+  "package": {
+    "members": 898,
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "archive": "tests/integration/apply-patch-public-20260829/results-v1/PACKAGE.tgz.base64"
+  },
+  "compositionKind": "derived tree, not stored commit; authenticate manifest and reconstruct",
+  "includedOverlays": [
+    "src/commands/node/**",
+    "tests/commands/node-author-20260829/**"
+  ],
+  "excluded": [
+    "mutable HEAD",
+    "pending public Git80",
+    "shared core/default/export/package changes",
+    "shipping engine emissions"
+  ],
+  "inspectedCore": [
+    {
+      "path": "package.json",
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+      "matches": false
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "matches": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "matches": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "matches": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "matches": true
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "matches": true
+    }
+  ],
+  "preparationHistory": [
+    {
+      "kind": "metadata lookup",
+      "result": "git show 7fde3226 returned 128 bad object; derived identity subsequently resolved by SOURCE-v2.json; no build/execution attempted"
+    },
+    {
+      "kind": "text admission",
+      "result": "COMPOSITION.json size44958 refused under32768 cap; metadata reread with explicit65536 cap; no execution"
+    }
+  ],
+  "engine": {
+    "role": "test-only public95 unchanged emissions; not shipping",
+    "source": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "emissionManifest": "850d0d6eaa3d196b1a11eb60a1234c3ae4517b105665abfa0c3f012dcdc776b7"
+  }
+}

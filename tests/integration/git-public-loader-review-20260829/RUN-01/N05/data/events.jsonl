@@ -1,0 +1,7 @@
+{"kind":"loader-start","isMainThread":false,"threadId":1}
+{"kind":"bootstrap","isMainThread":true,"permitted":true}
+{"kind":"consumer-start"}
+{"kind":"application-create","id":1,"threadId":2,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/source/application.mjs"}
+{"kind":"application-exit","id":1,"code":0,"live":0}
+{"kind":"refusal-observed","role":"N05"}
+{"kind":"before-exit","created":1,"live":0}

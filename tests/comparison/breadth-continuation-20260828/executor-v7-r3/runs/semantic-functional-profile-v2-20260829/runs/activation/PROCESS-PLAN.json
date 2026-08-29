@@ -1,0 +1,2409 @@
+{
+  "schema": "FUNCTIONAL_V2_ACTUAL_PROCESS_PLAN",
+  "runId": "semantic-functional-20260829-v2-01",
+  "runtime": [
+    {
+      "slot": 1,
+      "role": "exec-replaced-wrapper-owner",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/owner.mjs"
+    },
+    {
+      "slot": 2,
+      "role": "semantic-launcher",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/launch.mjs"
+    },
+    {
+      "slot": 3,
+      "role": "semantic-coordinator",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/coordinator.mjs"
+    },
+    {
+      "slot": 4,
+      "role": "coordinator-review-git",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 5,
+      "role": "coordinator-grant-git",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 6,
+      "role": "semantic-worker",
+      "operationId": "case-1",
+      "layout": "target-installed",
+      "caseId": "column-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 7,
+      "role": "worker-review-git",
+      "operationId": "case-1",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 8,
+      "role": "worker-grant-git",
+      "operationId": "case-1",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 9,
+      "role": "semantic-worker",
+      "operationId": "case-2",
+      "layout": "baseline-installed",
+      "caseId": "column-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 10,
+      "role": "worker-review-git",
+      "operationId": "case-2",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 11,
+      "role": "worker-grant-git",
+      "operationId": "case-2",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 12,
+      "role": "semantic-worker",
+      "operationId": "case-3",
+      "layout": "target-moved",
+      "caseId": "column-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 13,
+      "role": "worker-review-git",
+      "operationId": "case-3",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 14,
+      "role": "worker-grant-git",
+      "operationId": "case-3",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 15,
+      "role": "semantic-worker",
+      "operationId": "case-4",
+      "layout": "target-installed",
+      "caseId": "date-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 16,
+      "role": "worker-review-git",
+      "operationId": "case-4",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 17,
+      "role": "worker-grant-git",
+      "operationId": "case-4",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 18,
+      "role": "semantic-worker",
+      "operationId": "case-5",
+      "layout": "baseline-installed",
+      "caseId": "date-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 19,
+      "role": "worker-review-git",
+      "operationId": "case-5",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 20,
+      "role": "worker-grant-git",
+      "operationId": "case-5",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 21,
+      "role": "semantic-worker",
+      "operationId": "case-6",
+      "layout": "target-moved",
+      "caseId": "date-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 22,
+      "role": "worker-review-git",
+      "operationId": "case-6",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 23,
+      "role": "worker-grant-git",
+      "operationId": "case-6",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 24,
+      "role": "semantic-worker",
+      "operationId": "case-7",
+      "layout": "target-installed",
+      "caseId": "du-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 25,
+      "role": "worker-review-git",
+      "operationId": "case-7",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 26,
+      "role": "worker-grant-git",
+      "operationId": "case-7",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 27,
+      "role": "semantic-worker",
+      "operationId": "case-8",
+      "layout": "baseline-installed",
+      "caseId": "du-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 28,
+      "role": "worker-review-git",
+      "operationId": "case-8",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 29,
+      "role": "worker-grant-git",
+      "operationId": "case-8",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 30,
+      "role": "semantic-worker",
+      "operationId": "case-9",
+      "layout": "target-moved",
+      "caseId": "du-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 31,
+      "role": "worker-review-git",
+      "operationId": "case-9",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 32,
+      "role": "worker-grant-git",
+      "operationId": "case-9",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 33,
+      "role": "semantic-worker",
+      "operationId": "case-10",
+      "layout": "target-installed",
+      "caseId": "egrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 34,
+      "role": "worker-review-git",
+      "operationId": "case-10",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 35,
+      "role": "worker-grant-git",
+      "operationId": "case-10",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 36,
+      "role": "semantic-worker",
+      "operationId": "case-11",
+      "layout": "baseline-installed",
+      "caseId": "egrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 37,
+      "role": "worker-review-git",
+      "operationId": "case-11",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 38,
+      "role": "worker-grant-git",
+      "operationId": "case-11",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 39,
+      "role": "semantic-worker",
+      "operationId": "case-12",
+      "layout": "target-moved",
+      "caseId": "egrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 40,
+      "role": "worker-review-git",
+      "operationId": "case-12",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 41,
+      "role": "worker-grant-git",
+      "operationId": "case-12",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 42,
+      "role": "semantic-worker",
+      "operationId": "case-13",
+      "layout": "target-installed",
+      "caseId": "expand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 43,
+      "role": "worker-review-git",
+      "operationId": "case-13",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 44,
+      "role": "worker-grant-git",
+      "operationId": "case-13",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 45,
+      "role": "semantic-worker",
+      "operationId": "case-14",
+      "layout": "baseline-installed",
+      "caseId": "expand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 46,
+      "role": "worker-review-git",
+      "operationId": "case-14",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 47,
+      "role": "worker-grant-git",
+      "operationId": "case-14",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 48,
+      "role": "semantic-worker",
+      "operationId": "case-15",
+      "layout": "target-moved",
+      "caseId": "expand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 49,
+      "role": "worker-review-git",
+      "operationId": "case-15",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 50,
+      "role": "worker-grant-git",
+      "operationId": "case-15",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 51,
+      "role": "semantic-worker",
+      "operationId": "case-16",
+      "layout": "target-installed",
+      "caseId": "expr-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 52,
+      "role": "worker-review-git",
+      "operationId": "case-16",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 53,
+      "role": "worker-grant-git",
+      "operationId": "case-16",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 54,
+      "role": "semantic-worker",
+      "operationId": "case-17",
+      "layout": "baseline-installed",
+      "caseId": "expr-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 55,
+      "role": "worker-review-git",
+      "operationId": "case-17",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 56,
+      "role": "worker-grant-git",
+      "operationId": "case-17",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 57,
+      "role": "semantic-worker",
+      "operationId": "case-18",
+      "layout": "target-moved",
+      "caseId": "expr-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 58,
+      "role": "worker-review-git",
+      "operationId": "case-18",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 59,
+      "role": "worker-grant-git",
+      "operationId": "case-18",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 60,
+      "role": "semantic-worker",
+      "operationId": "case-19",
+      "layout": "target-installed",
+      "caseId": "fgrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 61,
+      "role": "worker-review-git",
+      "operationId": "case-19",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 62,
+      "role": "worker-grant-git",
+      "operationId": "case-19",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 63,
+      "role": "semantic-worker",
+      "operationId": "case-20",
+      "layout": "baseline-installed",
+      "caseId": "fgrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 64,
+      "role": "worker-review-git",
+      "operationId": "case-20",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 65,
+      "role": "worker-grant-git",
+      "operationId": "case-20",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 66,
+      "role": "semantic-worker",
+      "operationId": "case-21",
+      "layout": "target-moved",
+      "caseId": "fgrep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 67,
+      "role": "worker-review-git",
+      "operationId": "case-21",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 68,
+      "role": "worker-grant-git",
+      "operationId": "case-21",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 69,
+      "role": "semantic-worker",
+      "operationId": "case-22",
+      "layout": "target-installed",
+      "caseId": "file-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 70,
+      "role": "worker-review-git",
+      "operationId": "case-22",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 71,
+      "role": "worker-grant-git",
+      "operationId": "case-22",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 72,
+      "role": "semantic-worker",
+      "operationId": "case-23",
+      "layout": "baseline-installed",
+      "caseId": "file-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 73,
+      "role": "worker-review-git",
+      "operationId": "case-23",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 74,
+      "role": "worker-grant-git",
+      "operationId": "case-23",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 75,
+      "role": "semantic-worker",
+      "operationId": "case-24",
+      "layout": "target-moved",
+      "caseId": "file-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 76,
+      "role": "worker-review-git",
+      "operationId": "case-24",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 77,
+      "role": "worker-grant-git",
+      "operationId": "case-24",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 78,
+      "role": "semantic-worker",
+      "operationId": "case-25",
+      "layout": "target-installed",
+      "caseId": "fold-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 79,
+      "role": "worker-review-git",
+      "operationId": "case-25",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 80,
+      "role": "worker-grant-git",
+      "operationId": "case-25",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 81,
+      "role": "semantic-worker",
+      "operationId": "case-26",
+      "layout": "baseline-installed",
+      "caseId": "fold-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 82,
+      "role": "worker-review-git",
+      "operationId": "case-26",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 83,
+      "role": "worker-grant-git",
+      "operationId": "case-26",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 84,
+      "role": "semantic-worker",
+      "operationId": "case-27",
+      "layout": "target-moved",
+      "caseId": "fold-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 85,
+      "role": "worker-review-git",
+      "operationId": "case-27",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 86,
+      "role": "worker-grant-git",
+      "operationId": "case-27",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 87,
+      "role": "semantic-worker",
+      "operationId": "case-28",
+      "layout": "target-installed",
+      "caseId": "getopts-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 88,
+      "role": "worker-review-git",
+      "operationId": "case-28",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 89,
+      "role": "worker-grant-git",
+      "operationId": "case-28",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 90,
+      "role": "semantic-worker",
+      "operationId": "case-29",
+      "layout": "baseline-installed",
+      "caseId": "getopts-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 91,
+      "role": "worker-review-git",
+      "operationId": "case-29",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 92,
+      "role": "worker-grant-git",
+      "operationId": "case-29",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 93,
+      "role": "semantic-worker",
+      "operationId": "case-30",
+      "layout": "target-moved",
+      "caseId": "getopts-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 94,
+      "role": "worker-review-git",
+      "operationId": "case-30",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 95,
+      "role": "worker-grant-git",
+      "operationId": "case-30",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 96,
+      "role": "semantic-worker",
+      "operationId": "case-31",
+      "layout": "target-installed",
+      "caseId": "html-to-markdown-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 97,
+      "role": "worker-review-git",
+      "operationId": "case-31",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 98,
+      "role": "worker-grant-git",
+      "operationId": "case-31",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 99,
+      "role": "semantic-worker",
+      "operationId": "case-32",
+      "layout": "baseline-installed",
+      "caseId": "html-to-markdown-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 100,
+      "role": "worker-review-git",
+      "operationId": "case-32",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 101,
+      "role": "worker-grant-git",
+      "operationId": "case-32",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 102,
+      "role": "semantic-worker",
+      "operationId": "case-33",
+      "layout": "target-moved",
+      "caseId": "html-to-markdown-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 103,
+      "role": "worker-review-git",
+      "operationId": "case-33",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 104,
+      "role": "worker-grant-git",
+      "operationId": "case-33",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 105,
+      "role": "semantic-worker",
+      "operationId": "case-34",
+      "layout": "target-installed",
+      "caseId": "nl-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 106,
+      "role": "worker-review-git",
+      "operationId": "case-34",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 107,
+      "role": "worker-grant-git",
+      "operationId": "case-34",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 108,
+      "role": "semantic-worker",
+      "operationId": "case-35",
+      "layout": "baseline-installed",
+      "caseId": "nl-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 109,
+      "role": "worker-review-git",
+      "operationId": "case-35",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 110,
+      "role": "worker-grant-git",
+      "operationId": "case-35",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 111,
+      "role": "semantic-worker",
+      "operationId": "case-36",
+      "layout": "target-moved",
+      "caseId": "nl-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 112,
+      "role": "worker-review-git",
+      "operationId": "case-36",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 113,
+      "role": "worker-grant-git",
+      "operationId": "case-36",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 114,
+      "role": "semantic-worker",
+      "operationId": "case-37",
+      "layout": "target-installed",
+      "caseId": "printenv-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 115,
+      "role": "worker-review-git",
+      "operationId": "case-37",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 116,
+      "role": "worker-grant-git",
+      "operationId": "case-37",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 117,
+      "role": "semantic-worker",
+      "operationId": "case-38",
+      "layout": "baseline-installed",
+      "caseId": "printenv-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 118,
+      "role": "worker-review-git",
+      "operationId": "case-38",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 119,
+      "role": "worker-grant-git",
+      "operationId": "case-38",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 120,
+      "role": "semantic-worker",
+      "operationId": "case-39",
+      "layout": "target-moved",
+      "caseId": "printenv-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 121,
+      "role": "worker-review-git",
+      "operationId": "case-39",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 122,
+      "role": "worker-grant-git",
+      "operationId": "case-39",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 123,
+      "role": "semantic-worker",
+      "operationId": "case-40",
+      "layout": "target-installed",
+      "caseId": "rev-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 124,
+      "role": "worker-review-git",
+      "operationId": "case-40",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 125,
+      "role": "worker-grant-git",
+      "operationId": "case-40",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 126,
+      "role": "semantic-worker",
+      "operationId": "case-41",
+      "layout": "baseline-installed",
+      "caseId": "rev-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 127,
+      "role": "worker-review-git",
+      "operationId": "case-41",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 128,
+      "role": "worker-grant-git",
+      "operationId": "case-41",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 129,
+      "role": "semantic-worker",
+      "operationId": "case-42",
+      "layout": "target-moved",
+      "caseId": "rev-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 130,
+      "role": "worker-review-git",
+      "operationId": "case-42",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 131,
+      "role": "worker-grant-git",
+      "operationId": "case-42",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 132,
+      "role": "semantic-worker",
+      "operationId": "case-43",
+      "layout": "target-installed",
+      "caseId": "seq-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 133,
+      "role": "worker-review-git",
+      "operationId": "case-43",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 134,
+      "role": "worker-grant-git",
+      "operationId": "case-43",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 135,
+      "role": "semantic-worker",
+      "operationId": "case-44",
+      "layout": "baseline-installed",
+      "caseId": "seq-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 136,
+      "role": "worker-review-git",
+      "operationId": "case-44",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 137,
+      "role": "worker-grant-git",
+      "operationId": "case-44",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 138,
+      "role": "semantic-worker",
+      "operationId": "case-45",
+      "layout": "target-moved",
+      "caseId": "seq-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 139,
+      "role": "worker-review-git",
+      "operationId": "case-45",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 140,
+      "role": "worker-grant-git",
+      "operationId": "case-45",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 141,
+      "role": "semantic-worker",
+      "operationId": "case-46",
+      "layout": "target-installed",
+      "caseId": "sleep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 142,
+      "role": "worker-review-git",
+      "operationId": "case-46",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 143,
+      "role": "worker-grant-git",
+      "operationId": "case-46",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 144,
+      "role": "semantic-worker",
+      "operationId": "case-47",
+      "layout": "baseline-installed",
+      "caseId": "sleep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 145,
+      "role": "worker-review-git",
+      "operationId": "case-47",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 146,
+      "role": "worker-grant-git",
+      "operationId": "case-47",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 147,
+      "role": "semantic-worker",
+      "operationId": "case-48",
+      "layout": "target-moved",
+      "caseId": "sleep-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 148,
+      "role": "worker-review-git",
+      "operationId": "case-48",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 149,
+      "role": "worker-grant-git",
+      "operationId": "case-48",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 150,
+      "role": "semantic-worker",
+      "operationId": "case-49",
+      "layout": "target-installed",
+      "caseId": "split-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 151,
+      "role": "worker-review-git",
+      "operationId": "case-49",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 152,
+      "role": "worker-grant-git",
+      "operationId": "case-49",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 153,
+      "role": "semantic-worker",
+      "operationId": "case-50",
+      "layout": "baseline-installed",
+      "caseId": "split-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 154,
+      "role": "worker-review-git",
+      "operationId": "case-50",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 155,
+      "role": "worker-grant-git",
+      "operationId": "case-50",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 156,
+      "role": "semantic-worker",
+      "operationId": "case-51",
+      "layout": "target-moved",
+      "caseId": "split-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 157,
+      "role": "worker-review-git",
+      "operationId": "case-51",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 158,
+      "role": "worker-grant-git",
+      "operationId": "case-51",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 159,
+      "role": "semantic-worker",
+      "operationId": "case-52",
+      "layout": "target-installed",
+      "caseId": "strings-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 160,
+      "role": "worker-review-git",
+      "operationId": "case-52",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 161,
+      "role": "worker-grant-git",
+      "operationId": "case-52",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 162,
+      "role": "semantic-worker",
+      "operationId": "case-53",
+      "layout": "baseline-installed",
+      "caseId": "strings-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 163,
+      "role": "worker-review-git",
+      "operationId": "case-53",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 164,
+      "role": "worker-grant-git",
+      "operationId": "case-53",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 165,
+      "role": "semantic-worker",
+      "operationId": "case-54",
+      "layout": "target-moved",
+      "caseId": "strings-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 166,
+      "role": "worker-review-git",
+      "operationId": "case-54",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 167,
+      "role": "worker-grant-git",
+      "operationId": "case-54",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 168,
+      "role": "semantic-worker",
+      "operationId": "case-55",
+      "layout": "target-installed",
+      "caseId": "tac-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 169,
+      "role": "worker-review-git",
+      "operationId": "case-55",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 170,
+      "role": "worker-grant-git",
+      "operationId": "case-55",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 171,
+      "role": "semantic-worker",
+      "operationId": "case-56",
+      "layout": "baseline-installed",
+      "caseId": "tac-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 172,
+      "role": "worker-review-git",
+      "operationId": "case-56",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 173,
+      "role": "worker-grant-git",
+      "operationId": "case-56",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 174,
+      "role": "semantic-worker",
+      "operationId": "case-57",
+      "layout": "target-moved",
+      "caseId": "tac-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 175,
+      "role": "worker-review-git",
+      "operationId": "case-57",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 176,
+      "role": "worker-grant-git",
+      "operationId": "case-57",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 177,
+      "role": "semantic-worker",
+      "operationId": "case-58",
+      "layout": "target-installed",
+      "caseId": "timeout-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 178,
+      "role": "worker-review-git",
+      "operationId": "case-58",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 179,
+      "role": "worker-grant-git",
+      "operationId": "case-58",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 180,
+      "role": "semantic-worker",
+      "operationId": "case-59",
+      "layout": "baseline-installed",
+      "caseId": "timeout-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 181,
+      "role": "worker-review-git",
+      "operationId": "case-59",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 182,
+      "role": "worker-grant-git",
+      "operationId": "case-59",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 183,
+      "role": "semantic-worker",
+      "operationId": "case-60",
+      "layout": "target-moved",
+      "caseId": "timeout-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 184,
+      "role": "worker-review-git",
+      "operationId": "case-60",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 185,
+      "role": "worker-grant-git",
+      "operationId": "case-60",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 186,
+      "role": "semantic-worker",
+      "operationId": "case-61",
+      "layout": "target-installed",
+      "caseId": "tree-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 187,
+      "role": "worker-review-git",
+      "operationId": "case-61",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 188,
+      "role": "worker-grant-git",
+      "operationId": "case-61",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 189,
+      "role": "semantic-worker",
+      "operationId": "case-62",
+      "layout": "baseline-installed",
+      "caseId": "tree-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 190,
+      "role": "worker-review-git",
+      "operationId": "case-62",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 191,
+      "role": "worker-grant-git",
+      "operationId": "case-62",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 192,
+      "role": "semantic-worker",
+      "operationId": "case-63",
+      "layout": "target-moved",
+      "caseId": "tree-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 193,
+      "role": "worker-review-git",
+      "operationId": "case-63",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 194,
+      "role": "worker-grant-git",
+      "operationId": "case-63",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 195,
+      "role": "semantic-worker",
+      "operationId": "case-64",
+      "layout": "target-installed",
+      "caseId": "unexpand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 196,
+      "role": "worker-review-git",
+      "operationId": "case-64",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 197,
+      "role": "worker-grant-git",
+      "operationId": "case-64",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 198,
+      "role": "semantic-worker",
+      "operationId": "case-65",
+      "layout": "baseline-installed",
+      "caseId": "unexpand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 199,
+      "role": "worker-review-git",
+      "operationId": "case-65",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 200,
+      "role": "worker-grant-git",
+      "operationId": "case-65",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 201,
+      "role": "semantic-worker",
+      "operationId": "case-66",
+      "layout": "target-moved",
+      "caseId": "unexpand-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 202,
+      "role": "worker-review-git",
+      "operationId": "case-66",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 203,
+      "role": "worker-grant-git",
+      "operationId": "case-66",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 204,
+      "role": "semantic-worker",
+      "operationId": "case-67",
+      "layout": "target-installed",
+      "caseId": "which-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 205,
+      "role": "worker-review-git",
+      "operationId": "case-67",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 206,
+      "role": "worker-grant-git",
+      "operationId": "case-67",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 207,
+      "role": "semantic-worker",
+      "operationId": "case-68",
+      "layout": "baseline-installed",
+      "caseId": "which-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 208,
+      "role": "worker-review-git",
+      "operationId": "case-68",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 209,
+      "role": "worker-grant-git",
+      "operationId": "case-68",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 210,
+      "role": "semantic-worker",
+      "operationId": "case-69",
+      "layout": "target-moved",
+      "caseId": "which-positive",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 211,
+      "role": "worker-review-git",
+      "operationId": "case-69",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 212,
+      "role": "worker-grant-git",
+      "operationId": "case-69",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 213,
+      "role": "semantic-worker",
+      "operationId": "case-70",
+      "layout": "target-installed",
+      "caseId": "W01",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 214,
+      "role": "worker-review-git",
+      "operationId": "case-70",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 215,
+      "role": "worker-grant-git",
+      "operationId": "case-70",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 216,
+      "role": "semantic-worker",
+      "operationId": "case-71",
+      "layout": "baseline-installed",
+      "caseId": "W01",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 217,
+      "role": "worker-review-git",
+      "operationId": "case-71",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 218,
+      "role": "worker-grant-git",
+      "operationId": "case-71",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 219,
+      "role": "semantic-worker",
+      "operationId": "case-72",
+      "layout": "target-moved",
+      "caseId": "W01",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 220,
+      "role": "worker-review-git",
+      "operationId": "case-72",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 221,
+      "role": "worker-grant-git",
+      "operationId": "case-72",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 222,
+      "role": "semantic-worker",
+      "operationId": "case-73",
+      "layout": "target-installed",
+      "caseId": "W02",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 223,
+      "role": "worker-review-git",
+      "operationId": "case-73",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 224,
+      "role": "worker-grant-git",
+      "operationId": "case-73",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 225,
+      "role": "semantic-worker",
+      "operationId": "case-74",
+      "layout": "baseline-installed",
+      "caseId": "W02",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 226,
+      "role": "worker-review-git",
+      "operationId": "case-74",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 227,
+      "role": "worker-grant-git",
+      "operationId": "case-74",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 228,
+      "role": "semantic-worker",
+      "operationId": "case-75",
+      "layout": "target-moved",
+      "caseId": "W02",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 229,
+      "role": "worker-review-git",
+      "operationId": "case-75",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 230,
+      "role": "worker-grant-git",
+      "operationId": "case-75",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 231,
+      "role": "semantic-worker",
+      "operationId": "case-76",
+      "layout": "target-installed",
+      "caseId": "W03",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 232,
+      "role": "worker-review-git",
+      "operationId": "case-76",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 233,
+      "role": "worker-grant-git",
+      "operationId": "case-76",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 234,
+      "role": "semantic-worker",
+      "operationId": "case-77",
+      "layout": "baseline-installed",
+      "caseId": "W03",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 235,
+      "role": "worker-review-git",
+      "operationId": "case-77",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 236,
+      "role": "worker-grant-git",
+      "operationId": "case-77",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 237,
+      "role": "semantic-worker",
+      "operationId": "case-78",
+      "layout": "target-moved",
+      "caseId": "W03",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 238,
+      "role": "worker-review-git",
+      "operationId": "case-78",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 239,
+      "role": "worker-grant-git",
+      "operationId": "case-78",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 240,
+      "role": "semantic-worker",
+      "operationId": "case-79",
+      "layout": "target-installed",
+      "caseId": "W04",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 241,
+      "role": "worker-review-git",
+      "operationId": "case-79",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 242,
+      "role": "worker-grant-git",
+      "operationId": "case-79",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 243,
+      "role": "semantic-worker",
+      "operationId": "case-80",
+      "layout": "baseline-installed",
+      "caseId": "W04",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 244,
+      "role": "worker-review-git",
+      "operationId": "case-80",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 245,
+      "role": "worker-grant-git",
+      "operationId": "case-80",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 246,
+      "role": "semantic-worker",
+      "operationId": "case-81",
+      "layout": "target-moved",
+      "caseId": "W04",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 247,
+      "role": "worker-review-git",
+      "operationId": "case-81",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 248,
+      "role": "worker-grant-git",
+      "operationId": "case-81",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 249,
+      "role": "semantic-worker",
+      "operationId": "case-82",
+      "layout": "target-installed",
+      "caseId": "W05",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 250,
+      "role": "worker-review-git",
+      "operationId": "case-82",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 251,
+      "role": "worker-grant-git",
+      "operationId": "case-82",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 252,
+      "role": "semantic-worker",
+      "operationId": "case-83",
+      "layout": "baseline-installed",
+      "caseId": "W05",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 253,
+      "role": "worker-review-git",
+      "operationId": "case-83",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 254,
+      "role": "worker-grant-git",
+      "operationId": "case-83",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 255,
+      "role": "semantic-worker",
+      "operationId": "case-84",
+      "layout": "target-moved",
+      "caseId": "W05",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 256,
+      "role": "worker-review-git",
+      "operationId": "case-84",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 257,
+      "role": "worker-grant-git",
+      "operationId": "case-84",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 258,
+      "role": "semantic-worker",
+      "operationId": "case-85",
+      "layout": "target-installed",
+      "caseId": "W06",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 259,
+      "role": "worker-review-git",
+      "operationId": "case-85",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 260,
+      "role": "worker-grant-git",
+      "operationId": "case-85",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 261,
+      "role": "semantic-worker",
+      "operationId": "case-86",
+      "layout": "baseline-installed",
+      "caseId": "W06",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 262,
+      "role": "worker-review-git",
+      "operationId": "case-86",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 263,
+      "role": "worker-grant-git",
+      "operationId": "case-86",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 264,
+      "role": "semantic-worker",
+      "operationId": "case-87",
+      "layout": "target-moved",
+      "caseId": "W06",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 265,
+      "role": "worker-review-git",
+      "operationId": "case-87",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 266,
+      "role": "worker-grant-git",
+      "operationId": "case-87",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 267,
+      "role": "semantic-worker",
+      "operationId": "case-88",
+      "layout": "target-installed",
+      "caseId": "W07",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 268,
+      "role": "worker-review-git",
+      "operationId": "case-88",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 269,
+      "role": "worker-grant-git",
+      "operationId": "case-88",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 270,
+      "role": "semantic-worker",
+      "operationId": "case-89",
+      "layout": "baseline-installed",
+      "caseId": "W07",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 271,
+      "role": "worker-review-git",
+      "operationId": "case-89",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 272,
+      "role": "worker-grant-git",
+      "operationId": "case-89",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 273,
+      "role": "semantic-worker",
+      "operationId": "case-90",
+      "layout": "target-moved",
+      "caseId": "W07",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 274,
+      "role": "worker-review-git",
+      "operationId": "case-90",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 275,
+      "role": "worker-grant-git",
+      "operationId": "case-90",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 276,
+      "role": "semantic-worker",
+      "operationId": "case-91",
+      "layout": "target-installed",
+      "caseId": "W08",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 277,
+      "role": "worker-review-git",
+      "operationId": "case-91",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 278,
+      "role": "worker-grant-git",
+      "operationId": "case-91",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 279,
+      "role": "semantic-worker",
+      "operationId": "case-92",
+      "layout": "baseline-installed",
+      "caseId": "W08",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 280,
+      "role": "worker-review-git",
+      "operationId": "case-92",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 281,
+      "role": "worker-grant-git",
+      "operationId": "case-92",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 282,
+      "role": "semantic-worker",
+      "operationId": "case-93",
+      "layout": "target-moved",
+      "caseId": "W08",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 283,
+      "role": "worker-review-git",
+      "operationId": "case-93",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 284,
+      "role": "worker-grant-git",
+      "operationId": "case-93",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 285,
+      "role": "semantic-worker",
+      "operationId": "case-94",
+      "layout": "target-installed",
+      "caseId": "W09",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 286,
+      "role": "worker-review-git",
+      "operationId": "case-94",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 287,
+      "role": "worker-grant-git",
+      "operationId": "case-94",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 288,
+      "role": "semantic-worker",
+      "operationId": "case-95",
+      "layout": "baseline-installed",
+      "caseId": "W09",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 289,
+      "role": "worker-review-git",
+      "operationId": "case-95",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 290,
+      "role": "worker-grant-git",
+      "operationId": "case-95",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 291,
+      "role": "semantic-worker",
+      "operationId": "case-96",
+      "layout": "target-moved",
+      "caseId": "W09",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 292,
+      "role": "worker-review-git",
+      "operationId": "case-96",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 293,
+      "role": "worker-grant-git",
+      "operationId": "case-96",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 294,
+      "role": "semantic-worker",
+      "operationId": "case-97",
+      "layout": "target-installed",
+      "caseId": "W10",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 295,
+      "role": "worker-review-git",
+      "operationId": "case-97",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 296,
+      "role": "worker-grant-git",
+      "operationId": "case-97",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 297,
+      "role": "semantic-worker",
+      "operationId": "case-98",
+      "layout": "baseline-installed",
+      "caseId": "W10",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 0
+    },
+    {
+      "slot": 298,
+      "role": "worker-review-git",
+      "operationId": "case-98",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 299,
+      "role": "worker-grant-git",
+      "operationId": "case-98",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 300,
+      "role": "semantic-worker",
+      "operationId": "case-99",
+      "layout": "target-moved",
+      "caseId": "W10",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/worker.mjs",
+      "deadlineMs": 30000,
+      "semanticCalls": 1,
+      "emptySetupCalls": 1
+    },
+    {
+      "slot": 301,
+      "role": "worker-review-git",
+      "operationId": "case-99",
+      "deadlineMs": 10000
+    },
+    {
+      "slot": 302,
+      "role": "worker-grant-git",
+      "operationId": "case-99",
+      "deadlineMs": 10000
+    }
+  ],
+  "administration": [
+    {
+      "slot": 1,
+      "role": "preflight-review-git"
+    },
+    {
+      "slot": 2,
+      "role": "preflight-requirements-git"
+    },
+    {
+      "slot": 3,
+      "role": "grant-add"
+    },
+    {
+      "slot": 4,
+      "role": "grant-commit"
+    },
+    {
+      "slot": 5,
+      "role": "committed-grant-show"
+    },
+    {
+      "slot": 6,
+      "role": "AUTH-preflight-add"
+    },
+    {
+      "slot": 7,
+      "role": "AUTH-preflight-commit"
+    },
+    {
+      "slot": 8,
+      "role": "capture-preparer-child"
+    },
+    {
+      "slot": 9,
+      "role": "capture-fd-verifier-child"
+    },
+    {
+      "slot": 10,
+      "role": "postflight-scoped-status"
+    },
+    {
+      "slot": 11,
+      "role": "report-apply-patch"
+    },
+    {
+      "slot": 12,
+      "role": "evidence-add"
+    },
+    {
+      "slot": 13,
+      "role": "evidence-commit"
+    },
+    {
+      "slot": 14,
+      "role": "publication-add"
+    },
+    {
+      "slot": 15,
+      "role": "publication-commit"
+    },
+    {
+      "slot": 16,
+      "role": "bounded-postflight-metadata-1"
+    },
+    {
+      "slot": 17,
+      "role": "bounded-postflight-metadata-2"
+    },
+    {
+      "slot": 18,
+      "role": "bounded-publication-metadata-1"
+    },
+    {
+      "slot": 19,
+      "role": "bounded-publication-metadata-2"
+    },
+    {
+      "slot": 20,
+      "role": "bounded-publication-metadata-3"
+    }
+  ],
+  "runtimeCount": 302,
+  "administrationCount": 20,
+  "slack": 14,
+  "totalCap": 336,
+  "peakCap": 5,
+  "workerConcurrency": 1,
+  "waitingParent": 0,
+  "route": "Tool-created /bin/sh process exec -c replaces itself with the reviewed wrapper, then exec-replaces owner; same PID. Two wrapper helper children are administration slots8/9. No CLI agent or waiting parent.",
+  "limits": {
+    "workerMs": 30000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "metadataMs": 10000,
+    "metadataBytes": 65536,
+    "ownerMs": 4500000,
+    "adminMs": 900000,
+    "totalMs": 5400000
+  },
+  "workerThreads": "Record actual guard observations separately; absence of receipt is UNKNOWN, not fabricated zero."
+}

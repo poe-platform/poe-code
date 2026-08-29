@@ -1,0 +1,119 @@
+{
+  "schema": "IMMUTABLE_V2_BINDING",
+  "source": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "evidence": "a1aa3bfebf99e68402f08e99e1d7f7a0a58446d9",
+  "publication": "05bca6d96d821c3a628387d8ecfa313c79cddb02",
+  "sealSha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a",
+  "outcomes": {
+    "rawQualified": 18,
+    "ordinaryFail": 4,
+    "unsafeStop": 1,
+    "unrun": 32
+  },
+  "Workers": 0,
+  "controlStreamBytes": 10597,
+  "sourceFiles": [
+    {
+      "path": "AUTH-INACTIVE.json",
+      "bytes": 237,
+      "mode": 420,
+      "sha256": "e5b2f549cf1e628dd1fbfa1497636236cae81b12e8f72987807d64a6eb27dbda"
+    },
+    {
+      "path": "INSTRUMENTATION.json",
+      "bytes": 2398,
+      "mode": 420,
+      "sha256": "4386662b560e2617829183725dc368b3ef406e75e802bb6188dd331445e59e79"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 1867,
+      "mode": 420,
+      "sha256": "b9135278102903fdaa78d2fa12b2df5604df6e0acfdf8a97a77dff07bdfbcba5"
+    },
+    {
+      "path": "PRIOR-DRAFT.json",
+      "bytes": 2364,
+      "mode": 420,
+      "sha256": "8bde35ea28c24a5774b6fca7a36cf3e09692cb7790c6f28d37516fb51f9f3534"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3143,
+      "mode": 420,
+      "sha256": "b40a3b90b2b3197cf8782a695320784d32ede8894392a9f7345d87113e92b73d"
+    },
+    {
+      "path": "ROOT-AUTHORITY.txt",
+      "bytes": 2043,
+      "mode": 420,
+      "sha256": "77bad3c9b760b9da9f68b203e78c3f51b5114ff511e4d16fa835adc6012befc4"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 3580,
+      "mode": 420,
+      "sha256": "bec2c39e33cc328501f81da286cba3282abc0eb703d8648fd6064b4f986f8d38"
+    },
+    {
+      "path": "case.mjs",
+      "bytes": 14772,
+      "mode": 420,
+      "sha256": "b0cc49e8c5a9da67b700bfe5e3875bc976cb76e52250541a08442e04904d152a"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 10558,
+      "mode": 420,
+      "sha256": "ce6e03d1b89b127052f946f616d3fed327af18850b7468aec19a382cd3c748d5"
+    },
+    {
+      "path": "controls.json",
+      "bytes": 3022,
+      "mode": 420,
+      "sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e"
+    },
+    {
+      "path": "fixtures.json",
+      "bytes": 1162,
+      "mode": 420,
+      "sha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1"
+    },
+    {
+      "path": "guarded-operation.mjs",
+      "bytes": 1711,
+      "mode": 420,
+      "sha256": "b39b15a79436e6b433084f0171b8fdde64c385af708edfea9988a8eaf2f79899"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 9103,
+      "mode": 420,
+      "sha256": "b12c34100aef3a6d6f3062a5f30d8298d27d839986c51f63f8c431451491980d"
+    },
+    {
+      "path": "package.json",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218"
+    },
+    {
+      "path": "policy.mjs",
+      "bytes": 3091,
+      "mode": 420,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    {
+      "path": "preload.mjs",
+      "bytes": 4915,
+      "mode": 420,
+      "sha256": "68c52d59c2e164dc0ea1b10677e87e80e9bd8125b7f8e6120bdc5a17f9b14c28"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 11091,
+      "mode": 420,
+      "sha256": "8ee3a3e9f181ee8dfeb99ff361f2e7fd3489886388763cfaec13d3f51d7a421c"
+    }
+  ]
+}

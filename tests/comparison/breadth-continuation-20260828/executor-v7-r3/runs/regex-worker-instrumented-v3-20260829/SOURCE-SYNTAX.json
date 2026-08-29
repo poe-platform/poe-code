@@ -1,0 +1,95 @@
+{
+  "schema": "PARSE_ONLY_NOT_MODULE_EXECUTION",
+  "rows": [
+    {
+      "name": "capture.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31184,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "case.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31185,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "common.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31186,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "guarded-operation.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31187,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "observer.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31188,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "policy.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31189,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "preload.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31190,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "supervisor.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31191,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "owned-writer.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31192,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "mutation.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31193,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    },
+    {
+      "name": "writer-controls.mjs",
+      "status": 0,
+      "signal": null,
+      "pid": 31195,
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    }
+  ],
+  "passed": 11,
+  "failed": 0
+}

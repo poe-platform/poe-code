@@ -1,0 +1,60 @@
+{
+  "schema": "V3_PRESEALED_EXISTING_CONTROL_SUBASSERTIONS",
+  "topLevelIdsUnchanged": true,
+  "topLevelCount": 55,
+  "groups": 12,
+  "plannedWorkers": 41,
+  "hardWorkerCap": 48,
+  "retained": 0,
+  "G10_4": {
+    "writerFaults": [
+      "enrolled",
+      "open-before",
+      "opened",
+      "write-short",
+      "write-zero",
+      "write-after",
+      "fsync-before",
+      "fsync-after",
+      "close-after",
+      "write-zero-close-after",
+      "cap",
+      "publication-undefined"
+    ],
+    "physicalMutationVariants": [
+      "complete",
+      "partial-write-before-failure",
+      "entered-open-before-failure"
+    ],
+    "guardCheck": "ordinary fs.writeFileSync remains refused; no file created"
+  },
+  "all51Children": {
+    "witnessSchemaCases": 11,
+    "mutationStageCases": [
+      "NOT_ENTERED original accepted",
+      "NOT_ENTERED foreign rejected",
+      "ENTERED original accepted",
+      "ENTERED foreign rejected",
+      "TRUNCATED empty accepted",
+      "WRITING exact prefix accepted",
+      "WRITING wrong prefix rejected",
+      "COMMITTED exact accepted",
+      "UNKNOWN refused",
+      "unentered count refused",
+      "committed failure refused",
+      "wrong mode refused"
+    ]
+  },
+  "existingContinuations": {
+    "G09_4": "constructor undefined/reentry and exact prior-key restoration",
+    "G10_1": "start publication null",
+    "G10_2": "termination publication undefined",
+    "G07_2": "first-cell sticky, seven later clear, ninth start refused"
+  },
+  "qualifications": [
+    "no new top-level case IDs or extra Worker creations",
+    "close-after fault means native close succeeded then the fault is thrown; not proof that an actual failed close retired the FD",
+    "journal source uses no retained descriptor across guest evaluation",
+    "no product loads; nested real target proof remains unqualified"
+  ]
+}

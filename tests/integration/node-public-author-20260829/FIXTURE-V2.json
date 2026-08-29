@@ -1,0 +1,31 @@
+{
+  "role": "AUTHOR_FIXTURE_V2_SOURCE_CORRECTIONS_NOT_OLD_RESCORE",
+  "oldSha256": "b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2",
+  "newSha256": "71970f4dbdfe9327b53a575a133e88ffee05ee1341909b5fbb2c6ceb30a3f596",
+  "replacements": [
+    {
+      "id": "P06",
+      "before": "  else if(id==='P06'){let actual;const inert={profile:nodeApi.NODE_PROFILE,identity:'grant-inspection',prepare(request){actual=request.grants;return{async start(){return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){return{acquisition:'none',exitCode:null}}}}};const definition=nodeApi.createNodeCommand({provider:inert});const owner=new api.Shell({fs:memory});owners.push(owner);owner.register(definition);await expect(owner,'node -e \"\"','');assert.deepEqual(Object.keys(actual).sort(),['dataRead','dataWrite','jsonModules','sourceRead','stderrWrite','stdinRead','stdoutWrite'].sort());assert(Object.values(actual).every(value=>value===false));facts.role='trusted-provider-protocol-not-engine';}",
+      "after": "  else if(id==='P06'){let actual;const real=provider();const wrapped={profile:real.profile,identity:real.identity,prepare(request,services){actual=request.grants;return real.prepare(request,services);}};const definition=nodeApi.createNodeCommand({provider:wrapped});const owner=new api.Shell({fs:memory});owners.push(owner);owner.register(definition);await expect(owner,'node -e \"\"','');assert.deepEqual(Object.keys(actual).sort(),['dataRead','dataWrite','jsonModules','sourceRead','stderrWrite','stdinRead','stdoutWrite'].sort());assert(Object.values(actual).every(value=>value===false));facts.role='actual-authorized-worker-provider-request-spy';}"
+    },
+    {
+      "id": "P17",
+      "before": "  else if(id==='P17'){let prepared=0,started=0,retired=0;const fixture={profile:nodeApi.NODE_PROFILE,identity:'inert-contract',prepare(){prepared++;assert.equal(started,0);return{async start(){started++;return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){retired++;return{acquisition:'none',exitCode:null}}}}};const plugin=nodeApi.nodeCommands({provider:fixture});assert.equal(prepared,0);const owner=new api.Shell({fs:memory});owners.push(owner);owner.use(plugin);assert.equal(prepared,0);await expect(owner,'node -e \"\"','');assert.deepEqual([prepared,started,retired],[1,1,1]);facts.role='trusted-provider-protocol-not-engine';}",
+      "after": "  else if(id==='P17'){let prepared=0,started=0,retired=0;const real=provider();const fixture={profile:real.profile,identity:real.identity,prepare(request,services){prepared++;assert.equal(started,0);const session=real.prepare(request,services);return{start(){started++;return session.start();},cancel(reason){return session.cancel(reason);},retire(){retired++;return session.retire();}}}};const plugin=nodeApi.nodeCommands({provider:fixture});assert.equal(prepared,0);const owner=new api.Shell({fs:memory});owners.push(owner);owner.use(plugin);assert.equal(prepared,0);await expect(owner,'node -e \"\"','');assert.deepEqual([prepared,started,retired],[1,1,1]);facts.role='actual-authorized-worker-provider-lifecycle-spy';}"
+    },
+    {
+      "id": "P07",
+      "before": "  else if(id==='P07'){const owner=new api.Shell({fs:memory});owners.push(owner);let executed=0;const original={name:'node',execute(){executed++;return{exitCode:0}}};owner.register(original);owner.use(nodeApi.nodeCommands({provider:provider()}));const outcome=await capture(owner.exec('node -e \"\"'));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason.message,'Command already registered: node');assert.equal(owner.commands.get('node'),original);assert.equal(executed,0);facts.setupRejected=true;}",
+      "after": "  else if(id==='P07'){const owner=new api.Shell({fs:memory});owners.push(owner);let executed=0;const original={name:'node',execute(){executed++;return{exitCode:0}}};owner.register(original);const registered=owner.commands.get('node');owner.use(nodeApi.nodeCommands({provider:provider()}));const outcome=await capture(owner.exec('node -e \"\"'));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason.message,'Command already registered: node');assert.equal(owner.commands.get('node'),registered);assert.equal(executed,0);facts.setupRejected=true;}"
+    }
+  ],
+  "typeCorrection": {
+    "line": 5,
+    "code": 2322,
+    "old": "Type 'number' is not assignable to type 'boolean'",
+    "new": "Type 'number' is not assignable to type 'boolean | undefined'"
+  },
+  "productUnchanged": true,
+  "oldFailuresPreserved": true,
+  "actualContinuationNotYetRun": true
+}

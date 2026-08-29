@@ -1,0 +1,108 @@
+diff --git a/src/commands/regex-execution/ere/transport/accounting.ts b/src/commands/regex-execution/ere/transport/accounting.ts
+index f6c8ea489..e4534f7aa 100644
+--- a/src/commands/regex-execution/ere/transport/accounting.ts
++++ b/src/commands/regex-execution/ere/transport/accounting.ts
+@@ -20,0 +21,9 @@ export function multiply(value: number, factor: number): number {
++export const workerReplyValidationWork = 210;
++
++export function workerValidationPrepayment(requestUnits: number, fragments: number): number {
++  integer(requestUnits);
++  if (requestUnits < 47) throw new EreTransportError("PROTOCOL", "invalid ERE request units");
++  integer(fragments);
++  return add(add(requestUnits, 205), fragments);
++}
++
+diff --git a/src/commands/regex-execution/ere/transport/root.ts b/src/commands/regex-execution/ere/transport/root.ts
+index 47293e522..0e7c7ab6f 100644
+--- a/src/commands/regex-execution/ere/transport/root.ts
++++ b/src/commands/regex-execution/ere/transport/root.ts
+@@ -3 +3 @@ import type { EreExpansionBounds, EreLimits, EreUsage } from "../types.js";
+-import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply } from "./accounting.js";
++import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from "./accounting.js";
+@@ -176 +176 @@ export class EreTransportRoot {
+-    let sent = false;
++    let observed = false;
+@@ -179,0 +180,2 @@ export class EreTransportRoot {
++      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);
++      if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
+@@ -183,0 +186 @@ export class EreTransportRoot {
++        observed = true;
+@@ -187 +189,0 @@ export class EreTransportRoot {
+-      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);
+@@ -190 +192 @@ export class EreTransportRoot {
+-      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); sent = true; });
++      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); observed = true; });
+@@ -204,2 +206,2 @@ export class EreTransportRoot {
+-        this.#engine.abandon(grant, sent);
+-        if (sent) { replyStorage?.unknown(); this.#fail(reason); }
++        this.#engine.abandon(grant, observed);
++        if (observed) { replyStorage?.unknown(); this.#fail(reason); }
+diff --git a/src/commands/regex-execution/ere/transport/validation.ts b/src/commands/regex-execution/ere/transport/validation.ts
+index df1964e3b..ea8d1f765 100644
+--- a/src/commands/regex-execution/ere/transport/validation.ts
++++ b/src/commands/regex-execution/ere/transport/validation.ts
+@@ -133,3 +133,10 @@ export function copyInput(inspected: InspectedInput, transport: TransportAccount
+-export function validateRequest(value: unknown): EreTransportRequest {
+-  let work = 0;
+-  const visit = (amount: number): void => { work = add(work, amount); if (work > 50_000_000) fail(); };
++export function validateRequest(value: unknown, prepaidWork = 0, observed?: (units: number) => void): EreTransportRequest {
++  integer(prepaidWork);
++  let work = prepaidWork;
++  let workLimit: number | undefined;
++  const visit = (amount: number): void => {
++    const next = add(work, amount);
++    if (workLimit !== undefined && next > workLimit) throw new EreProfileLimitError("work", workLimit);
++    work = next;
++    observed?.(amount);
++  };
+@@ -142 +149,4 @@ export function validateRequest(value: unknown): EreTransportRequest {
+-  usage(frame.allowance, limits, visit);
++  visit(resources.length);
++  const allowance = usage(frame.allowance, limits, visit);
++  workLimit = allowance.work;
++  if (work > workLimit) throw new EreProfileLimitError("work", workLimit);
+@@ -145,0 +156 @@ export function validateRequest(value: unknown): EreTransportRequest {
++    visit(1);
+diff --git a/src/commands/regex-execution/ere/transport/wire-engine.ts b/src/commands/regex-execution/ere/transport/wire-engine.ts
+index c4dcb4dc8..9cade8337 100644
+--- a/src/commands/regex-execution/ere/transport/wire-engine.ts
++++ b/src/commands/regex-execution/ere/transport/wire-engine.ts
+@@ -4,0 +5 @@ import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../er
++import { add, workerReplyValidationWork } from "./accounting.js";
+@@ -9,2 +10,4 @@ import { validateReply, validateRequest } from "./validation.js";
+-export async function executeWireRequest(value: unknown): Promise<EreTransportReply> {
+-  const request = validateRequest(value);
++export async function executeWireRequest(value: unknown, entryWork = 0): Promise<EreTransportReply> {
++  const prepaidWork = add(entryWork, workerReplyValidationWork);
++  let requestWork = 0;
++  const request = validateRequest(value, prepaidWork, units => { requestWork = add(requestWork, units); });
+@@ -11,0 +15 @@ export async function executeWireRequest(value: unknown): Promise<EreTransportRe
++  ledger.charge("work", add(prepaidWork, requestWork));
+@@ -32 +36,7 @@ export async function executeWireRequest(value: unknown): Promise<EreTransportRe
+-  validateReply(reply, request, () => {});
++  let replyWork = 0;
++  validateReply(reply, request, units => {
++    replyWork = add(replyWork, units);
++    if (replyWork > workerReplyValidationWork) throw new EreProfileLimitError("work", workerReplyValidationWork);
++  });
++  replyWork = add(replyWork, add(7, reply.kind === "result" ? reply.result.spans.length : 0));
++  if (replyWork > workerReplyValidationWork) throw new EreProfileLimitError("work", workerReplyValidationWork);
+diff --git a/src/commands/regex-execution/ere/transport/worker-entry.ts b/src/commands/regex-execution/ere/transport/worker-entry.ts
+index f27ea9010..e6022d2ac 100644
+--- a/src/commands/regex-execution/ere/transport/worker-entry.ts
++++ b/src/commands/regex-execution/ere/transport/worker-entry.ts
+@@ -5 +5 @@ import { executeWireRequest } from "./wire-engine.js";
+-import { integer } from "./accounting.js";
++import { add, integer } from "./accounting.js";
+@@ -8 +8,2 @@ if (isMainThread || !parentPort) throw new EreTransportError("PROTOCOL", "ERE en
+-const data = record(workerData, ["operation", "version"], () => {});
++let startupWork = 0;
++const data = record(workerData, ["operation", "version"], units => { startupWork = add(startupWork, units); });
+@@ -15 +16,2 @@ port.on("message", (message: unknown) => {
+-  const frame = record(message, ["version", "operation", "id", "grantId", "profile", "bounds", "allowance", "pattern", "subject"], () => {});
++  let entryWork = startupWork;
++  const frame = record(message, ["version", "operation", "id", "grantId", "profile", "bounds", "allowance", "pattern", "subject"], units => { entryWork = add(entryWork, units); });
+@@ -20 +22,2 @@ port.on("message", (message: unknown) => {
+-  void executeWireRequest(message).then(reply => {
++  startupWork = 0;
++  void executeWireRequest(message, entryWork).then(reply => {

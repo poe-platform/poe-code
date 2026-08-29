@@ -1,0 +1,79 @@
+{
+  "rows": [
+    {
+      "id": "N01",
+      "pass": true,
+      "detail": {
+        "checks": 15
+      }
+    },
+    {
+      "id": "N02",
+      "pass": true
+    },
+    {
+      "id": "N03",
+      "pass": true,
+      "detail": {
+        "checks": 594,
+        "maximum": 210
+      }
+    },
+    {
+      "id": "N04",
+      "pass": true,
+      "detail": {
+        "checks": 9,
+        "maximum": 69
+      }
+    },
+    {
+      "id": "N05",
+      "pass": true,
+      "detail": {
+        "checks": 6,
+        "maximum": 68
+      }
+    },
+    {
+      "id": "N06",
+      "pass": true
+    },
+    {
+      "id": "N07",
+      "pass": true
+    },
+    {
+      "id": "N08",
+      "pass": true
+    },
+    {
+      "id": "N09",
+      "pass": true
+    },
+    {
+      "id": "N10",
+      "pass": true
+    },
+    {
+      "id": "N11",
+      "pass": true
+    },
+    {
+      "id": "N12",
+      "pass": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "loaded": [
+    "author.mjs",
+    "emitted/transport/accounting.js",
+    "emitted/limits.js",
+    "emitted/transport/protocol.js",
+    "emitted/errors.js",
+    "emitted/transport/validation.js"
+  ],
+  "workerStarts": 0,
+  "matchingCalls": 0
+}

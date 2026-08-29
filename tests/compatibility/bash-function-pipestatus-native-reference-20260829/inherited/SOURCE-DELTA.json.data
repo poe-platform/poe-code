@@ -1,0 +1,50 @@
+{
+  "parentCommit": "0463adbcee3601b2cdf43f44bf428eddc0cab2f1",
+  "deltas": [
+    {
+      "path": "admission.mjs",
+      "before": "operations.readSync(fd,Buffer.alloc(0),0,0,0);",
+      "after": "operations.readSync(fd,Buffer.alloc(1),0,1,0);",
+      "parentSha256": "2c0def3d37eff6eb6ce62d9724061a33f0c1a3bd7b0fad701964b0b85a331d98",
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    }
+  ],
+  "controls": {
+    "parentSha256": "8eae4be2dd0971fa1d8bba1433e9295577b7719e97397bd624486ed9cd10f69c",
+    "sha256": "df72c15c637b005a144460118069d2a4a40f060c5538478b940b544be3954f3b",
+    "changes": [
+      [
+        "own=root+'/preflight-v1',materialized=root+'/materialized'",
+        "own=root+'/preflight-v2',materialized=root+'/preflight-v2/materialized'"
+      ],
+      [
+        "item.path==='materialized/PRESEAL.json'",
+        "item.path==='preflight-v2/materialized/PRESEAL.json'"
+      ],
+      [
+        "root+'/APPROVAL-PROPOSAL.template.json'",
+        "own+'/APPROVAL-PROPOSAL.template.json'"
+      ],
+      [
+        "item.path==='APPROVAL-PROPOSAL.template.json'",
+        "item.path==='preflight-v2/APPROVAL-PROPOSAL.template.json'"
+      ]
+    ],
+    "importRewrite": {
+      "before": "../materialized/",
+      "after": "./materialized/",
+      "count": 5
+    },
+    "replacedControl": "C07",
+    "fragmentSha256": "b4bd4833880947cd54990a7e6d07c8ae37fb01549b4ee3ec393499ed9d3e7997"
+  },
+  "template": {
+    "parentSha256": "ac31d4d5e36efc135ac9f3a398c42ca6138175db8a51eb5b62bf3596a098c303",
+    "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881",
+    "onlyChange": "two owned materialized pathname prefixes in cmd",
+    "oldPrefix": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/materialized/",
+    "newPrefix": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/"
+  },
+  "programsUnchanged": 12,
+  "otherControlIDsUnchanged": 11
+}

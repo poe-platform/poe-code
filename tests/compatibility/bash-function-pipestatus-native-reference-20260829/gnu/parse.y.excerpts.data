@@ -1,0 +1,174 @@
+6829:    Call here for recoverable errors.  If you have a message to print,
+6830:    then place it in MESSAGE, otherwise pass NULL and this will figure
+6831:    out an appropriate message for you. */
+6832: static void
+6833: report_syntax_error (const char *message)
+6834: {
+6835:   char *msg, *p;
+6836: 
+6837:   if (message)
+6838:     {
+6839:       parser_error (line_number, "%s", message);
+6840:       if (interactive && EOF_Reached)
+6841: 	EOF_Reached = 0;
+6842:       last_command_exit_value = (executing_builtin && parse_and_execute_level) ? EX_BADSYNTAX : EX_BADUSAGE;
+6843:       set_pipestatus_from_exit (last_command_exit_value);
+6844:       return;
+6845:     }
+6846: 
+6847:   /* If the line of input we're reading is not null, try to find the
+6848:      objectionable token.  First, try to figure out what token the
+6849:      parser's complaining about by looking at current_token. */
+6850:   if (current_token != 0 && EOF_Reached == 0 && (msg = error_token_from_token (current_token)))
+6851:     {
+6852:       if (ansic_shouldquote (msg))
+6853: 	{
+6854: 	  p = ansic_quote (msg, 0, NULL);
+6855: 	  free (msg);
+6856: 	  msg = p;
+6857: 	}
+6858:       if (shell_eof_token && current_token != shell_eof_token)
+6859: 	parser_error (line_number, _("syntax error near unexpected token `%s' while looking for matching `%c'"), msg, shell_eof_token);
+6860:       else
+6861: 	parser_error (line_number, _("syntax error near unexpected token `%s'"), msg);
+6862:       free (msg);
+6863: 
+6864:       if (interactive == 0)
+6865: 	print_offending_line ();
+6866: 
+6867:       last_command_exit_value = (executing_builtin && parse_and_execute_level) ? EX_BADSYNTAX : EX_BADUSAGE;
+6868:       set_pipestatus_from_exit (last_command_exit_value);
+6869:       return;
+6870:     }
+6871: 
+6872:   /* If looking at the current token doesn't prove fruitful, try to find the
+6873:      offending token by analyzing the text of the input line near the current
+6874:      input line index and report what we find. */
+6875:   if (shell_input_line && *shell_input_line)
+6876:     {
+6877:       msg = error_token_from_text ();
+6878:       if (msg)
+6879: 	{
+6880: 	  parser_error (line_number, _("syntax error near `%s'"), msg);
+6881: 	  free (msg);
+6882: 	}
+6883: 
+6884:       /* If not interactive, print the line containing the error. */
+6885:       if (interactive == 0)
+6886:         print_offending_line ();
+6887:     }
+6888:   else
+6889:     {
+6890:       if (EOF_Reached && shell_eof_token && current_token != shell_eof_token)
+6891: 	parser_error (line_number, _("unexpected EOF while looking for matching `%c'"), shell_eof_token);
+6892:       else if (EOF_Reached && compoundcmd_top >= 0)
+6893: 	{
+6894: 	  char *x;
+6895: 	  x = find_token_in_alist (compoundcmd_lineno[compoundcmd_top].token, word_token_alist, 1);
+6896: 	  if (x == 0)
+6897: 	    x = find_token_in_alist (compoundcmd_lineno[compoundcmd_top].token, other_token_alist, 1);
+6898: 	  if (x)
+6899: 	    parser_error (line_number, _("syntax error: unexpected end of file from `%s' command on line %d"), x, compoundcmd_lineno[compoundcmd_top].lineno);
+6900: 	  else
+6901: 	    parser_error (line_number, _("syntax error: unexpected end of file from command on line %d"), compoundcmd_lineno[compoundcmd_top].lineno);
+6902: 	}
+6903:       else
+6904: 	{
+6905: 	  msg = EOF_Reached ? _("syntax error: unexpected end of file") : _("syntax error");
+6906: 	  parser_error (line_number, "%s", msg);
+6907: 	}
+6908: 
+6909:       /* When the shell is interactive, this file uses EOF_Reached
+6910: 	 only for error reporting.  Other mechanisms are used to
+6911: 	 decide whether or not to exit. */
+6912:       if (interactive && EOF_Reached)
+6913: 	EOF_Reached = 0;
+6914:     }
+6915: 
+6916:   last_command_exit_value = (executing_builtin && parse_and_execute_level) ? EX_BADSYNTAX : EX_BADUSAGE;
+6917:   set_pipestatus_from_exit (last_command_exit_value);
+6918: }
+6919: 
+6920: /* ??? Needed function. ??? We have to be able to discard the constructs
+6921:    created during parsing.  In the case of error, we want to return
+6922:    allocated objects to the memory pool.  In the case of no error, we want
+6923:    to throw away the information about where the allocated objects live.
+6924:    (dispose_command () will actually free the command.) */
+6925: static void
+6926: discard_parser_constructs (int error_p)
+6927: {
+6928: }
+6929: 
+6930: /************************************************
+6931:  *						*
+6932:  *		EOF HANDLING			*
+6933:  *						*
+6934:  ************************************************/
+6935: 
+6936: /* Do that silly `type "bye" to exit' stuff.  You know, "ignoreeof". */
+6937: 
+6938: /* A flag denoting whether or not ignoreeof is set. */
+6939: int ignoreeof = 0;
+6940: 
+6941: /* The number of times that we have encountered an EOF character without
+6942:    another character intervening.  When this gets above the limit, the
+6943:    shell terminates. */
+6944: int eof_encountered = 0;
+6945: 
+6946: /* The limit for eof_encountered. */
+6947: int eof_encountered_limit = 10;
+6948: 
+6949: int
+6950: handle_ignoreeof (int reset_prompt)
+6951: {
+6952:   if (eof_encountered < eof_encountered_limit)
+7301: 
+7302:   prompt_string_pointer = ps->prompt_string_pointer;
+7303: 
+7304:   current_command_line_count = ps->current_command_line_count;
+7305: 
+7306: #if defined (HISTORY)
+7307:   remember_on_history = ps->remember_on_history;
+7308: #  if defined (BANG_HISTORY)
+7309:   history_expansion_inhibited = ps->history_expansion_inhibited;
+7310: #  endif
+7311: #endif
+7312: 
+7313:   last_command_exit_value = ps->last_command_exit_value;
+7314: #if defined (ARRAY_VARS)
+7315:   restore_pipestatus_array (ps->pipestatus);
+7316: #endif
+7317: 
+7318:   last_shell_builtin = ps->last_shell_builtin;
+7319:   this_shell_builtin = ps->this_shell_builtin;
+7320: 
+7321:   expand_aliases = ps->expand_aliases;
+7322:   echo_input_at_read = ps->echo_input_at_read;
+7323:   need_here_doc = ps->need_here_doc;
+7324:   here_doc_first_line = ps->here_doc_first_line;
+7325: 
+7326:   esacs_needed_count = ps->esacs_needed;
+7327:   expecting_in_token = ps->expecting_in;
+7328:   expecting_in_command = ps->incmd;
+7329: 
+7330: #if 0
+7331:   for (i = 0; i < HEREDOC_MAX; i++)
+7332:     redir_stack[i] = ps->redir_stack[i];
+7333: #else
+7334:   if (need_here_doc == 0)
+7335:     redir_stack[0] = 0;
+7336:   else
+7337:     memcpy (redir_stack, ps->redir_stack, sizeof (redir_stack[0]) * HEREDOC_MAX);
+7338: #endif
+7339: 
+7340: #if defined (ALIAS) || defined (DPAREN_ARITHMETIC)
+7341:   pushed_string_list = (STRING_SAVER *)ps->pushed_strings;
+7342: #endif
+7343: 
+7344:   FREE (token);
+7345:   token = ps->token;
+7346:   token_buffer_size = ps->token_buffer_size;
+7347:   shell_eof_token = ps->eof_token;
+7348: }
+7349: 
+7350: void

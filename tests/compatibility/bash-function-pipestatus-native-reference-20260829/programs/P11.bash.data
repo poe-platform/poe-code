@@ -1,0 +1,1 @@
+f() { false | true; printf "inner:<%s>\n" "${PIPESTATUS[@]}"; return 7; }; f; printf "caller:<%s>\n" "${PIPESTATUS[@]}"

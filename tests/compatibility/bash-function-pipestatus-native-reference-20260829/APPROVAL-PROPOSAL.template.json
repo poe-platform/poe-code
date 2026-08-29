@@ -1,0 +1,38 @@
+{
+  "schema": "function-pipestatus-approval-proposal-v1",
+  "status": "PENDING_EXECUTABLE_ADAPTATION_INDEPENDENT_REVIEW_ROOT_GO",
+  "parameters": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/materialized/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-function-pipestatus-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-function-pipestatus-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-function-pipestatus-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-function-pipestatus-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only the freshly reviewed 26 literal local Bash3.2.57 function/PIPESTATUS observations, including separately approved exact failed lookups and owned F05 output, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "soleLaterMutableSlot": "ROOT_APPROVED_GRANT_SHA256",
+  "requiredBeforeResolution": [
+    "materialize and authenticate exact reviewed draft bodies and assets; create fresh runtime PRESEAL without GO/receipt/template cycles",
+    "independent accepted runtime receipt pinned to new PRESEAL/REQUESTS",
+    "ROOT fresh GO pins receipt/new PRESEAL/profile/limits/exact namespace/future absolute expiry",
+    "resolve sole SHA slot; separate DATA review of exact command then require_escalated tool approval"
+  ],
+  "initialToolShellStartup": {
+    "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+    "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+    "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+  },
+  "oldGrantReused": false,
+  "absoluteUtc": {
+    "issued": "PENDING",
+    "expiry": "PENDING",
+    "latestFull600sStart": "PENDING"
+  },
+  "withheldUntilRootScope": [
+    "F06:function",
+    "P15:__surface_missing_command__"
+  ]
+}

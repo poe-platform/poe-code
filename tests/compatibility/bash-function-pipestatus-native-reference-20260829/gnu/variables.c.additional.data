@@ -1,0 +1,933 @@
+308: static int variable_in_context (SHELL_VAR *);
+309: #if defined (ARRAY_VARS)
+310: static int visible_array_vars (SHELL_VAR *);
+311: #endif
+312: 
+313: static SHELL_VAR *find_variable_internal (const char *, int);
+314: 
+315: static SHELL_VAR *find_nameref_at_context (SHELL_VAR *, VAR_CONTEXT *);
+316: static SHELL_VAR *find_variable_nameref_context (SHELL_VAR *, VAR_CONTEXT *, VAR_CONTEXT **);
+317: static SHELL_VAR *find_variable_last_nameref_context (SHELL_VAR *, VAR_CONTEXT *, VAR_CONTEXT **);
+318: 
+319: static SHELL_VAR *bind_tempenv_variable (const char *, const char *);
+320: static void push_posix_temp_var (PTR_T);
+321: static void push_temp_var (PTR_T);
+322: static void propagate_temp_var (PTR_T);
+323: static void dispose_temporary_env (sh_free_func_t *);     
+324: 
+325: static inline char *mk_env_string (const char *, const char *, int);
+326: static char **make_env_array_from_var_list (SHELL_VAR **);
+327: static char **make_var_export_array (VAR_CONTEXT *);
+328: static char **make_func_export_array (void);
+329: static void add_temp_array_to_env (char **, int, int);
+330: 
+331: static int n_shell_variables (void);
+332: static int set_context (SHELL_VAR *);
+333: 
+334: static void push_func_var (PTR_T);
+335: static void push_builtin_var (PTR_T);
+336: static void push_exported_var (PTR_T);
+337: 
+338: static void delete_local_contexts (VAR_CONTEXT *);
+339: 
+340: /* This needs to be looked at again. */
+341: static inline void push_posix_tempvar_internal (SHELL_VAR *, int);
+342: 
+343: static inline int find_special_var (const char *);
+344: 
+345: static void
+346: create_variable_tables (void)
+347: {
+348:   if (shell_variables == 0)
+349:     {
+350:       shell_variables = global_variables = new_var_context ((char *)NULL, 0);
+351:       shell_variables->scope = 0;
+352:       shell_variables->table = hash_create (VARIABLES_HASH_BUCKETS);
+353:     }
+354: 
+355:   if (shell_functions == 0)
+356:     shell_functions = hash_create (FUNCTIONS_HASH_BUCKETS);
+357: 
+358: #if defined (DEBUGGER)
+359:   if (shell_function_defs == 0)
+360:     shell_function_defs = hash_create (FUNCTIONS_HASH_BUCKETS);
+361: #endif
+362: }
+363: 
+364: /* Initialize the shell variables from the current environment.
+365:    If PRIVMODE is nonzero, don't import functions from ENV or
+366:    parse $SHELLOPTS. */
+367: void
+368: initialize_shell_variables (char **env, int privmode)
+369: {
+370:   char *name, *string, *temp_string;
+371:   int c, char_index, string_index, string_length, ro;
+372:   SHELL_VAR *temp_var;
+373: 
+374:   create_variable_tables ();
+375: 
+376:   for (string_index = 0; env && (string = env[string_index++]); )
+377:     {
+378:       char_index = 0;
+379:       name = string;
+380:       while ((c = *string++) && c != '=')
+381: 	;
+382:       if (string[-1] == '=')
+383: 	char_index = string - name - 1;
+384: 
+385:       /* If there are weird things in the environment, like `=xxx' or a
+386: 	 string without an `=', just skip them. */
+387:       if (char_index == 0)
+388: 	continue;
+389: 
+390:       /* ASSERT(name[char_index] == '=') */
+391:       name[char_index] = '\0';
+392:       /* Now, name = env variable name, string = env variable value, and
+1958: 	temporary_env
+1959: 	shell_variables list
+1960: */
+1961: 
+1962: SHELL_VAR *
+1963: find_variable_internal (const char *name, int flags)
+1964: {
+1965:   SHELL_VAR *var;
+1966:   int search_tempenv, force_tempenv;
+1967:   VAR_CONTEXT *vc;
+1968: 
+1969:   var = (SHELL_VAR *)NULL;
+1970: 
+1971:   force_tempenv = (flags & FV_FORCETEMPENV);
+1972: 
+1973:   /* If explicitly requested, first look in the temporary environment for
+1974:      the variable.  This allows constructs such as "foo=x eval 'echo $foo'"
+1975:      to get the `exported' value of $foo.  This happens if we are executing
+1976:      a function or builtin, or if we are looking up a variable in a
+1977:      "subshell environment". */
+1978:   search_tempenv = force_tempenv || (expanding_redir == 0 && subshell_environment);
+1979: 
+1980:   if (search_tempenv && temporary_env)		
+1981:     var = hash_lookup (name, temporary_env);
+1982: 
+1983:   if (var == 0)
+1984:     {
+1985:       if ((flags & FV_SKIPINVISIBLE) == 0)
+1986: 	var = var_lookup (name, shell_variables);
+1987:       else
+1988: 	{
+1989: 	  /* essentially var_lookup expanded inline so we can check for
+1990: 	     att_invisible */
+1991: 	  for (vc = shell_variables; vc; vc = vc->down)
+1992: 	    {
+1993: 	      var = hash_lookup (name, vc->table);
+1994: 	      if (var && invisible_p (var))
+1995: 		var = 0;
+1996: 	      if (var)
+1997: 		break;
+1998: 	    }
+1999: 	}
+2000:     }
+2001: 
+2002:   if (var == 0)
+2003:     return ((SHELL_VAR *)NULL);
+2004: 
+2005:   return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
+2006: }
+2007: 
+2008: /* Look up and resolve the chain of nameref variables starting at V all the
+2009:    way to NULL or non-nameref. */
+2010: SHELL_VAR *
+2011: find_variable_nameref (SHELL_VAR *v)
+2012: {
+2013:   int level, flags;
+2014:   char *newname;
+2015:   SHELL_VAR *orig, *oldv;
+2016: 
+2017:   level = 0;
+2018:   orig = v;
+2019:   while (v && nameref_p (v))
+2020:     {
+2021:       level++;
+2022:       if (level > NAMEREF_MAX)
+2023: 	return (&nameref_maxloop_value);
+2024:       newname = nameref_cell (v);
+2025:       if (newname == 0 || *newname == '\0')
+2026: 	return ((SHELL_VAR *)0);
+2027:       oldv = v;
+2028:       flags = 0;
+2029:       if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2030: 	flags |= FV_FORCETEMPENV;
+2031:       /* We don't handle array subscripts here. */
+2032:       v = find_variable_internal (newname, flags);
+2033:       if (v == orig || v == oldv)
+2034: 	{
+2035: 	  internal_warning (_("%s: circular name reference"), orig->name);
+2036: #if 1
+2037: 	  /* XXX - provisional change - circular refs go to
+2038: 	     global scope for resolution, without namerefs. */
+2039: 	  if (variable_context && v->context)
+2040: 	    return (find_global_variable_noref (v->name));
+2041: 	  else
+2042: #endif
+2043: 	  return ((SHELL_VAR *)0);
+2044: 	}
+2045:     }
+2046:   return v;
+2047: }
+2048: 
+2049: /* Resolve the chain of nameref variables for NAME.  XXX - could change later */
+2050: SHELL_VAR *
+2051: find_variable_last_nameref (const char *name, int vflags)
+2052: {
+2053:   SHELL_VAR *v, *nv;
+2054:   char *newname;
+2055:   int level, flags;
+2056: 
+2057:   nv = v = find_variable_noref (name);
+2058:   level = 0;
+2059:   while (v && nameref_p (v))
+2060:     {
+2061:       level++;
+2062:       if (level > NAMEREF_MAX)
+2063:         return ((SHELL_VAR *)0);	/* error message here? */
+2064:       newname = nameref_cell (v);
+2065:       if (newname == 0 || *newname == '\0')
+2066: 	return ((vflags && invisible_p (v)) ? v : (SHELL_VAR *)0);
+2067:       nv = v;
+2068:       flags = 0;
+2069:       if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2070: 	flags |= FV_FORCETEMPENV;
+2071:       /* We don't accommodate array subscripts here. */
+2072:       v = find_variable_internal (newname, flags);
+2073:     }
+2074:   return nv;
+2075: }
+2076: 
+2077: /* Resolve the chain of nameref variables for NAME.  XXX - could change later */
+2078: SHELL_VAR *
+2079: find_global_variable_last_nameref (const char *name, int vflags)
+2080: {
+2081:   SHELL_VAR *v, *nv;
+2082:   char *newname;
+2083:   int level;
+2084: 
+2085:   nv = v = find_global_variable_noref (name);
+2086:   level = 0;
+2087:   while (v && nameref_p (v))
+2088:     {
+2089:       level++;
+2090:       if (level > NAMEREF_MAX)
+2091:         return ((SHELL_VAR *)0);	/* error message here? */
+2092:       newname = nameref_cell (v);
+2093:       if (newname == 0 || *newname == '\0')
+2094: 	return ((vflags && invisible_p (v)) ? v : (SHELL_VAR *)0);
+2095:       nv = v;
+2096:       /* We don't accommodate array subscripts here. */
+2097:       v = find_global_variable_noref (newname);
+2098:     }
+2099:   return nv;
+2100: }
+2101: 
+2102: static SHELL_VAR *
+2103: find_nameref_at_context (SHELL_VAR *v, VAR_CONTEXT *vc)
+2104: {
+2105:   SHELL_VAR *nv, *nv2;
+2106:   char *newname;
+2107:   int level;
+2108: 
+2109:   nv = v;
+2110:   level = 1;
+2111:   while (nv && nameref_p (nv))
+2112:     {
+2113:       level++;
+2114:       if (level > NAMEREF_MAX)
+2115:         return (&nameref_maxloop_value);
+2116:       newname = nameref_cell (nv);
+2117:       if (newname == 0 || *newname == '\0')
+2118:         return ((SHELL_VAR *)NULL);      
+2119:       nv2 = hash_lookup (newname, vc->table);
+2120:       if (nv2 == 0)
+2121:         break;
+2122:       nv = nv2;
+2123:     }
+2124:   return nv;
+2125: }
+2126: 
+2127: /* Do nameref resolution from the VC, which is the local context for some
+2128:    function or builtin, `up' the chain to the global variables context.  If
+2129:    NVCP is not NULL, return the variable context where we finally ended the
+2130:    nameref resolution (so the bind_variable_internal can use the correct
+2131:    variable context and hash table). */
+2132: static SHELL_VAR *
+2133: find_variable_nameref_context (SHELL_VAR *v, VAR_CONTEXT *vc, VAR_CONTEXT **nvcp)
+2134: {
+2135:   SHELL_VAR *nv, *nv2;
+2136:   VAR_CONTEXT *nvc;
+2137: 
+2138:   /* Look starting at the current context all the way `up' */
+2139:   for (nv = v, nvc = vc; nvc; nvc = nvc->down)
+2140:     {
+2141:       nv2 = find_nameref_at_context (nv, nvc);
+2142:       if (nv2 == &nameref_maxloop_value)
+2143: 	return (nv2);			/* XXX */
+2144:       if (nv2 == 0)
+2145:         continue;
+2146:       nv = nv2;
+2147:       if (*nvcp)
+2148:         *nvcp = nvc;
+2149:       if (nameref_p (nv) == 0)
+2150:         break;
+2151:     }
+2267: SHELL_VAR *
+2268: find_variable_tempenv (const char *name)
+2269: {
+2270:   SHELL_VAR *var;
+2271: 
+2272:   var = find_variable_internal (name, FV_FORCETEMPENV);
+2273:   if (var && nameref_p (var))
+2274:     {
+2275:       var = find_variable_nameref (var);
+2276:       if (var == &nameref_maxloop_value)
+2277: 	{
+2278: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2279: 	  return (0);
+2280: 	}
+2281:     }
+2282:   return (var);
+2283: }
+2284: 
+2285: /* Find a variable, not forcing a search of the temporary environment first */
+2286: SHELL_VAR *
+2287: find_variable_notempenv (const char *name)
+2288: {
+2289:   SHELL_VAR *var;
+2290: 
+2291:   var = find_variable_internal (name, 0);
+2292:   if (var && nameref_p (var))
+2293:     {
+2294:       var = find_variable_nameref (var);
+2295:       if (var == &nameref_maxloop_value)
+2296: 	{
+2297: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2298: 	  return (0);
+2299: 	}
+2300:     }
+2301:   return (var);
+2302: }
+2303: 
+2304: SHELL_VAR *
+2305: find_global_variable (const char *name)
+2306: {
+2307:   SHELL_VAR *var;
+2308: 
+2309:   var = var_lookup (name, global_variables);
+2310:   if (var && nameref_p (var))
+2311:     {
+2312:       var = find_variable_nameref (var);	/* XXX - find_global_variable_noref? */
+2313:       if (var == &nameref_maxloop_value)
+2314: 	{
+2315: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2316: 	  return ((SHELL_VAR *)NULL);
+2317: 	}
+2318:     }      
+2319: 
+2320:   if (var == 0)
+2321:     return ((SHELL_VAR *)NULL);
+2322: 
+2323:   return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
+2324: }
+2325: 
+2326: SHELL_VAR *
+2327: find_global_variable_noref (const char *name)
+2328: {
+2329:   SHELL_VAR *var;
+2330: 
+2331:   var = var_lookup (name, global_variables);
+2332: 
+2333:   if (var == 0)
+2334:     return ((SHELL_VAR *)NULL);
+2335: 
+2336:   return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
+2337: }
+2338: 
+2339: SHELL_VAR *
+2340: find_shell_variable (const char *name)
+2341: {
+2342:   SHELL_VAR *var;
+2343: 
+2344:   var = var_lookup (name, shell_variables);
+2345:   if (var && nameref_p (var))
+2346:     {
+2347:       var = find_variable_nameref (var);
+2348:       if (var == &nameref_maxloop_value)
+2349: 	{
+2350: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2351: 	  return ((SHELL_VAR *)NULL);
+2352: 	}
+2353:     }
+2354: 
+2355:   if (var == 0)
+2356:     return ((SHELL_VAR *)NULL);
+2357: 
+2358:   return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
+2359: }
+2360: 
+2361: /* Look up the variable entry named NAME.  Returns the entry or NULL. */
+2362: SHELL_VAR *
+2363: find_variable (const char *name)
+2364: {
+2365:   SHELL_VAR *v;
+2366:   int flags;
+2367: 
+2368:   last_table_searched = 0;
+2369:   flags = 0;
+2370:   if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2371:     flags |= FV_FORCETEMPENV;
+2372:   v = find_variable_internal (name, flags);
+2373:   if (v && nameref_p (v))
+2374:     {
+2375:       v = find_variable_nameref (v);
+2376:       if (v == &nameref_maxloop_value)
+2377: 	{
+2378: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2379: 	  return (0);
+2380: 	}
+2381:     }
+2382: 
+2383:   return v;
+2384: }
+2385: 
+2386: /* Find the first instance of NAME in the variable context chain; return first
+2387:    one found without att_invisible set; return 0 if no non-invisible instances
+2388:    found. */
+2389: SHELL_VAR *
+2390: find_variable_no_invisible (const char *name)
+2391: {
+2392:   SHELL_VAR *v;
+2393:   int flags;
+2394: 
+2395:   last_table_searched = 0;
+2396:   flags = FV_SKIPINVISIBLE;
+2397:   if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2398:     flags |= FV_FORCETEMPENV;
+2399:   v = find_variable_internal (name, flags);
+2400:   if (v && nameref_p (v))
+2401:     {
+2402:       v = find_variable_nameref (v);
+2403:       if (v == &nameref_maxloop_value)
+2404: 	{
+2405: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2406: 	  return (0);
+2407: 	}
+2408:     }
+2409: 
+2410:   return v;
+2411: }
+2412: 
+2413: /* Find the first instance of NAME in the variable context chain; return first
+2414:    one found even if att_invisible set. */
+2415: SHELL_VAR *
+2416: find_variable_for_assignment (const char *name)
+2417: {
+2418:   SHELL_VAR *v;
+2419:   int flags;
+2420: 
+2421:   last_table_searched = 0;
+2422:   flags = 0;
+2423:   if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2424:     flags |= FV_FORCETEMPENV;
+2425:   v = find_variable_internal (name, flags);
+2426:   if (v && nameref_p (v))
+2427:     {
+2428:       v = find_variable_nameref (v);
+2429:       if (v == &nameref_maxloop_value)
+2430: 	{
+2431: 	  internal_warning (_("%s: maximum nameref depth (%d) exceeded"), name, NAMEREF_MAX);
+2432: 	  return (0);
+2433: 	}
+2434:     }
+2435: 
+2436:   return v;
+2437: }
+2438: 
+2439: SHELL_VAR *
+2440: find_variable_noref (const char *name)
+2441: {
+2442:   SHELL_VAR *v;
+2443:   int flags;
+2444: 
+2445:   flags = 0;
+2446:   if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+2447:     flags |= FV_FORCETEMPENV;
+2448:   v = find_variable_internal (name, flags);
+2449:   return v;
+2450: }
+2451: 
+2452: /* Look up the function entry whose name matches STRING.
+2453:    Returns the entry or NULL. */
+2454: SHELL_VAR *
+2455: find_function (const char *name)
+2456: {
+2457:   return (hash_lookup (name, shell_functions));
+2458: }
+2459: 
+2460: /* Find the function definition for the shell function named NAME.  Returns
+2461:    the entry or NULL. */
+2462: FUNCTION_DEF *
+2463: find_function_def (const char *name)
+2464: {
+2465: #if defined (DEBUGGER)
+2466:   return ((FUNCTION_DEF *)hash_lookup (name, shell_function_defs));
+2467: #else
+2468:   return ((FUNCTION_DEF *)0);
+2469: #endif
+2470: }
+2471: 
+2472: /* Return the value of VAR.  VAR is assumed to have been the result of a
+2473:    lookup without any subscript, if arrays are compiled into the shell. */
+2474: char *
+2475: get_variable_value (SHELL_VAR *var)
+2476: {
+2477:   if (var == 0)
+2478:     return ((char *)NULL);
+2479: #if defined (ARRAY_VARS)
+2480:   else if (array_p (var))
+2481:     return (array_reference (array_cell (var), 0));
+2482:   else if (assoc_p (var))
+2483:     return (assoc_reference (assoc_cell (var), "0"));
+2484: #endif
+2485:   else
+2486:     return (value_cell (var));
+2487: }
+2488: 
+2489: /* Return the string value of a variable.  Return NULL if the variable
+2490:    doesn't exist.  Don't cons a new string.  This is a potential memory
+2491:    leak if the variable is found in the temporary environment, but doesn't
+2492:    leak in practice.  Since functions and variables have separate name
+2493:    spaces, returns NULL if var_name is a shell function only. */
+2494: char *
+2495: get_string_value (const char *name)
+2496: {
+2497:   SHELL_VAR *var;
+2498: 
+2499:   var = find_variable (name);
+2500:   return ((var) ? get_variable_value (var) : (char *)NULL);
+2501: }
+2502: 
+2503: /* This is present for use by the tilde and readline libraries. */
+2504: char *
+2505: sh_get_env_value (const char *v)
+2506: {
+2507:   return get_string_value (v);
+2508: }
+2509: 
+2510: /* **************************************************************** */
+2511: /*								    */
+2512: /*		  Creating and setting variables		    */
+2513: /*								    */
+2514: /* **************************************************************** */
+2515: 
+2516: static inline int
+2517: var_sametype (SHELL_VAR *v1, SHELL_VAR *v2)
+2518: {
+2519:   if (v1 == 0 || v2 == 0)
+2520:     return 0;
+2521: #if defined (ARRAY_VARS)
+2522:   else if (assoc_p (v1) && assoc_p (v2))
+2523:     return 1;
+2524:   else if (array_p (v1) && array_p (v2))
+2525:     return 1;
+2526:   else if (array_p (v1) || array_p (v2))
+2527:     return 0;
+2574:   return (v);
+2575: }
+2576: 
+2577: /* Create a local variable referenced by NAME. */
+2578: SHELL_VAR *
+2579: make_local_variable (const char *name, int flags)
+2580: {
+2581:   SHELL_VAR *new_var, *old_var, *old_ref;
+2582:   VAR_CONTEXT *vc;
+2583:   int was_tmpvar;
+2584:   char *old_value;
+2585: 
+2586:   /* We don't want to follow the nameref chain when making local variables; we
+2587:      just want to create them. */
+2588:   old_ref = find_variable_noref (name);
+2589:   if (old_ref && nameref_p (old_ref) == 0)
+2590:     old_ref = 0;
+2591:   /* local foo; local foo;  is a no-op. */
+2592:   old_var = find_variable (name);
+2593:   if (old_ref == 0 && old_var && local_p (old_var) && old_var->context == variable_context)
+2594:     return (old_var);
+2595: 
+2596:   /* local -n foo; local -n foo;  is a no-op. */
+2597:   if (old_ref && local_p (old_ref) && old_ref->context == variable_context)
+2598:     return (old_ref);
+2599: 
+2600:   /* From here on, we want to use the refvar, not the variable it references */
+2601:   if (old_ref)
+2602:     old_var = old_ref;
+2603: 
+2604:   was_tmpvar = old_var && tempvar_p (old_var);
+2605:   /* If we're making a local variable in a shell function, the temporary env
+2606:      has already been merged into the function's variable context stack.  We
+2607:      can assume that a temporary var in the same context appears in the same
+2608:      VAR_CONTEXT and can safely be returned without creating a new variable
+2609:      (which results in duplicate names in the same VAR_CONTEXT->table */
+2610:   /* We can't just test tmpvar_p because variables in the temporary env given
+2611:      to a shell function appear in the function's local variable VAR_CONTEXT
+2612:      but retain their tempvar attribute.  We want temporary variables that are
+2613:      found in temporary_env, hence the test for last_table_searched, which is
+2614:      set in hash_lookup and only (so far) checked here. */
+2615:   if (was_tmpvar && old_var->context == variable_context && last_table_searched != temporary_env)
+2616:     {
+2617:       VUNSETATTR (old_var, att_invisible);	/* XXX */
+2618:       /* We still want to flag this variable as local, though, and set things
+2619:          up so that it gets treated as a local variable. */
+2620:       new_var = old_var;
+2621:       /* Since we found the variable in a temporary environment, this will
+2622: 	 succeed. */
+2623:       for (vc = shell_variables; vc; vc = vc->down)
+2624: 	if (vc_isfuncenv (vc) && vc->scope == variable_context)
+2625: 	  break;
+2626:       goto set_local_var_flags;
+2627: 
+2628:       return (old_var);
+2629:     }
+2630: 
+2631:   /* If we want to change to "inherit the old variable's value" semantics,
+2632:      here is where to save the old value. */
+2633:   old_value = was_tmpvar ? value_cell (old_var) : (char *)NULL;
+2634: 
+2635:   for (vc = shell_variables; vc; vc = vc->down)
+2636:     if (vc_isfuncenv (vc) && vc->scope == variable_context)
+2637:       break;
+2638: 
+2639:   if (vc == 0)
+2640:     {
+2641:       internal_error (_("make_local_variable: no function context at current scope"));
+2642:       return ((SHELL_VAR *)NULL);
+2643:     }
+2644:   else if (vc->table == 0)
+2645:     vc->table = hash_create (TEMPENV_HASH_BUCKETS);
+2646: 
+2647:   /* Since this is called only from the local/declare/typeset code, we can
+2648:      call builtin_error here without worry (of course, it will also work
+2649:      for anything that sets this_command_name).  Variables with the `noassign'
+2650:      attribute may not be made local.  The test against old_var's context
+2651:      level is to disallow local copies of readonly global variables (since I
+2652:      believe that this could be a security hole).  Readonly copies of calling
+2653:      function local variables are OK. */
+2654:   if (old_var && (noassign_p (old_var) ||
+2655: 		 (readonly_p (old_var) && old_var->context == 0)))
+2656:     {
+2657:       if (readonly_p (old_var))
+2658: 	sh_readonly (name);
+2815:   ARRAY *array;
+2816:   int assoc_ok;
+2817: 
+2818:   assoc_ok = flags & MKLOC_ASSOCOK;
+2819: 
+2820:   var = make_local_variable (name, flags & MKLOC_INHERIT);	/* XXX for now */
+2821:   /* If ASSOC_OK is non-zero, assume that we are ok with letting an assoc
+2822:      variable return to the caller without converting it. The caller will
+2823:      either flag an error or do the conversion itself. */
+2824:   if (var == 0 || array_p (var) || (assoc_ok && assoc_p (var)))
+2825:     return var;
+2826: 
+2827:   /* Validate any value we inherited from a variable instance at a previous
+2828:      scope and discard anything that's invalid. */
+2829:   if (localvar_inherit && assoc_p (var))
+2830:     {
+2831:       internal_warning (_("%s: cannot inherit value from incompatible type"), name);
+2832:       VUNSETATTR (var, att_assoc);
+2833:       dispose_variable_value (var);
+2834:       array = array_create ();
+2835:       var_setarray (var, array);
+2836:     }
+2837:   else if (localvar_inherit)
+2838:     var = convert_var_to_array (var);		/* XXX */
+2839:   else
+2840:     {
+2841:       dispose_variable_value (var);
+2842:       array = array_create ();
+2843:       var_setarray (var, array);
+2844:     }
+2845: 
+2846:   VSETATTR (var, att_array);
+2847:   return var;
+2848: }
+2849: 
+2850: SHELL_VAR *
+2851: make_new_assoc_variable (const char *name)
+2852: {
+2853:   SHELL_VAR *entry;
+2854:   HASH_TABLE *hash;
+2855: 
+2856:   entry = make_new_variable (name, global_variables->table);
+2857:   hash = assoc_create (ASSOC_HASH_BUCKETS);
+2858: 
+2859:   var_setassoc (entry, hash);
+2860:   VSETATTR (entry, att_assoc);
+2861:   return entry;
+2862: }
+2863: 
+2864: SHELL_VAR *
+2865: make_local_assoc_variable (const char *name, int flags)
+2866: {
+2867:   SHELL_VAR *var;
+2868:   HASH_TABLE *hash;
+2869:   int array_ok;
+2870: 
+2871:   array_ok = flags & MKLOC_ARRAYOK;
+2872: 
+2873:   var = make_local_variable (name, flags & MKLOC_INHERIT);	/* XXX for now */
+2874:   /* If ARRAY_OK is non-zero, assume that we are ok with letting an array
+2875:      variable return to the caller without converting it. The caller will
+2876:      either flag an error or do the conversion itself. */
+2877:   if (var == 0 || assoc_p (var) || (array_ok && array_p (var)))
+2878:     return var;
+2879: 
+2880:   /* Validate any value we inherited from a variable instance at a previous
+2881:      scope and discard anything that's invalid. */
+2882:   if (localvar_inherit && array_p (var))
+2883:     {
+2884:       internal_warning (_("%s: cannot inherit value from incompatible type"), name);
+2885:       VUNSETATTR (var, att_array);
+2886:       dispose_variable_value (var);
+2887:       hash = assoc_create (ASSOC_HASH_BUCKETS);
+2888:       var_setassoc (var, hash);
+2889:     }
+2890:   else if (localvar_inherit)
+2891:     var = convert_var_to_assoc (var);		/* XXX */
+2892:   else
+2893:     {
+2894:       dispose_variable_value (var);
+2895:       hash = assoc_create (ASSOC_HASH_BUCKETS);
+2896:       var_setassoc (var, hash);
+2897:     }
+2898: 
+2899:   VSETATTR (var, att_assoc);
+2900:   return var;
+2901: }
+2902: #endif
+2903: 
+2904: char *
+2905: make_variable_value (SHELL_VAR *var, const char *value, int flags)
+2906: {
+2907:   char *retval, *oval;
+2908:   intmax_t lval, rval;
+2909:   int expok, op;
+2910:   size_t olen;
+2911: 
+2912:   /* If this variable has had its type set to integer (via `declare -i'),
+2913:      then do expression evaluation on it and store the result.  The
+2914:      functions in expr.c (evalexp()) and bind_int_variable() are responsible
+2915:      for turning off the integer flag if they don't want further
+2916:      evaluation done.  Callers that find it inconvenient to do this can set
+2917:      the ASS_NOEVAL flag.  For the special case of arithmetic expression
+2918:      evaluation, the caller can set ASS_NOLONGJMP to avoid jumping out to
+2919:      top_level. */
+2920:   if ((flags & ASS_NOEVAL) == 0 && integer_p (var))
+2921:     {
+2922:       if (flags & ASS_APPEND)
+2923: 	{
+2924: 	  oval = value_cell (var);
+2925: 	  lval = evalexp (oval, 0, &expok);	/* ksh93 seems to do this */
+2926: 	  if (expok == 0)
+2927: 	    {
+2928: 	      if (flags & ASS_NOLONGJMP)
+2929: 		goto make_value;
+2930: 	      else
+2931: 		{
+2932: 		  top_level_cleanup ();
+2933: 		  jump_to_top_level (DISCARD);
+2934: 		}
+2935: 	    }
+2936: 	}
+2937:       rval = evalexp (value, 0, &expok);
+2938:       if (expok == 0)
+2939: 	{
+2940: 	  if (flags & ASS_NOLONGJMP)
+2941: 	    goto make_value;
+2942: 	  else
+2943: 	    {
+2944: 	      top_level_cleanup ();
+2945: 	      jump_to_top_level (DISCARD);
+2946: 	    }
+2947: 	}
+2948:       /* This can be fooled if the variable's value changes while evaluating
+2949: 	 `rval'.  We can change it if we move the evaluation of lval to here. */
+2950:       if (flags & ASS_APPEND)
+2951: 	rval += lval;
+2952:       retval = itos (rval);
+6286: #endif
+6287: }
+6288: 
+6289: #if defined (ARRAY_VARS)
+6290: void
+6291: set_pipestatus_array (int *ps, int nproc)
+6292: {
+6293:   SHELL_VAR *v;
+6294:   ARRAY *a;
+6295:   ARRAY_ELEMENT *ae;
+6296:   register int i;
+6297:   char *t, tbuf[INT_STRLEN_BOUND(int) + 1];
+6298: 
+6299:   v = find_variable ("PIPESTATUS");
+6300:   if (v == 0)
+6301:     v = make_new_array_variable ("PIPESTATUS");
+6302:   if (array_p (v) == 0)
+6303:     return;		/* Do nothing if not an array variable. */
+6304:   a = array_cell (v);
+6305: 
+6306:   if (a == 0 || array_num_elements (a) == 0)
+6307:     {
+6308:       for (i = 0; i < nproc; i++)	/* was ps[i] != -1, not i < nproc */
+6309: 	{
+6310: 	  t = inttostr (ps[i], tbuf, sizeof (tbuf));
+6311: 	  array_insert (a, i, t);
+6312: 	}
+6313:       return;
+6314:     }
+6315: 
+6316:   /* Fast case */
+6317:   if (array_num_elements (a) == nproc && nproc == 1)
+6318:     {
+6319: #ifndef ALT_ARRAY_IMPLEMENTATION
+6320:       ae = element_forw (a->head);
+6321: #else
+6322:       ae = a->elements[0];
+6323: #endif
+6324:       ARRAY_ELEMENT_REPLACE (ae, itos (ps[0]));
+6325:     }
+6326:   else if (array_num_elements (a) <= nproc)
+6327:     {
+6328:       /* modify in array_num_elements members in place, then add */
+6329: #ifndef ALT_ARRAY_IMPLEMENTATION
+6330:       ae = a->head;
+6331: #endif
+6332:       for (i = 0; i < array_num_elements (a); i++)
+6333: 	{
+6334: #ifndef ALT_ARRAY_IMPLEMENTATION
+6335: 	  ae = element_forw (ae);
+6336: #else
+6337: 	  ae = a->elements[i];
+6338: #endif
+6339: 	  ARRAY_ELEMENT_REPLACE (ae, itos (ps[i]));
+6340: 	}
+6341:       /* add any more */
+6342:       for ( ; i < nproc; i++)
+6343: 	{
+6344: 	  t = inttostr (ps[i], tbuf, sizeof (tbuf));
+6345: 	  array_insert (a, i, t);
+6346: 	}
+6347:     }
+6348:   else
+6349:     {
+6350: #ifndef ALT_ARRAY_IMPLEMENTATION
+6351:       /* deleting elements.  it's faster to rebuild the array. */	  
+6352:       array_flush (a);
+6353:       for (i = 0; i < nproc; i++)
+6354: 	{
+6355: 	  t = inttostr (ps[i], tbuf, sizeof (tbuf));
+6356: 	  array_insert (a, i, t);
+6357: 	}
+6358: #else
+6359:       /* deleting elements. replace the first NPROC, free the rest */
+6360:       for (i = 0; i < nproc; i++)
+6361: 	{
+6362: 	  ae = a->elements[i];
+6363: 	  ARRAY_ELEMENT_REPLACE (ae, itos (ps[i]));
+6364: 	}
+6365:       for ( ; i <= array_max_index (a); i++)
+6366: 	{
+6367: 	  array_dispose_element (a->elements[i]);
+6368: 	  a->elements[i] = (ARRAY_ELEMENT *)NULL;
+6369: 	}
+6370: 
+6414: {
+6415: #if defined (ARRAY_VARS)
+6416:   static int v[2] = { 0, -1 };
+6417: 
+6418:   v[0] = s;
+6419:   set_pipestatus_array (v, 1);
+6420: #endif
+6421: }
+6422: 
+6423: void
+6424: sv_xtracefd (const char *name)
+6425: {
+6426:   SHELL_VAR *v;
+6427:   char *t, *e;
+6428:   int fd;
+6429:   FILE *fp;
+6430: 
+6431:   v = find_variable (name);
+6432:   if (v == 0)
+6433:     {
+6434:       xtrace_reset ();
+6435:       return;
+6436:     }
+6437: 
+6438:   t = value_cell (v);
+6439:   if (t == 0 || *t == 0)
+6440:     xtrace_reset ();
+6441:   else
+6442:     {
+6443:       fd = (int)strtol (t, &e, 10);
+6444:       if (e != t && *e == '\0' && sh_validfd (fd))
+6445: 	{
+6446: 	  fp = fdopen (fd, "w");
+6447: 	  if (fp == 0)
+6448: 	    internal_error (_("%s: %s: cannot open as FILE"), name, value_cell (v));
+6449: 	  else
+6450: 	    xtrace_set (fd, fp);
+6451: 	}
+6452:       else
+6453: 	internal_error (_("%s: %s: invalid value for trace file descriptor"), name, value_cell (v));
+6454:     }
+6455: }
+6456: 
+6457: #define MIN_COMPAT_LEVEL 31
+6458: 
+6459: void
+6460: sv_shcompat (const char *name)
+6461: {
+6462:   SHELL_VAR *v;
+6463:   char *val;
+6464:   int tens, ones, compatval;
+6465: 
+6466:   v = find_variable (name);
+6467:   if (v == 0)
+6468:     {
+6469:       shell_compatibility_level = default_compatibility_level;
+6470:       set_compatibility_opts ();
+6471:       return;
+6472:     }
+6473:   val = value_cell (v);
+6474:   if (val == 0 || *val == '\0')
+6475:     {
+6476:       shell_compatibility_level = default_compatibility_level;
+6477:       set_compatibility_opts ();
+6478:       return;
+6479:     }
+6480:   /* Handle decimal-like compatibility version specifications: 4.2 */
+6481:   if (ISDIGIT (val[0]) && val[1] == '.' && ISDIGIT (val[2]) && val[3] == 0)
+6482:     {
+6483:       tens = val[0] - '0';
+6484:       ones = val[2] - '0';
+6485:       compatval = tens*10 + ones;
+6486:     }
+6487:   /* Handle integer-like compatibility version specifications: 42 */
+6488:   else if (ISDIGIT (val[0]) && ISDIGIT (val[1]) && val[2] == 0)
+6489:     {
+6490:       tens = val[0] - '0';
+6491:       ones = val[1] - '0';
+6492:       compatval = tens*10 + ones;
+6493:     }
+6494:   else
+6495:     {
+6496: compat_error:
+6497:       internal_error (_("%s: %s: compatibility value out of range"), name, val);
+6498:       shell_compatibility_level = default_compatibility_level;

@@ -1,0 +1,519 @@
+746: 
+747: #if defined (WORDEXP_OPTION)
+748:   if (wordexp_only)
+749:     {
+750:       startup_state = 3;
+751:       last_command_exit_value = run_wordexp (argv[top_level_arg_index]);
+752:       exit_shell (last_command_exit_value);
+753:     }
+754: #endif
+755: 
+756:   cmd_init ();		/* initialize the command object caches */
+757:   uwp_init ();
+758: 
+759:   if (command_execution_string)
+760:     {
+761:       startup_state = 2;
+762: 
+763:       if (debugging_mode)
+764: 	start_debugger ();
+765: 
+766: #if defined (ONESHOT)
+767:       executing = shell_initialized = 1;
+768:       run_one_command (command_execution_string);
+769:       exit_shell (last_command_exit_value);
+770: #else /* ONESHOT */
+771:       with_input_from_string (command_execution_string, "-c");
+772:       goto read_and_execute;
+773: #endif /* !ONESHOT */
+774:     }
+775: 
+776:   /* Get possible input filename and set up default_buffered_input or
+777:      default_input as appropriate. */
+778:   if (shell_script_filename)
+779:     open_shell_script (shell_script_filename);
+780:   else if (interactive == 0)
+781:     {
+782:       /* In this mode, bash is reading a script from stdin, which is a
+783: 	 pipe or redirected file. */
+784:       default_buffered_input = fileno (stdin);	/* == 0 */
+785:       read_from_stdin = 1;
+786:     }
+787:   else if (top_level_arg_index == argc)		/* arg index before startup files */
+788:     /* "If there are no operands and the -c option is not specified, the -s
+789:        option shall be assumed." */
+790:     read_from_stdin = 1;
+791: 
+792:   set_bash_input ();
+793: 
+794:   if (debugging_mode && locally_skip_execution == 0 && running_setuid == 0 && (reading_shell_script || interactive_shell == 0))
+795:     start_debugger ();
+796: 
+797:   /* Do the things that should be done only for interactive shells. */
+798:   if (interactive_shell)
+799:     {
+800:       /* Set up for checking for presence of mail. */
+801:       reset_mail_timer ();
+802:       init_mail_dates ();
+803: 
+804: #if defined (HISTORY)
+805:       /* Initialize the interactive history stuff. */
+806:       bash_initialize_history ();
+807:       /* Don't load the history from the history file if we've already
+808: 	 saved some lines in this session (e.g., by putting `history -s xx'
+809: 	 into one of the startup files). */
+810:       if (shell_initialized == 0 && history_lines_this_session == 0)
+811: 	load_history ();
+812: #endif /* HISTORY */
+813: 
+814:       /* Initialize terminal state for interactive shells after the
+815: 	 .bash_profile and .bashrc are interpreted. */
+816:       get_tty_state ();
+817:     }
+818: 
+819: #if !defined (ONESHOT)
+820:  read_and_execute:
+821: #endif /* !ONESHOT */
+822: 
+823:   shell_initialized = 1;
+824: 
+825:   if (pretty_print_mode && interactive_shell)
+826:     {
+827:       internal_warning (_("pretty-printing mode ignored in interactive shells"));
+828:       pretty_print_mode = 0;
+829:     }
+830:   if (pretty_print_mode)
+1056:   fflush (stdout);
+1057:   fflush (stderr);
+1058: 
+1059:   /* Do trap[0] if defined.  Allow it to override the exit status
+1060:      passed to us. */
+1061:   last_command_exit_value = s;
+1062:   if (signal_is_trapped (0))
+1063:     s = run_exit_trap ();
+1064: 
+1065:   sh_exit (s);
+1066: }
+1067: 
+1068: void
+1069: set_exit_status (int s)
+1070: {
+1071:   set_pipestatus_from_exit (last_command_exit_value = s);
+1072: }
+1073: 
+1074: /* Source the bash startup files.  If POSIXLY_CORRECT is non-zero, we obey
+1075:    the Posix.2 startup file rules:  $ENV is expanded, and if the file it
+1076:    names exists, that file is sourced.  The Posix.2 rules are in effect
+1077:    for interactive shells only. (section 4.56.5.3) */
+1078: 
+1079: /* Execute ~/.bashrc for most shells.  Never execute it if
+1080:    ACT_LIKE_SH is set, or if NO_RC is set.
+1081: 
+1082:    If the executable file "/usr/gnu/src/bash/foo" contains:
+1083: 
+1084:    #!/usr/gnu/bin/bash
+1085:    echo hello
+1086: 
+1087:    then:
+1088: 
+1089: 	 COMMAND	    EXECUTE BASHRC
+1090: 	 --------------------------------
+1091: 	 bash -c foo		NO
+1092: 	 bash foo		NO
+1093: 	 foo			NO
+1094: 	 rsh machine ls		YES (for rsh, which calls `bash -c')
+1095: 	 rsh machine foo	YES (for shell started by rsh) NO (for foo!)
+1096: 	 echo ls | bash		NO
+1097: 	 login			NO
+1098: 	 bash			YES
+1099: */
+1100: 
+1101: static void
+1102: 
+1103: execute_env_file (char *env_file)
+1104: {
+1105:   char *fn;
+1106: 
+1107:   if (env_file && *env_file)
+1108:     {
+1109:       fn = expand_string_unsplit_to_string (env_file, Q_DOUBLE_QUOTES);
+1110:       if (fn && *fn)
+1111: 	maybe_execute_file (fn, 1);
+1112:       FREE (fn);
+1113:     }
+1114: }
+1115: 
+1116: /* Execute /etc/profile and one of the personal login shell initialization files. */
+1117: static void
+1118: execute_profile_file (void)
+1119: {
+1120:   maybe_execute_file (SYS_PROFILE, 1);
+1121: 
+1122:   if (act_like_sh)	/* sh */
+1123:     maybe_execute_file ("~/.profile", 1);
+1124:   else if ((maybe_execute_file ("~/.bash_profile", 1) == 0) &&
+1125: 	   (maybe_execute_file ("~/.bash_login", 1) == 0))	/* bash */
+1126:     maybe_execute_file ("~/.profile", 1);
+1127: }
+1128: 
+1129: static void
+1130: execute_bashrc_file (void)
+1131: {
+1132: #ifdef SYS_BASHRC
+1133: #  if defined (__OPENNT)
+1134:   maybe_execute_file (_prefixInstallPath(SYS_BASHRC, NULL, 0), 1);
+1135: #  else
+1136:   maybe_execute_file (SYS_BASHRC, 1);
+1137: #  endif
+1138: #endif
+1139: 
+1140:   if (bashrc_file)
+1141:     maybe_execute_file (bashrc_file, 1);
+1142:   else
+1143:     maybe_execute_file (DEFAULT_BASHRC, 1);
+1144: }
+1145: 
+1146: static void
+1147: run_startup_files (void)
+1148: {
+1149: #if defined (JOB_CONTROL)
+1150:   int old_job_control;
+1389:     {
+1390:       switch (code)
+1391: 	{
+1392: 	  /* Some kind of throw to top_level has occurred. */
+1393: 	case FORCE_EOF:
+1394: 	  return last_command_exit_value = 127;
+1395: 	case ERREXIT:
+1396: 	case EXITPROG:
+1397: 	case EXITBLTIN:
+1398: 	  return last_command_exit_value;
+1399: 	case DISCARD:
+1400: 	  return last_command_exit_value = 1;
+1401: 	default:
+1402: 	  command_error ("run_wordexp", CMDERR_BADJUMP, code, 0);
+1403: 	}
+1404:     }
+1405: 
+1406:   /* Run it through the parser to get a list of words and expand them */
+1407:   if (words && *words)
+1408:     {
+1409:       with_input_from_string (words, "--wordexp");
+1410:       if (parse_command () != 0)
+1411: 	return (126);
+1412:       if (global_command == 0)
+1413: 	{
+1414: 	  printf ("0\n0\n");
+1415: 	  return (0);
+1416: 	}
+1417:       if (global_command->type != cm_simple)
+1418: 	return (126);
+1419:       wl = global_command->value.Simple->words;
+1420:       if (protected_mode)
+1421: 	for (tl = wl; tl; tl = tl->next)
+1422: 	  tl->word->flags |= W_NOCOMSUB|W_NOPROCSUB;
+1423:       result = wl ? expand_words_no_vars (wl) : (WORD_LIST *)0;
+1424:     }
+1425:   else
+1426:     result = (WORD_LIST *)0;
+1427: 
+1428:   last_command_exit_value = 0;
+1429: 
+1430:   if (result == 0)
+1431:     {
+1432:       printf ("0\n0\n");
+1433:       return (0);
+1434:     }
+1435: 
+1436:   /* Count up the number of words and bytes, and print them.  Don't count
+1437:      the trailing NUL byte. */
+1438:   for (nw = nb = 0, wl = result; wl; wl = wl->next)
+1439:     {
+1440:       nw++;
+1441:       nb += strlen (wl->word->word);
+1442:     }
+1443:   printf ("%u\n%u\n", nw, nb);
+1444:   /* Print each word on a separate line.  This will have to be changed when
+1445:      the interface to glibc is completed. */
+1446:   for (wl = result; wl; wl = wl->next)
+1447:     printf ("%s\n", wl->word->word);
+1448: 
+1449:   return (0);
+1450: }
+1451: #endif
+1452: 
+1453: #if defined (ONESHOT)
+1454: /* Run one command, given as the argument to the -c option.  Tell
+1455:    parse_and_execute not to fork for a simple command. */
+1456: static int
+1457: run_one_command (char *command)
+1458: {
+1459:   int code;
+1460: 
+1461:   code = setjmp_nosigs (top_level);
+1462: 
+1463:   if (code != NOT_JUMPED)
+1464:     {
+1465: #if defined (PROCESS_SUBSTITUTION)
+1466:       unlink_fifo_list ();
+1467: #endif /* PROCESS_SUBSTITUTION */
+1468:       switch (code)
+1469: 	{
+1470: 	  /* Some kind of throw to top_level has occurred. */
+1471: 	case FORCE_EOF:
+1472: 	  return last_command_exit_value = 127;
+1473: 	case ERREXIT:
+1474: 	case EXITPROG:
+1475: 	case EXITBLTIN:
+1476: 	  return last_command_exit_value;
+1477: 	case DISCARD:
+1478: 	  return last_command_exit_value = 1;
+1479: 	default:
+1480: 	  command_error ("run_one_command", CMDERR_BADJUMP, code, 0);
+1481: 	}
+1482:     }
+1483:    return (parse_and_execute (savestring (command), "-c", SEVAL_NOHIST|SEVAL_RESETLINE));
+1484: }
+1485: #endif /* ONESHOT */
+1486: 
+1487: static int
+1488: bind_args (char **argv, int arg_start, int arg_end, int start_index)
+1489: {
+1490:   register int i;
+1491:   WORD_LIST *args, *tl;
+1492: 
+1493:   for (i = arg_start, args = tl = (WORD_LIST *)NULL; i < arg_end; i++)
+1494:     {
+1495:       if (args == 0)
+1496: 	args = tl = make_word_list (make_word (argv[i]), args);
+1497:       else
+1498: 	{
+1499: 	  tl->next = make_word_list (make_word (argv[i]), (WORD_LIST *)NULL);
+1500: 	  tl = tl->next;
+1501: 	}
+1502:     }
+1503: 
+1504:   if (args)
+1505:     {
+1506:       if (start_index == 0)	/* bind to $0...$n for sh -c command */
+1507: 	{
+1508: 	  /* Posix.2 4.56.3 says that the first argument after sh -c command
+1509: 	     becomes $0, and the rest of the arguments become $1...$n */
+1510: 	  shell_name = savestring (args->word->word);
+1511: 	  FREE (dollar_vars[0]);
+1512: 	  dollar_vars[0] = savestring (args->word->word);
+1513: 	  remember_args (args->next, 1);
+1514: 	  if (debugging_mode)
+1515: 	    {
+1516: 	      push_args (args->next);	/* BASH_ARGV and BASH_ARGC */
+1517: 	      bash_argv_initialized = 1;
+1518: 	    }
+1519: 	}
+1520:       else			/* bind to $1...$n for shell script */
+1521:         {
+1522: 	  remember_args (args, 1);
+1523: 	  /* We do this unconditionally so something like -O extdebug doesn't
+1524: 	     do it first.  We're setting the definitive positional params
+1525: 	     here. */
+1526: 	  if (debugging_mode)
+1527: 	    {
+1528: 	      push_args (args);		/* BASH_ARGV and BASH_ARGC */
+1529: 	      bash_argv_initialized = 1;
+1530: 	    }
+1531:         }
+1532: 
+1533:       dispose_words (args);
+1534:     }
+1535: 
+1536:   return (i);
+1537: }
+1538: 
+1539: void
+1540: unbind_args (void)
+1541: {
+1542:   remember_args ((WORD_LIST *)NULL, 1);
+1543:   pop_args ();				/* Reset BASH_ARGV and BASH_ARGC */
+1544: }
+1545: 
+1546: static void
+1547: start_debugger (void)
+1548: {
+1549: #if defined (DEBUGGER) && defined (DEBUGGER_START_FILE)
+1550:   int old_errexit;
+1551:   int r;
+1552: 
+1553:   old_errexit = exit_immediately_on_error;
+1554:   exit_immediately_on_error = 0;
+1555: 
+1556:   r = force_execute_file (DEBUGGER_START_FILE, 1);
+1557:   if (r < 0)
+1741:     {
+1742:       errno = 0;
+1743:       with_input_from_buffered_stream (default_buffered_input, dollar_vars[0]);
+1744:       if (get_buffered_stream (default_buffered_input) == NULL)
+1745: 	{
+1746: 	  last_command_exit_value = EX_NOINPUT;
+1747: 	  if (errno != 0)
+1748: 	    sys_error ("%s", _("error creating buffered stream"));
+1749: 	  else
+1750: 	    report_error ("%s", _("error creating buffered stream"));
+1751: 	}
+1752:     }
+1753:   else
+1754:     with_input_from_stream (default_input, dollar_vars[0]);
+1755: }
+1756: 
+1757: /* Close the current shell script input source and forget about it.  This is
+1758:    extern so execute_cmd.c:initialize_subshell() can call it.  If CHECK_ZERO
+1759:    is non-zero, we close default_buffered_input even if it's the standard
+1760:    input (fd 0). */
+1761: void
+1762: unset_bash_input (int check_zero)
+1763: {
+1764:   if ((check_zero && default_buffered_input >= 0) ||
+1765:       (check_zero == 0 && default_buffered_input > 0))
+1766:     {
+1767:       close_buffered_fd (default_buffered_input);
+1768:       default_buffered_input = bash_input.location.buffered_fd = -1;
+1769:       bash_input.type = st_none;		/* XXX */
+1770:     }
+1771: }
+1772:       
+1773: 
+1774: #if !defined (PROGRAM)
+1775: #  define PROGRAM "bash"
+1776: #endif
+1777: 
+1778: static void
+1779: set_shell_name (char *argv0)
+1780: {
+1781:   /* Here's a hack.  If the name of this shell is "sh", then don't do
+1782:      any startup files; just try to be more like /bin/sh. */
+1783:   shell_name = argv0 ? base_pathname (argv0) : PROGRAM;
+1784: 
+1785:   if (argv0 && *argv0 == '-')
+1786:     {
+1787:       if (*shell_name == '-')
+1788: 	shell_name++;
+1789:       login_shell = 1;
+1790:     }
+1791: 
+1792:   if (shell_name[0] == 's' && shell_name[1] == 'h' && shell_name[2] == '\0')
+1793:     act_like_sh++;
+1794:   if (shell_name[0] == 's' && shell_name[1] == 'u' && shell_name[2] == '\0')
+1795:     su_shell++;
+1796: 
+1797:   shell_name = argv0 ? argv0 : PROGRAM;
+1798:   FREE (dollar_vars[0]);
+1799:   dollar_vars[0] = savestring (shell_name);
+1800: 
+1801:   /* A program may start an interactive shell with
+1802: 	  "execl ("/bin/bash", "-", NULL)".
+1803:      If so, default the name of this shell to our name. */
+1804:   if (!shell_name || !*shell_name || (shell_name[0] == '-' && !shell_name[1]))
+1805:     shell_name = PROGRAM;
+1806: }
+1807: 
+1808: /* Some options are initialized to -1 so we have a way to determine whether
+1809:    they were set on the command line. This is an issue when listing the option
+1810:    values at invocation (`bash -o'), so we set the defaults here and reset
+1811:    them after the call to list_minus_o_options (). */
+1812: /* XXX - could also do this for histexp_flag, jobs_m_flag */
+1813: static void
+1814: set_option_defaults (void)
+1815: {
+1816: #if defined (HISTORY)
+1817:   enable_history_list = 0;
+1818: #endif
+1819: }
+1820: 
+1821: static void
+1822: reset_option_defaults (void)
+1823: {
+1824: #if defined (HISTORY)
+1825:   enable_history_list = -1;
+2006:   no_rc = no_profile = 1;
+2007: 
+2008:   /* Things that get 0. */
+2009:   login_shell = make_login_shell = su_shell = executing = 0;
+2010:   debugging = debugging_mode = 0;
+2011:   do_version = line_number = last_command_exit_value = 0;
+2012:   forced_interactive = interactive_shell = interactive = 0;
+2013:   subshell_environment = running_in_background = 0;
+2014:   expand_aliases = expaliases_flag = 0;
+2015:   bash_argv_initialized = 0;
+2016: 
+2017:   /* 20240120 */
+2018:   startup_state = reading_shell_script = 0;
+2019:   /* XXX - inherit posixly_correct? */
+2020: 
+2021:   /* The shell has never done this. Should it? */
+2022: #if 0
+2023:   reset_shell_flags ();
+2024:   reset_shell_options ();
+2025:   reset_shopt_options ();
+2026: #endif
+2027: 
+2028:   /* XXX - should we set jobs_m_flag to 0 here? */
+2029: 
+2030: #if defined (HISTORY)
+2031:   bash_history_reinit (enable_history_list = 0);
+2032: #endif /* HISTORY */
+2033: 
+2034: #if defined (RESTRICTED_SHELL)
+2035:   restricted = 0;
+2036: #endif /* RESTRICTED_SHELL */
+2037: 
+2038:   /* Ensure that the default startup file is used.  (Except that we don't
+2039:      execute this file for reinitialized shells). */
+2040:   bashrc_file = NULL;
+2041: 
+2042:   /* Delete all variables and functions.  They will be reinitialized when
+2043:      the environment is parsed. */
+2044:   delete_all_contexts (shell_variables);
+2045:   delete_all_variables (shell_functions);
+2046: 
+2047:   reinit_special_variables ();
+2048: 
+2049: #if defined (READLINE)
+2050:   bashline_reinitialize ();
+2051: #endif
+2052: 
+2053:   shell_reinitialized = 1;
+2054: }
+2055: 
+2056: static void
+2057: show_shell_usage (FILE *fp, int extra)
+2058: {
+2059:   int i;
+2060:   char *set_opts, *s, *t;
+2061: 
+2062:   if (extra)
+2063:     fprintf (fp, _("GNU bash, version %s-(%s)\n"), shell_version_string (), MACHTYPE);
+2064:   fprintf (fp, _("Usage:\t%s [GNU long option] [option] ...\n\t%s [GNU long option] [option] script-file ...\n"),
+2065: 	     shell_name, shell_name);
+2066:   fputs (_("GNU long options:\n"), fp);
+2067:   for (i = 0; long_args[i].name; i++)
+2068:     fprintf (fp, "\t--%s\n", long_args[i].name);
+2069: 
+2070:   fputs (_("Shell options:\n"), fp);
+2071:   fputs (_("\t-ilrsD or -c command or -O shopt_option\t\t(invocation only)\n"), fp);
+2072: 
+2073:   for (i = 0, set_opts = 0; shell_builtins[i].name; i++)
+2074:     if (STREQ (shell_builtins[i].name, "set"))
+2075:       {
+2076: 	set_opts = savestring (shell_builtins[i].short_doc);
+2077: 	break;
+2078:       }
+2079: 
+2080:   if (set_opts)
+2081:     {
+2082:       s = strchr (set_opts, '[');
+2083:       if (s == 0)
+2084: 	s = set_opts;
+2085:       while (*++s == '-')
+2086: 	;
+2087:       t = strchr (s, ']');
+2088:       if (t)
+2089: 	*t = '\0';
+2090:       fprintf (fp, _("\t-%s or -o option\n"), s);

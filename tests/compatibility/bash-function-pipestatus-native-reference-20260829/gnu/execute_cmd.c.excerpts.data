@@ -1,0 +1,162 @@
+1196:       if (nfifo > ofifo)
+1197: 	close_new_fifos (ofifo_list, osize);
+1198:       free (ofifo_list);
+1199:       discard_unwind_frame ("internal_fifos");
+1200:     }
+1201: #endif
+1202: 
+1203:   /* Invert the return value if we have to */
+1204:   if (invert)
+1205:     exec_result = (exec_result == EXECUTION_SUCCESS)
+1206: 		    ? EXECUTION_FAILURE
+1207: 		    : EXECUTION_SUCCESS;
+1208: 
+1209: #if defined (DPAREN_ARITHMETIC) || defined (COND_COMMAND)
+1210:   /* This is where we set PIPESTATUS from the exit status of the appropriate
+1211:      compound commands (the ones that look enough like simple commands to
+1212:      cause confusion).  We might be able to optimize by not doing this if
+1213:      subshell_environment != 0. */
+1214:   switch (command->type)
+1215:     {
+1216: #  if defined (DPAREN_ARITHMETIC)
+1217:     case cm_arith:
+1218: #  endif
+1219: #  if defined (COND_COMMAND)
+1220:     case cm_cond:
+1221: #  endif
+1222:       set_pipestatus_from_exit (exec_result);
+1223:       break;
+1224:     default:
+1225:       break;
+1226:     }
+1227: #endif
+1228: 
+1229:   last_command_exit_value = exec_result;
+1230:   run_pending_traps ();
+1231:   currently_executing_command = (COMMAND *)NULL;
+1232: 
+1233:   return (last_command_exit_value);
+1234: }
+1235: 
+1236: #if defined (COMMAND_TIMING)
+1237: 
+1238: #if defined (HAVE_GETRUSAGE) && defined (HAVE_GETTIMEOFDAY)
+1239: extern struct timeval *difftimeval (struct timeval *, struct timeval *, struct timeval *);
+1240: extern struct timeval *addtimeval (struct timeval *, struct timeval *, struct timeval *);
+1241: extern int timeval_to_cpu (struct timeval *, struct timeval *, struct timeval *);
+1242: #endif
+1243: 
+1244: #define POSIX_TIMEFORMAT "real %2R\nuser %2U\nsys %2S"
+1245: #define BASH_TIMEFORMAT  "\nreal\t%3lR\nuser\t%3lU\nsys\t%3lS"
+1246: 
+1247: static const int precs[] = { 0, 100000, 10000, 1000, 100, 10, 1 };
+1248: static const int maxvals[] = { 1, 10, 100, 1000, 10000, 100000, 10000000 };
+1249: 
+1250: /* Expand one `%'-prefixed escape sequence from a time format string. */
+1251: /* SEC_FRACTION is in usecs. We normalize and round that based on the
+1252:   precision. */
+1253: int
+1254: mkfmt (char *buf, int prec, int lng, time_t sec, long sec_fraction)
+1255: {
+1256:   time_t min;
+1257:   char abuf[INT_STRLEN_BOUND(time_t) + 1];
+4625:   /* It is possible for WORDS not to have anything left in it.
+4626:      Perhaps all the words consisted of `$foo', and there was
+4627:      no variable `$foo'. */
+4628:   if (words == 0)
+4629:     {
+4630:       this_command_name = 0;
+4631:       result = execute_null_command (simple_command->redirects,
+4632: 				     pipe_in, pipe_out,
+4633: 				     already_forked ? 0 : async);
+4634:       if (already_forked)
+4635: 	sh_exit (result);
+4636:       else
+4637: 	{
+4638: 	  bind_lastarg ((char *)NULL);
+4639: 	  set_pipestatus_from_exit (result);
+4640: 	  return (result);
+4641: 	}
+4642:     }
+4643: 
+4644:   lastarg = (char *)NULL;
+4645: 
+4646:   begin_unwind_frame ("simple-command");
+4647: 
+4648:   if (echo_command_at_execute && (cmdflags & CMD_COMMAND_BUILTIN) == 0)
+4649:     xtrace_print_word_list (words, 1);
+4650: 
+4651:   builtin = (sh_builtin_func_t *)NULL;
+4652:   func = (SHELL_VAR *)NULL;
+4653: 
+4654:   /* This test is still here in case we want to change the command builtin
+4655:      handler code below to recursively call execute_simple_command (after
+4656:      modifying the simple_command struct). */
+4657:   if ((cmdflags & CMD_NO_FUNCTIONS) == 0)
+4658:     {
+4659:       /* Posix.2 says special builtins are found before functions.  We
+4660: 	 don't set builtin_is_special anywhere other than here, because
+4661: 	 this path is followed only when the `command' builtin is *not*
+4662: 	 being used, and we don't want to exit the shell if a special
+4663: 	 builtin executed with `command builtin' fails.  `command' is not
+4664: 	 a special builtin. */
+4665:       if (posixly_correct)
+4666: 	{
+4667: 	  builtin = find_special_builtin (words->word->word);
+4668: 	  if (builtin)
+4669: 	    builtin_is_special = 1;
+4670: 	}
+4671:       if (builtin == 0)
+4672: #if 0	/*TAG bash-5.4 rob@landley.net 5/1/2025 */
+4673: 	func = ((shell_compatibility_level <= 52 && posixly_correct == 0) || absolute_program (words->word->word) == 0) ? find_function (words->word->word) : 0;
+4674: #else
+4890: 	      /* In POSIX mode, if there are assignment statements preceding
+4891: 		 a special builtin, they persist after the builtin
+4892: 		 completes. */
+4893: 	      if (posixly_correct && builtin_is_special && temporary_env)
+4894: 		merge_temporary_env ();
+4895: 	    }
+4896: 	  else		/* function */
+4897: 	    {
+4898: 	      if (result == EX_USAGE)
+4899: 		result = EX_BADUSAGE;
+4900: 	      else if (result > EX_SHERRBASE)
+4901: 		result = builtin_status (result);
+4902: 	    }
+4903: 
+4904: 	  set_pipestatus_from_exit (result);
+4905: 
+4906: 	  goto return_result;
+4907: 	}
+4908:     }
+4909: 
+4910:   if (autocd && interactive && words->word && is_dirname (words->word->word))
+4911:     {
+4912:       words = make_word_list (make_word ("--"), words);
+4913:       words = make_word_list (make_word ("cd"), words);
+4914:       xtrace_print_word_list (words, 0);
+4915:       func = find_function ("cd");
+4916:       goto run_builtin;
+4917:     }
+4918: 
+4919: execute_from_filesystem:
+4920:   if (command_line == 0)
+4921:     command_line = savestring (the_printed_command_except_trap ? the_printed_command_except_trap : "");
+4922: 
+4923: #if defined (PROCESS_SUBSTITUTION)
+4924:   /* The old code did not test already_forked and only did this if
+4925:      subshell_environment&SUBSHELL_COMSUB != 0 (comsubs and procsubs). Other
+4926:      uses of the no-fork optimization left FIFOs in $TMPDIR */
+4927:   if (already_forked == 0 && (cmdflags & CMD_NO_FORK) && fifos_pending () > 0)
+4928:     cmdflags &= ~CMD_NO_FORK;
+4929: 
+4930:   if (dofork && already_forked && (subshell_environment & SUBSHELL_PIPE) &&
+4931: 	(cmdflags & CMD_NO_FORK) && fifos_pending () > 0)
+4932: #if 0
+4933:     cmdflags &= ~CMD_NO_FORK;
+4934: #else
+4935:     ;	/* can't turn off nofork here, too many processes have the FIFOs open */
+4936: #endif
+4937: #endif
+4938:   result = execute_disk_command (words, simple_command->redirects, command_line,
+4939: 			pipe_in, pipe_out, async, fds_to_close,

@@ -1,0 +1,1 @@
+set -o pipefail; false | true; printf "%s:<%s>\n" "$?" "${PIPESTATUS[*]}"

@@ -1,0 +1,50 @@
+1057:   fflush (stderr);
+1058: 
+1059:   /* Do trap[0] if defined.  Allow it to override the exit status
+1060:      passed to us. */
+1061:   last_command_exit_value = s;
+1062:   if (signal_is_trapped (0))
+1063:     s = run_exit_trap ();
+1064: 
+1065:   sh_exit (s);
+1066: }
+1067: 
+1068: void
+1069: set_exit_status (int s)
+1070: {
+1071:   set_pipestatus_from_exit (last_command_exit_value = s);
+1072: }
+1073: 
+1074: /* Source the bash startup files.  If POSIXLY_CORRECT is non-zero, we obey
+1075:    the Posix.2 startup file rules:  $ENV is expanded, and if the file it
+1076:    names exists, that file is sourced.  The Posix.2 rules are in effect
+1077:    for interactive shells only. (section 4.56.5.3) */
+1078: 
+1079: /* Execute ~/.bashrc for most shells.  Never execute it if
+1080:    ACT_LIKE_SH is set, or if NO_RC is set.
+1081: 
+1082:    If the executable file "/usr/gnu/src/bash/foo" contains:
+1083: 
+1084:    #!/usr/gnu/bin/bash
+1085:    echo hello
+1086: 
+1087:    then:
+1088: 
+1089: 	 COMMAND	    EXECUTE BASHRC
+1090: 	 --------------------------------
+1091: 	 bash -c foo		NO
+1092: 	 bash foo		NO
+1093: 	 foo			NO
+1094: 	 rsh machine ls		YES (for rsh, which calls `bash -c')
+1095: 	 rsh machine foo	YES (for shell started by rsh) NO (for foo!)
+1096: 	 echo ls | bash		NO
+1097: 	 login			NO
+1098: 	 bash			YES
+1099: */
+1100: 
+1101: static void
+1102: 
+1103: execute_env_file (char *env_file)
+1104: {
+1105:   char *fn;
+1106: 

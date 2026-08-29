@@ -1,0 +1,74 @@
+{
+  "verdict": "ACCEPT_FINITE_KNOWN_ROLE_FUNCTIONAL_B0_ACTUAL_EVIDENCE",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "authorEvidenceCommit": "d116d79a5604cae5c5d73ff6ecf861ab095581ae",
+  "reviewPresealCommitAbbreviation": "4103ecbd2",
+  "reviewPresealSha256": "0134f66c76af8d8e9a28e61ec9abf09e2e87114968dd94dab428ae8773051e53",
+  "candidatePreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "source": {
+    "derivedIdentity": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "inputs": 309,
+    "actualStageAEmissions": 1012
+  },
+  "package": {
+    "bytes": 930368,
+    "members": 1014,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "authorEvidenceManifestSha256": "c7b3f1dfaadd6856385afcd1cd5fba0286b04fd8c92941b05fad23d13136e0b4",
+  "authorEvidenceManifestMembersVerified": 40,
+  "idsPerLayout": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C12", "C13", "C14", "C17"],
+  "layouts": ["source-built", "installed", "physically-moved"],
+  "expectedWorkflowOutcomes": 39,
+  "failed": 0,
+  "skipped": 0,
+  "shellDisposeFulfillments": 42,
+  "supervisedChildren": 4,
+  "observedChildExitCloseZero": 4,
+  "signalsObserved": 0,
+  "runtimeCapture": {"attemptedBytes": 8653, "storedBytes": 8653},
+  "supervisorElapsedMs": 8590.688375,
+  "instrumentedRegexWorkers": 0,
+  "internalLoaderAdmissions": 3,
+  "individualInternalLoaderExits": "NOT_OBSERVED",
+  "guestEngineCalls": 0,
+  "loadRecordsPerLayout": 248,
+  "bindingInputsPerLayoutMatchedToAcceptedPackage": 1012,
+  "workCensus": {
+    "entries": 2189,
+    "regularFiles": 2071,
+    "bytes": 12916428,
+    "addedMissingChanged": 0,
+    "beforeAfterIdentical": true
+  },
+  "auditPureHelpers": 1,
+  "auditPureHelperExitCloseZero": true,
+  "auditTamperRejections": 8,
+  "newProductExecutions": 0,
+  "newInstallBuildCompilerWorkersEngineNativeNetwork": 0,
+  "oldPidOrGroupProbes": 0,
+  "authorConservativeKnownStarts": 32,
+  "authorCompleteTransitiveCensus": false,
+  "externalUtcExpiry": "2026-08-29T12:43:14.522Z",
+  "authorConservativePublicationDeadline": "2026-08-29T12:32:52.037Z",
+  "authorPostSnapshotAt": "2026-08-29T12:08:51.102Z",
+  "reviewDeadline": "2026-08-29T12:25:08.829Z",
+  "qualifications": [
+    "Raw workflow frames and capture bytes are retained; nested Shell stdout/stderr/effects are source-bound assertions, not separately serialized per-exec transcripts.",
+    "Actual tool-approval/transport state is not proved by artifacts; ROOT's one-authorized-attempt statement remains authority.",
+    "Actual successful-path disposal is not arbitrary unenrolled provider cleanup or native fault-injection qualification.",
+    "No group-absence, universal census, OS containment, nested Worker-load or individual internal-loader exit claim.",
+    "Source/tool guards reuse the accepted Stage-A provenance and bound owner mechanism; no new compiler or full toolchain qualification.",
+    "Original eff15eba parent-group UNKNOWN and all historical STOP/HOLDs are unchanged."
+  ],
+  "remaining": {
+    "retainedSlots": 672,
+    "publicEngineWorkflowSlots": 15,
+    "typesMutantsBindings": "PENDING",
+    "unit2IdentitiesPerLayout": 50,
+    "fullCoherentAcceptance": false
+  }
+}

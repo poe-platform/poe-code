@@ -1,0 +1,23 @@
+{
+  "role": "pure-data-audit-v1",
+  "start": "2026-08-29T12:19:04.169Z",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "toolBytes": 112989184,
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/audit.mjs",
+    "0134f66c76af8d8e9a28e61ec9abf09e2e87114968dd94dab428ae8773051e53",
+    "/private/tmp/safe-bash-coherent-b0-20260829-r3"
+  ],
+  "pid": 88528,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T12:19:04.847Z",
+  "stdoutBytes": 70,
+  "stderrBytes": 0
+}

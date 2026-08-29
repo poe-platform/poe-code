@@ -1,0 +1,98 @@
+{
+  "role": "DATA_ONLY_NO_TARGET_IMPORT",
+  "at": "2026-08-29T12:19:04.840Z",
+  "observations": [
+    {
+      "layout": "source-built",
+      "pid": 70877,
+      "passed": 13,
+      "failed": 0,
+      "shells": 14,
+      "fulfilled": 14,
+      "regexWorkers": 0,
+      "loaderAdmission": 1,
+      "records": 248,
+      "uniqueModules": 248
+    },
+    {
+      "layout": "installed",
+      "pid": 70881,
+      "passed": 13,
+      "failed": 0,
+      "shells": 14,
+      "fulfilled": 14,
+      "regexWorkers": 0,
+      "loaderAdmission": 1,
+      "records": 248,
+      "uniqueModules": 248
+    },
+    {
+      "layout": "physically-moved",
+      "pid": 70886,
+      "passed": 13,
+      "failed": 0,
+      "shells": 14,
+      "fulfilled": 14,
+      "regexWorkers": 0,
+      "loaderAdmission": 1,
+      "records": 248,
+      "uniqueModules": 248
+    }
+  ],
+  "capturedBytes": 8653,
+  "shellDisposeFulfillments": 42,
+  "semanticRows": 39,
+  "regexWorkers": 0,
+  "internalLoaderAdmissions": 3,
+  "individualLoaderExits": "NOT_OBSERVED",
+  "firstCensus": {
+    "root": "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+    "entries": 2189,
+    "regular": 2071,
+    "bytes": 12916428,
+    "addedMissingChanged": 0
+  },
+  "finalCensus": {
+    "root": "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+    "entries": 2189,
+    "regular": 2071,
+    "bytes": 12916428,
+    "addedMissingChanged": 0
+  },
+  "tampers": [
+    {
+      "id": "T01-extra-frame",
+      "rejected": true
+    },
+    {
+      "id": "T02-duplicate-id",
+      "rejected": true
+    },
+    {
+      "id": "T03-false-cleanup",
+      "rejected": true
+    },
+    {
+      "id": "T04-C17-order",
+      "rejected": true
+    },
+    {
+      "id": "T05-stored-byte-lie",
+      "rejected": true
+    },
+    {
+      "id": "T06-missing-known-close",
+      "rejected": true
+    },
+    {
+      "id": "T07-zero-worker-with-live-one",
+      "rejected": true
+    },
+    {
+      "id": "T08-loaded-hash-mismatch",
+      "rejected": true
+    }
+  ],
+  "productExecutions": 0,
+  "note": "Rows attest bound assertions; individual Shell stdout/stderr bodies are not separately serialized in report rows."
+}

@@ -1,0 +1,23 @@
+[main 4103ecbd2] test: seal independent B0 actual DATA audit
+ 21 files changed, 31343 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/BLOB-PROCESS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/CONTROL-POLICY.md
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/CONTROL-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/INPUTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/INVENTORY.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/METADATA-PROCESSES.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/SOURCE-INPUTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/SOURCE-PROCESSES.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/audit.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/blobs.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/blobs.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/inventory.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/inventory.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/owned-status.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/owned-status.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/preseal-add.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/preseal-add.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/source-blobs.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/source-blobs.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/source-check.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-actual-audit-r3/source-check.stdout

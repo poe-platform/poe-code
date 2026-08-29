@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "time": "2026-08-29T16:22:38.298Z",
+  "profileSha256": "819acd62efb035279d61aaced782abe4c5779f3dc1a5983a0db694d4bc3fc7d7",
+  "files": [
+    {
+      "path": "selector.mjs",
+      "bytes": 1441,
+      "sha256": "12ae8ab8a18a33f58ff5c9545a4e0fd80e20246ebfe4a8a5059a3550bcb778fd"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 10132,
+      "sha256": "a9ecf15a192866baeacd4e7e807fea313895589e2384c35e698bce60d62b86b4"
+    }
+  ],
+  "controls": [
+    {
+      "id": "P01-fixed-selection-and-unchanged-cell-bindings",
+      "status": "PASS"
+    },
+    {
+      "id": "P02-remaining-budget-and-unknown-stop",
+      "status": "PASS"
+    }
+  ],
+  "layouts": [
+    {
+      "name": "source-built",
+      "productFileCount": 1305,
+      "completeFileCount": 1392,
+      "bytes": 9203237
+    },
+    {
+      "name": "installed",
+      "productFileCount": 1002,
+      "completeFileCount": 1089,
+      "bytes": 6537603
+    },
+    {
+      "name": "moved",
+      "productFileCount": 1002,
+      "completeFileCount": 1089,
+      "bytes": 6522935
+    }
+  ],
+  "roles": 40,
+  "logicalBytes": 149246459,
+  "captureBytes": 18350080,
+  "historicalAuditFailuresPreserved": true,
+  "runtimeCalls": 0
+}

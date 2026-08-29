@@ -1,0 +1,1232 @@
+{
+  "schema": "ORDINARY_PUBLIC_PILOT_AUTHOR_PREPARATION_V1",
+  "status": "PREPARED_NOT_EXECUTION_READY",
+  "authorized": false,
+  "prepared": "2026-08-29T16:22:38.296Z",
+  "requiresDifferentReviewer": true,
+  "sourcePureReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "producerFinal": "b015f0ea4f53b3c28dfb78c77eec3bf6138ad35f",
+  "producerGuardSha256": "e832b9cf2342c99d09a785f801ae4c73f5905a3d349c9efbc2818e6955c1f66e",
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+    "size": 909885,
+    "mode": 292,
+    "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "definitions": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CASES-v4.json",
+    "size": 45811,
+    "mode": 384,
+    "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb"
+  },
+  "selectionIds": [
+    "R01",
+    "R02",
+    "R05",
+    "R06",
+    "R07",
+    "R11",
+    "R12",
+    "R22"
+  ],
+  "layouts": [
+    {
+      "name": "source-built",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app",
+      "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package",
+      "manifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/LAYOUT.json",
+        "size": 271895,
+        "mode": 384,
+        "sha256": "63ce42604adf68a1047fe7b4b0290c5724a3a8d3a174d920b5c7ca9d2c4d2827"
+      },
+      "completeFileCount": 1392,
+      "productFileCount": 1305,
+      "bytes": 9203237,
+      "expectedWorkerUrl": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "originQualification": "existing DATA materialization; NOT npm-install evidence"
+    },
+    {
+      "name": "installed",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app",
+      "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/node_modules/virtual-bash",
+      "manifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/LAYOUT.json",
+        "size": 230995,
+        "mode": 384,
+        "sha256": "28cce495ada324c3f321699d5d167314f0c10007922e0ce77b799f5a8b9d69ae"
+      },
+      "completeFileCount": 1089,
+      "productFileCount": 1002,
+      "bytes": 6537603,
+      "expectedWorkerUrl": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/node_modules/virtual-bash/dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "originQualification": "existing DATA materialization; NOT npm-install evidence"
+    },
+    {
+      "name": "moved",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app",
+      "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/node_modules/virtual-bash",
+      "manifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/LAYOUT.json",
+        "size": 230995,
+        "mode": 384,
+        "sha256": "9764f04f196914ee1463f22b2d5710aa1895ee3d4c496f8e4383bbb62455e8df"
+      },
+      "completeFileCount": 1089,
+      "productFileCount": 1002,
+      "bytes": 6522935,
+      "expectedWorkerUrl": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/node_modules/virtual-bash/dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "originQualification": "existing DATA materialization; NOT npm-install evidence"
+    }
+  ],
+  "cells": [
+    {
+      "id": "source-built/R01",
+      "definition": {
+        "id": "R01",
+        "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+        "question": "substring start and every capture",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<ab42>:<ab>:<42>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R01.json",
+        "size": 19943,
+        "sha256": "d3dbea7d7d2125439d88f4e076aec7252599ca4da9b9cd4a2686d8021861bb0d"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R02",
+      "definition": {
+        "id": "R02",
+        "script": "LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+        "question": "overall longest rather than first alternative",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<aa>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R02.json",
+        "size": 19875,
+        "sha256": "6b2d0955e1f461ef29dcfd72c0bb3344272a79a9e6086c1986399a049417bea4"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R05",
+      "definition": {
+        "id": "R05",
+        "script": "LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "nested repeated captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<ababc>\n<abab>\n<ab>\n<c>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R05.json",
+        "size": 19874,
+        "sha256": "0adc7802b9136b52ecca2d9fd5bb8bf2061ba20f229378282b8f24c4d53fad1a"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R06",
+      "definition": {
+        "id": "R06",
+        "script": "LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "last repetition nested participation",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<aba>\n<a>\n<>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R06.json",
+        "size": 19869,
+        "sha256": "b6e6e8b72c03d886e591b236ffe762ab17501899ec480c426f2e8ba13fafff34"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R07",
+      "definition": {
+        "id": "R07",
+        "script": "LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"",
+        "question": "unmatched versus empty captures and dense publication",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<>\n<>\n<>\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R07.json",
+        "size": 19933,
+        "sha256": "4e6fe03b487a86155dc14e264c64aabb377205ea90798ca9adb30169b05c5197"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R11",
+      "definition": {
+        "id": "R11",
+        "script": "LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted fragment dot remains literal",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R11.json",
+        "size": 19874,
+        "sha256": "eaf7aea307d079b2a8b62737d9f5fdefa5ac9a363f66b69bf9792252417e1560"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R12",
+      "definition": {
+        "id": "R12",
+        "script": "LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted expansion versus unquoted regex",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R12.json",
+        "size": 19883,
+        "sha256": "f2ce304214748996077db680fc5f386e08fdb5b0f7b32bdf7b9b04878c02610d"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "source-built/R22",
+      "definition": {
+        "id": "R22",
+        "script": "LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"",
+        "question": "valid nonmatch clears captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n<>\n1\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R22.json",
+        "size": 19935,
+        "sha256": "dd7a62f410844a6b1946351f5d439236911811ed70643c93749ade88e478ed2b"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R01",
+      "definition": {
+        "id": "R01",
+        "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+        "question": "substring start and every capture",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<ab42>:<ab>:<42>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R01.json",
+        "size": 20723,
+        "sha256": "740b278faab823b544c5f3fc095766bd89d832a3571c6deadd41355b92fff266"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R02",
+      "definition": {
+        "id": "R02",
+        "script": "LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+        "question": "overall longest rather than first alternative",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<aa>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R02.json",
+        "size": 20655,
+        "sha256": "4df108c9bb6b9669c3bd885059e518cf7f7b56e60d3a62d946e82a42f6b35f19"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R05",
+      "definition": {
+        "id": "R05",
+        "script": "LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "nested repeated captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<ababc>\n<abab>\n<ab>\n<c>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R05.json",
+        "size": 20654,
+        "sha256": "aaf652c3362adb319fc5cf49e4a0d3d8268b2f021a5e91240ac85cb437f981d0"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R06",
+      "definition": {
+        "id": "R06",
+        "script": "LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "last repetition nested participation",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<aba>\n<a>\n<>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R06.json",
+        "size": 20649,
+        "sha256": "1507352c760e3d6254c243207d253649f2f257279a3d841f003d2959e185549e"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R07",
+      "definition": {
+        "id": "R07",
+        "script": "LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"",
+        "question": "unmatched versus empty captures and dense publication",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<>\n<>\n<>\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R07.json",
+        "size": 20713,
+        "sha256": "18abb27742fcea53fecc7e89180a5da0516dcc03407602fa10a68be2d3422e30"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R11",
+      "definition": {
+        "id": "R11",
+        "script": "LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted fragment dot remains literal",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R11.json",
+        "size": 20654,
+        "sha256": "75103883e5944dc5cbbed10855a6364c6e7df6985c8e9ee02445b613ade76aec"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R12",
+      "definition": {
+        "id": "R12",
+        "script": "LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted expansion versus unquoted regex",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R12.json",
+        "size": 20663,
+        "sha256": "dd0104f83de8602ba9e7f35d24de6d0e979dc980303b57e64e5b1ffcdcce1c6a"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "installed/R22",
+      "definition": {
+        "id": "R22",
+        "script": "LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"",
+        "question": "valid nonmatch clears captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n<>\n1\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R22.json",
+        "size": 20715,
+        "sha256": "6e1067af155a33b67d8467cb9dfd31dda247912f172a8cc43ec802e8a2a1b330"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R01",
+      "definition": {
+        "id": "R01",
+        "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+        "question": "substring start and every capture",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<ab42>:<ab>:<42>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R01.json",
+        "size": 20515,
+        "sha256": "f6d1132cb6b1b058f30d1bfeea85096a21b599833436fda6e4184a342f90b7ec"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R02",
+      "definition": {
+        "id": "R02",
+        "script": "LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+        "question": "overall longest rather than first alternative",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<aa>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R02.json",
+        "size": 20447,
+        "sha256": "7bfc1f821e93af90e1d99029b794b94d96991669e96253553d7e7cce083a3c2c"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R05",
+      "definition": {
+        "id": "R05",
+        "script": "LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "nested repeated captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<ababc>\n<abab>\n<ab>\n<c>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R05.json",
+        "size": 20446,
+        "sha256": "f40a1b93a000c7c2b633bc3fb0b9b1a110e1c14be461e80b5cc3b598f5b5b1a3"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R06",
+      "definition": {
+        "id": "R06",
+        "script": "LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+        "question": "last repetition nested participation",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<aba>\n<a>\n<>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R06.json",
+        "size": 20441,
+        "sha256": "eb332d8850c36c2a9947551222e5b8225a8699cab467a4dec49ce8ec8e178bec"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R07",
+      "definition": {
+        "id": "R07",
+        "script": "LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"",
+        "question": "unmatched versus empty captures and dense publication",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "<>\n<>\n<>\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R07.json",
+        "size": 20505,
+        "sha256": "5b4beaa336f3a09c0fc6a0e1c1b39d51a278c55ebc84487731371f6d2517cc50"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R11",
+      "definition": {
+        "id": "R11",
+        "script": "LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted fragment dot remains literal",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R11.json",
+        "size": 20446,
+        "sha256": "54836d0c44099fe9ec5729ff61e6fe1b44967bf7a63ff56230f356667a80325f"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R12",
+      "definition": {
+        "id": "R12",
+        "script": "LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"",
+        "question": "quoted expansion versus unquoted regex",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n0\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 2,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R12.json",
+        "size": 20455,
+        "sha256": "331f718b42cf5ad01b1ffc56917747a5165c6a769226e2bac0b38fb3b136ca0d"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    },
+    {
+      "id": "moved/R22",
+      "definition": {
+        "id": "R22",
+        "script": "LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"",
+        "question": "valid nonmatch clears captures",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "1\n<>\n1\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      },
+      "shellExecCalls": 1,
+      "regexVisits": 1,
+      "workerStartsMaximum": 1,
+      "inheritedCell": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R22.json",
+        "size": 20507,
+        "sha256": "702bbb2a58b54492147826c9c9408c92715a141bc672bf22f101b2a4f0e1f86a"
+      },
+      "inheritedLimits": {
+        "maxOutputBytes": 65536,
+        "maxCommands": 500,
+        "maxLoopIterations": 1000,
+        "maxSubstitutionDepth": 16,
+        "maxSourceBytes": 65536,
+        "maxExpansionFields": 16384,
+        "maxExpansionBytes": 1048576,
+        "pipeHighWaterMark": 65536
+      },
+      "state": "UNRUN",
+      "executable": false
+    }
+  ],
+  "controls": [
+    {
+      "id": "P01-fixed-selection-and-unchanged-cell-bindings",
+      "status": "PASS"
+    },
+    {
+      "id": "P02-remaining-budget-and-unknown-stop",
+      "status": "PASS"
+    }
+  ],
+  "observer": {
+    "instrumentedNotStock": true,
+    "inheritedObserverAllowed": false,
+    "futureOnly": "retain actual Worker, forward exact original URL/options; observe exit/streams only; no postMessage/on replacement, private protocol inspection, extra terminate, restoration or recovery"
+  },
+  "proposal": {
+    "knownOS": 40,
+    "roles": [
+      {
+        "role": "outer-owner",
+        "maximum": 1
+      },
+      {
+        "role": "capture-shell",
+        "maximum": 1
+      },
+      {
+        "role": "coordinator",
+        "maximum": 1
+      },
+      {
+        "role": "admission",
+        "maximum": 1
+      },
+      {
+        "role": "npm-install-installed",
+        "maximum": 1
+      },
+      {
+        "role": "npm-install-move-origin",
+        "maximum": 1
+      },
+      {
+        "role": "quiescent-install-census",
+        "maximum": 1
+      },
+      {
+        "role": "precell-seal-check",
+        "maximum": 1
+      },
+      {
+        "role": "ordinary-cell",
+        "maximum": 24
+      },
+      {
+        "role": "capture-finalizer",
+        "maximum": 1
+      },
+      {
+        "role": "git-preindex",
+        "maximum": 1
+      },
+      {
+        "role": "git-add",
+        "maximum": 1
+      },
+      {
+        "role": "git-check",
+        "maximum": 1
+      },
+      {
+        "role": "git-commit",
+        "maximum": 1
+      },
+      {
+        "role": "git-show",
+        "maximum": 1
+      },
+      {
+        "role": "git-postindex",
+        "maximum": 1
+      },
+      {
+        "role": "publication-census",
+        "maximum": 1
+      }
+    ],
+    "peak": 4,
+    "workers": 24,
+    "oneLive": true,
+    "shellExecCalls": 24,
+    "regexVisits": 30,
+    "milliseconds": 1200000,
+    "publicationMilliseconds": 180000,
+    "captureMaximum": 67108864,
+    "workingMaximum": 268435456,
+    "publicationReserveIncluded": true
+  },
+  "timeReservation": {
+    "cells": 312000,
+    "twoInstallsAndCleanup": 130000,
+    "setupAdmissionCensus": 120000,
+    "publication": 180000,
+    "total": 742000,
+    "remainder": 458000,
+    "conditionalNotCompletionGuarantee": true
+  },
+  "logicalBound": {
+    "components": {
+      "retainedDataLayouts": 22263775,
+      "freshPilotLayouts": 22263775,
+      "compressedPackage": 909885,
+      "cellEventsAndPipes": 4718592,
+      "outerAndAdministrativeCaptures": 4194304,
+      "emergencyJournalReserve": 1048576,
+      "publicationCaptureCopy": 9961472,
+      "metadataAndNpmExtraFiles": 8388608,
+      "twoNativeInstallMutableReservations": 67108864,
+      "publicationTailReserve": 8388608
+    },
+    "logicalBytes": 149246459,
+    "captureBytes": 18350080,
+    "conditional": true,
+    "nativeReservationNotOSQuota": true
+  },
+  "futurePaths": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/FUTURE-PILOT-01",
+    "currentlyAbsent": true,
+    "caches": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/FUTURE-PILOT-01/installed-cache",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/FUTURE-PILOT-01/moved-cache"
+    ],
+    "nativeMutableReservationPerInstall": 33554432
+  },
+  "blockers": [
+    "new lifecycle-only observer and public-only cell entrypoint must be authored and sealed; inherited observer mutates methods and performs recovery",
+    "new 24-cell coordinator and native install/admission/census/publication owner must be sealed; inherited dispatcher fixes 210 cells and old clock",
+    "conditional native mutable-cache reservation needs ROOT acceptance and quiescent census; no live cache walk or ENOENT suppression",
+    "different pilot PREEXEC reviewer plus producer verdict binding and fresh time-bound ROOT grant required"
+  ],
+  "producerAuditReconciliation": {
+    "oldWorkerSuffixAssertion": "reviewer mistakenly required worker.js; sealed literal is worker-entry.js",
+    "oldLayoutPrefixAssertion": "reviewer mistakenly assumed package/ for every layout; explicit packageRoot authenticated here",
+    "staticEdgesPreviouslyCountedBeforeWrongSuffixAssertion": 29,
+    "literalWorkerUrlCountPreviouslyCounted": 1,
+    "combinedClassification": 30,
+    "allThreeLayoutCensusesNowComplete": true,
+    "producerConditionalBound": 332963204
+  },
+  "authority": {
+    "full135": "OPEN",
+    "sixNonpublic": "OPEN",
+    "sevenCORE": "OPEN",
+    "privateQualificationTransferred": false,
+    "publicNpmInstallProof": false,
+    "runtimeCellsRun": 0
+  }
+}

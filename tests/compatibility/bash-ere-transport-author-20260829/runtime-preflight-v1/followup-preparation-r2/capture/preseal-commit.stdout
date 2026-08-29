@@ -1,0 +1,15 @@
+[main 3db721642] test: seal L02 followup r2 receipt and bounded ownership repairs
+ 13 files changed, 162 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/PREPARATION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/activation.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/admin-publication.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/budget.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/case-runner.mjs.data
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/materialize.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/state.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/stub.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/supervisor.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/worker-bridge.mjs.data

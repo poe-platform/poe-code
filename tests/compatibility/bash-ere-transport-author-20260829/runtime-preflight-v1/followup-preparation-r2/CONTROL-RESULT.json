@@ -1,0 +1,244 @@
+{
+  "schema": 2,
+  "rows": [
+    {
+      "id": "J01-own-data-accessor",
+      "pass": true
+    },
+    {
+      "id": "J02-journal-reserve-cap",
+      "pass": true
+    },
+    {
+      "id": "J03-short-zero-undefined",
+      "pass": true
+    },
+    {
+      "id": "J04-normal-strict-receipt",
+      "pass": true
+    },
+    {
+      "id": "J05-false-retirement-refused",
+      "pass": true
+    },
+    {
+      "id": "J06-unknown-distinct-from-process-close",
+      "pass": true
+    },
+    {
+      "id": "J07-hash-request-binding",
+      "pass": true
+    },
+    {
+      "id": "J08-chronology",
+      "pass": true
+    },
+    {
+      "id": "J09-natural-owned",
+      "pass": true
+    },
+    {
+      "id": "J10-nonzero-owned",
+      "pass": true
+    },
+    {
+      "id": "J11-r2-strict-presence",
+      "pass": true
+    },
+    {
+      "id": "J12-r2-descriptors-hidden-symbol",
+      "pass": true
+    },
+    {
+      "id": "J13-r2-required-role-closes",
+      "pass": true
+    },
+    {
+      "id": "J14-r2-unique-attempts",
+      "pass": true
+    }
+  ],
+  "passed": 14,
+  "children": [
+    {
+      "schema": 3,
+      "role": "J09-natural-owned",
+      "ownerPid": 57134,
+      "clockDomain": "owner:57134",
+      "pid": 57135,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "exitCode": 0,
+      "exitSignal": null,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 32167,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 34576,
+          "kind": "created",
+          "pid": 57135
+        },
+        {
+          "seq": 3,
+          "at": 34696,
+          "kind": "spawn",
+          "pid": 57135
+        },
+        {
+          "seq": 4,
+          "at": 72998,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 73712,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 6,
+          "at": 73776,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 7,
+          "at": 73845,
+          "kind": "exit",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 8,
+          "at": 73975,
+          "kind": "close",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 73981,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 10,
+          "at": 74076,
+          "kind": "retired"
+        }
+      ]
+    },
+    {
+      "schema": 3,
+      "role": "J10-nonzero-owned",
+      "ownerPid": 57134,
+      "clockDomain": "owner:57134",
+      "pid": 57136,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 7,
+      "signal": null,
+      "exitCode": 7,
+      "exitSignal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 14,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 74609,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 75948,
+          "kind": "created",
+          "pid": 57136
+        },
+        {
+          "seq": 3,
+          "at": 75979,
+          "kind": "spawn",
+          "pid": 57136
+        },
+        {
+          "seq": 4,
+          "at": 115144,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 115208,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 6,
+          "at": 115345,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 7,
+          "at": 115442,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 8,
+          "at": 115467,
+          "kind": "exit",
+          "code": 7,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 115471,
+          "kind": "close",
+          "code": 7,
+          "signal": null
+        },
+        {
+          "seq": 10,
+          "at": 115473,
+          "kind": "retired"
+        }
+      ]
+    }
+  ],
+  "actualWorkers": 0,
+  "productImports": 0
+}

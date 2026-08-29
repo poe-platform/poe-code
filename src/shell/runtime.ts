@@ -1235,10 +1235,21 @@ export class Runtime {
 
   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
     const store = requireArrays(state);
+    const failures = stateMonitor(state)!.session.scope.failures;
     const owner = ArrayOwner.create(store.owner.ledger, store.owner);
-    const holding = store.owner.hold();
+    let holding: ReturnType<ArrayOwner["hold"]> | undefined;
     let binding: IndexedBinding | undefined;
+    let primaryPresent = false;
+    let primary: unknown;
+    const cleanup = async (action: () => void | Promise<void>): Promise<void> => {
+      try { await action(); }
+      catch (error) {
+        if (primaryPresent) failures.push(error);
+        else { primaryPresent = true; primary = error; }
+      }
+    };
     try {
+      holding = store.owner.hold();
       const watch = await store.watch(name, owner, this.signal);
       const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
       const token = await textToken(owner, name, this.signal);
@@ -1248,8 +1259,13 @@ export class Runtime {
       binding = scalarLegacy ? undefined : store.get(name)?.retain();
       typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
       tickets.cleanup = () => { typedSavedVariables.delete(saved); };
-    } catch (error) { await binding?.release(); await owner.close(); throw error; }
-    finally { holding.release(); }
+    } catch (error) {
+      primaryPresent = true;
+      primary = error;
+      await cleanup(() => binding?.release());
+      await cleanup(() => owner.close());
+    } finally { await cleanup(() => holding?.release()); }
+    if (primaryPresent) throw primary;
   }
 
   async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {

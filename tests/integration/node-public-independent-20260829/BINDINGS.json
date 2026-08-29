@@ -1,0 +1,79 @@
+{
+  "candidate": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "sourceCommit": "bb4dd0571a0335b20e29448bf88126ca02c1a32d",
+  "authorEvidence": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+  "sourceInputs": 308,
+  "baseInputs": 292,
+  "baseChangedOnly": [
+    "README.md",
+    "package.json",
+    "src/index.ts"
+  ],
+  "acceptedModuleFilesPreserved": [
+    "src/commands/node/admission.ts",
+    "src/commands/node/channel.ts",
+    "src/commands/node/cli.ts",
+    "src/commands/node/diagnostics.ts",
+    "src/commands/node/host.ts",
+    "src/commands/node/index.ts",
+    "src/commands/node/lifecycle.ts",
+    "src/commands/node/lower.ts",
+    "src/commands/node/program.ts",
+    "src/commands/node/rules.ts",
+    "src/commands/node/types.ts",
+    "src/commands/node/values.ts",
+    "src/commands/node/worker-main.ts",
+    "src/commands/node/worker-provider.ts",
+    "src/commands/node/worker-types.ts"
+  ],
+  "acceptedModuleSuffix": "function local through EOF exact; only authorized import/type/wrapper additions",
+  "derivedTreesVerified": 70,
+  "recipeFiles": 97,
+  "recipeBytes": 5522058,
+  "recipeSha256": "3d88aeddb9321a75cf70e89fd53727b6537d91997d9104b8d23ee7c562d906b6",
+  "changedRecipes": [
+    {
+      "path": "tests/integration/node-public-author-20260829/PRESEAL.json",
+      "oldSha256": "ad7fe257c74a9060160d4ae686eea4f3085c313f81c51d5141d5445258cfd14a",
+      "newSha256": "65941b04a27166a8c71fb5efc6ccb2f4565f0ae8f89a23a9473c5f9fe32cb339"
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/node-batch.mjs",
+      "oldSha256": "9c0a33b6934aa676363a60cfb38a8712d4a0acd0b8fd3183d514a97e17f66b21",
+      "newSha256": "fe73e62ffad4698b9848abdb3d6a4a06a1980c0cbf0b698a37251e99011750dd"
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/public-node.mjs",
+      "oldSha256": "b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2",
+      "newSha256": "71970f4dbdfe9327b53a575a133e88ffee05ee1341909b5fbb2c6ceb30a3f596"
+    },
+    {
+      "path": "tests/integration/node-public-author-20260829/run-v3.mjs",
+      "oldSha256": "c1a6f794f175ff3dcd591c7a9bc93779dab277e199ca18ace201cc7778cb026c",
+      "newSha256": "62ff615d74d260c7fa40da9b6e1ef92aa3dcfaf1314ab230904836e6875c1f3c"
+    }
+  ],
+  "fixtures": "v2 P06/P07/P17 body corrections; all24 run freshly, original failures preserved; six negative types expect optional boolean union; corrected force-replace mutant",
+  "novel": "12 identities*3=36 rows; I02 package self-resolution with createRequire, no guest import claim",
+  "plan": {
+    "retained": 651,
+    "module": 183,
+    "publicVersionMapped": 72,
+    "novel": 36,
+    "totalMain": 942,
+    "directChildren": 71,
+    "owners": 1,
+    "outer": 1,
+    "executionProcessTotal": 73,
+    "administrationReserved": 48,
+    "allOsAdmissionEnvelope": 121,
+    "rootAllOsCap": 192,
+    "NodeMaximum": 156,
+    "NodeEnforcedCap": 192,
+    "RegexCap": 8,
+    "loaderAdmissions": 23,
+    "totalKnownWorkerAdmissionCap": 256,
+    "guestCap": 192
+  },
+  "sourceExecution": false
+}

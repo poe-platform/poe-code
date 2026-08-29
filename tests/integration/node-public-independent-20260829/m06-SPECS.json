@@ -1,0 +1,18 @@
+[
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/README.md",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/admission.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/channel.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/cli.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/diagnostics.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/host.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/index.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/lifecycle.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/lower.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/program.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/rules.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/types.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/values.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/worker-main.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/worker-provider.ts",
+  "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/worker-types.ts"
+]

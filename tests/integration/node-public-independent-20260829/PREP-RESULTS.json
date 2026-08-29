@@ -1,0 +1,80 @@
+{
+  "role": "independent preparation receipt",
+  "startArtifactTime": "2026-08-29T06:43:42.583Z",
+  "sealTime": "2026-08-29T06:58:36.171Z",
+  "metadata": [
+    {
+      "label": "m01",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 9081,
+      "helperFailure": {
+        "message": "batch blob 88a421c329396ae1b11702a3d810238190f044ea:tests/integration/node-public-author-20260829/DESIGN.md missing"
+      }
+    },
+    {
+      "label": "m02",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 7911,
+      "helperFailure": null
+    },
+    {
+      "label": "m03",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 763032,
+      "helperFailure": null
+    },
+    {
+      "label": "m04",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 7299508,
+      "helperFailure": null
+    },
+    {
+      "label": "m05",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 12508215,
+      "helperFailure": null
+    },
+    {
+      "label": "m06",
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "capturedBytes": 139547,
+      "helperFailure": null
+    }
+  ],
+  "metadataCapturedBytes": 20727294,
+  "knownProcessAdmissions": {
+    "initialContextShellCatGit": 3,
+    "metadataDispatchers": 6,
+    "gitMetadataChildren": 6,
+    "DATAAssemblers": 2,
+    "DATASeal": 1,
+    "execEditingInvocations": 6,
+    "total": 24
+  },
+  "reservedAdditional": {
+    "editingInterpreterConservative": 6,
+    "presealGitPublication": 4
+  },
+  "qualification": "Known direct/admitted roles plus explicitly separate conservative editing reserve; not an OS-wide descendant/peak measurement. No compiler/product/Worker/guest/native oracle/network/private execution. m01 nonexistent DESIGN.md guess was a captured closed Git batch helper failure, not a missing accepted input or product failure. Correct immutable inventory/handoff supersedes lookup, original raw preserved.",
+  "rootPrepCap": {
+    "seconds": 1800,
+    "allOS": 72,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workBytes": 805306368
+  },
+  "actualStillDisarmed": true
+}

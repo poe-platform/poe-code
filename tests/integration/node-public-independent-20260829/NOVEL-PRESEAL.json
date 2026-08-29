@@ -1,0 +1,22 @@
+{
+  "date":"2026-08-29",
+  "timing":"post-author/source inspection, before any independent compiler/product/Worker execution",
+  "candidate":"a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "layouts":["source","installed","physically-moved"],
+  "identities":[
+    {"id":"I01","role":"public-module","expect":"root/subpath same nine runtime values; private NodeOwner absent; no default node/npm/npx registration"},
+    {"id":"I02","role":"public-export-refusal","expect":"four exact private Node subpaths rejected by package export map"},
+    {"id":"I03","role":"configuration","expect":"replace own accessor and inherited provider rejected without getter/prepare invocation"},
+    {"id":"I04","role":"configuration","expect":"provider preparation remains inert through both factories and plugin registration; explicit undefined replace rejected by exact optional profile"},
+    {"id":"I05","role":"configuration","expect":"replace false snapshot survives caller mutation; duplicate rejects at async Shell setup; prior registered object/execution unchanged"},
+    {"id":"I06","role":"configuration","expect":"grant snapshot survives mutation; frozen definitions; profile failure fixture cannot fake entry success/no-acquisition"},
+    {"id":"I07","role":"actual-engine","workers":1,"expect":"inline source requires no sourceRead; denied dataRead produces guest denial and zero provider reads; stdout explicit"},
+    {"id":"I08","role":"actual-engine-and-preflight","workers":1,"expect":"file source denied before reads/Worker; then explicit sourceRead permits one .cjs execution without data grants"},
+    {"id":"I09","role":"actual-engine","workers":1,"expect":"stdin source EOF not replayed as data stdin; one canonical iterator; no premature return"},
+    {"id":"I10","role":"configuration","expect":"invalid grant and public limit override refuse before provider preparation; no engine discovery"},
+    {"id":"I11","role":"actual-Worker-parent-failure","workers":1,"expect":"async workerCreated observer rejects undefined; raw public definition preserves rejection presence/identity; registered cleanup and real Worker exit joined; caller stays live"},
+    {"id":"I12","role":"public-configuration","expect":"static entry URL and identity remain explicit host inputs; wrong provider profile refuses inertly, no byte-authentication claim"}
+  ],
+  "counts":{"novelRows":36,"nodeWorkerCeiling":12,"guestEntryCeiling":12,"additionalLoaderAdmissions":0},
+  "qualifications":["I11 expects no guest entry but reserves one","physical package move is real; explicit engine fixture URL stays bound at its declared owned location, not falsely claimed relocated","no new private engine, native oracle, general host authorization, global resource or full Node proof"]
+}

@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "ACTIVATION_HOLD_TYPED_WINDOW_SCHEMA",
+  "recordedAt": "2026-08-29T14:15:12.392Z",
+  "pureHelpers": [
+    {
+      "name": "closure-check.mjs",
+      "exit": 0,
+      "toolSessionOutstanding": false,
+      "stdoutBytes": 519,
+      "stderrBytes": 0
+    },
+    {
+      "name": "publication.mjs",
+      "exit": 0,
+      "toolSessionOutstanding": false,
+      "stdoutBytes": 142,
+      "stderrBytes": 0
+    }
+  ],
+  "knownRoles": {
+    "completedDirectExecActivations": 10,
+    "remainingFinalGitPublicationAndMetadataSlots": 4,
+    "patchWrapperConservativeAdditionalAllowance": 2,
+    "existingReplControllerRole": 1,
+    "totalConservativeRoleEnvelope": 17,
+    "peakConservative": 3,
+    "universalProcessCensus": false
+  },
+  "runtime": {
+    "Workers": 0,
+    "childFixtures": 0,
+    "engine": 0,
+    "productImports": 0,
+    "compiler": 0,
+    "all60": "UNRUN"
+  },
+  "captureSnapshot": {
+    "bytes": 22184,
+    "workBytes": 74461,
+    "elapsedMilliseconds": 346130
+  },
+  "publication": {
+    "sha256": "b12caf31db85cfbc72b2ff8c88e69ff3a8790de8e7edfe02706f9c7784668446",
+    "trailingFinalGitCaptures": "Separate, not inside snapshot/its own commit; exact final commit identity reported externally."
+  },
+  "noUnknownOwnedChild": true,
+  "noRetry": true,
+  "noOriginalArtifactChanged": true
+}

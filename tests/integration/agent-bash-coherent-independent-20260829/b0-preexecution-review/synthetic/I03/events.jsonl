@@ -1,0 +1,5 @@
+{"role":"I03","pid":900000000,"binary":"/never-launched","args":[],"cwd":"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review/synthetic/I03","env":{},"spawned":true,"elapsedMs":0.5260419999999968}
+{"role":"I03","pid":900000000,"event":"exit","status":0,"signal":null,"elapsedMs":0.7570419999999984}
+{"role":"I03","pid":900000000,"event":"close","status":0,"signal":null,"stdoutBytes":2,"stderrBytes":0,"elapsedMs":0.7814999999999941}
+{"role":"I03","pid":900000000,"groupAbsent":true,"elapsedMs":0.8121249999999947}
+{"finished":true,"children":1,"captured":2,"elapsedMs":0.8905829999999995}

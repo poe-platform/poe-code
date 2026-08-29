@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T11:16:55.472Z",
+  "role": "DATA helper assertion; no process or target activation",
+  "actualProjection": "c5e49e70c295d7e354eba53d1a91141ad701e3f6",
+  "incorrectExpectedWholeTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "rawMessage": "Expected values to be strictly equal: actual c5e49e70c295d7e354eba53d1a91141ad701e3f6, expected 3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "cause": "Reviewer incorrectly equated selected 309-file projection with accepted whole composition tree. All 309 source file size/SHA256/blob checks completed before this assertion.",
+  "correction": "Keep projection separate; verify published reconstructed tree object byte hashes and identify root witness. Do not substitute HEAD or change accepted identity.",
+  "productImports": 0,
+  "childrenStarted": 0
+}

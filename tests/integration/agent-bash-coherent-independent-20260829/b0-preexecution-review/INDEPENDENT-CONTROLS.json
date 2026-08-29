@@ -1,0 +1,113 @@
+{
+  "role": "SYNTHETIC_ONLY",
+  "families": 6,
+  "rows": [
+    {
+      "id": "I01-0",
+      "returned": true,
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": false,
+      "role": "synthetic non-Error error-event; not native event claim"
+    },
+    {
+      "id": "I01-1",
+      "returned": true,
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": false,
+      "role": "synthetic non-Error error-event; not native event claim"
+    },
+    {
+      "id": "I01-2",
+      "returned": true,
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": false,
+      "role": "synthetic non-Error error-event; not native event claim"
+    },
+    {
+      "id": "I01-3",
+      "returned": true,
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": false,
+      "role": "synthetic non-Error error-event; not native event claim"
+    },
+    {
+      "id": "I02",
+      "returned": false,
+      "exactReason": true,
+      "message": "exact synthetic error",
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": true
+    },
+    {
+      "id": "I03",
+      "returned": true,
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 2,
+      "actualOutputHex": "41",
+      "requirementMet": false,
+      "role": "injected short write return"
+    },
+    {
+      "id": "I04",
+      "returned": false,
+      "exactReason": true,
+      "message": "exact synthetic error",
+      "leakedDescriptors": 1,
+      "verifierClosedDescriptors": 1,
+      "fakeSpawnCalls": 0,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": false
+    },
+    {
+      "id": "I05",
+      "returned": false,
+      "exactReason": true,
+      "message": "exact synthetic error",
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": true
+    },
+    {
+      "id": "I06",
+      "returned": false,
+      "exactReason": false,
+      "message": "I06 status=13 signal=null",
+      "leakedDescriptors": 0,
+      "verifierClosedDescriptors": 0,
+      "fakeSpawnCalls": 1,
+      "captured": 0,
+      "actualOutputHex": "",
+      "requirementMet": true
+    }
+  ],
+  "realChildFixtures": 0,
+  "workers": 0,
+  "productImports": 0,
+  "allInjectedDescriptorsClosed": true
+}

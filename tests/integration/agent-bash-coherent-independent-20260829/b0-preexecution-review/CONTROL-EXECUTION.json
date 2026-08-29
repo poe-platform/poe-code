@@ -1,0 +1,24 @@
+[
+  {
+    "role": "author-data",
+    "pid": 4793,
+    "started": "2026-08-29T11:15:21.955Z",
+    "finished": "2026-08-29T11:15:22.018Z",
+    "status": 0,
+    "signal": null,
+    "exited": true,
+    "closed": true,
+    "failure": null
+  },
+  {
+    "role": "independent-synthetic",
+    "pid": 4821,
+    "started": "2026-08-29T11:15:22.030Z",
+    "finished": "2026-08-29T11:15:22.100Z",
+    "status": 0,
+    "signal": null,
+    "exited": true,
+    "closed": true,
+    "failure": null
+  }
+]

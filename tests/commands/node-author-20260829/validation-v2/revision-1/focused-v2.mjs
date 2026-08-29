@@ -84,3 +84,4 @@ export async function runFocused(moduleRoot, publish) {
   for(const [id,run] of cases){let result;try{await run();result={id,pass:true};}catch(error){result={id,pass:false,diagnostic:error instanceof Error?{name:error.name,message:error.message.slice(0,2048)}:{name:null,message:'non-Error assertion failure'}};}if(observations.has(id))result.observation=observations.get(id);results.push(result);await publish(result);}
   return results;
 }
+

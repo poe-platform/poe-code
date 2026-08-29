@@ -8,3 +8,4 @@ else if(selected==='pass-nonzero'){process.stdout.write('PASS\n');process.exitCo
 else if(selected==='missing-receipt')process.stdout.write('PASS\n');
 else if(selected==='tamper')await import('__TAMPER__');
 else throw new Error('negative role');
+

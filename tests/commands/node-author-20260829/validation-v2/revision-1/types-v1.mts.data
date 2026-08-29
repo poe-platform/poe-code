@@ -37,3 +37,4 @@ createNodeWorkerProvider({identity:'x'});
 // @ts-expect-error N12 explicit undefined grant not admission
 createNodeCommand({provider,grants:{dataRead:undefined}});
 void [badProvider,badRequest,badBody,badReason,badBridge,badAdapter,badResult];
+

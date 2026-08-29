@@ -1,0 +1,47 @@
+{
+  "profile": "GNU_BASH_5_3_PATCH_001_THROUGH_015_OPAQUE_ACQUISITION",
+  "artifactOrigin": "https://ftp.gnu.org/gnu/bash/",
+  "payloads": [
+    { "path": "bash-5.3.tar.gz", "maxBytes": 16777216 },
+    { "path": "bash-5.3-patches/bash53-001", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-002", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-003", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-004", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-005", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-006", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-007", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-008", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-009", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-010", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-011", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-012", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-013", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-014", "maxBytes": 65536 },
+    { "path": "bash-5.3-patches/bash53-015", "maxBytes": 65536 }
+  ],
+  "signatureSuffix": ".sig",
+  "signatureMaxBytes": 4096,
+  "verification": [
+    { "url": "https://ftp.gnu.org/gnu/gnu-keyring.gpg", "name": "gnu-keyring.gpg", "maxBytes": 4194304, "role": "OFFICIAL_GLOBAL_KEYRING_NOT_YET_VERIFIED" },
+    { "url": "https://savannah.gnu.org/project/release-gpgkeys.php?group=bash", "name": "bash-release-key-page.html", "maxBytes": 131072, "role": "PUBLISHER_GROUP_RELEASE_KEY_AUTHORITY" },
+    { "url": "https://savannah.gnu.org/project/release-gpgkeys.php?group=bash&download=1", "name": "bash-release-keys.asc", "maxBytes": 4194304, "role": "PUBLISHER_GROUP_RELEASE_KEYS" },
+    { "url": "https://www.gnu.org/software/security/", "name": "gnu-security.html", "maxBytes": 131072, "role": "PUBLISHER_VERIFICATION_GUIDANCE" },
+    { "url": "https://www.gnu.org/software/bash/", "name": "bash-license-authority.html", "maxBytes": 131072, "role": "BASH_LICENSE_AUTHORITY" },
+    { "url": "https://www.gnu.org/licenses/gpl-3.0.txt", "name": "gpl-3.0.txt", "maxBytes": 65536, "role": "PUBLIC_GPL_LICENSE_TEXT" }
+  ],
+  "maxRequests": 38,
+  "requestTimeoutMs": 20000,
+  "maxBodyBytesTotal": 33554432,
+  "controllerTimeoutMs": 1200000,
+  "versionProbe": {
+    "path": "/bin/bash",
+    "argv": ["--noprofile", "--norc", "--version"],
+    "bytes": 1293840,
+    "mode": "555",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "timeoutMs": 3000,
+    "closeGraceMs": 1000,
+    "maxStreamBytes": 65536,
+    "maxStarts": 1
+  }
+}

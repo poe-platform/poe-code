@@ -3754,3 +3754,51 @@ that any implementation, command, fixture, or test currently exists.
   outside the selected authorized author profile. No AGENTS rules changed.
 - Exact source/package/types/failure/qualification handoff:
   `tests/integration/apply-patch-public-20260829/HANDOFF.md`; raw captures immutable.
+
+## 2026-08-29 — Qualified public79 baseline and Git80 author integration
+
+- ROOT accepts public79 through bd772916c26dc87c54bafdaa784d18f058efa275 on
+  exact7fde32264d757ef856acf3ae92c8581b4a294341/full898643939eb. The different
+  review's225 outcomes and six type groups are scoped; its maintained79/83 exit1
+  retains four RegexWorker-denied unqualified rows, not proven product failures
+  or83/83 passes. Original author27/28×3 and82/83 remain unchanged.
+- ROOT-qualified M1B fca6f81d2d96db2bbceabf3247cd57ffe240bde6 is consolidated in
+  db8b818db983f32c9522ebe4c9589ca8766a5454:274 finite identities split208 stock,
+  32 mechanical,10 types,24 loaded. S01's18 mechanics/three loaded roles are
+  separate; S02/H09/private-writer SOURCE gaps, native6 UNRUN, old bare-OID and
+  deadline failures, nonexhaustive maps and strict eager practical caps remain.
+- New root integration319c0ae2f5e3decb3fced2280c6db004d0e7eb9b adds Git as
+  default80 with root/explicit commands/git APIs and aggregate discoveryBoundary;
+  top-level replacement is authoritative. All24 limits and all14 accepted module
+  files are unchanged. No runtime dependencies, native fallback or new Node/YQ/
+  XAN/declare/mapfile commands. Curl/SafeJS remain opt-in. No AGENTS rule changes.
+- Exact author selected treec83f352f057c64917f219eb938f54aa42cdab829 has292
+  build inputs:fixed79 plus14 Git files and only four root/package/README
+  replacements. Five maintained inventory files are prospectively versioned,
+  not historical fixed profiles. Preseal fed8df60, binding f23aecb8; one actual
+  selected build/offline pack/install/physical move, never a rawHEAD build.
+- Actual950-member package4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156
+  is864000 bytes:52 emitted Git members added,10 root/plugin/metadata members
+  changed,888 common members identical,0 removed. Each source/installed/moved
+  layout passes new public45/45, apply28/28, packs93/93, arrays12/12 and selected
+  coherence18/18. M1A is139/140 each:three preserved obsolete module-only export
+  assertions, not a proven Git query bug. Terminal AUTHOR_ASSERTION_FAILURES.
+- All six strict type groups pass their defined outcomes:three positive and
+  three negative with18 actual diagnostics;90 declarations authenticated/group.
+  Maintained four-file bodies83/83 under the admitted exact RegexWorker profile,
+  moved stream21/21. This new execution does not rescore the79 worker-deny profile.
+  One loaded registration mutant killed, exact restore passes, four binding
+  refusals succeed. These controls do not establish universal resource parity.
+-37 direct children closed/0 OS signals;4 observed RegexWorker create/exit pairs
+  and26 conservative loader reservations total67<=80. Worker exit1 reflects
+  library retirement; no worker-internal import/kernel/native-resource census.
+  Actual39.556s,3,083,451 captured child bytes,71,345,567 scratch bytes. Source,
+  dist and whole installed/moved inventories pass pre/post guards. Raw175
+  descriptors and full package are preserved without retained-root cleanup.
+- Fixture-only proposal2764c054 changes one old PUBLIC-NEGATIVE row to expect
+  the authorized root export/exact subpath; other139 rows/dependency assertions
+  unchanged. It is UNEXECUTED and does not change c83f/package4671 or rescore
+  139/140. No retry. Different public80 review and fixture-v2 acceptance remain.
+  Handoff4ade014242d6b6ceac254c41f53b46ca00102fbe:
+  `tests/integration/git-public-20260829/HANDOFF.md`. No global gate/Git/native
+  parity or overall superiority claim.

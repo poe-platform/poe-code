@@ -1,0 +1,82 @@
+{
+  "schema": "k08-binding-preseal-v1",
+  "phaseStart": 1788017472734,
+  "phaseDeadline": 1788017952734,
+  "independentCommit": "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+  "richReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json",
+    "bytes": 5096,
+    "sha256": "bd5c3e5bddc871a929d510c734d95c1f5ac6d62ec5eb84e84be5e40ad23b5690",
+    "qualification": "Provenance only, never the four-field review hash slot."
+  },
+  "seal": {
+    "bytes": 199449,
+    "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+  },
+  "files": {
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/GO.template.json": {
+      "bytes": 954,
+      "sha256": "52dedb24b564e612b85b85e8b8d5ba095f1fe3e9a19e439d08d6dadf41571e6d"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/REVIEW.template.json": {
+      "bytes": 174,
+      "sha256": "6cec631186ab4a0064bad16a0ef358b22eaee57974a31f6b2d8439ca409b95aa"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/COMMAND.pending.txt": {
+      "bytes": 269,
+      "sha256": "6fb21c2f984890929227c963b511d021154f52a53c2cc65b89fb85b5a0ec4ffb"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation.mjs": {
+      "bytes": 2129,
+      "sha256": "f75cb6265047125c49f66b5f52d280359dbdabad9c734c4fd7daa54e892c8934"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json": {
+      "bytes": 5096,
+      "sha256": "bd5c3e5bddc871a929d510c734d95c1f5ac6d62ec5eb84e84be5e40ad23b5690"
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation-v1/prepare-binding.mjs": {
+      "bytes": 4393,
+      "sha256": "3afe4f749bf9f31357f70271abde2c412e36c3b9817cb897e9c5891d37659497"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "helperStarts": 1,
+  "productCalls": 0,
+  "limits": {
+    "knownOS": 22,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "command": {
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",
+      "--allow-fs-read=/private/tmp/safe-bash-k08-author-RAvH2m",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json",
+      "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation-v1/prepare-binding.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation-v1",
+    "env": {
+      "HOME": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t",
+      "PATH": "",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    }
+  },
+  "qualification": "One DATA-only binding/schema helper. No archive decode, product, compiler, Worker, native, build or activation."
+}

@@ -1,0 +1,54 @@
+METADATA Success. Updated the following files:
+M /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/PACKET.json
+M /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/REVIEW-READY.md
+HASH_PID=13448
+HASH_WAIT_EXIT=0
+4da24e5b3f8376885988e95d20287036df81e63eead1c8712f0d3a953e31bfba  /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/PACKET.json
+40bd81f2d9c6c5be49b120bf9a11190767ab12f944c2318e261ec025e15ab85c  /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/launch.sh
+edae83044ef235b985cb5beb6d1cdd0e1d74ebb3ca98e8b9e3e524544ff281eb  /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/bootstrap.mjs
+708f5ec08e39a86efa848699c3fb1c8fb840b6eb72df16e0885fae765877ea47  /Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/RESULT.json
+CURRENT_PACKET bytes=9442 sha256=4da24e5b3f8376885988e95d20287036df81e63eead1c8712f0d3a953e31bfba receiptBytes=86301
+[main d421bcb70285c20d56596a88e7f805a082c69676] Bind accepted final producer data review without runtime activation
+ 5 files changed, 10 insertions(+), 56 deletions(-)
+
+
+FILE HANDOFF.md # Final smoke runnable r5 finalization
+
+The activation schema remains the minimally versioned R4 schema. Fresh r5 output paths and the ROOT-extended 18:10/18:30 limits are bound; no prior STOP or actual grant is reused. Three subsequent Node syntax checks passed for bootstrap.mjs, runtime.mjs and consumer-entry.mjs; see SYNTAX-RESULT.json and raw syntax captures. This closes the preparation-time syntax-pending field without claiming runtime execution.
+
+8/8 PURE/SOURCE groups. Complete relative helper graph 16files, consumer loader membership 10. No product/setup/loader/install execution. Exact24 scripts/oracles retained.
+
+Packet 9149B SHA256 4b8c9b8c8c937cb14e2978a0a123824ed066072839d5ea4a2101c2e847edd3db. RESULT SHA256 70844ecba7f4c7e3542377bdfa1408736e1f9a6a0f42dddef811afcd873a9c42. COMMANDS.json resolves launcher,packet,cwd and dynamic grant digest/length slots. Grant template PENDING is intentionally inadmissible; producer and executable independent seals required.
+
+Fixed1200s starts at captured activation before admission,180publication; actualstart latest18:10UTC,absoluteexpiry18:30. Each layout90s execution+30s owned retirement reserve=120s; no per-case30s claim. Unknown capture/exit/close/EOF or missing semantic result/disposal stops following layouts. Ordinary failure retained, no retry.
+
+Source-built copies freshly admitted actual producer emissions; offline npm uses full pinned npm closure, scriptsdisabled/ownedemptyconfig; actual installed package is physically renamed after installed retirement and dev/ino checked. Host0644→0600 derives exactumask077; source0644 preserved. Child helper tree is owned staged copy with exactfullfile membership, no broad repository read. Checkedwrite/close/post-retirementhash loader+zeroWorker preload,3async-loader admissions.
+
+330506183B base reservation/512MiB sampled/quiescent ceiling; actual ownedtree including evidence copies sampled after known closure. Cache not sampled live; no liveENOENT waiver, OS/RSS/peak claim.64MiB capture partition reserves metadata/trace/startuptail. Publication DATA-only no Git subprocess automatically; ownerexit pending external tool observation. Initial launchtool/Nodebootstrap trustedhost boundary. ActualROOTgrant/newreview required.
+
+
+FILE COMMANDS.json {"command":"/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/launch.sh /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/PACKET.json 4da24e5b3f8376885988e95d20287036df81e63eead1c8712f0d3a953e31bfba 9442 /private/tmp/FINAL-SMOKE-R4-ROOT-GO.json ROOT_GRANT_SHA256 ROOT_GRANT_BYTES","cwd":"/Users/kjopek/Workspace/safe-bash","login":false,"dynamicSlots":["ROOT_GRANT_SHA256","ROOT_GRANT_BYTES"],"grantTemplate":"/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/GRANT-TEMPLATE.json","producerReview":"fc4afd513d7dec3c288a68e9b5deda9ac3a46b34","preexecReview":"PENDING","noActualAuthority":true}
+
+
+FILE ACTIVATION-BINDING.json {"packet":{"path":"/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/PACKET.json","bytes":9442,"sha256":"4da24e5b3f8376885988e95d20287036df81e63eead1c8712f0d3a953e31bfba"},"launcher":{"path":"/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/launch.sh","bytes":346,"sha256":"40bd81f2d9c6c5be49b120bf9a11190767ab12f944c2318e261ec025e15ab85c"},"bootstrap":{"path":"/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/bootstrap.mjs","bytes":1630,"sha256":"edae83044ef235b985cb5beb6d1cdd0e1d74ebb3ca98e8b9e3e524544ff281eb"},"producerReview":"fc4afd513d7dec3c288a68e9b5deda9ac3a46b34","producerReviewReceipt":{"path":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/RESULT.json","bytes":86301,"sha256":"708f5ec08e39a86efa848699c3fb1c8fb840b6eb72df16e0885fae765877ea47"},"preexecReview":"PENDING","rootAuthorization":"PENDING","rootGrantDigestAndLength":"PENDING_ACTUAL_WRITTEN_BYTES","syntaxChecks":"OBSERVED_3_OF_3_SEPARATE_SYNTAX_RESULT_SOURCE_UNCHANGED","latestStartUTC":"2026-08-29T18:10:00.000Z","absoluteExpiryUTC":"2026-08-29T18:30:00.000Z","activationClock":"1200s from captured bootstrap start including180s publication"}
+
+FILES [
+  'ACTIVATION-BINDING.json',
+  'COMMANDS.json',
+  'DERIVATION.json',
+  'GRANT-TEMPLATE.json',
+  'HANDOFF.md',
+  'PACKET.json',
+  'PRESEAL.json',
+  'RESULT.json',
+  'REVIEW-READY.md',
+  'SYNTAX-RESULT.json',
+  'bootstrap.mjs',
+  'consumer-entry.mjs',
+  'finish.mjs',
+  'launch.sh',
+  'policy.mjs',
+  'publication-raw',
+  'raw',
+  'runtime.mjs'
+]

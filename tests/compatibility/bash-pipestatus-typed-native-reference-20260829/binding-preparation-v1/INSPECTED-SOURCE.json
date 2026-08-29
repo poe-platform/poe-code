@@ -1,0 +1,69 @@
+{
+  "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+  "treeSha256": "75523c0dc529eb3a930a0f04affa6d0f23316e006cfa9e9079e31d52ba7494df",
+  "authenticated": [
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/admission.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "4907d0ddf17d7a8ac3300f395fc9b4e1ac1ffc6e",
+      "size": 9767,
+      "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PRESEAL.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "dfcec1a1033e28baa464ce009ae60699c01ff1ed",
+      "size": 3283,
+      "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/READY-SEAL.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "b1737730518141131eea2960b13f13525bf90a74",
+      "size": 11288,
+      "sha256": "798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/GO.template.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "f4d88d25d56ce1b3bfebd87c8bff3349eb279546",
+      "size": 1760,
+      "sha256": "75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/REVIEW-ACCEPTANCE.template.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "6a0c95e788fca1eb1547913ccfc5cf56e8a5d660",
+      "size": 361,
+      "sha256": "8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/APPROVAL-PROPOSAL.template.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "3dbe85556046c13b12b1f01e8bf413da12203cdf",
+      "size": 2861,
+      "sha256": "8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e",
+      "liveMode": 384
+    },
+    {
+      "file": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/HANDOFF.md",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "2157f852270288c9baf2f3e87a3d9c9674ff4af0",
+      "size": 3360,
+      "sha256": "3e547b4b0fbb53d6ee024006e2b13ca1e8e7c72d06126df7ee6562086c646678",
+      "liveMode": 384
+    }
+  ]
+}

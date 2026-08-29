@@ -1,0 +1,71 @@
+commit 987886897c2d013fcb31e1f2db0d073439d558db
+Author:     Kamil Jopek <kjopek@bamboo.quora.net>
+AuthorDate: Sat Aug 29 09:12:08 2026 -0500
+Commit:     Kamil Jopek <kjopek@bamboo.quora.net>
+CommitDate: Sat Aug 29 09:12:08 2026 -0500
+
+    test: publish typed PIPESTATUS six-native preexecution verdict
+
+ .../ACCOUNTING.md                                  |  11 +
+ .../EXECUTION.json                                 |   7 +
+ .../FULL-OWNED-SNAPSHOT.json                       | 636 +++++++++++++++++++++
+ .../PUBLICATION-SNAPSHOT.json                      | 104 ++++
+ .../RECEIPT.json                                   | 153 +++++
+ .../REPORT.md                                      |  23 +
+ .../RESULT.json                                    | 132 +++++
+ .../SCRATCH-SNAPSHOT.json                          |  13 +
+ .../accounting.mjs                                 |  57 ++
+ .../raw/D01.json                                   |   6 +
+ .../raw/D02.json                                   |   6 +
+ .../raw/D03.json                                   |   6 +
+ .../raw/D04.json                                   |   6 +
+ .../raw/D05.json                                   |   6 +
+ .../raw/D06.json                                   |   6 +
+ .../raw/D07.json                                   |   6 +
+ .../raw/D08.json                                   |   6 +
+ .../raw/D09.json                                   |   6 +
+ .../raw/D10.json                                   |   6 +
+ .../raw/D11.json                                   |   6 +
+ .../raw/D12.json                                   |   6 +
+ .../raw/N01.json                                   |   6 +
+ .../raw/N02.json                                   |   6 +
+ .../raw/N03.json                                   |   6 +
+ .../raw/N04.json                                   |   6 +
+ .../raw/N05.json                                   |   6 +
+ .../raw/N06.json                                   |   6 +
+ .../raw/N07.json                                   |   6 +
+ .../raw/N08.json                                   |   6 +
+ ...pestatus-typed-review-bootstrap-20260829.stderr |   0
+ ...pestatus-typed-review-bootstrap-20260829.stdout |   2 +
+ ...us-typed-review-controls-source-20260829.stderr |   0
+ ...us-typed-review-controls-source-20260829.stdout |  56 ++
+ .../pipestatus-typed-review-fields-20260829.stderr |   0
+ .../pipestatus-typed-review-fields-20260829.stdout | 387 +++++++++++++
+ ...-typed-review-implementation-v2-20260829.stderr |   0
+ ...-typed-review-implementation-v2-20260829.stdout |   6 +
+ ...pipestatus-typed-review-inspect-20260829.stderr |   0
+ ...pipestatus-typed-review-inspect-20260829.stdout | 114 ++++
+ .../events.jsonl                                   |   5 +
+ .../handoff.stderr                                 |   0
+ .../handoff.stdout                                 |  17 +
+ ...pipestatus-typed-review-prepare-20260829.stderr |   0
+ ...pipestatus-typed-review-prepare-20260829.stdout |   4 +
+ .../events.jsonl                                   |   5 +
+ .../syntax-replay.stderr                           |   0
+ .../syntax-replay.stdout                           |   0
+ ...yped-review-publication-inspect-20260829.stderr |   0
+ ...yped-review-publication-inspect-20260829.stdout | 206 +++++++
+ .../pipestatus-typed-review-replay-20260829.stderr |   0
+ .../pipestatus-typed-review-replay-20260829.stdout |   4 +
+ .../events.jsonl                                   |   5 +
+ .../pure-replay.stderr                             |   0
+ .../pure-replay.stdout                             |   1 +
+ .../pipestatus-typed-review-seal-20260829.stderr   |   0
+ .../pipestatus-typed-review-seal-20260829.stdout   |   4 +
+ .../commit-preseal.stderr                          |   0
+ .../commit-preseal.stdout                          |  25 +
+ .../events.jsonl                                   |   8 +
+ .../stage-preseal.stderr                           |   0
+ .../stage-preseal.stdout                           |   0
+ .../work/fd/outer/bootstrap.stdout                 |   0
+ 62 files changed, 2105 insertions(+)

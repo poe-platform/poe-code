@@ -1,0 +1,28 @@
+{
+  "schema": "ATTEMPT02_INDEPENDENT_SOURCE_DATA_REVIEW_V1",
+  "status": "READY_FOR_FRESH_ROOT_GRANT_SELECTION_ONLY",
+  "isAdmissionGrant": false,
+  "actualAuthorized": false,
+  "sourcePresealCommit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+  "evidenceCommit": "e16ab245ff3f1edf6700cba59f3ac7ac546df1a9",
+  "publicationTailCommit": "02e60f4dc0a1abf185dd89b180040439c49ce197",
+  "repairSealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+  "ownerSealSha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2",
+  "preparationDirectory": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation",
+  "interface": { "relativePath": "wrapper-v3/EXECUTION-INTERFACE.json", "sha256": "9be495e1769242cd7dac35596aaf984858fd57300b4a81a04608bc0f907124d6" },
+  "wrapper": { "relativePath": "wrapper-v3/FUTURE-LAUNCH.sh.data", "sha256": "31564e60654168079ac586fcd526fbd2f7882094275bab028704710e724272bb", "argument": "EXACT_FRESH_AUTH_RAW_SHA256", "shell": "/bin/sh", "umask": "022", "execReplacementRequired": true },
+  "profile": { "relativePath": "wrapper-v3/FUTURE-PROFILE.json", "sha256": "485ac8e433cf2a10e1e197b321e0bd2cc20216e4230cea2ac86f0a0dbb2cb017", "plannedProcesses": 67, "administration": 20, "allOwnedCap": 128, "peak": 5, "ownerMs": 4500000, "adminMs": 900000, "totalCaptureBytes": 269484032, "innerUnchangedBytes": 268435456, "outerBytes": 524288, "adminBytes": 524288, "workingBytes": 805306368 },
+  "hostAllowance": { "relativePath": "wrapper-v3/HOST-ENVIRONMENT-ALLOWANCE.json", "sha256": "d344927ec0b3ee25f62e9ed994973f15295cced45e69200f814f81491e5ec658", "platform": "darwin", "uid": 501, "soleKey": "__CF_USER_TEXT_ENCODING", "exactValue": "0x1F5:0x0:0x0", "valueBytes": 13, "origin": "UNKNOWN", "hostToolOnly": true, "newProbeExecuted": false },
+  "authReviewUnchanged": { "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147", "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json", "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293" },
+  "outerAdjudicationSeparate": { "commit": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae", "path": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json", "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f" },
+  "data": { "path": "DATA-V2.json", "sha256": "dc3cdc74b1fa6ddf4835180be170eaf0f5bbc29b5c38864552061645a57b5372", "bindingObservations": 34, "distinctPaths": 30, "gitMetadataChildren": 3, "allThreeExitCloseZero": true, "originalHelperHoldPreserved": true, "correction": "Git executable-bit representation distinct from sealed physical0600/0644; identical blob; no source change or Git rerun" },
+  "streamAuthenticatedTools": [
+    { "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "bytes": 112989184, "mode": 493, "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011" },
+    { "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git", "bytes": 3704880, "mode": 493, "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9" }
+  ],
+  "authorEvidenceOnly": { "oldWrapper": "5/8 unchanged", "newTails": "3/3 M01-M03", "data": "26/26", "postguards": 80, "processAccounting": "38/48 retained across versions; not independently replayed" },
+  "executions": { "actualOwner": 0, "launcher": 0, "workers": 0, "engines": 0, "authorControls": 0, "nativeProbe": 0, "staging": 0, "semanticCalls": 0 },
+  "remaining": ["Fresh root actual GO", "Separate committed attempt02 grant/AUTH and exact raw hashes", "Full real frozen preflight including archive/closure/tools and unused namespaces", "Use exact exec-replaced wrapper and account any additional waiting caller", "Actual cleanup/capture/terminal reconciliation under existing stop policy", "Separate semantic cohort GO"],
+  "preserved": ["6472790e STOP0/14 and212/212 scoped capture", "bb2effc6 byte-unchanged publication", "all historical HOLDs and consumed grants", "V6 irrecoverable294045", "N02 FAIL7/8 observed loss718 without tail inference", "W07 UNQUALIFIED_UNCREDITED and historical scores"],
+  "noUniversalLosslessnessRssPreemptionOrGlobalCensusClaim": true
+}

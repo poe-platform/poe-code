@@ -1,6 +1,6 @@
 import { EreProfileLimitError } from "../errors.js";
 import type { EreExpansionBounds, EreLimits, EreUsage } from "../types.js";
-import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply } from "./accounting.js";
+import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from "./accounting.js";
 import { EreWorkerOwner } from "./owner.js";
 import { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from "./protocol.js";
 import type { EreCleanupRegistration, EreTransportInput, EreTransportRequest, EreTransportResult, EreTransportSession } from "./protocol.js";
@@ -173,21 +173,23 @@ export class EreTransportRoot {
   async #execute(ticket: Ticket): Promise<EreTransportResult> {
     let replyStorage: StorageReservation | undefined;
     let grant: EreLimits | undefined;
-    let sent = false;
+    let observed = false;
     let reconciled = false;
     try {
       this.#check(ticket);
+      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);
+      if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError("work", grant.work);
       replyStorage = this.#transport.reserve(479);
       if (!this.#worker) {
         this.#workerMetadata = this.#transport.owned(metadataUnits.worker);
         this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);
+        observed = true;
       }
       await this.#worker.start();
       this.#check(ticket);
-      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);
       const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };
       this.#transport.visit(ticket.requestUnits);
-      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); sent = true; });
+      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); observed = true; });
       const validated = validateReply(message, request, units => this.#transport.visit(units), this.#transport);
       this.#engine.commit(grant, validated.reply.usage); reconciled = true;
       replyStorage.settle(2 * validated.replyUnits + validated.resultUnits);
@@ -201,8 +203,8 @@ export class EreTransportRoot {
       return copyReplyResult(reply, this.#transport);
     } catch (reason) {
       if (grant && !reconciled) {
-        this.#engine.abandon(grant, sent);
-        if (sent) { replyStorage?.unknown(); this.#fail(reason); }
+        this.#engine.abandon(grant, observed);
+        if (observed) { replyStorage?.unknown(); this.#fail(reason); }
       }
       if (this.#worker && (this.#failurePresent || ticket.cancelled)) await this.#retireWorker().catch(() => {});
       if (ticket.signal?.aborted) throw ticket.signal.reason;

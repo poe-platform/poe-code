@@ -2,13 +2,17 @@ import { EreLedger } from "../limits.js";
 import { compileEre } from "../syntax.js";
 import { matchEre } from "../matcher.js";
 import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../errors.js";
+import { add, workerReplyValidationWork } from "./accounting.js";
 import { operation } from "./protocol.js";
 import type { EreTransportReply } from "./protocol.js";
 import { validateReply, validateRequest } from "./validation.js";
 
-export async function executeWireRequest(value: unknown): Promise<EreTransportReply> {
-  const request = validateRequest(value);
+export async function executeWireRequest(value: unknown, entryWork = 0): Promise<EreTransportReply> {
+  const prepaidWork = add(entryWork, workerReplyValidationWork);
+  let requestWork = 0;
+  const request = validateRequest(value, prepaidWork, units => { requestWork = add(requestWork, units); });
   const ledger = new EreLedger(request.bounds, request.allowance);
+  ledger.charge("work", add(prepaidWork, requestWork));
   let reply: EreTransportReply;
   try {
     const program = await compileEre(request.pattern, ledger);
@@ -29,6 +33,12 @@ export async function executeWireRequest(value: unknown): Promise<EreTransportRe
       usage: ledger.usage,
     };
   }
-  validateReply(reply, request, () => {});
+  let replyWork = 0;
+  validateReply(reply, request, units => {
+    replyWork = add(replyWork, units);
+    if (replyWork > workerReplyValidationWork) throw new EreProfileLimitError("work", workerReplyValidationWork);
+  });
+  replyWork = add(replyWork, add(7, reply.kind === "result" ? reply.result.spans.length : 0));
+  if (replyWork > workerReplyValidationWork) throw new EreProfileLimitError("work", workerReplyValidationWork);
   return reply;
 }

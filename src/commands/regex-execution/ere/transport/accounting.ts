@@ -18,6 +18,15 @@ export function multiply(value: number, factor: number): number {
   return value * factor;
 }
 
+export const workerReplyValidationWork = 210;
+
+export function workerValidationPrepayment(requestUnits: number, fragments: number): number {
+  integer(requestUnits);
+  if (requestUnits < 47) throw new EreTransportError("PROTOCOL", "invalid ERE request units");
+  integer(fragments);
+  return add(add(requestUnits, 205), fragments);
+}
+
 export const metadataUnits = Object.freeze({
   root: 18 + 5 + 7 + 3 + 8 + 8 + 2 + 10,
   session: 3 + 2,

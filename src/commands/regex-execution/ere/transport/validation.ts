@@ -130,19 +130,30 @@ export function copyInput(inspected: InspectedInput, transport: TransportAccount
   return Object.freeze({ pattern: Object.freeze(pattern), subject: inspected.input.subject });
 }
 
-export function validateRequest(value: unknown): EreTransportRequest {
-  let work = 0;
-  const visit = (amount: number): void => { work = add(work, amount); if (work > 50_000_000) fail(); };
+export function validateRequest(value: unknown, prepaidWork = 0, observed?: (units: number) => void): EreTransportRequest {
+  integer(prepaidWork);
+  let work = prepaidWork;
+  let workLimit: number | undefined;
+  const visit = (amount: number): void => {
+    const next = add(work, amount);
+    if (workLimit !== undefined && next > workLimit) throw new EreProfileLimitError("work", workLimit);
+    work = next;
+    observed?.(amount);
+  };
   const frame = record(value, ["version", "operation", "id", "grantId", "profile", "bounds", "allowance", "pattern", "subject"], visit);
   if (frame.version !== 1 || frame.operation !== operation || frame.profile !== profile) return fail();
   integer(frame.id); integer(frame.grantId); if (frame.id === 0 || frame.grantId === 0) return fail();
   const bounds = record(frame.bounds, ["maxExpansionBytes", "maxExpansionFields"], visit);
   integer(bounds.maxExpansionBytes); integer(bounds.maxExpansionFields);
   const limits = deriveEreLimits({ maxExpansionBytes: bounds.maxExpansionBytes, maxExpansionFields: bounds.maxExpansionFields });
-  usage(frame.allowance, limits, visit);
+  visit(resources.length);
+  const allowance = usage(frame.allowance, limits, visit);
+  workLimit = allowance.work;
+  if (work > workLimit) throw new EreProfileLimitError("work", workLimit);
   const fragments = array(frame.pattern, Math.floor(limits.allocationUnits / 8), visit);
   let bytes = 0;
   for (let index = 0; index < fragments.length; index++) {
+    visit(1);
     const item = indexed(fragments, index);
     const fragment = record(item, ["text", "literal"], visit);
     const text = ascii(fragment.text, limits.patternBytes - bytes, visit);

@@ -1,0 +1,15 @@
+{
+  "groups": 20,
+  "regressionBodies": "P01-P12 unchanged from historical pure-controls.mjs.data; new candidate only",
+  "newGroups": [
+    "SC13 prepayment exact/entry",
+    "SC14 exhaustion/admission",
+    "SC15 malformed/falsy/strict data",
+    "SC16 historical39 and nonzero work/alias",
+    "SC17 maximum210 and exhausted engine headroom",
+    "SC18 semantic failures bound69",
+    "SC19 cumulative/highwater/T-H separate",
+    "SC20 unknown acquired grant no refund"
+  ],
+  "runtimeVariantsUnrun": 60
+}

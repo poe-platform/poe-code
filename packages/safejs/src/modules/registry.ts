@@ -99,14 +99,16 @@ function bindImportDeclaration(
 
   const wrappedExports =
     wrappedModules.get(moduleName) ??
-    wrapCancelableBindings(
-      wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
-        budget: options.budget,
-        hostCalls: options.hostCalls,
-        moduleId: moduleName,
-        signal: options.signal
-      }),
-      options.signal
+    createBindingRecord(
+      wrapCancelableBindings(
+        wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
+          budget: options.budget,
+          hostCalls: options.hostCalls,
+          moduleId: moduleName,
+          signal: options.signal
+        }),
+        options.signal
+      )
     );
 
   wrappedModules.set(moduleName, wrappedExports);
@@ -136,7 +138,7 @@ function resolveImportSpecifier(
   wrappedExports: Record<string, SandboxValue>
 ): SandboxValue {
   if (specifier.type === "ImportNamespaceSpecifier") {
-    return createBindingRecord(wrappedExports);
+    return wrappedExports;
   }
 
   const exportName =

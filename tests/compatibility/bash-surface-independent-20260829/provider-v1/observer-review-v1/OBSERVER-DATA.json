@@ -1,0 +1,79 @@
+{
+  "schema": "observer-catch-source-data-review-v1",
+  "role": "Five DATA projections only, not execution of retained runner or process observer; no signals/probes",
+  "sourceAnchor": "../unified-log-v1/runner.mjs:35",
+  "rows": [
+    {
+      "input": {
+        "id": "ESRCH",
+        "name": "Error",
+        "code": "ESRCH"
+      },
+      "sourceEquivalentProjection": {
+        "absent": true,
+        "markers": []
+      }
+    },
+    {
+      "input": {
+        "id": "EPERM",
+        "name": "Error",
+        "code": "EPERM"
+      },
+      "sourceEquivalentProjection": {
+        "absent": false,
+        "markers": [
+          "GROUP_CHECK_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "input": {
+        "id": "EINVAL",
+        "name": "Error",
+        "code": "EINVAL"
+      },
+      "sourceEquivalentProjection": {
+        "absent": false,
+        "markers": [
+          "GROUP_CHECK_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "input": {
+        "id": "ambient-call-TypeError",
+        "name": "TypeError"
+      },
+      "sourceEquivalentProjection": {
+        "absent": false,
+        "markers": [
+          "GROUP_CHECK_UNKNOWN"
+        ]
+      }
+    },
+    {
+      "input": {
+        "id": "unexpected-Error",
+        "name": "Error"
+      },
+      "sourceEquivalentProjection": {
+        "absent": false,
+        "markers": [
+          "GROUP_CHECK_UNKNOWN"
+        ]
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "id": "ESRCH-is-only-explicit-absent",
+      "pass": true
+    },
+    {
+      "id": "four-distinct-error-descriptions-collapse",
+      "pass": true
+    }
+  ],
+  "limitation": "These hypothetical error descriptions demonstrate information loss. None is asserted to be the historical thrown error."
+}

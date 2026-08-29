@@ -1,0 +1,26 @@
+{
+  "schema": "observer-review-publication-checkpoint-v1",
+  "at": 1787983495561,
+  "phaseCapture": "/tmp/bash-surface-observer-review-OSOYjw",
+  "limits": {
+    "allProcesses": 24,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "started": 1787983159309,
+  "deadline": 1787984059309,
+  "knownAdminChildren": 5,
+  "knownAdminChildrenExitedClosed": true,
+  "activeAdmin": 0,
+  "registeredPeak": 1,
+  "capturedAdminStreamsBytes": 2346,
+  "historicalStateUnchanged": true,
+  "historicalGroup": "UNKNOWN",
+  "groupChecksThisPhase": 0,
+  "signalsThisPhase": 0,
+  "logQueriesThisPhase": 0,
+  "nativeTargetLaunchesThisPhase": 0,
+  "publicationTail": "This file and manifest are followed by explicit dev-Git publication/status. Final actual counts are retained in fresh outer capture, never substituted for historical STOP.",
+  "observability": "Known administrative child/stdio observation, no kernel-wide descendant census or RSS claim."
+}

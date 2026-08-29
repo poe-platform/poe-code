@@ -1,0 +1,139 @@
+INSPECTION {"at":"2026-08-29T12:12:11.917Z","pid":79314,"mode":"SOURCE_DATA_ONLY"}
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs","bytes":15763,"sha256":"6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"}
+1:import assert from 'node:assert/strict';
+2:import { createHash } from 'node:crypto';
+3:
+4:export const defaultNames = Object.freeze(['[','apply_patch','awk','base32','base64','basename','cat','chmod','cksum','column','comm','cp','cut','date','diff','dirname','du','echo','egrep','env','expand','expr','false','fgrep','file','find','fold','git','grep','gunzip','gzip','head','html-to-markdown','join','jq','ln','ls','md5sum','mkdir','mktemp','mv','nl','od','paste','patch','printenv','printf','pwd','readlink','realpath','rev','rg','rm','rmdir','sed','seq','sha1sum','sha256sum','sleep','sort','split','stat','strings','tac','tail','tar','tee','test','timeout','touch','tr','tree','true','unexpand','uniq','wc','which','xargs','xxd','zcat']);
+5:export const workflowIds = Object.freeze(Array.from({ length: 18 }, (_, index) => 'C' + String(index + 1).padStart(2, '0')));
+6:export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);
+7:export const engineFreeIds = Object.freeze(workflowIds.filter(id => !engineIds.includes(id)));
+8:const encode = value => new TextEncoder().encode(value);
+9:const text = value => new TextDecoder().decode(value);
+10:const outcome = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
+11:const turn = () => new Promise(resolve => setImmediate(resolve));
+12:function deferred() { let resolve; const promise = new Promise(accept => { resolve = accept; }); return { promise, resolve }; }
+13:function quote(value) { return "'" + value.replaceAll("'", "'\\''") + "'"; }
+14:const gitBlob = value => { const body = Buffer.from(value); return createHash('sha1').update('blob ' + body.length + '\0').update(body).digest('hex'); };
+15:const expectedDiff = replacement => 'diff --git a/README.md b/README.md\nindex ' + gitBlob('hello staged\n').slice(0, 7) + '..' + gitBlob(replacement + '\n').slice(0, 7) + ' 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello staged\n+' + replacement + '\n';
+16:
+17:export async function runWorkflow(id, context) {
+18:  assert.ok(workflowIds.includes(id));
+19:  const { api, nodeApi, fixture } = context;
+20:  if (engineIds.includes(id)) assert.equal(context.engine?.role, 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE');
+21:  const shells = [], releases = new Set(), events = [], memory = new api.MemoryFileSystem();
+22:  let prepares = 0, failure, failed = false;
+23:  const facts = { id, role: engineIds.includes(id) ? 'PUBLIC_ENGINE_REQUIRED' : 'ENGINE_FREE_PRODUCT_PROFILE', status: 'UNRUN', events };
+24:  const inert = { profile: nodeApi.NODE_PROFILE, identity: 'coherent-never-started-provider', prepare() { prepares++; throw new Error('unexpected provider preparation'); } };
+25:  const make = (filesystem = memory, cwd = '/') => { const shell = new api.Shell({ fs: filesystem, cwd, env: {} }); shell.use(api.agentCommands()); shells.push(shell); return shell; };
+26:  const addNode = (shell, grants = {}, provider = inert, replace = false) => shell.use(nodeApi.nodeCommands({ provider, grants, replace }));
+27:  const realProvider = () => {
+28:    const provider = context.engine.createProvider();
+29:    return { profile: provider.profile, identity: provider.identity, prepare(request, services) { prepares++; facts.requests ??= []; facts.requests.push({ argv: [...request.argv], cwd: request.cwd, filename: request.filename, selector: request.selector }); return provider.prepare(request, services); } };
+30:  };
+31:  const expect = async (shell, script, stdout, status = 0) => { const result = await shell.exec(script); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.equal(result.stderr, ''); return result; };
+32:  const fixtureSetup = async () => {
+33:    assert.equal(fixture.virtualRoot, '/repo'); assert.equal(fixture.oids.headCommit, '1cec77171d8321d533b3aa50b7a1a9df02b10816');
+34:    for (const entry of fixture.files) {
+35:      const filename = '/repo/' + entry.path; assert.ok(!entry.path.split('/').includes('..') && !entry.path.startsWith('/'));
+36:      await memory.mkdir(filename.slice(0, filename.lastIndexOf('/')), { recursive: true });
+37:      if (Object.hasOwn(entry, 'symlink')) await memory.symlink(entry.symlink, filename);
+38:      else await memory.writeFile(filename, Object.hasOwn(entry, 'base64') ? new Uint8Array(Buffer.from(entry.base64, 'base64')) : encode(entry.text), { mode: entry.mode });
+39:    }
+40:  };
+41:  const gitSnapshot = async () => Promise.all(fixture.files.filter(entry => entry.path.startsWith('.git/')).map(async entry => [entry.path, Buffer.from(await memory.readFile('/repo/' + entry.path)).toString('base64')]));
+42:  const curl = (shell, redirect = false) => {
+43:    const authorized = [], requests = [], disposals = [];
+44:    shell.use(api.networkCommands({ authorize(request) { authorized.push(request.url); return ['https://one.invalid/start','https://two.invalid/end'].includes(request.url); }, async transport(request) {
+45:      requests.push({ url: request.url, headers: request.headers.map(pair => [...pair]) });
+46:      const isRedirect = redirect && request.url === 'https://one.invalid/start';
+47:      return { status: isRedirect ? 302 : 200, statusText: isRedirect ? 'Found' : 'OK', headers: isRedirect ? [['location','https://two.invalid/end']] : [], body: (async function* () { if (!isRedirect) yield encode('{"text":"hello changed\\n"}\n'); })(), async dispose() { disposals.push(request.url); } };
+48:    } }));
+49:    return { authorized, requests, disposals };
+50:  };
+51:  try {
+52:    if (id === 'C01') {
+53:      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+54:      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+55:      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+56:      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+57:      assert.throws(() => nodeApi.nodeCommands({}));
+58:    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
+59:    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
+60:    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
+61:    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
+62:    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
+63:    else if (id === 'C07') {
+64:      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
+65:      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
+66:      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
+67:    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }
+68:    else if (id === 'C09') {
+69:      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
+70:      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
+71:      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
+72:    } else if (id === 'C10') {
+73:      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
+74:      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+75:      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
+76:    } else if (id === 'C11') {
+77:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
+78:      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+79:      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
+80:      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
+81:      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
+82:      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
+83:    } else if (id === 'C12') {
+84:      const shell = make(), network = curl(shell, true);
+85:      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
+86:      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
+87:      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
+88:      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
+89:    } else if (id === 'C13') {
+90:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
+91:      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
+92:      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
+93:      assert.deepEqual(await gitSnapshot(), before);
+94:    } else if (id === 'C14') {
+95:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
+96:      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
+97:      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
+98:      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
+99:      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
+100:    } else if (id === 'C15') {
+101:      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
+102:      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+103:      const result = await shell.exec(`node -e ${quote('require("fs").writeFileSync("/keep","changed");')}`);
+104:      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /EROFS/); assert.equal(text(await memory.readFile('/keep')), 'original');
+105:    } else if (id === 'C16') {
+106:      const entered = deferred(), release = deferred(), controller = new AbortController(); const original = memory.readFile.bind(memory);
+107:      const releaseOwned = () => { events.push('release'); release.resolve(); }; releases.add(releaseOwned);
+108:      memory.readFile = async (filename, options) => { if (filename !== '/held') return original(filename, options); events.push('read-enter'); entered.resolve(); await release.promise; events.push('read-finalized'); throw options.signal.reason; };
+109:      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+110:      shell.commands.register({ name: 'guard', execute(command) { command.registerCleanup(async () => { events.push('cleanup-enter'); await release.promise; events.push('cleanup-finished'); }); return command.invoke('node', ['-e','require("fs").readFileSync("/held","utf8");']); } });
+BINDING {"relative":"tests/integration/node-public-author-20260829/run-v3.mjs","bytes":37717,"sha256":"c1a6f794f175ff3dcd591c7a9bc93779dab277e199ca18ace201cc7778cb026c"}
+128:  }
+129:}
+130:let nodeWorkers=0,guestEntries=0;
+131:const nodeFixtures=path.join(harness,'node');
+132:async function setupNodeFixtures(){
+133: const from=path.join(repo,'tests/commands/node-author-20260829/validation-v2/author-v5');
+134: const inherited=JSON.parse(gunzipSync(Buffer.from((await fs.readFile(path.join(from,'INPUTS-v1.json.gz.base64'),'utf8')).trim(),'base64'),{maxOutputLength:16777216}));
+135: assert.equal(inherited.engine.length,96);
+136: for(const row of inherited.engine){assert.ok((row.target.startsWith('compiled/engine/')||row.target==='compiled/support/errors.js')&&!row.target.split('/').includes('..')&&!row.target.endsWith('/AGENTS.md'));const body=Buffer.from(row.body,'base64');assert.equal(body.length,row.bytes);assert.equal(sha(body),row.sha256);await write(path.join(nodeFixtures,row.target.slice('compiled/'.length)),body);}
+137: const maps=[['focused-v5.mjs','tests/commands/node-independent-20260829/actual-review-v1/capsule-v3/focused-v5.mjs'],['workers-v5.mjs','tests/commands/node-independent-20260829/actual-review-v1/capsule-v3/workers-v5.mjs'],...['engine-adapter-v1.mjs','engine-adapter-noise-v1.mjs'].map(name=>[name,'tests/commands/node-author-20260829/validation-v2/author-v5/'+name]),...['public-node.mjs','node-batch.mjs','node-policy.mjs','node-load-guard.mjs'].map(name=>[name,'tests/integration/node-public-author-20260829/'+name])];
+138: for(const [name,origin]of maps){const bytes=await fs.readFile(path.join(repo,origin));const bound=executor.files.find(row=>row.path===origin);assert.ok(bound);assert.equal(sha(bytes),bound.sha256);await write(path.join(nodeFixtures,name),bytes);}
+139: receipt.engine={entries:inherited.engine.map(({body,...row})=>row),productDependency:false,qualification:'PUBLIC95 unchanged emitted engine plus package metadata, test-only explicitly supplied adapter; no private read or engine build'};
+140:}
+141:async function nodeBatch(label,product,role,ids,expected,expectedFailure=false){
+142: const root=await fs.realpath(product),moduleRoot=path.join(root,'dist');
+143: const realRoot=path.join(output,'node-real',label);await fs.mkdir(realRoot,{recursive:true});
+144: const files=[];
+145: for(const directory of [moduleRoot,nodeFixtures])for(const row of await inventory(directory))if(row.path.endsWith('.js')||row.path.endsWith('.mjs')){const filename=path.join(directory,row.path);const body=await fs.readFile(filename,'utf8');const builtins=[...new Set([...body.matchAll(/(?:from\s*|import\s*)["'](node:[^"']+)["']/gu)].map(match=>match[1]))].sort();files.push({...row,path:filename,builtins});}
+146: const manifestFile=path.join(harness,'load-manifest.json');await fs.writeFile(manifestFile,JSON.stringify({files,aliases:{'virtual-bash':path.join(moduleRoot,'index.js'),'virtual-bash/commands/node':path.join(moduleRoot,'commands/node/index.js')}}));
+147: const log=path.join(output,label+'-node-resources.jsonl');await write(log,'');
+148: const maximum=role==='focused'?0:role==='worker'?ids.length:Math.min(24,seal.bounds.nodeWorkers-nodeWorkers);
+149: assert.ok(maximum>=0);const policy={log,maximum,workerEntry:path.join(moduleRoot,'commands/node/worker-main.js'),adapters:['engine-adapter-v1.mjs','engine-adapter-noise-v1.mjs'].map(name=>new URL('file://'+path.join(nodeFixtures,name)).href)};
+150: await fs.writeFile(path.join(harness,'node-policy.json'),JSON.stringify(policy));
+151: const input={role,ids,moduleRoot,packageRoot:root,adapter:path.join(nodeFixtures,'engine-adapter-v1.mjs'),realRoot};const inputFile=path.join(output,label+'-input.json');await write(inputFile,JSON.stringify(input));
+152: const bindingBefore=await inventory(moduleRoot);
+153: const result=await child(label,process.execPath,['--experimental-permission','--allow-fs-read='+output,'--allow-fs-write='+output,'--allow-worker','--import',path.join(nodeFixtures,'node-policy.mjs'),'--import',path.join(nodeFixtures,'node-load-guard.mjs'),path.join(nodeFixtures,'node-batch.mjs'),inputFile],root);

@@ -1,0 +1,8 @@
+/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1/data.mjs:83
+  const selectedLines = retained.map(entry => ({ path: entry.path, sha256: entry.sha256, lines: entry.text.split('\n').filter(line => /(?:id:|\.push\(|for ?\(|for \(|const cases|const rows|export|length|case '/).test(line)).map(line => line.length > 1600 ? line.slice(0, 1600) + ' [DISPLAY ONLY TRUNCATED]' : line) }));
+                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /(?:id:|\.push\(|for ?\(|for \(|const cases|const rows|export|length|case '/: Unterminated group
+    at checkSyntax (node:internal/main/check_syntax:74:5)
+
+Node.js v22.22.2

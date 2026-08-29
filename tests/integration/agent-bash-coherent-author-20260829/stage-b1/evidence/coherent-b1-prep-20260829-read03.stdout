@@ -1,0 +1,139 @@
+INSPECTION {"at":"2026-08-29T12:11:17.090Z","pid":77202,"mode":"SOURCE_DATA_ONLY"}
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/stage-b/dispatch.mjs","bytes":5132,"sha256":"5780dbe8327aa30098c8bb977a82f536c088e2ad47b1e16659674ba71d593e1d"}
+1:import fs from 'node:fs';
+2:import path from 'node:path';
+3:import assert from 'node:assert/strict';
+4:import { pathToFileURL } from 'node:url';
+5:import { admitFile } from './admission.mjs';
+6:import { runWorkflow, engineFreeIds, engineIds } from './workflows.mjs';
+7:
+8:export async function main(args) {
+9:  assert.equal(args.length, 4);
+10:  assert.equal(args[0], '--run');
+11:  const request = JSON.parse(admitFile(args[1], { bytes: Number(args[3]), sha256: args[2] }, 1048576));
+12:  assert.equal(request.action, 'ROOT_RUN_COHERENT_STAGE_B');
+13:  assert.equal(request.sourceTree, '3adc676a0ab638c9788ef007e465931d65d2c6fe');
+14:  assert.equal(request.packageSha256, '2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
+15:  assert.ok(['engine-free', 'PUBLIC95'].includes(request.profile));
+16:  const ids = request.profile === 'engine-free' ? engineFreeIds : engineIds;
+17:  assert.deepEqual(request.ids, ids);
+18:  assert.ok(['source-built', 'installed', 'physically-moved'].includes(request.layout));
+19:  assert.equal(request.independentGrantRequired, true);
+20:  assert.ok(typeof request.rootAuthorization === 'string' && request.rootAuthorization.length > 0);
+21:  const packageRoot = fs.realpathSync(request.packageRoot);
+22:  assert.equal(packageRoot, request.packageRoot);
+23:  const membership = JSON.parse(admitFile(request.membership.path, request.membership, 1048576));
+24:  assert.equal(membership.length, 1014);
+25:  const expected = new Map(membership.map(row => [row.path, row]));
+26:  assert.equal(expected.size, 1014);
+27:  function verifyMembership() {
+28:    const observed = [];
+29:    function walk(directory, prefix = '') {
+30:      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+31:        const relative = prefix ? prefix + '/' + entry.name : entry.name;
+32:        const filename = path.join(directory, entry.name);
+33:        assert.ok(entry.name !== 'AGENTS.md' && !entry.isSymbolicLink());
+34:        if (entry.isDirectory()) walk(filename, relative);
+35:        else {
+36:          assert.ok(entry.isFile());
+37:          const row = expected.get(relative);
+38:          assert.ok(row, relative);
+39:          admitFile(filename, row, 16777216);
+40:          observed.push(relative);
+41:        }
+42:      }
+43:    }
+44:    walk(packageRoot);
+45:    assert.deepEqual(observed.sort(), [...expected.keys()].sort());
+46:  }
+47:  verifyMembership();
+48:  const metadata = JSON.parse(admitFile(path.join(packageRoot, 'package.json'), expected.get('package.json'), 1048576));
+49:  assert.equal(metadata.name, 'virtual-bash');
+50:  assert.deepEqual(metadata.dependencies ?? {}, {});
+51:  const rootUrl = import.meta.resolve('virtual-bash');
+52:  const nodeUrl = import.meta.resolve('virtual-bash/commands/node');
+53:  assert.equal(rootUrl, pathToFileURL(path.join(packageRoot, 'dist/index.js')).href);
+54:  assert.equal(nodeUrl, pathToFileURL(path.join(packageRoot, 'dist/commands/node/index.js')).href);
+55:  await assert.rejects(import('virtual-bash/commands/node/host'));
+56:  const fixture = JSON.parse(admitFile(request.fixture.path, request.fixture, 1048576));
+57:  const api = await import(rootUrl);
+58:  const nodeApi = await import(nodeUrl);
+59:  const observations = [];
+60:  let engine;
+61:  if (request.profile === 'PUBLIC95') {
+62:    const receipt = JSON.parse(admitFile(request.engineReceipt.path, request.engineReceipt, 131072));
+63:    assert.equal(request.engineReceipt.sha256, 'a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de');
+64:    assert.equal(receipt.productWorker.sha256, '2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d');
+65:    assert.equal(fs.realpathSync(request.adapter.path), request.adapter.path);
+66:    assert.equal(request.adapter.sha256, '2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d');
+67:    admitFile(request.adapter.path, request.adapter, 16384);
+68:    engine = {
+69:      role: 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE',
+70:      createProvider() {
+71:        return nodeApi.createNodeWorkerProvider({
+72:          entry: pathToFileURL(request.adapter.path).href,
+73:          identity: 'author-public-bb23-node-adapter-v1',
+74:          observe(event) { assert.ok(observations.length < 512); observations.push(event); },
+75:        });
+76:      },
+77:    };
+78:  } else {
+79:    assert.equal(Object.hasOwn(request, 'engineReceipt'), false);
+80:    assert.equal(Object.hasOwn(request, 'adapter'), false);
+81:  }
+82:  const rows = [];
+83:  for (const id of ids) {
+84:    const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+85:    try { rows.push(await runWorkflow(id, { api, nodeApi, fixture, engine })); }
+86:    catch (error) {
+87:      rows.push({ id, status: 'FAIL', detail: String(error?.stack ?? error), facts: error?.facts });
+88:      if (error?.facts?.cleanupFailure) throw error;
+89:    } finally { clearTimeout(timer); }
+90:  }
+91:  assert.equal(rows.length, ids.length);
+92:  assert.equal(new Set(rows.map(row => row.id)).size, ids.length);
+93:  verifyMembership();
+94:  console.log(JSON.stringify({ layout: request.layout, profile: request.profile, rows, observations }));
+95:  process.exitCode = rows.some(row => row.status !== 'PASS') ? 1 : 0;
+96:}
+97:
+98:if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) await main(process.argv.slice(2));
+99:
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/stage-b/PROPOSAL.md","bytes":9101,"sha256":"680f829588fcbb64c485aa051c2256414b82355b876cb5e0908f9f60e65e6e71"}
+28:authenticated public evidence archives as DATA only. It does not open any
+29:private pathname, materialize/import engine JavaScript, run an engine or prove
+30:a strict engine build. Historical source-path fields are not read locators.
+31:
+32:The receipt SHA is a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de.
+33:The adapter has SHA2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d;
+34:the new package's Worker entry has SHA2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d.
+35:The engine stays outside the product package. The obsolete engine-only selector
+36:in runner-node.mjs.data is not a staging authority: it omits support/errors.js.
+37:
+38:## Literal roles and future counts
+39:
+40:For EACH of source-built, installed and physically-moved:
+41:
+42:| Role | Literal planned identities | Per layout | All three |
+43:| --- | --- | ---: | ---: |
+44:| Main engine-free | C01–C09,C12,C13,C14,C17 | 13 | 39 |
+45:| Main PUBLIC95 | C10,C11,C15,C16,C18 | 5 | 15 |
+46:| Retained redirection | original retained role | 48 | 144 |
+47:| Retained Unit2 | ALL current 50 identities, exactly once | 50 | 150 |
+48:| Retained conditional | current version | 67 | 201 |
+49:| Retained extension | current version | 35 | 105 |
+50:| Retained arrays | current version | 12 | 36 |
+51:| Retained exact-Promise N14 | current version | 12 | 36 |
+52:
+53:Thus 212 retained core rows/layout, 636 total; N14 adds 36, main adds 54:
+54:726 proposed semantic rows, 711 engine-free and 15 PUBLIC95. These are planned
+55:roles inherited from authenticated receipts, not newly executed/fully audited
+56:row censuses. Deduplicate by (role, exact fixture identity, layout), not printed
+57:short ID alone: different cohorts reuse C/H/S labels. Do not rerun/double-credit
+58:Unit2 from both its direct fixture and a retained aggregate. Design/native OPEN
+59:identities are not silently inserted into the 50 or counted as passes.
+60:
+61:C17 remains the unchanged NON-ASYNC guard returning the exact invoke Promise.
+62:Transformed/async wrapper provenance is not promised. C11/C14 retain the v4
+63:source-defined Git index header expectations; older expectations remain UNRUN.
+64:Independent proposed E01–E08 are distinct and not author execution slots.

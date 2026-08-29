@@ -1,0 +1,97 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1/PREPARATION-HISTORY.md
+M /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1/data.mjs
+RECEIPT_KEYS [
+  'schema',               'started',
+  'created',              'stage',
+  'archive',              'source98',
+  'compiler',             'engine',
+  'packageMetadata',      'externalEdges',
+  'adapterAndGuardFiles', 'staticAdapter',
+  'productWorker',        'materialization',
+  'productImports',       'engineImports',
+  'workers'
+]
+ENGINE_RECEIPT_FIRST {"archiveTarget":"compiled/engine/dist/core.js","stagedRelativePath":"engine/dist/core.js","bytes":165,"sha256":"ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852","inputRole":"actual unchanged emission","sourceProvenance":"../preparation-v4-compiler/run/compiled/engine/dist/core.js","emissionCommit":"463a945125b900cbb98436b9e9292d78ca6c98aa"}
+AUTHENTICATED {"inputs":[{"commit":"cdbf1813","path":"tests/integration/agent-bash-coherent-author-20260829/stage-b/PUBLIC-ENGINE-RECEIPT.json","absolute":"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b/PUBLIC-ENGINE-RECEIPT.json","blob":"ce2df85f3be2d5a8808fd7028675f7826797c928","bytes":76582,"sha256":"a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de"},{"commit":"30ac56acbf12a69b90e1923810958bcbcf367fe0","path":"tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64","absolute":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64","blob":"f88a09f5a792e0bc16a8309e266931d248921f50","bytes":1939657,"sha256":"18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"},{"commit":"463a945125b900cbb98436b9e9292d78ca6c98aa","path":"tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64","absolute":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64","blob":"124d54245059f2ef5828a4841a4a0452efb0f291","bytes":461669,"sha256":"8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637"},{"commit":"30ac56acbf12a69b90e1923810958bcbcf367fe0","path":"tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs","absolute":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs","blob":"18cf64b44ccdcc9ccfcfc015293d6feb13146181","bytes":1484,"sha256":"2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"},{"commit":"30ac56acbf12a69b90e1923810958bcbcf367fe0","path":"tests/integration/node-public-author-20260829/node-policy.mjs","absolute":"/Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/node-policy.mjs","blob":"c5521498401f809bb2ba90ec51fd691ac25b00e6","bytes":3534,"sha256":"c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123"},{"commit":"30ac56acbf12a69b90e1923810958bcbcf367fe0","path":"tests/integration/node-public-author-20260829/node-load-guard.mjs","absolute":"/Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/node-load-guard.mjs","blob":"e51cdc7002b40411cce299098a28e35047c1d2d2","bytes":2613,"sha256":"7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1"},{"commit":"cdbf1813","path":"tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json","absolute":"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json","blob":"ae181705b8957a23c75588fe9869a720af566de8","bytes":102475,"sha256":"806c9ee4706132fd169925aaa84b569764029f5c3af303c338f773e224bd03a4"}],"engine":96,"public98":98,"retained":14,"productImports":0}
+RETAINED_ID_SOURCE tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs const cases = JSON.parse(await fs.readFile(new URL("redirection-cases.json", import.meta.url)));
+const rows = [], shells = new Set(), releases = new Set();
+    for (const release of releases) release();
+    row.created = shells.size; row.disposed = closed.filter(result => result.status === "fulfilled").length;
+  rows.push(row); console.log(JSON.stringify(row));
+for (const row of cases.cases) await record(row.id, async () => {
+  for (const [name, content] of Object.entries(row.files ?? {})) assert.deepEqual(Buffer.from(await memory.readFile("/" + name)), bytes(content));
+  for (const script of ["emit &", "emit &>>out", "[[ x ]]", "exec {fd}>out"]) {
+  const execution = shell.exec("emit |& cat", { stdout: { async write(chunk) { chunks.push(Buffer.from(chunk)); entered.resolve(); await released.promise; } } });
+  for (const script of ["emit 2>&1 | cat", "emit |& cat"]) {
+    assert.ok(delivered > 0); observations.push(value);
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+RETAINED_ID_SOURCE tests/compatibility/bash-redirection-author-20260829/close-observer.mjs const row = { id: "instrumented-one-file-reference-release", pass: false, created: 1 };
+RETAINED_ID_SOURCE tests/compatibility/bash-strict-mode-author-20260829/strict.mjs     for (const release of releases) release(); releases.clear();
+    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;
+  rows.push(row); console.log(JSON.stringify(row));
+for (const item of design.cases) {
+    for (const [name, text] of Object.entries(item.files ?? {})) await memory.writeFile('/' + name, new TextEncoder().encode(text));
+      assert.equal(result.stderr.split('unbound variable').length - 1, 1);
+    for (const [name, text] of Object.entries(item.files ?? {})) assert.equal(Buffer.from(await memory.readFile('/' + name)).toString(), text);
+  assert.equal(result.stderr.split('unbound variable').length - 1, 1); assert.equal(cleaned, 1);
+  for (const reason of [Object.freeze({ role: 'diagnostic-sink' }), undefined]) {
+  assert.equal((await memory.readFile('/created')).length, 0);
+  for (const program of ['set -u; f(){ printf "%s" "$missing"; }; f', 'set -u; (printf "%s" "$missing")', 'set -u; printf "%s" "$missing" | cat']) {
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+RETAINED_ID_SOURCE tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs   finally { const disposed = await Promise.allSettled([...shells].map(shell => shell.dispose())); row.created = shells.size; row.disposed = disposed.filter(item => item.status === 'fulfilled').length; row.cleanupFailure = row.created !== row.disposed; shells.clear(); clearTimeout(timer); }
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+for (const [id, program, status, stdout = ''] of scripts) await record(id, async row => {
+    events.push('acquired'); try { events.push('abort'); controller.abort(reason); options.signal.throwIfAborted(); }
+    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }
+  try { const outcome = await pending; events.push('public-rejected'); assert.equal(outcome.reason, reason); assert.equal(closed, false); row.beforeRelease = { closed, exactCallerReason: outcome.reason === reason }; }
+  finally { events.push('test-release'); release.resolve(); await finished.promise; await pending; }
+    events.push('acquired'); try { controller.abort(reason); options.signal.throwIfAborted(); }
+    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }
+    context.registerCleanup(async () => { events.push('cleanup-enter'); draining.resolve(); await finished.promise; events.push('cleanup-finished'); });
+    events.push('registered'); return context.invoke('check', []);
+  const pending = capture(shell.exec('check() { [[ -f file ]]; }; guard', { signal: controller.signal })).then(outcome => { settled = true; events.push('public-rejected'); return outcome; });
+  finally { events.push('test-release'); release.resolve(); await finished.promise; }
+for (const [id, program] of [['S02-at', 'a=(); a[3]=x; [[ -v a[@] ]]'], ['S03-star', 'a=(); a[3]=x; [[ -v a[*] ]]']]) await record(id, async () => { const result = await create().exec(program); assert.equal(result.exitCode, 2); assert.equal(result.stdout, ''); assert.match(result.stderr, /aggregate variable selector: unsupported conditional profile/); });
+for (const [index, code] of ['ENOENT', 'ENOTDIR', 'EACCES', 'EPERM'].entries()) await record('S0' + (index + 5) + '-' + code, async row => {
+  for (const operator of ['-e', '-a', '-f', '-d', '-s', '-L', '-h', '-r', '-w', '-x']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, ''); row.predicates.push(operator); }
+for (const [index, code] of ['ENOTSUP', 'EOPNOTSUPP', 'ENOSYS'].entries()) await record('S' + String(index + 9).padStart(2, '0') + '-' + code, async () => {
+  for (const operator of ['-f', '-r']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 2); assert.match(result.stderr, /filesystem capability: unsupported conditional profile/); }
+for (const [index, code] of ['EACCES', 'ENOENT', 'ENOTSUP'].entries()) await record('S' + (index + 12) + '-untyped', async () => {
+  for (const reason of [Object.freeze({ code }), Object.assign(new Error('untyped'), { code })]) { const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }
+  for (const code of ['ELOOP', 'EIO', 'EROFS']) { const reason = new api.FsError(code); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));
+RETAINED_ID_SOURCE tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs const rows = [], shells = new Set(), releases = new Set();
+    for (const release of releases) release(); releases.clear();
+    row.created = shells.size; row.disposed = disposed.filter(item => item.status === 'fulfilled').length;
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+for (const item of design.cases) {
+    assert.equal(result.stderr.split('missing: unbound variable').length - 1, missing);
+    assert.equal(result.stderr.split('unsupported shell option').length - 1, invalid);
+  for (const reason of [undefined, null, false, 0, '']) {
+  for (const reject of [false, true]) {
+    row.variants.push({ reject, cleaned, settled, outcome: outcome.kind });
+  for (const [program, status, stdout] of [["sh -c 'set -uz; printf after'", 2, ''], ["sh -c 'command set -uz; printf \"%s:%s\" \"$?\" \"$-\"'", 0, '2:']]) {
+    const result = await create().exec(program); row.variants.push(result); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.match(result.stderr, /unsupported shell option/);
+  for (const program of ['set -u; OPTIND=missing; printf after', 'set -u; value=abc; printf "%s" "${value:missing}"; printf after']) {
+    const result = await create().exec(program); row.variants.push(result); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing: unbound variable\n$/);
+  for (const reason of [undefined, null, false, 0, '', Object.freeze({ sink: true })]) {
+  const observe = event => { row.events.push(event); console.error(JSON.stringify({ protocol: row.id, event })); };
+  for (const event of ['cleanup-registered', 'diagnostic-entered', 'caller-abort', 'gate-release', 'cleanup-entry', 'cleanup-finished', 'public-settlement']) assert.ok(row.events.includes(event));
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));
+RETAINED_ID_SOURCE tests/integration/coherent78-arrays-author-20260828/arrays.mjs const rows = data.cases.filter(row => !process.env.ARRAY_CASE || row.id === process.env.ARRAY_CASE);
+assert.equal(rows.length, process.env.ARRAY_CASE ? 1 : 12);
+for (const row of rows) {
+  const result = { id: row.id, pass: false, disposed: false };
+    for (const [name, text] of Object.entries(data.files)) await filesystem.writeFile(name, encoder.encode(text));
+  observations.push(result); console.log(JSON.stringify(result));
+const summary = { profile: 'coherent78-array-author-v1', cases: rows.length, pass: observations.filter(row => row.pass).length, disposed: observations.filter(row => row.disposed).length };
+RETAINED_ID_SOURCE tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs const rows = [], shells = new Set(), releases = new Set();
+    for (const release of releases) release(); releases.clear();
+    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+  const event = value => { events.push(value); console.error(JSON.stringify({ protocol: row.id, event: value })); };
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length } }));
+RETAINED_ID_SOURCE tests/integration/git-public-20260829/resources.mjs emit({ kind: 'bootstrap', pid: process.pid, allowance });
+RETAINED_ID_SOURCE tests/integration/git-public-20260829/loader.mjs export async function load(url, context, next) {
+RETAINED_ID_SOURCE tests/integration/git-public-20260829/names.mjs export const expectedNames = [

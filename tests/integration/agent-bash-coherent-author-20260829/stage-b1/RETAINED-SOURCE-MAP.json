@@ -1,0 +1,171 @@
+[
+  {
+    "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "lines": [
+      "const cases = JSON.parse(await fs.readFile(new URL(\"redirection-cases.json\", import.meta.url)));",
+      "const rows = [], shells = new Set(), releases = new Set();",
+      "    for (const release of releases) release();",
+      "    row.created = shells.size; row.disposed = closed.filter(result => result.status === \"fulfilled\").length;",
+      "  rows.push(row); console.log(JSON.stringify(row));",
+      "for (const row of cases.cases) await record(row.id, async () => {",
+      "  for (const [name, content] of Object.entries(row.files ?? {})) assert.deepEqual(Buffer.from(await memory.readFile(\"/\" + name)), bytes(content));",
+      "  for (const script of [\"emit &\", \"emit &>>out\", \"[[ x ]]\", \"exec {fd}>out\"]) {",
+      "  const execution = shell.exec(\"emit |& cat\", { stdout: { async write(chunk) { chunks.push(Buffer.from(chunk)); entered.resolve(); await released.promise; } } });",
+      "  for (const script of [\"emit 2>&1 | cat\", \"emit |& cat\"]) {",
+      "    assert.ok(delivered > 0); observations.push(value);",
+      "const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "lines": []
+  },
+  {
+    "path": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+    "lines": [
+      "const row = { id: \"instrumented-one-file-reference-release\", pass: false, created: 1 };"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "lines": [
+      "    for (const release of releases) release(); releases.clear();",
+      "    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;",
+      "  rows.push(row); console.log(JSON.stringify(row));",
+      "for (const item of design.cases) {",
+      "    for (const [name, text] of Object.entries(item.files ?? {})) await memory.writeFile('/' + name, new TextEncoder().encode(text));",
+      "      assert.equal(result.stderr.split('unbound variable').length - 1, 1);",
+      "    for (const [name, text] of Object.entries(item.files ?? {})) assert.equal(Buffer.from(await memory.readFile('/' + name)).toString(), text);",
+      "  assert.equal(result.stderr.split('unbound variable').length - 1, 1); assert.equal(cleaned, 1);",
+      "  for (const reason of [Object.freeze({ role: 'diagnostic-sink' }), undefined]) {",
+      "  assert.equal((await memory.readFile('/created')).length, 0);",
+      "  for (const program of ['set -u; f(){ printf \"%s\" \"$missing\"; }; f', 'set -u; (printf \"%s\" \"$missing\")', 'set -u; printf \"%s\" \"$missing\" | cat']) {",
+      "const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "lines": [
+      "    {\"id\":\"U29\",\"program\":\"set -u; printf '%s\\\\n' \\\"${#missing}\\\"\",\"question\":\"Scalar length consumes missing value\",\"basis\":\"P2\"},"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "lines": [
+      "  finally { const disposed = await Promise.allSettled([...shells].map(shell => shell.dispose())); row.created = shells.size; row.disposed = disposed.filter(item => item.status === 'fulfilled').length; row.cleanupFailure = row.created !== row.disposed; shells.clear(); clearTimeout(timer); }",
+      "  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);",
+      "for (const [id, program, status, stdout = ''] of scripts) await record(id, async row => {",
+      "    events.push('acquired'); try { events.push('abort'); controller.abort(reason); options.signal.throwIfAborted(); }",
+      "    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }",
+      "  try { const outcome = await pending; events.push('public-rejected'); assert.equal(outcome.reason, reason); assert.equal(closed, false); row.beforeRelease = { closed, exactCallerReason: outcome.reason === reason }; }",
+      "  finally { events.push('test-release'); release.resolve(); await finished.promise; await pending; }",
+      "    events.push('acquired'); try { controller.abort(reason); options.signal.throwIfAborted(); }",
+      "    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }",
+      "    context.registerCleanup(async () => { events.push('cleanup-enter'); draining.resolve(); await finished.promise; events.push('cleanup-finished'); });",
+      "    events.push('registered'); return context.invoke('check', []);",
+      "  const pending = capture(shell.exec('check() { [[ -f file ]]; }; guard', { signal: controller.signal })).then(outcome => { settled = true; events.push('public-rejected'); return outcome; });",
+      "  finally { events.push('test-release'); release.resolve(); await finished.promise; }",
+      "for (const [id, program] of [['S02-at', 'a=(); a[3]=x; [[ -v a[@] ]]'], ['S03-star', 'a=(); a[3]=x; [[ -v a[*] ]]']]) await record(id, async () => { const result = await create().exec(program); assert.equal(result.exitCode, 2); assert.equal(result.stdout, ''); assert.match(result.stderr, /aggregate variable selector: unsupported conditional profile/); });",
+      "for (const [index, code] of ['ENOENT', 'ENOTDIR', 'EACCES', 'EPERM'].entries()) await record('S0' + (index + 5) + '-' + code, async row => {",
+      "  for (const operator of ['-e', '-a', '-f', '-d', '-s', '-L', '-h', '-r', '-w', '-x']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, ''); row.predicates.push(operator); }",
+      "for (const [index, code] of ['ENOTSUP', 'EOPNOTSUPP', 'ENOSYS'].entries()) await record('S' + String(index + 9).padStart(2, '0') + '-' + code, async () => {",
+      "  for (const operator of ['-f', '-r']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 2); assert.match(result.stderr, /filesystem capability: unsupported conditional profile/); }",
+      "for (const [index, code] of ['EACCES', 'ENOENT', 'ENOTSUP'].entries()) await record('S' + (index + 12) + '-untyped', async () => {",
+      "  for (const reason of [Object.freeze({ code }), Object.assign(new Error('untyped'), { code })]) { const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }",
+      "  for (const code of ['ELOOP', 'EIO', 'EROFS']) { const reason = new api.FsError(code); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }",
+      "console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+    "lines": [
+      "const rows = [], shells = new Set(), releases = new Set();",
+      "    for (const release of releases) release(); releases.clear();",
+      "    row.created = shells.size; row.disposed = disposed.filter(item => item.status === 'fulfilled').length;",
+      "  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);",
+      "for (const item of design.cases) {",
+      "    assert.equal(result.stderr.split('missing: unbound variable').length - 1, missing);",
+      "    assert.equal(result.stderr.split('unsupported shell option').length - 1, invalid);",
+      "  for (const reason of [undefined, null, false, 0, '']) {",
+      "  for (const reject of [false, true]) {",
+      "    row.variants.push({ reject, cleaned, settled, outcome: outcome.kind });",
+      "  for (const [program, status, stdout] of [[\"sh -c 'set -uz; printf after'\", 2, ''], [\"sh -c 'command set -uz; printf \\\"%s:%s\\\" \\\"$?\\\" \\\"$-\\\"'\", 0, '2:']]) {",
+      "    const result = await create().exec(program); row.variants.push(result); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.match(result.stderr, /unsupported shell option/);",
+      "  for (const program of ['set -u; OPTIND=missing; printf after', 'set -u; value=abc; printf \"%s\" \"${value:missing}\"; printf after']) {",
+      "    const result = await create().exec(program); row.variants.push(result); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing: unbound variable\\n$/);",
+      "  for (const reason of [undefined, null, false, 0, '', Object.freeze({ sink: true })]) {",
+      "  const observe = event => { row.events.push(event); console.error(JSON.stringify({ protocol: row.id, event })); };",
+      "  for (const event of ['cleanup-registered', 'diagnostic-entered', 'caller-abort', 'gate-release', 'cleanup-entry', 'cleanup-finished', 'public-settlement']) assert.ok(row.events.includes(event));",
+      "console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+    "lines": [
+      "      \"question\": \"Do not collapse existing empty array object/length with aggregate expansion presence; presence tuple unmeasured.\",",
+      "      \"program\": \"set -u; . ./missing-length.sh; printf \\\"caller-after\\\\n\\\"\\nprintf \\\"next:%s\\\\n\\\" \\\"$?\\\"\\n\",",
+      "        \"missing-length.sh\": \"printf \\\"%s\\\\n\\\" \\\"${#a[@]}\\\"; printf \\\"source-same\\\\n\\\"\\nprintf \\\"source-next\\\\n\\\"\\n\""
+    ]
+  },
+  {
+    "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "lines": [
+      "const rows = data.cases.filter(row => !process.env.ARRAY_CASE || row.id === process.env.ARRAY_CASE);",
+      "assert.equal(rows.length, process.env.ARRAY_CASE ? 1 : 12);",
+      "for (const row of rows) {",
+      "  const result = { id: row.id, pass: false, disposed: false };",
+      "    for (const [name, text] of Object.entries(data.files)) await filesystem.writeFile(name, encoder.encode(text));",
+      "  observations.push(result); console.log(JSON.stringify(result));",
+      "const summary = { profile: 'coherent78-array-author-v1', cases: rows.length, pass: observations.filter(row => row.pass).length, disposed: observations.filter(row => row.disposed).length };"
+    ]
+  },
+  {
+    "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "lines": [
+      "    {\"id\":\"A09\",\"name\":\"array expansion feeds unchanged jq length\",\"script\":\"a=('😀' 'abc'); printf '%s\\\\n' \\\"${a[@]}\\\" | jq -R length\",\"stdout\":\"1\\n3\\n\",\"status\":0},"
+    ]
+  },
+  {
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+    "lines": [
+      "const rows = [], shells = new Set(), releases = new Set();",
+      "    for (const release of releases) release(); releases.clear();",
+      "    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;",
+      "  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);",
+      "  const event = value => { events.push(value); console.error(JSON.stringify({ protocol: row.id, event: value })); };",
+      "console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length } }));"
+    ]
+  },
+  {
+    "path": "tests/integration/git-public-20260829/resources.mjs",
+    "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+    "lines": [
+      "emit({ kind: 'bootstrap', pid: process.pid, allowance });"
+    ]
+  },
+  {
+    "path": "tests/integration/git-public-20260829/loader.mjs",
+    "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+    "lines": [
+      "export async function load(url, context, next) {"
+    ]
+  },
+  {
+    "path": "tests/integration/git-public-20260829/names.mjs",
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "lines": [
+      "export const expectedNames = ["
+    ]
+  }
+]

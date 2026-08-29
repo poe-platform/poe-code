@@ -1,0 +1,9 @@
+68:    else if (id === 'C09') {
+69:      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
+70:      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
+71:      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
+72:    } else if (id === 'C10') {
+73:      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
+74:      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+75:      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
+76:    } else if (id === 'C11') {

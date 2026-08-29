@@ -1,0 +1,8 @@
+{
+  "checkedAt": "2026-08-29T17:30:12.164Z",
+  "latestStart": "2026-08-29T17:30:00.000Z",
+  "notBefore": "2026-08-29T17:25:00.000Z",
+  "status": "STOP_UNLAUNCHED_OUTSIDE_AUTHORIZED_WINDOW",
+  "launched": false,
+  "grantInstalled": false
+}

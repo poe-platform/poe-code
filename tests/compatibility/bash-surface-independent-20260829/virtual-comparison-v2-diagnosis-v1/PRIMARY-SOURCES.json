@@ -1,0 +1,37 @@
+{
+  "schema": "primary-versioned-reference-not-runtime-attestation",
+  "references": [
+    {
+      "id": "P1",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/process/per_thread.js",
+      "lines": "239–263",
+      "finding": "Stock JavaScript kill validates pid, invokes process._kill for signal0 and wraps nonzero result as ErrnoException with syscall kill. The dynamic _kill reference means a bound kill function is not runtime proof of an uninterposed binding."
+    },
+    {
+      "id": "P2",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_process_methods.cc",
+      "lines": "159–180",
+      "finding": "Stock Kill native binding converts arguments and calls uv_kill. This inspected function has no Node Permission Model branch."
+    },
+    {
+      "id": "P3",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/deps/uv/src/unix/process.c",
+      "lines": "1026–1037",
+      "finding": "Stock Unix uv_kill delegates to kill and returns translated errno. The special MVS path does not establish Darwin behavior."
+    },
+    {
+      "id": "P4",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/permissions.md",
+      "lines": "34–59",
+      "finding": "Permission Model is enabled by a CLI flag and documented denials use ERR_ACCESS_DENIED. This does not prove historical model state or rule out an external host filter."
+    },
+    {
+      "id": "P5",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/child_process.md",
+      "lines": "846–859",
+      "finding": "Non-Windows detached:true specifies new process group/session leadership. This is API/source semantics, not an independent historical PGID measurement."
+    }
+  ],
+  "qualification": "Read through web primary-source tooling; versioned source references, not downloaded executable or proof of historical compiled binding.",
+  "notUsed": "Unversioned v26 docs, nonprimary search hits, unavailable bootstrap page."
+}

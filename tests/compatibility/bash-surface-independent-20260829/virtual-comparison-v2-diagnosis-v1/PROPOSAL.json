@@ -1,0 +1,89 @@
+{
+  "schema": "fresh-owner-observer-qualification-proposal-only",
+  "status": "NOT_AUTHORIZED_NOT_IMPLEMENTED",
+  "recommendation": "Qualify explicit parent observer authority and improve evidence before any ownership/permission repair. V2 already observes from its parent; moving a call or switching import syntax is not a demonstrated fix.",
+  "ownerBoundary": {
+    "entry": "New sealed fixed Node owner entry; exact fresh ROOT/tool admission, not inherited native37 or v2 runtime grant",
+    "authority": "Only fresh child handles/PID-derived expected PGIDs registered by that owner, signals0/TERM/KILL; no caller-supplied arbitrary PID/group, no broadcast, no stale59697 probe",
+    "childPolicy": "Retain existing file/loader/zero-RegexWorker guards where the role has them; do not add broad process privileges or remove child guards",
+    "evidence": "Before any child: capture owner pid/execPath/execArgv, allowed flags/permission-property presence and NODE_OPTIONS presence only, binding role, exact argv/env-key policy. Do not dump ambient environment or secrets.",
+    "probeRecord": "Bounded sequence with callerPID, owned lease, observed childPID, expected PGID derivation, exact negative target, signal, monotonic/time phase, and return or own-data error fields; no inferred PGID measurement.",
+    "limits": "Source PID/PGID convention and finite registry are not kernel identity handles or race-proof PID-reuse protection."
+  },
+  "futureControls": [
+    {
+      "id": "D01",
+      "kind": "DATA",
+      "purpose": "Reject unregistered caller PID before kill spy; zero calls."
+    },
+    {
+      "id": "D02",
+      "kind": "DATA",
+      "purpose": "Reject zero/broadcast/negative/noninteger PID and unlisted signal before kill spy."
+    },
+    {
+      "id": "D03",
+      "kind": "DATA",
+      "purpose": "Closed/unknown lease cannot be reopened or probed again."
+    },
+    {
+      "id": "D04",
+      "kind": "DATA",
+      "purpose": "Present/ESRCH/EPERM/unknown shapes preserve states and bounded fields; EPERM never becomes absent."
+    },
+    {
+      "id": "D05",
+      "kind": "DATA",
+      "purpose": "Existing false/0/undefined primary identity retained separately from observer failure."
+    },
+    {
+      "id": "F01",
+      "kind": "FRESH_HARMLESS_NODE",
+      "purpose": "Guarded child readiness/owned stdin handshake; observer from admitted parent, then natural exit and independent exit/close/EOF/group observations; one loader role only."
+    },
+    {
+      "id": "F02",
+      "kind": "FRESH_HARMLESS_NODE",
+      "purpose": "Fresh unguarded TERM-handled fixture matching M08 guard context, with explicit readiness and TERM-handler output; bounded2s grace, actual final observation, no old PID or rescore."
+    },
+    {
+      "id": "F03",
+      "kind": "FRESH_HARMLESS_NODE",
+      "purpose": "Fresh TERM-ignoring fixture, one TERM then KILL after2s,1s final grace; actual absence observation required, not exit-based inference."
+    }
+  ],
+  "proposedEnvelope": {
+    "inclusiveMs": 600000,
+    "knownOSStarts": 16,
+    "knownPeak": 2,
+    "roles": {
+      "owner": 1,
+      "fixtures": 3,
+      "administrativeMaximum": 12
+    },
+    "loaderAdmissions": 1,
+    "regexWorkers": 0,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 8388608,
+    "workBytes": 67108864,
+    "readinessMs": 1000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "finalizationReserveMs": 60000,
+    "perGroupProbeMaximum": 160
+  },
+  "stageOrder": [
+    "Different source/DATA review of exact owner, fixtures, authority and capture",
+    "Fresh ROOT budget/grant and exact tool approval if required; no default-mode reroute",
+    "Five DATA controls before any fresh process",
+    "F01 then F02 then F03, serial; UNKNOWN/capture/integrity/limit STOP immediately prevents dependent admission",
+    "Independent capture/retirement review before reopening pending v2 qualification, never rescoreM08"
+  ],
+  "notProposed": [
+    "Permission widening",
+    "Historical group queries/signals",
+    "Native Bash/version/log/crash acquisition",
+    "Product/build/compiler/Worker activation",
+    "Source-only no-descendant assertion as retirement proof"
+  ]
+}

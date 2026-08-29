@@ -1,0 +1,23 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+... Skipped lines
+
+  "import fs from 'node:fs';\n" +
+    "import {spawn} from 'node:child_process';\n" +
+    "import {hash,errorRecord,Primary,pinExecutable} from './auth.mjs';\n" +
+    'const pause = ms => new Promise(resolve => setTimeout(resolve,ms));\n' +
+    'export const qualifyDirect = row => !row.primaryPresent && !row.forced && row.exit && row.close && row.stdoutEOF && row.stderrEOF && row.capturesQualified && row.knownOutstanding === 0;\n' +
+...
+    '  const event = name => row.events.push({name,at:Date.now()});\n' +
++   '  let stdoutFd,stderrFd;\n' +
+-   '  let stdoutFd, stderrFd;\n' +
+    "  try {stdoutFd = fs.openSync(spec.capture + '.stdout','wx+',384); stderrFd = fs.openSync(spec.capture + '.stderr','wx+',384);} catch(reason) {if(stdoutFd!==undefined)fs.closeSync(stdoutFd);throw reason;}\n" +
+    "  event('capture-open');\n" +
+    '  ledger.starts++;ledger.active++;\n' +
+    '  let child,settle;\n' +
+    '  const wake = new Promise(resolve => {settle = resolve;});\n' +
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/preexec-v4/review.mjs:33:10
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)

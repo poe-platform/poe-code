@@ -1,0 +1,258 @@
+{
+  "schema": "native26-independent-review-v2-receipt",
+  "decision": "ACCEPT_PREEXECUTION_SCOPED_ONLY",
+  "authority": "NO_NATIVE_GO",
+  "source": "62c262a0c673908388748d7133a001978da4f968",
+  "presealSha256": "0c18f75ad6ec451554f1b1b9a6071d31694cd57a75a9fd7ba498609f7f001240",
+  "executableSha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+  "readySha256": "7cad2e981d9008e90f64bc04d528ecc9da02458bd46859382d1028020c925b47",
+  "commandTemplateSha256": "256789485b602f9f11f5414f45d33516ecc72d26abf08fe6e4a0dfbded7774e4",
+  "groups": 20,
+  "assertions": 142,
+  "controlsUnchanged": true,
+  "nativeObservations": 0,
+  "fixtures": [
+    {
+      "id": "normal",
+      "pid": 72694,
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": []
+    },
+    {
+      "id": "ignore-term",
+      "pid": 72695,
+      "status": null,
+      "signal": "SIGKILL",
+      "stop": "CASE_DEADLINE",
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [
+        {
+          "signal": "SIGTERM",
+          "at": 1788008468312,
+          "sent": true,
+          "error": null
+        },
+        {
+          "signal": "SIGKILL",
+          "at": 1788008468421,
+          "sent": true,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "nativeProposal": {
+    "schema": "function-pipestatus-reference-v2",
+    "runRoot": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2",
+    "limits": {
+      "totalMs": 600000,
+      "setupMs": 60000,
+      "finalizationTailMs": 60000,
+      "perCaseMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000,
+      "knownManagedProcessCeiling": 27,
+      "knownPeakCeiling": 2,
+      "allKnownProcessProposalCeiling": 64,
+      "allKnownPeakProposalCeiling": 6,
+      "ownerStarts": 1,
+      "nativeStarts": 26,
+      "administrativeChildStarts": 0,
+      "sourceInternalForkReservations": 19,
+      "perStreamBytes": 65536,
+      "aggregateCaptureBytes": 33554432,
+      "workingBytes": 134217728,
+      "emergencyReserveBytes": 65536,
+      "ownerWriteBytes": 262144,
+      "snapshotEntries": 32,
+      "snapshotFileBytes": 65536,
+      "snapshotBytes": 262144
+    },
+    "profile": "FUNCTIONAL_OBSERVATION_ONLY_NOT_CONTAINMENT",
+    "nativeGo": false,
+    "initialToolShellStartup": "TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_RAW_CAPTURE",
+    "bashChildren": "exact six-key env, fresh empty HOME/TMPDIR/PATH, --noprofile --norc, empty closed stdin; no BASH_ENV/ENV/SHELLOPTS/BASHOPTS/functions",
+    "output": {
+      "format": "host FNPIPEOBS1 NUL-delimited ASCII/base64 fields; raw stdout/stderr/status/effects preserved",
+      "expectedNative": null
+    },
+    "publication": "inclusive final deadline before/after writes, terminal/flush/credit; cleanup attempted independently; late cleanup cannot qualify",
+    "authorization": "independent review plus fresh runtime receipt/GO and resolved-slot DATA review plus exact require_escalated tool approval; no old authority reuse"
+  },
+  "programs": [
+    {
+      "id": "F02",
+      "sha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9"
+    },
+    {
+      "id": "F03",
+      "sha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8"
+    },
+    {
+      "id": "F04",
+      "sha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9"
+    },
+    {
+      "id": "F05",
+      "sha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac"
+    },
+    {
+      "id": "F06",
+      "sha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d"
+    },
+    {
+      "id": "F07",
+      "sha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c"
+    },
+    {
+      "id": "F08",
+      "sha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65"
+    },
+    {
+      "id": "F09",
+      "sha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49"
+    },
+    {
+      "id": "F10",
+      "sha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce"
+    },
+    {
+      "id": "P02",
+      "sha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa"
+    },
+    {
+      "id": "P03",
+      "sha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468"
+    },
+    {
+      "id": "P04",
+      "sha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615"
+    },
+    {
+      "id": "P05",
+      "sha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9"
+    },
+    {
+      "id": "P06",
+      "sha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978"
+    },
+    {
+      "id": "P07",
+      "sha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2"
+    },
+    {
+      "id": "P08",
+      "sha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741"
+    },
+    {
+      "id": "P09",
+      "sha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917"
+    },
+    {
+      "id": "P10",
+      "sha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb"
+    },
+    {
+      "id": "P11",
+      "sha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61"
+    },
+    {
+      "id": "P12",
+      "sha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833"
+    },
+    {
+      "id": "P13",
+      "sha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234"
+    },
+    {
+      "id": "P14",
+      "sha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021"
+    },
+    {
+      "id": "P15",
+      "sha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf"
+    },
+    {
+      "id": "P16",
+      "sha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474"
+    },
+    {
+      "id": "P17",
+      "sha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00"
+    },
+    {
+      "id": "P18",
+      "sha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339"
+    }
+  ],
+  "failedLookups": [
+    "function",
+    "__surface_missing_command__"
+  ],
+  "qualifications": [
+    "old >=52/48 process-cap violation not repaired/rescored",
+    "only fresh owned fixture groups observed; no old PIDs or universal census",
+    "600s native timing unexecuted; harmless fixture timings differ",
+    "F05 final fileeffect not creation timing",
+    "19 native source forks and margin are reservations not observed children/OS quota",
+    "local Bash3.2 pinned DATA only; no version/native/GNU5.3 execution",
+    "PIPESTATUS initial/current-local policies await observations",
+    "trusted initial tool-shell startup outside child environment/raw-capture qualification"
+  ],
+  "at": "2026-08-29T13:01:16.148Z"
+}

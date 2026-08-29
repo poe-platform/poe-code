@@ -1,0 +1,1120 @@
+{
+  "date": "2026-08-29T09:07:56.201Z",
+  "sourceBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+      "size": 13033,
+      "mode": 420,
+      "sha256": "be0082e84d90783731163aa3a92fa3fc56b379c2c8c522fee567bafc5654b64f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+      "size": 8543,
+      "mode": 420,
+      "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+    }
+  ],
+  "sealSha256": "20ce8940d07d2c032e4d61d321fbdee68e9e5fb6e1b5a4ca96dbc77de88097d7",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "rows": [
+    {
+      "role": "source-author66",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 66,
+      "fail": 0,
+      "details": []
+    },
+    {
+      "role": "source-checkpoints8",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 8,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C01",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "calls": 66335,
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C02",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 5120,
+              "states": 1031,
+              "allocationUnits": 13467,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:67:1",
+            "maximumUnitGap": 2
+          }
+        },
+        {
+          "id": "C03",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            }
+          ]
+        },
+        {
+          "id": "C04",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            },
+            "final": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 100000,
+              "states": 2062,
+              "allocationUnits": 27119,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C05",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 1,
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 1,
+              "work": 2060,
+              "states": 5,
+              "allocationUnits": 78,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C06",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "usage": {
+              "patternBytes": 1000,
+              "subjectBytes": 1000,
+              "work": 8003,
+              "states": 1002,
+              "allocationUnits": 22041,
+              "captureBytes": 1000,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C07",
+          "pass": true,
+          "detail": [
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 1026,
+                "subjectBytes": 1,
+                "work": 2055,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            },
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 75,
+                "subjectBytes": 1,
+                "work": 1271,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "C08",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 0,
+              "work": 1536,
+              "states": 0,
+              "allocationUnits": 10,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:106:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at Parser.count (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/syntax.js:157:31)\n    at async Parser.sequence (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/syntax.js:121:27)\n    at async Parser.expression (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/syntax.js:95:27)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/syntax.js:276:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:111:9\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:101:1"
+          }
+        }
+      ]
+    },
+    {
+      "role": "installed-author66",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 66,
+      "fail": 0,
+      "details": []
+    },
+    {
+      "role": "installed-checkpoints8",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 8,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C01",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "calls": 66335,
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C02",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 5120,
+              "states": 1031,
+              "allocationUnits": 13467,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:67:1",
+            "maximumUnitGap": 2
+          }
+        },
+        {
+          "id": "C03",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            }
+          ]
+        },
+        {
+          "id": "C04",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            },
+            "final": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 100000,
+              "states": 2062,
+              "allocationUnits": 27119,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C05",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 1,
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 1,
+              "work": 2060,
+              "states": 5,
+              "allocationUnits": 78,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C06",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "usage": {
+              "patternBytes": 1000,
+              "subjectBytes": 1000,
+              "work": 8003,
+              "states": 1002,
+              "allocationUnits": 22041,
+              "captureBytes": 1000,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C07",
+          "pass": true,
+          "detail": [
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 1026,
+                "subjectBytes": 1,
+                "work": 2055,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            },
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 75,
+                "subjectBytes": 1,
+                "work": 1271,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "C08",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 0,
+              "work": 1536,
+              "states": 0,
+              "allocationUnits": 10,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:106:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at Parser.count (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/syntax.js:157:31)\n    at async Parser.sequence (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/syntax.js:121:27)\n    at async Parser.expression (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/syntax.js:95:27)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/installed-app/artifact/syntax.js:276:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:111:9\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:101:1"
+          }
+        }
+      ]
+    },
+    {
+      "role": "moved-author66",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 66,
+      "fail": 0,
+      "details": []
+    },
+    {
+      "role": "moved-checkpoints8",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 8,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C01",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "calls": 66335,
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C02",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 5120,
+              "states": 1031,
+              "allocationUnits": 13467,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:67:1",
+            "maximumUnitGap": 2
+          }
+        },
+        {
+          "id": "C03",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            },
+            {
+              "usage": {
+                "patternBytes": 11,
+                "subjectBytes": 255,
+                "work": 5120,
+                "states": 1031,
+                "allocationUnits": 13467,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:54:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at historyOrder (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:21:26)\n    at async preferred (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:40:26)\n    at async matchEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js:74:30)\n    at async cancellation (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:59:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:117\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:68:1",
+              "maximumUnitGap": 2
+            }
+          ]
+        },
+        {
+          "id": "C04",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            },
+            "final": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 100000,
+              "states": 2062,
+              "allocationUnits": 27119,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        },
+        {
+          "id": "C05",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 1,
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 1,
+              "work": 2060,
+              "states": 5,
+              "allocationUnits": 78,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C06",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "usage": {
+              "patternBytes": 1000,
+              "subjectBytes": 1000,
+              "work": 8003,
+              "states": 1002,
+              "allocationUnits": 22041,
+              "captureBytes": 1000,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "C07",
+          "pass": true,
+          "detail": [
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 1026,
+                "subjectBytes": 1,
+                "work": 2055,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            },
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 75,
+                "subjectBytes": 1,
+                "work": 1271,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "C08",
+          "pass": true,
+          "detail": {
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 0,
+              "work": 1536,
+              "states": 0,
+              "allocationUnits": 10,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "phase": "Error: checkpoint location\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:106:15)\n    at ObservedLedger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:25:20)\n    at Parser.count (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:157:31)\n    at async Parser.sequence (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:121:27)\n    at async Parser.expression (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:95:27)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:276:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:111:9\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:101:1"
+          }
+        }
+      ]
+    },
+    {
+      "role": "M01",
+      "mutated": "matcher",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 1,
+      "details": [
+        {
+          "id": "C01",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: charged unit gap 65030\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:45:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:38:1"
+        }
+      ]
+    },
+    {
+      "role": "M01-restore",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 1,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C01",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 2,
+            "calls": 66335,
+            "usage": {
+              "patternBytes": 11,
+              "subjectBytes": 255,
+              "work": 66345,
+              "states": 1031,
+              "allocationUnits": 13733,
+              "captureBytes": 256,
+              "captureSlots": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "M02",
+      "mutated": "syntax",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 1,
+      "details": [
+        {
+          "id": "C05",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: count unit gap 1026\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:81:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:77:1"
+        }
+      ]
+    },
+    {
+      "role": "M02-restore",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 1,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C05",
+          "pass": true,
+          "detail": {
+            "maximumUnitGap": 1,
+            "usage": {
+              "patternBytes": 1028,
+              "subjectBytes": 1,
+              "work": 2060,
+              "states": 5,
+              "allocationUnits": 78,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "M03",
+      "mutated": "syntax",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 1,
+      "details": [
+        {
+          "id": "C07",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: bracket unit gap 1026\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:97:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:90:1"
+        }
+      ]
+    },
+    {
+      "role": "M03-restore",
+      "mutated": null,
+      "exitCode": 0,
+      "pass": 1,
+      "fail": 0,
+      "details": [
+        {
+          "id": "C07",
+          "pass": true,
+          "detail": [
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 1026,
+                "subjectBytes": 1,
+                "work": 2055,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            },
+            {
+              "maximumUnitGap": 1,
+              "usage": {
+                "patternBytes": 75,
+                "subjectBytes": 1,
+                "work": 1271,
+                "states": 2,
+                "allocationUnits": 168,
+                "captureBytes": 1,
+                "captureSlots": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "649cb47d3fc48a22c920bec5fdd6e8367b7bf5747439b3eabff3fb296fb5e959"
+    },
+    {
+      "id": "M02",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "8910cea3c65c8769581b90516c5f748c0fd33bb64ed1b32fb866dd0cde7f7241"
+    },
+    {
+      "id": "M03",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "cacf0cb5379a8aaa38e5342053a353731c9cdca5d994b52083f08d61d51c9a30"
+    }
+  ],
+  "guards": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "reason": "AssertionError [ERR_ASSERTION]: SAFETY input binding\n+ actual - expected\n\n  {\n    mode: 420,\n    path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/binding-negative.js',\n+   sha256: 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed',\n+   size: 7\n-   sha256: '9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb',\n-   size: 8483\n  }\n",
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "reason": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/absent.js'",
+      "dataOnly": true
+    }
+  ],
+  "declarations": [
+    {
+      "name": "errors.d.ts",
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "unchanged": true
+    },
+    {
+      "name": "limits.d.ts",
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "unchanged": true
+    },
+    {
+      "name": "matcher.d.ts",
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "unchanged": true
+    },
+    {
+      "name": "syntax.d.ts",
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "unchanged": true
+    },
+    {
+      "name": "types.d.ts",
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "unchanged": true
+    }
+  ],
+  "captures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/01-strict-build.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/01-strict-build.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/02-source-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/02-source-author66.stdout",
+      "size": 3243,
+      "mode": 420,
+      "sha256": "b18218ec461ec3505cc65d006afe6fad1eb159ff6e77850b47527a7feec6c014"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/03-source-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/03-source-checkpoints8.stdout",
+      "size": 10228,
+      "mode": 420,
+      "sha256": "89407da8887b08a4149d4494c89ec2db731408fcfc91fb702db4a04df2f535de"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/04-source-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/04-source-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/05-source-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/05-source-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/06-installed-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/06-installed-author66.stdout",
+      "size": 3318,
+      "mode": 420,
+      "sha256": "97e6c0067d5c78a782f398b957085c9074e9fc5f01be667c1859f74e360f1c63"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/07-installed-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/07-installed-checkpoints8.stdout",
+      "size": 10543,
+      "mode": 420,
+      "sha256": "c067fc40494de352fa8edb8c4b34de3d9200d59f5cb09568c53127a88c04316a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/08-installed-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/08-installed-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/09-installed-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/09-installed-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/10-moved-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/10-moved-author66.stdout",
+      "size": 3353,
+      "mode": 420,
+      "sha256": "e3e61dd94f7080753adce70b78065624b46a2c0866adb2c42d67adea916a426c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/11-moved-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/11-moved-checkpoints8.stdout",
+      "size": 10690,
+      "mode": 420,
+      "sha256": "1a9fe41ec488786b27955835a3a50e1ed1ff5a2bb1c012bc18b69fa702fd6b20"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/12-moved-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/12-moved-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/13-moved-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/13-moved-types-negative.stdout",
+      "size": 365,
+      "mode": 420,
+      "sha256": "acbb9a6600e2b09b23fde46956af7840f6fd4db724b11ec2083bb89381a5258e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/14-M01.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/14-M01.stdout",
+      "size": 1771,
+      "mode": 420,
+      "sha256": "5daaac98cfa964324e76c51d6024b907687d5fbd9e1a3cebfae4dac6b21554cc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/15-M01-restore.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/15-M01-restore.stdout",
+      "size": 1474,
+      "mode": 420,
+      "sha256": "d781616a0351e62e74a55c64a185df522c5922d8990872194d5ec5729e20ed16"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/16-M02.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/16-M02.stdout",
+      "size": 1768,
+      "mode": 420,
+      "sha256": "54e2c3af2d8f31dfe5bbb72a78568e351201c65499d28bd558ff449f3910dde3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/17-M02-restore.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/17-M02-restore.stdout",
+      "size": 1451,
+      "mode": 420,
+      "sha256": "e6ecb9e5c099a596176375704957ac4f1a16b8d1e3504d9b954bd166733d9080"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/18-M03.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/18-M03.stdout",
+      "size": 1770,
+      "mode": 420,
+      "sha256": "10809655acfe559ac775873681f16b30e68573bcd024dfb7367a9dd2b7b62104"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/19-M03-restore.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/19-M03-restore.stdout",
+      "size": 1599,
+      "mode": 420,
+      "sha256": "5e68a47d4e6f4af8c3016ef30d28e7c8395db0e15a6bdaab5f03f4f8fa6906c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/RESULT.json",
+      "size": 180042,
+      "mode": 420,
+      "sha256": "281dddd1473665c9a628809025f87f70cbd9dcd9567ffaab0bec861e64368c17"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/outer.jsonl",
+      "size": 24651,
+      "mode": 420,
+      "sha256": "630636bf7d2ea4406f4f5edd25c37c11140c27c159d677f41f0aa0d07f03bc65"
+    }
+  ],
+  "children": 19,
+  "peakChildren": 1,
+  "active": 0,
+  "captureBytes": 52261,
+  "workBytes": 26184940,
+  "elapsedMs": 5500,
+  "R01": "HELD; seven independent failures and native ambiguity unchanged; no rerun",
+  "native": "UNRUN",
+  "workers": 0
+}

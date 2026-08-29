@@ -3721,3 +3721,36 @@ that any implementation, command, fixture, or test currently exists.
   pending. No overall just-bash win, fresh global type gate or release follows.
 - Exact authority, finite membership, both retained reservations and qualifiers:
   `tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/ROOT-ACCEPTANCE-AND-CLOSURE.md`.
+
+## 2026-08-29 — apply_patch79 public author composition, review pending
+
+- ROOT-qualified module753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d/full882
+  f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95 is accepted
+  under c1fc3ee8a010289145959a05e8b088e51f21780a. Original L07's7/9 and its two
+  cleanup-count assertion failures remain unchanged: two separate cleanup owners
+  fulfilled, not the fixture's expected one. Legacy11 failures and21 uncredited
+  observations retain their source/backend/resource qualifications.
+- Root integration83730c6085597d8480a25aa639793582984eebd0 adds only apply_patch
+  as default79, root/explicit commands/apply-patch exports and aggregate applyPatch
+  limits with top-level replacement authority. Module six-file bytes unchanged;
+  base is accepted coherent78+arrays d111e5bf, not current HEAD. Curl/SafeJS stay
+  opt-in; Git/YQ/XAN/Node/declare/mapfile are not registered. Zero runtime deps.
+- Executed derived e83d6c481e3c17b56fe32a17593628d8d7c820a9 has278 selected
+  build inputs; actual full898 package
+  643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd (814632 bytes).
+  One strict build/offline install/physical move; new public27/28 each layout,
+  arrays12/12 each, selected coherence18/18 each, six type groups and six controls.
+  Maintained four-file bodies82/83; moved stream consumer21/21. No global gate.
+- Four assertion failures are preserved. P05's three failures compare a registered
+  frozen copy with its input object; the maintained failure omits apply_patch from
+  one literal name tail. Exact fixture correction6bcb5561 is committed but UNRUN.
+  Fixture-only derived successor7fde32264d757ef856acf3ae92c8581b4a294341 retains
+  every278 build input and the exact already-built package; no rebuild/rescore.
+  Different public integration review is still required; original author run is
+  AUTHOR_ASSERTION_FAILURES, not passing acceptance.
+- All28 direct children closed naturally,0 signals;36.678s/2,964,466 child capture
+  bytes/66,273,312 scratch bytes. These do not establish global Worker/native/RSS
+  closure. No native, private engine, network or module implementation execution
+  outside the selected authorized author profile. No AGENTS rules changed.
+- Exact source/package/types/failure/qualification handoff:
+  `tests/integration/apply-patch-public-20260829/HANDOFF.md`; raw captures immutable.

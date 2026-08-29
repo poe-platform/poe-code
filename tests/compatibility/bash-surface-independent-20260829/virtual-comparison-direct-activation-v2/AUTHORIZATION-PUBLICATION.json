@@ -1,0 +1,100 @@
+{
+  "schema": "authorization-binding-publication-v1",
+  "bindingCommit": "44e5530ef2dc5dd6a125f71a155a2e99885214ab",
+  "decision": "PREPARED_PENDING_INDEPENDENT_SLOT_ACCEPT_AND_ROOT_ACTIVATION",
+  "window": {
+    "issuedAt": "2026-08-29T11:17:50.372Z",
+    "expiresAt": "2026-08-29T12:07:50.372Z",
+    "latestStart": "2026-08-29T11:37:50.372Z",
+    "issuedAtEpochMs": 1788002270372,
+    "expiresAtEpochMs": 1788005270372,
+    "latestStartEpochMs": 1788003470372,
+    "grantFieldMapping": {
+      "issuedAt": "notBeforeEpochMs",
+      "expiresAt": "notAfterEpochMs",
+      "latestStart": "notAfterEpochMs minus unchanged 1800000ms required full window"
+    },
+    "activation": "PENDING separate DATA-only resolved-slot ACCEPT and fresh ROOT actual activation",
+    "oneAttempt": true,
+    "noRetry": true,
+    "noRenewal": true
+  },
+  "artifacts": [
+    {
+      "path": "INDEPENDENT-ACCEPTANCE.json",
+      "bytes": 972,
+      "sha256": "2d69073c07de80c7bd64419e7cf0b773167a22d30deae1b722fc64450ac002e3",
+      "mode": 384
+    },
+    {
+      "path": "GO.json",
+      "bytes": 1208,
+      "sha256": "ed716d95fa4f4f3571b40d2f32174104d3be68ae05c480a8a3ae5cde3bc82d0e",
+      "mode": 384
+    },
+    {
+      "path": "COMMAND.resolved.txt",
+      "bytes": 615,
+      "sha256": "e03efbc1a97bf89c329ba909263cb9c08348b5b16c4c68f0821f7a82343b57e8",
+      "mode": 420
+    },
+    {
+      "path": "AUTHORIZATION-BINDING.json",
+      "bytes": 60960,
+      "sha256": "3b87b7388efd040752f709cbb1bf25ebfaf8ecd0e136fac71060829a8c92a25a",
+      "mode": 420
+    },
+    {
+      "path": "AUTHORIZATION-ROOT-RECORD.md",
+      "bytes": 2389,
+      "sha256": "edb3f965b13a632f67affd962ceaf43669b3141179a95cdf6ed81362de1f0ea0",
+      "mode": 420
+    },
+    {
+      "path": "AUTHORIZATION-FRESH-INPUTS.json",
+      "bytes": 63833,
+      "sha256": "ac058e006133754611ad218d744748e58404165778a2a9bd90722e5ddc09b6bc",
+      "mode": 420
+    },
+    {
+      "path": "AUTHORIZATION-PREFLIGHT.json",
+      "bytes": 1061,
+      "sha256": "9fabcf96e962ab351af8ed222e10479a88ce7251985395b23672bc92926a7859",
+      "mode": 420
+    },
+    {
+      "path": "AUTHORIZATION-HANDOFF.md",
+      "bytes": 3406,
+      "sha256": "e2eded84cb908a152c2ea5a95430a49761d782789eff0da4dd9ba0cf326f5610",
+      "mode": 420
+    }
+  ],
+  "preparationCaptureCut": {
+    "knownStarts": 8,
+    "retired": 8,
+    "active": 0,
+    "knownChildPeak": 1,
+    "allowedPeak": 2,
+    "rawFileBytes": 162937,
+    "capture": "/tmp/bash-surface-activation-binding-C0I1Iz",
+    "scope": "through authorization source commit; later publication metadata remains in independently closed capture tail"
+  },
+  "archive": {
+    "path": "AUTHORIZATION-RAW-CAPTURE.json.gz.base64",
+    "encodedBytes": 75357,
+    "encodedSha256": "5a1298aa5ec426bc47ac3a818af2e68fd99ce8e2b358106b6443613a8a1692b8",
+    "gzipBytes": 56516,
+    "gzipSha256": "510b48dcc1e0d5a2623d1129f8be9a7cc8fd171e6132805528e69b8e9dbe480e",
+    "decodedBytes": 220904,
+    "decodedSha256": "90aba35b7bd0f118503a890a44879fb50a3b6077655f569bd3dfeebc6e566745"
+  },
+  "runtime": {
+    "productCalls": 0,
+    "planned111": "UNRUN",
+    "nativeCalls": 0,
+    "compilerBuildInstall": 0,
+    "workerStarts": 0,
+    "asyncLoaderStarts": 0
+  },
+  "qualification": "No runtime activation. Exact fixed37×3 only. No old budget/grant transfer; previous holds remain unchanged."
+}

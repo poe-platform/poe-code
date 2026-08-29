@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import vm from 'node:vm';
+import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
+const own = path.dirname(fileURLToPath(import.meta.url));
+const author = path.resolve(own, '../../agent-bash-coherent-b2-preflight-20260829/completion-r7');
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+function read(filename, maximum = 1048576) { const stat = fs.lstatSync(filename); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum); const bytes = fs.readFileSync(filename); assert.equal(bytes.length, stat.size); return bytes; }
+const packet = read(author + '/staged/PACKET.json');
+assert.equal(packet.length, 6519); assert.equal(hash(packet), 'f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a');
+const receipt = read(author + '/RECEIPT.json'); assert.equal(hash(receipt), '89df82217c7c39437f8b10bc3ede094012759d77c154031cc3f579ee8e246d26');
+const seal = JSON.parse(read(author + '/PRESEAL.json'));
+for (const row of seal.files) { const bytes = read(author + '/' + row.path); assert.equal(bytes.length, row.bytes); assert.equal(hash(bytes), row.sha256); }
+const toolStat = fs.lstatSync(seal.tool.path); assert.ok(toolStat.isFile()); assert.equal(toolStat.size, seal.tool.bytes);
+const digest = crypto.createHash('sha256'); for await (const chunk of fs.createReadStream(seal.tool.path, { highWaterMark: 65536 })) digest.update(chunk); assert.equal(digest.digest('hex'), seal.tool.sha256);
+const original = read(author + '/check.mjs').toString();
+let runner = original.replace('const scope = path.dirname(fileURLToPath(import.meta.url));', `const scope = ${JSON.stringify(author)};`).replace('path.join(scope, "PRESEAL.json")', 'path.join(path.dirname(fileURLToPath(import.meta.url)), "EXECUTION-SEAL.json")').replace('await import("./staged/new/trace.mjs")', `await import(${JSON.stringify(author + '/staged/new/trace.mjs')})`);
+const insert = read(own + '/novel.fragment.txt').toString();
+assert.equal(runner.split('  for (const fixture of seal.fixtures) {').length, 2);
+runner = runner.replace('  for (const fixture of seal.fixtures) {', insert + '\n  for (const fixture of seal.fixtures) {');
+assert.notEqual(runner, original); new vm.SourceTextModule(runner);
+seal.schema = 'INDEPENDENT_B2_R7_DELTA_PRESEAL'; seal.deadline = '2026-08-29T15:49:45.000Z'; seal.workRoot = '/private/tmp/b2-r7-independent-harmless-20260829';
+assert.equal(fs.existsSync(seal.workRoot), false);
+seal.controls.push('N01-cumulative-cap', 'N02-sticky-failure', 'N03-inode-replacement', 'N04-retirement-required', 'N05-incomplete-jsonl', 'N06-trace-tamper');
+seal.review = { candidate: '5d60457781b73783eecdd61e34d33ec7916d891b', runnerSha256: hash(Buffer.from(runner)), originalCheckSha256: hash(Buffer.from(original)), permissionPolicy: 'EXACT original H01/H02 argv templates; owned roots substituted only', knownOsMaximum: 32, peak: 3, loaderAdmissions: 2, loaderLive: 1, productCalls: 0, roleGraph: { priorInstructionAndInspectionConservative: 11, editingMaximum: 4, preparationAndRunner: 2, harmlessChildren: 2, gitPublication: 6, finalData: 2, reserve: 5 }, deadlineIncludesPublication: true };
+for (const [name, value] of [['runner.mjs', runner], ['EXECUTION-SEAL.json', JSON.stringify(seal, null, 2) + '\n']]) fs.writeFileSync(own + '/' + name, value, { flag: 'wx' });
+fs.writeFileSync(own + '/ADMISSION.json', JSON.stringify({ created: new Date().toISOString(), packetSha256: hash(packet), receiptSha256: hash(receipt), files: seal.files.length, tool: seal.tool, sealSha256: hash(read(own + '/EXECUTION-SEAL.json')), runnerSha256: hash(Buffer.from(runner)), syntax: 'SourceTextModule construction only', sourceOnly: true }, null, 2) + '\n', { flag: 'wx' });
+console.log(fs.readFileSync(own + '/ADMISSION.json', 'utf8'));

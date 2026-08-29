@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T14:45:39.830Z",
+  "phase": "SOURCE_DATA_ONLY",
+  "patchSha256": "7dab4402f3e6e8be1326a64cbd647318fd9ef74b804d0708a59816d1c7b17739",
+  "bodySha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+  "staticBytes": 21431144,
+  "logicalMaximum": 332129069,
+  "captureMaximum": 131072000,
+  "Workers": 0,
+  "product": 0
+}

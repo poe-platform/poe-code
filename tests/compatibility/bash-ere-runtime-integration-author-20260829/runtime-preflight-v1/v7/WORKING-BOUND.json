@@ -1,0 +1,28 @@
+{
+  "domain": "prospective logical regular-file bytes, not allocated blocks/RSS/Git internal storage",
+  "components": {
+    "retainedAndFreshLayoutCopies": 43910864,
+    "uniqueCellEvents": 55050240,
+    "uniqueCellPipesIncludingFinalAudits": 55050240,
+    "coordinatorCapture": 8388608,
+    "administrativeToolCaptures": 8388608,
+    "publicationTails": 4194304,
+    "generatedBindingsManifestsMetadata": 16777216,
+    "onePublicationCopyOfAllCaptures": 131072000,
+    "archivedPackage": 908381,
+    "extraMetadataReserve": 8388608
+  },
+  "logicalMaximum": 332129069,
+  "limit": 536870912,
+  "captureMaximum": 131072000,
+  "captureLimit": 134217728,
+  "sourceBasis": "all frozen layout row sizes; twice for old/new copies; exact per-cell event and combined pipe reservations; fixed metadata/tool/publication ceilings; immutable inventory must admit copied bytes before materialization",
+  "conditions": [
+    "No arbitrary additional files or duplicate evidence copies",
+    "Only declared bounded write roles",
+    "Git object/index/internal storage explicitly outside this logical budget",
+    "No raw whole executable copies; stream tool hashes",
+    "Existing old roots remain immutable"
+  ],
+  "runtimeAuthority": false
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "oid": "482f401b1d24379ce5dd2a37fa432a068d0bf2dc",
+    "bytes": 34683,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/SUMMARY.json",
+    "relative": "SUMMARY.json"
+  },
+  {
+    "oid": "fe414e0ede3dc328fc202f0b10cf73064f793051",
+    "bytes": 3416,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/acquire.mjs",
+    "relative": "acquire.mjs"
+  },
+  {
+    "oid": "fb57448fb95ea193b245ccf8811c9ffb9c7bd601",
+    "bytes": 1537,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/entry.mjs",
+    "relative": "entry.mjs"
+  },
+  {
+    "oid": "cb7c7413315a801b067eb262e31b1cb5858faf3d",
+    "bytes": 7059,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/finalize.mjs",
+    "relative": "finalize.mjs"
+  },
+  {
+    "oid": "7053cbfbd53d938c697aeb0a934f5fb609db08d4",
+    "bytes": 8827,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs",
+    "relative": "independent.mjs"
+  },
+  {
+    "oid": "cb6403b20ac92b91e0eecd96505fe39428c08cc2",
+    "bytes": 2729,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/publish.mjs",
+    "relative": "publish.mjs"
+  },
+  {
+    "oid": "66049a02e97c4461149b176f364ef610ae782e47",
+    "bytes": 12993,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/run.mjs",
+    "relative": "run.mjs"
+  },
+  {
+    "oid": "cd7e1306262ca7f3aa66d08783383985362940b8",
+    "bytes": 4603,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/seal-v2.mjs",
+    "relative": "seal-v2.mjs"
+  },
+  {
+    "oid": "db8c8c15653a5c89a39d83d3d10c6eaf5a922b71",
+    "bytes": 4420,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/seal.mjs",
+    "relative": "seal.mjs"
+  },
+  {
+    "oid": "7aea22af2f29240705db91b6d47eb9406a9c30e1",
+    "bytes": 3258,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/supplement.mjs",
+    "relative": "supplement.mjs"
+  },
+  {
+    "oid": "7104342d4116fce12a7cfa1a7f7a884a55ec2525",
+    "bytes": 4114,
+    "path": "tests/compatibility/bash-ere-engine-independent-20260829/witnesses/cases.json.data",
+    "relative": "witnesses/cases.json.data"
+  }
+]

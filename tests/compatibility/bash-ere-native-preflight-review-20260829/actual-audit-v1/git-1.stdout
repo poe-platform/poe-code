@@ -1,0 +1,2841 @@
+18b9579710d5c99902961d8db61ed28d88271057 blob 13004
+{
+  "schema": "ere12-actual-final-seal-v1",
+  "at": "2026-08-29T10:20:31.333Z",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5525,
+      "mode": 420,
+      "sha256": "79c82d888b1cee7ac105b28b2a362044b598c26a86d6525b6adf8e15c8da9c7e"
+    },
+    {
+      "path": "OBSERVATIONS.json",
+      "bytes": 51236,
+      "mode": 384,
+      "sha256": "d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274"
+    },
+    {
+      "path": "OBSERVATIONS.md",
+      "bytes": 1979,
+      "mode": 384,
+      "sha256": "a7f41284f3ff9636cccd90196e417898d96b9b65ef9bfd7726213c35300b2d1e"
+    },
+    {
+      "path": "PREFLIGHT.json",
+      "bytes": 2879,
+      "mode": 384,
+      "sha256": "453c38fc8fdff7e9f2d5da9eeb086b4279a896568078045ba295f0be6dd5fa21"
+    },
+    {
+      "path": "SCOPE.md",
+      "bytes": 2050,
+      "mode": 420,
+      "sha256": "a29fd2e7bfbcaff0932b375ba6ec786acc870a822cbb2fec6a8049cd65666fdb"
+    },
+    {
+      "path": "SLOT-REPORT.md.data",
+      "bytes": 5650,
+      "mode": 384,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f"
+    },
+    {
+      "path": "TOOL-RETURN.json",
+      "bytes": 708,
+      "mode": 420,
+      "sha256": "16a8d327940a4e5f2440eaa247c42f4df229cac30c0689f9ca690a6664a37148"
+    },
+    {
+      "path": "preflight.mjs",
+      "bytes": 6182,
+      "mode": 420,
+      "sha256": "1bc7339a7d3d905062b4dfabdca3807fac18c8e9897705fd5cf4055cf23f7199"
+    },
+    {
+      "path": "publish.mjs",
+      "bytes": 8822,
+      "mode": 420,
+      "sha256": "24eb9042d8a8f0cc557fa8213b9ecfdef327ace4f7370ecb02de61fcc7c64a12"
+    },
+    {
+      "path": "raw/preflight-syntax.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight-syntax.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight.stdout",
+      "bytes": 8015,
+      "mode": 384,
+      "sha256": "6496263a5bb79dd86569abc4cddde048523d6cfdb189e0d6b8ae031de5b5ce87"
+    },
+    {
+      "path": "raw/publish-syntax.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish-syntax.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish.stdout",
+      "bytes": 1219,
+      "mode": 384,
+      "sha256": "618c9f6d2d6c4b8d09e0f55b0d675f4b255a6c6bab82d7daccefa1cf0c86b5c6"
+    },
+    {
+      "path": "raw/seal-syntax.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/seal-syntax.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/slot-report.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/slot-report.stdout",
+      "bytes": 5650,
+      "mode": 384,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f"
+    },
+    {
+      "path": "raw/slot-size.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/slot-size.stdout",
+      "bytes": 5,
+      "mode": 384,
+      "sha256": "01540bf2961839f4c7788e71a10ce3841ecfc8d3df84c944bfadf4bdb3f17ac0"
+    },
+    {
+      "path": "runtime/JOURNAL.jsonl",
+      "bytes": 24679,
+      "mode": 384,
+      "sha256": "1071f9ca11b37241be0f0b66de9a60efbe7b699b0c106f187c14df38b9443d75"
+    },
+    {
+      "path": "runtime/N01.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "718b519fec15dd2bdb280ecd963448a94b3956c6bef2450ee5c3de4ef9acf072"
+    },
+    {
+      "path": "runtime/N02.json",
+      "bytes": 2133,
+      "mode": 384,
+      "sha256": "2413f791bc6dfdb9a61e3f8223bfcc54ae1caa91d1d038e3887a6300af31a1e7"
+    },
+    {
+      "path": "runtime/N03.json",
+      "bytes": 2141,
+      "mode": 384,
+      "sha256": "945b207bdc8270a2dde82f210ea1ba394451dd3b3d7d385413e02d4cbee5d4c4"
+    },
+    {
+      "path": "runtime/N04.json",
+      "bytes": 2163,
+      "mode": 384,
+      "sha256": "55082f4feefd6d5bd88e58cd115cbb29933cdf4b68fc02e257b6b5d8a6742fb1"
+    },
+    {
+      "path": "runtime/N05.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "735af0c5016886556c76484902b89c08eccf4d1c4b9b6d9d7ede7843eda4a2d3"
+    },
+    {
+      "path": "runtime/N06.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "afd34aec27110dd4f7bc9f1dce7d0b49d982509ccc7b2b0b40af4040fdf6de6d"
+    },
+    {
+      "path": "runtime/N07.json",
+      "bytes": 2133,
+      "mode": 384,
+      "sha256": "2204861ab51f0916fb1041fcab2a95c4b8a0185bd12e7faea744be2267f4e682"
+    },
+    {
+      "path": "runtime/N08.json",
+      "bytes": 2134,
+      "mode": 384,
+      "sha256": "0afc3b068682e2496906c482629234049d9e4021a2a89ca60bf44a4a61e08f0f"
+    },
+    {
+      "path": "runtime/N09.json",
+      "bytes": 2123,
+      "mode": 384,
+      "sha256": "35983efb79b29ee6dfaa0fde280d17f71baa89b6da52b15d6d4ad539d2919989"
+    },
+    {
+      "path": "runtime/N10.json",
+      "bytes": 2123,
+      "mode": 384,
+      "sha256": "a06af5e8d131b6aaf2e77cb91ee74830e64b600e975e57ca083f71488305d925"
+    },
+    {
+      "path": "runtime/N11.json",
+      "bytes": 2117,
+      "mode": 384,
+      "sha256": "668ace012feb839c0951dfebdd523be93cdeb068359d1c9041c35113395b38ed"
+    },
+    {
+      "path": "runtime/N12.json",
+      "bytes": 2117,
+      "mode": 384,
+      "sha256": "1ec18b6f6d7644bc203ea9f62c98491623f2184c68ec56f728c06ac38e3c2d1d"
+    },
+    {
+      "path": "runtime/RESULTS.json",
+      "bytes": 1392,
+      "mode": 384,
+      "sha256": "41da43b996497caa6cfb4dc87a5416372fba3fa7b779891db092f440bb67307f"
+    },
+    {
+      "path": "runtime/captures/N01/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N01/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71"
+    },
+    {
+      "path": "runtime/captures/N02/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N02/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a"
+    },
+    {
+      "path": "runtime/captures/N03/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N03/stdout",
+      "bytes": 44,
+      "mode": 384,
+      "sha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043"
+    },
+    {
+      "path": "runtime/captures/N04/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N04/stdout",
+      "bytes": 52,
+      "mode": 384,
+      "sha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e"
+    },
+    {
+      "path": "runtime/captures/N05/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N05/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f"
+    },
+    {
+      "path": "runtime/captures/N06/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N06/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11"
+    },
+    {
+      "path": "runtime/captures/N07/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N07/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe"
+    },
+    {
+      "path": "runtime/captures/N08/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N08/stdout",
+      "bytes": 41,
+      "mode": 384,
+      "sha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487"
+    },
+    {
+      "path": "runtime/captures/N09/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N09/stdout",
+      "bytes": 37,
+      "mode": 384,
+      "sha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62"
+    },
+    {
+      "path": "runtime/captures/N10/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N10/stdout",
+      "bytes": 37,
+      "mode": 384,
+      "sha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d"
+    },
+    {
+      "path": "runtime/captures/N11/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N11/stdout",
+      "bytes": 36,
+      "mode": 384,
+      "sha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e"
+    },
+    {
+      "path": "runtime/captures/N12/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N12/stdout",
+      "bytes": 36,
+      "mode": 384,
+      "sha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952"
+    },
+    {
+      "path": "runtime/outer/bootstrap.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/outer/bootstrap.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 5325,
+      "mode": 420,
+      "sha256": "291690924eb85d7032095c66ce28fc90325463cce0432bea3d5ea6dc73ac7f4f"
+    }
+  ],
+  "observationManifestSha256": "d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "toolAfter": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "at": "2026-08-29T10:20:31.305Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "at": "2026-08-29T10:20:31.308Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "at": "2026-08-29T10:20:31.309Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "at": "2026-08-29T10:20:31.309Z"
+    }
+  ],
+  "runtimeMembership": {
+    "files": 40,
+    "directories": 75,
+    "bytes": 52128
+  },
+  "workBytesBeforeSeal": 157373,
+  "adminCaptureBytes": 14889,
+  "combinedObservedCaptureBytes": 67017,
+  "knownDirectStartsIncludingCommit": 35,
+  "conservativeExecutableRoleCharge": 36,
+  "knownPeak": 3,
+  "nativeCases": 12,
+  "semanticPassCount": null,
+  "observationsQualified": 12,
+  "qualificationErrors": [],
+  "ownerToolExit": "reported 0; transcript reference in TOOL-RETURN.json",
+  "allKnownProcessesRetired": true,
+  "sourceAndRuntimeIntegrityAfter": true,
+  "actualDeadline": 1787999189774,
+  "attempt": "CONSUMED_NO_RETRY",
+  "next": "independent artifact audit and ROOT R01 adjudication"
+}
+
+7f9363841a24c048f48cc94bccc7eae76c807581 blob 5525
+# ERE12 actual observations — independent artifact audit pending
+
+Date: 2026-08-29. One exact approved native invocation completed. **Twelve qualified
+capture observations, not twelve semantic passes.** No retry or additional native
+query occurred. Stop here for independent artifact audit and ROOT R01 adjudication.
+
+## Authority, source and reference identity
+
+- Source: `2d07f5921010fda988dcda36ac81a89831fbac55`.
+- Activation: `016aa3a940c19dc17fd94bce0ed7468676e1d5c5`.
+- Resolved-slot acceptance: `a1d03bcb9be30b60b784b25abe510a7e2a23c9eb`.
+- Executable preseal:
+  `211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457`.
+- GO: `9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec`.
+- Exact command:
+  `9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25`.
+
+Fresh DATA preflight passed at 10:16:29.976 UTC. The exact accepted parameters were
+submitted with `require_escalated`, `login:false`, no prefix rule; the tool started
+the owner and later reported exit 0. See the explicitly agent-recorded
+`TOOL-RETURN.json` and original tool transcript. No default-mode fallback.
+
+Executed binary: `/bin/bash`, SHA256
+`35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3`.
+It matches the previously captured local **Bash 3.2.57** metadata. The four pinned
+tools were freshly hashed before activation; source/data members were checked
+before and after, with final tool hashes checked again at sealing. There was no
+new version probe. This is this local Bash/platform's output, **not GNU 5.3**, all
+libc versions, complete POSIX semantics, or containment qualification.
+
+## Exact shell-visible observations
+
+Values below are JSON representations of present `BASH_REMATCH` slots in index
+order. `OBSERVATIONS.json` preserves each slot's presence, bytes/base64 and hashes;
+`runtime/captures/Nxx/stdout` preserves the original NUL-framed binary stream.
+
+| ID | Regex/process status | Cardinality | Present values |
+|---|---:|---:|---|
+| N01 | 0 | 3 | `["aba","a",""]` |
+| N02 | 0 | 4 | `["ab","b","","b"]` |
+| N03 | 0 | 4 | `["abcac","ac","a",""]` |
+| N04 | 0 | 3 | `["bananas bas ","bas ",""]` |
+| N05 | 0 | 3 | `["aba","a",""]` |
+| N06 | 0 | 3 | `["abb","b",""]` |
+| N07 | 0 | 4 | `["ba","a","a",""]` |
+| N08 | 0 | 3 | `["ab","ab","b"]` |
+| N09 | 0 | 2 | `["b",""]` |
+| N10 | 0 | 2 | `["b",""]` |
+| N11 | 1 | 0 | `[]` |
+| N12 | 2 | 0 | `[]` |
+
+N09 and N10 have identical empty shell-visible values: no native spans or hidden
+nonparticipation can be inferred from them. N01–N07 are the finite conflict
+witnesses, not the complete I23 enumeration. No ERE engine or product was rerun,
+and no historical engine result is rescored. ROOT decides R01 after artifact audit.
+
+## Capture and lifecycle evidence
+
+Owner RESULTS records completed 12, halted false, exactly 13 charged/confirmed
+managed starts (owner + 12 cases), peak two managed roles, zero source-internal
+fork reservations. Each case has exit and close observations, `signal:null`,
+`stop:null`, no errors, retirement true, and observed owned process-group absence.
+The owner is still recorded active at its pre-exit RESULTS write; the subsequent
+tool exit 0 establishes owner retirement, not an inferred leaked process.
+
+All stdout/stderr captures match disk bytes, sizes, SHA256 and base64, with flush,
+size/hash and close checks true. Both outer captures also match. Every case's
+before/after namespace snapshot agrees. Final owner credit is corroborated by
+completed 12 and the exact ordered twelve journal credit events. Saved per-case
+JSON legitimately precedes `receiptPublished=true`; that source ordering is
+preserved rather than silently changing its stored false field.
+
+Readback qualified all twelve with **no qualification errors**. Raw runtime
+inventory is **52,128 bytes**, copied byte-exact under `runtime/`; original files
+remain at the owned run root for independent audit. Observation manifest SHA256:
+`d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274`.
+`FINAL-SEAL.json` binds the complete publication, runtime membership and final
+source/tool checks. It does not turn source-derived reservations into an OS census.
+
+## Budgets, ownership and stop
+
+Fresh actual-preflight start: 10:16:29.774 UTC. Its inclusive 600-second deadline
+is **10:26:29.774 UTC**; native execution and initial readback publication completed
+by 10:17:19.402 UTC. Final sealing and commit occur inside the same window, without
+reset. The fixed GO expiry remains 10:46:09.884 UTC; it is not renewed. The one
+authorized actual attempt is **consumed**, even though its timestamp has not yet
+expired. Do not replay the command.
+
+Known direct starts: context 4 + preflight 7 + native owner/cases 13 + readback 3 +
+final seal/commit 8 = **35**. Charging an additional wrapper executable role
+conservatively yields **36**, below 40. The source plan's 32-role estimate did not
+include four final-readback/sealing roles; the actual ledger preserves that delta.
+Peak three known roles; no claim of a global process census or kernel quota.
+Zero Worker/product/engine/comparator/private/network/native-version/P2/XAN/old-gate
+activity. Exact literal programs, zero fixtures and empty stdin were unchanged.
+
+Initial tool-shell startup remains trusted host outside cohort fresh-environment
+and raw-capture qualification. All owned processes are retired. Runtime evidence
+is deliberately retained, not abandoned live work. No cleanup, new query, source
+repair or further activation follows this handoff without ROOT direction.
+
+ae7acd76f921ccb44974975879d7f3f3fd4f44f4 blob 51236
+{
+  "schema": "ere12-native-observation-manifest-v1",
+  "at": "2026-08-29T10:17:19.402Z",
+  "preflightSha256": "453c38fc8fdff7e9f2d5da9eeb086b4279a896568078045ba295f0be6dd5fa21",
+  "root": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "sourceCommit": "2d07f5921010fda988dcda36ac81a89831fbac55",
+  "activationCommit": "016aa3a940c19dc17fd94bce0ed7468676e1d5c5",
+  "slotReviewCommit": "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "grantSha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "reference": "executed pinned /bin/bash corresponding to previously captured local 3.2.57 metadata; no new version probe",
+  "nativeSpans": "UNOBSERVABLE",
+  "normativePosixClaim": false,
+  "gnu53Claim": false,
+  "observationsNotPasses": true,
+  "observations": [
+    {
+      "id": "N01",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604416,
+      "finished": 1787998604459,
+      "receiptFileSha256": "718b519fec15dd2bdb280ecd963448a94b3956c6bef2450ee5c3de4ef9acf072",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71",
+        "base64": "RVJFT0JTMQBOMDEAMAAzADAAMQBhYmEAMQAxAGEAMgAxAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 3,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 3,
+            "base64": "YWJh"
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "YQ=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "aba"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "a"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N02",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604485,
+      "finished": 1787998604528,
+      "receiptFileSha256": "2413f791bc6dfdb9a61e3f8223bfcc54ae1caa91d1d038e3887a6300af31a1e7",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a",
+        "base64": "RVJFT0JTMQBOMDIAMAA0ADAAMQBhYgAxADEAYgAyADEAADMAMQBiAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 4,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 2,
+            "base64": "YWI="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          }
+        ],
+        "stdoutSha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "ab"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "b"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "value": "b"
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N03",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604555,
+      "finished": 1787998604591,
+      "receiptFileSha256": "945b207bdc8270a2dde82f210ea1ba394451dd3b3d7d385413e02d4cbee5d4c4",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 44,
+        "sha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043",
+        "base64": "RVJFT0JTMQBOMDMAMAA0ADAAMQBhYmNhYwAxADEAYWMAMgAxAGEAMwAxAAA="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 4,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 5,
+            "base64": "YWJjYWM="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 2,
+            "base64": "YWM="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "YQ=="
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "abcac"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "ac"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": "a"
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N04",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604628,
+      "finished": 1787998604667,
+      "receiptFileSha256": "55082f4feefd6d5bd88e58cd115cbb29933cdf4b68fc02e257b6b5d8a6742fb1",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 52,
+        "sha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e",
+        "base64": "RVJFT0JTMQBOMDQAMAAzADAAMQBiYW5hbmFzIGJhcyAAMQAxAGJhcyAAMgAxAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 3,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 12,
+            "base64": "YmFuYW5hcyBiYXMg"
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 4,
+            "base64": "YmFzIA=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "bananas bas "
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "bas "
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N05",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604705,
+      "finished": 1787998604745,
+      "receiptFileSha256": "735af0c5016886556c76484902b89c08eccf4d1c4b9b6d9d7ede7843eda4a2d3",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f",
+        "base64": "RVJFT0JTMQBOMDUAMAAzADAAMQBhYmEAMQAxAGEAMgAxAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 3,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 3,
+            "base64": "YWJh"
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "YQ=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "aba"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "a"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N06",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604788,
+      "finished": 1787998604833,
+      "receiptFileSha256": "afd34aec27110dd4f7bc9f1dce7d0b49d982509ccc7b2b0b40af4040fdf6de6d",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11",
+        "base64": "RVJFT0JTMQBOMDYAMAAzADAAMQBhYmIAMQAxAGIAMgAxAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 3,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 3,
+            "base64": "YWJi"
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "abb"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "b"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N07",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604874,
+      "finished": 1787998604923,
+      "receiptFileSha256": "2204861ab51f0916fb1041fcab2a95c4b8a0185bd12e7faea744be2267f4e682",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe",
+        "base64": "RVJFT0JTMQBOMDcAMAA0ADAAMQBiYQAxADEAYQAyADEAYQAzADEAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 4,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 2,
+            "base64": "YmE="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "YQ=="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "YQ=="
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "ba"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "a"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": "a"
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N08",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998604971,
+      "finished": 1787998605023,
+      "receiptFileSha256": "0afc3b068682e2496906c482629234049d9e4021a2a89ca60bf44a4a61e08f0f",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 41,
+        "sha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487",
+        "base64": "RVJFT0JTMQBOMDgAMAAzADAAMQBhYgAxADEAYWIAMgAxAGIAMwAwAAA="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 3,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 2,
+            "base64": "YWI="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 2,
+            "base64": "YWI="
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "ab"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": "ab"
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "value": "b"
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N09",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998605076,
+      "finished": 1787998605129,
+      "receiptFileSha256": "35983efb79b29ee6dfaa0fde280d17f71baa89b6da52b15d6d4ad539d2919989",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 37,
+        "sha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62",
+        "base64": "RVJFT0JTMQBOMDkAMAAyADAAMQBiADEAMQAAMgAwAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 2,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "b"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N10",
+      "status": 0,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998605198,
+      "finished": 1787998605259,
+      "receiptFileSha256": "a06af5e8d131b6aaf2e77cb91ee74830e64b600e975e57ca083f71488305d925",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 37,
+        "sha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d",
+        "base64": "RVJFT0JTMQBOMTAAMAAyADAAMQBiADEAMQAAMgAwAAAzADAAAA=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 0,
+        "cardinality": 2,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": true,
+            "bytes": 1,
+            "base64": "Yg=="
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": true,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "value": "b"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "value": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N11",
+      "status": 1,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998605324,
+      "finished": 1787998605384,
+      "receiptFileSha256": "668ace012feb839c0951dfebdd523be93cdeb068359d1c9041c35113395b38ed",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 36,
+        "sha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e",
+        "base64": "RVJFT0JTMQBOMTEAMQAwADAAMAAAMQAwAAAyADAAADMAMAAA"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 1,
+        "cardinality": 0,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    },
+    {
+      "id": "N12",
+      "status": 2,
+      "signal": null,
+      "stop": null,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "started": 1787998605457,
+      "finished": 1787998605520,
+      "receiptFileSha256": "1ec18b6f6d7644bc203ea9f62c98491623f2184c68ec56f728c06ac38e3c2d1d",
+      "sourceReceiptPublishedField": false,
+      "sourceReceiptOrder": "case JSON is written before receiptPublished=true and owner credit",
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 36,
+        "sha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952",
+        "base64": "RVJFT0JTMQBOMTIAMgAwADAAMAAAMQAwAAAyADAAADMAMAAA"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "observation": {
+        "regexStatus": 2,
+        "cardinality": 0,
+        "slots": [
+          {
+            "index": 0,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 1,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 2,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          },
+          {
+            "index": 3,
+            "shellSlotPresent": false,
+            "bytes": 0,
+            "base64": ""
+          }
+        ],
+        "stdoutSha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952",
+        "hiddenNativeSpans": "UNOBSERVABLE",
+        "nativeParticipationFromEmptyString": "NOT_INFERRED"
+      },
+      "visibleAsciiValues": [
+        {
+          "index": 0,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "value": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "value": ""
+        }
+      ],
+      "qualification": "CAPTURE_AND_LIFECYCLE_VERIFIED",
+      "errors": []
+    }
+  ],
+  "results": {
+    "schema": "ere-native-capture-observations-v1",
+    "completed": 12,
+    "halted": false,
+    "rows": [
+      {
+        "id": "N01",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N02",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N03",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N04",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N05",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N06",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N07",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N08",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N09",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N10",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N11",
+        "status": 1,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "N12",
+        "status": 2,
+        "stop": null,
+        "retired": true
+      }
+    ],
+    "ledger": {
+      "max": 13,
+      "peak": 2,
+      "starts": 13,
+      "active": 1,
+      "peakCharged": 2,
+      "confirmedStarts": 13,
+      "activeConfirmed": 1,
+      "peakConfirmed": 2,
+      "confirmedRoles": {
+        "owner": 1,
+        "case": 12
+      },
+      "roles": {
+        "owner": 1,
+        "case": 12
+      },
+      "sourceForkReservations": 0
+    },
+    "outer": [
+      {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      }
+    ],
+    "sourceForkCounts": "PLANNED_NOT_OBSERVED",
+    "osContainment": false,
+    "version": "Bash3.2.57",
+    "notStarted": [],
+    "deadline": 1787999204325
+  },
+  "credits": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "N09",
+    "N10",
+    "N11",
+    "N12"
+  ],
+  "files": [
+    {
+      "path": "JOURNAL.jsonl",
+      "bytes": 24679,
+      "mode": 384,
+      "sha256": "1071f9ca11b37241be0f0b66de9a60efbe7b699b0c106f187c14df38b9443d75"
+    },
+    {
+      "path": "N01.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "718b519fec15dd2bdb280ecd963448a94b3956c6bef2450ee5c3de4ef9acf072"
+    },
+    {
+      "path": "N02.json",
+      "bytes": 2133,
+      "mode": 384,
+      "sha256": "2413f791bc6dfdb9a61e3f8223bfcc54ae1caa91d1d038e3887a6300af31a1e7"
+    },
+    {
+      "path": "N03.json",
+      "bytes": 2141,
+      "mode": 384,
+      "sha256": "945b207bdc8270a2dde82f210ea1ba394451dd3b3d7d385413e02d4cbee5d4c4"
+    },
+    {
+      "path": "N04.json",
+      "bytes": 2163,
+      "mode": 384,
+      "sha256": "55082f4feefd6d5bd88e58cd115cbb29933cdf4b68fc02e257b6b5d8a6742fb1"
+    },
+    {
+      "path": "N05.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "735af0c5016886556c76484902b89c08eccf4d1c4b9b6d9d7ede7843eda4a2d3"
+    },
+    {
+      "path": "N06.json",
+      "bytes": 2130,
+      "mode": 384,
+      "sha256": "afd34aec27110dd4f7bc9f1dce7d0b49d982509ccc7b2b0b40af4040fdf6de6d"
+    },
+    {
+      "path": "N07.json",
+      "bytes": 2133,
+      "mode": 384,
+      "sha256": "2204861ab51f0916fb1041fcab2a95c4b8a0185bd12e7faea744be2267f4e682"
+    },
+    {
+      "path": "N08.json",
+      "bytes": 2134,
+      "mode": 384,
+      "sha256": "0afc3b068682e2496906c482629234049d9e4021a2a89ca60bf44a4a61e08f0f"
+    },
+    {
+      "path": "N09.json",
+      "bytes": 2123,
+      "mode": 384,
+      "sha256": "35983efb79b29ee6dfaa0fde280d17f71baa89b6da52b15d6d4ad539d2919989"
+    },
+    {
+      "path": "N10.json",
+      "bytes": 2123,
+      "mode": 384,
+      "sha256": "a06af5e8d131b6aaf2e77cb91ee74830e64b600e975e57ca083f71488305d925"
+    },
+    {
+      "path": "N11.json",
+      "bytes": 2117,
+      "mode": 384,
+      "sha256": "668ace012feb839c0951dfebdd523be93cdeb068359d1c9041c35113395b38ed"
+    },
+    {
+      "path": "N12.json",
+      "bytes": 2117,
+      "mode": 384,
+      "sha256": "1ec18b6f6d7644bc203ea9f62c98491623f2184c68ec56f728c06ac38e3c2d1d"
+    },
+    {
+      "path": "RESULTS.json",
+      "bytes": 1392,
+      "mode": 384,
+      "sha256": "41da43b996497caa6cfb4dc87a5416372fba3fa7b779891db092f440bb67307f"
+    },
+    {
+      "path": "captures/N01/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N01/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71"
+    },
+    {
+      "path": "captures/N02/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N02/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a"
+    },
+    {
+      "path": "captures/N03/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N03/stdout",
+      "bytes": 44,
+      "mode": 384,
+      "sha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043"
+    },
+    {
+      "path": "captures/N04/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N04/stdout",
+      "bytes": 52,
+      "mode": 384,
+      "sha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e"
+    },
+    {
+      "path": "captures/N05/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N05/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f"
+    },
+    {
+      "path": "captures/N06/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N06/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11"
+    },
+    {
+      "path": "captures/N07/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N07/stdout",
+      "bytes": 40,
+      "mode": 384,
+      "sha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe"
+    },
+    {
+      "path": "captures/N08/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N08/stdout",
+      "bytes": 41,
+      "mode": 384,
+      "sha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487"
+    },
+    {
+      "path": "captures/N09/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N09/stdout",
+      "bytes": 37,
+      "mode": 384,
+      "sha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62"
+    },
+    {
+      "path": "captures/N10/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N10/stdout",
+      "bytes": 37,
+      "mode": 384,
+      "sha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d"
+    },
+    {
+      "path": "captures/N11/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N11/stdout",
+      "bytes": 36,
+      "mode": 384,
+      "sha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e"
+    },
+    {
+      "path": "captures/N12/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "captures/N12/stdout",
+      "bytes": 36,
+      "mode": 384,
+      "sha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952"
+    },
+    {
+      "path": "outer/bootstrap.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer/bootstrap.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "directories": [
+    {
+      "path": "captures",
+      "mode": 448
+    },
+    {
+      "path": "captures/N01",
+      "mode": 448
+    },
+    {
+      "path": "captures/N02",
+      "mode": 448
+    },
+    {
+      "path": "captures/N03",
+      "mode": 448
+    },
+    {
+      "path": "captures/N04",
+      "mode": 448
+    },
+    {
+      "path": "captures/N05",
+      "mode": 448
+    },
+    {
+      "path": "captures/N06",
+      "mode": 448
+    },
+    {
+      "path": "captures/N07",
+      "mode": 448
+    },
+    {
+      "path": "captures/N08",
+      "mode": 448
+    },
+    {
+      "path": "captures/N09",
+      "mode": 448
+    },
+    {
+      "path": "captures/N10",
+      "mode": 448
+    },
+    {
+      "path": "captures/N11",
+      "mode": 448
+    },
+    {
+      "path": "captures/N12",
+      "mode": 448
+    },
+    {
+      "path": "cases",
+      "mode": 448
+    },
+    {
+      "path": "cases/N01",
+      "mode": 448
+    },
+    {
+      "path": "cases/N01/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N01/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N01/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N01/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N02",
+      "mode": 448
+    },
+    {
+      "path": "cases/N02/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N02/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N02/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N02/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N03",
+      "mode": 448
+    },
+    {
+      "path": "cases/N03/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N03/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N03/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N03/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N04",
+      "mode": 448
+    },
+    {
+      "path": "cases/N04/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N04/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N04/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N04/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N05",
+      "mode": 448
+    },
+    {
+      "path": "cases/N05/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N05/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N05/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N05/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N06",
+      "mode": 448
+    },
+    {
+      "path": "cases/N06/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N06/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N06/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N06/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N07",
+      "mode": 448
+    },
+    {
+      "path": "cases/N07/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N07/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N07/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N07/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N08",
+      "mode": 448
+    },
+    {
+      "path": "cases/N08/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N08/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N08/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N08/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N09",
+      "mode": 448
+    },
+    {
+      "path": "cases/N09/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N09/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N09/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N09/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N10",
+      "mode": 448
+    },
+    {
+      "path": "cases/N10/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N10/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N10/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N10/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N11",
+      "mode": 448
+    },
+    {
+      "path": "cases/N11/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N11/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N11/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N11/work",
+      "mode": 448
+    },
+    {
+      "path": "cases/N12",
+      "mode": 448
+    },
+    {
+      "path": "cases/N12/empty-path",
+      "mode": 448
+    },
+    {
+      "path": "cases/N12/home",
+      "mode": 448
+    },
+    {
+      "path": "cases/N12/tmp",
+      "mode": 448
+    },
+    {
+      "path": "cases/N12/work",
+      "mode": 448
+    },
+    {
+      "path": "outer",
+      "mode": 448
+    }
+  ],
+  "runtimeBytes": 52128,
+  "qualificationErrors": [],
+  "allObservationsQualified": true,
+  "sourceIntegrityAfter": true,
+  "actualDeadline": 1787999189774
+}
+
+cb2a36fee01adf9f6e6374e3b46a3b606d818c13 blob 1979
+# Actual ERE capture observations
+
+Twelve observations, not semantic passes. Independent artifact audit and R01 adjudication pending.
+
+| ID | Status | Cardinality | Present shell-slot values (JSON) | Artifact qualification |
+|---|---:|---:|---|---|
+| N01 | 0 | 3 | ["aba","a",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N02 | 0 | 4 | ["ab","b","","b"] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N03 | 0 | 4 | ["abcac","ac","a",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N04 | 0 | 3 | ["bananas bas ","bas ",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N05 | 0 | 3 | ["aba","a",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N06 | 0 | 3 | ["abb","b",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N07 | 0 | 4 | ["ba","a","a",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N08 | 0 | 3 | ["ab","ab","b"] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N09 | 0 | 2 | ["b",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N10 | 0 | 2 | ["b",""] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N11 | 1 | 0 | [] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+| N12 | 2 | 0 | [] | CAPTURE_AND_LIFECYCLE_VERIFIED |
+
+Qualified manifest: true. Original binary streams, NUL framing, stderr, per-case rows and journal are copied byte-exact under runtime/. No native spans or hidden nonparticipation inferred. The saved case JSON precedes receiptPublished=true; final owner RESULTS and the exact twelve journal credit events establish subsequent owner credit.
+
+Reference is this pinned local Bash/platform corresponding to prior 3.2.57 version metadata, not GNU5.3 or all libc implementations. No product/engine/comparator/Worker execution or native version probe. Raw nonzero regex statuses are observations. Historical R01 conflicts are not rescored here.
+
+All copied files and selected source members were checked after publication reads. Runtime bytes: 52128. Overall actual preflight-to-artifact deadline: 2026-08-29T10:26:29.774Z; published 2026-08-29T10:17:19.404Z. See OBSERVATIONS.json for exact status, bytes, hashes, lifecycle and remaining qualifications.
+
+c5c2724e4a8ec26ea88675980537d496e6dbd16f blob 2879
+{
+  "schema": "ere12-actual-preflight-v1",
+  "decision": "PASS",
+  "started": 1787998589774,
+  "deadline": 1787999189774,
+  "at": "2026-08-29T10:16:29.976Z",
+  "grantSha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "resolvedSha256": "d2dca84a74ff36a2a7fae05986f237acd5cf3d8c35caa3e4d97ee96344d6460d",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "reviewCommit": "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb",
+  "reviewPath": "tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md",
+  "reviewSha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f",
+  "gitRows": [
+    {
+      "id": "slot-size",
+      "args": [
+        "cat-file",
+        "-s",
+        "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb:tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md"
+      ],
+      "pid": 41024,
+      "status": 0,
+      "signal": null,
+      "bytes": 5,
+      "sha256": "01540bf2961839f4c7788e71a10ce3841ecfc8d3df84c944bfadf4bdb3f17ac0",
+      "retired": true
+    },
+    {
+      "id": "slot-report",
+      "args": [
+        "cat-file",
+        "blob",
+        "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb:tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md"
+      ],
+      "pid": 41030,
+      "status": 0,
+      "signal": null,
+      "bytes": 5650,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f",
+      "retired": true
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "at": "2026-08-29T10:16:29.957Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "at": "2026-08-29T10:16:29.962Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "at": "2026-08-29T10:16:29.963Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "at": "2026-08-29T10:16:29.966Z"
+    }
+  ],
+  "expiresAt": "2026-08-29T10:46:09.884Z",
+  "latestFullWindowStart": "2026-08-29T10:36:09.884Z",
+  "root": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "entryImported": false,
+  "nativeChildrenBeforeApproval": 0,
+  "knownStartsBeforeApproval": 11,
+  "plannedManagedStarts": 13,
+  "plannedPublicationStarts": 8,
+  "allKnownCeiling": 40
+}
+
+8a186b5c4e5f209ac1791279842e669bf4d1e726 blob 2050
+# One authorized ERE12 actual attempt
+
+Only the exact committed resolved command may be requested with require_escalated,
+login:false and no prefix rule, after fresh DATA preflight. No default route or
+retry. This directory owns the current preflight, metadata capture and eventual
+byte-exact runtime publication. No product or accepted launcher source changes.
+
+The publisher does not choose native goldens. It records statuses, NUL values,
+capture hashes, lifecycle observations and owner credit evidence. JSON/Markdown
+observations are generated DATA, not changes to the twelve literal programs.
+Original runtime files remain under the preprovisioned owned root for independent
+artifact audit. No automatic cleanup/renewal of that root or old authority.
+
+Initial tool-shell startup is trusted host outside child environment/raw capture
+qualification. Actual Bash children use the accepted exact fresh six-key environment
+and literal argv. No native-version probe, external execution, network, private
+paths, virtual product, ERE engine, Worker, comparator, P2, XAN or old gate.
+
+Budget accounting: context four known starts; preflight seven (shell/edit/mkdir,
+Node syntax/body, two metadata Git children); exact native owner thirteen managed
+starts with exec-replaced wrapper roles distinguished from OS starts; publication
+seven (shell, Node syntax/body, four Git publication calls). A conservative separate
+wrapper-role charge makes 32 total, within 40 all-known starts. Peak three occurs
+with shell/Node/Git metadata or shell/owner/case known roles. This is not a kernel
+quota or global census. No administrative children run inside the native owner.
+
+The fresh preflight records one 600-second inclusive deadline, covering its tool
+checks, native attempt, readback and artifact publication. The accepted owner also
+has its own original inclusive 600-second/GO-expiry clamp; this does not extend
+the enclosing attempt. Publication must fit the earlier preflight deadline.
+No late output can become qualified. Fixed GO expiry remains unchanged.
+
+6c310db6feb4a047043940267344d32eb7d275fd blob 708
+{
+  "schema": "agent-recorded-tool-return-v1",
+  "role": "transcript tool result, not a fabricated native receipt",
+  "requestTool": "functions.exec_command",
+  "requestChunk": "67c13d",
+  "sessionId": 71922,
+  "pollTool": "functions.write_stdin",
+  "terminalChunk": "7ee52d",
+  "reportedExitCode": 0,
+  "reportedState": "Process exited",
+  "toolSignalField": "NOT_EXPOSED",
+  "toolOutput": "",
+  "runtimeOutputLocation": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer",
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "sandboxPermissions": "require_escalated",
+  "login": false,
+  "prefixRule": "ABSENT",
+  "attempts": 1,
+  "retry": false
+}
+
+feeea9815afec61f62be7151e4d7e2325ec6d8c2 blob 2130
+{"id":"N01","started":1787998604416,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604441,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":40,"sha256":"ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71","base64":"RVJFT0JTMQBOMDEAMAAzADAAMQBhYmEAMQAxAGEAMgAxAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42127,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604459,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":3,"slots":[{"index":0,"shellSlotPresent":true,"bytes":3,"base64":"YWJh"},{"index":1,"shellSlotPresent":true,"bytes":1,"base64":"YQ=="},{"index":2,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+b9dda789c0877563508c9d2ae0b654b1402da3f9 blob 2133
+{"id":"N02","started":1787998604485,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604525,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":40,"sha256":"fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a","base64":"RVJFT0JTMQBOMDIAMAA0ADAAMQBhYgAxADEAYgAyADEAADMAMQBiAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42128,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604528,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":4,"slots":[{"index":0,"shellSlotPresent":true,"bytes":2,"base64":"YWI="},{"index":1,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="},{"index":2,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="}],"stdoutSha256":"fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+ac8ca8c51b1afa2e5637888b92937b482aa24a22 blob 2141
+{"id":"N03","started":1787998604555,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604584,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":44,"sha256":"aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043","base64":"RVJFT0JTMQBOMDMAMAA0ADAAMQBhYmNhYwAxADEAYWMAMgAxAGEAMwAxAAA="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42129,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604591,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":4,"slots":[{"index":0,"shellSlotPresent":true,"bytes":5,"base64":"YWJjYWM="},{"index":1,"shellSlotPresent":true,"bytes":2,"base64":"YWM="},{"index":2,"shellSlotPresent":true,"bytes":1,"base64":"YQ=="},{"index":3,"shellSlotPresent":true,"bytes":0,"base64":""}],"stdoutSha256":"aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+3c85d9c9b4a808462e65b31b783b7506d0221996 blob 2163
+{"id":"N04","started":1787998604628,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604664,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":52,"sha256":"979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e","base64":"RVJFT0JTMQBOMDQAMAAzADAAMQBiYW5hbmFzIGJhcyAAMQAxAGJhcyAAMgAxAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42131,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604667,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":3,"slots":[{"index":0,"shellSlotPresent":true,"bytes":12,"base64":"YmFuYW5hcyBiYXMg"},{"index":1,"shellSlotPresent":true,"bytes":4,"base64":"YmFzIA=="},{"index":2,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+a92792550a3ca0ef76eddab33549dabc1c9c5b24 blob 2130
+{"id":"N05","started":1787998604705,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604739,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":40,"sha256":"3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f","base64":"RVJFT0JTMQBOMDUAMAAzADAAMQBhYmEAMQAxAGEAMgAxAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42177,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604745,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":3,"slots":[{"index":0,"shellSlotPresent":true,"bytes":3,"base64":"YWJh"},{"index":1,"shellSlotPresent":true,"bytes":1,"base64":"YQ=="},{"index":2,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+aa49083c96a44c47742dffbbdbcf807a51bd7747 blob 2130
+{"id":"N06","started":1787998604788,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604827,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":40,"sha256":"6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11","base64":"RVJFT0JTMQBOMDYAMAAzADAAMQBhYmIAMQAxAGIAMgAxAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42179,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604833,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":3,"slots":[{"index":0,"shellSlotPresent":true,"bytes":3,"base64":"YWJi"},{"index":1,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="},{"index":2,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+cc2ae1aa59b8bd985844fab7b49a9ddde448f655 blob 2133
+{"id":"N07","started":1787998604874,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998604920,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":40,"sha256":"83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe","base64":"RVJFT0JTMQBOMDcAMAA0ADAAMQBiYQAxADEAYQAyADEAYQAzADEAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42183,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998604923,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":4,"slots":[{"index":0,"shellSlotPresent":true,"bytes":2,"base64":"YmE="},{"index":1,"shellSlotPresent":true,"bytes":1,"base64":"YQ=="},{"index":2,"shellSlotPresent":true,"bytes":1,"base64":"YQ=="},{"index":3,"shellSlotPresent":true,"bytes":0,"base64":""}],"stdoutSha256":"83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+aba576e51b5c1f92834524902ff97e5309c0f74a blob 2134
+{"id":"N08","started":1787998604971,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998605017,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":41,"sha256":"16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487","base64":"RVJFT0JTMQBOMDgAMAAzADAAMQBhYgAxADEAYWIAMgAxAGIAMwAwAAA="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42184,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998605023,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":3,"slots":[{"index":0,"shellSlotPresent":true,"bytes":2,"base64":"YWI="},{"index":1,"shellSlotPresent":true,"bytes":2,"base64":"YWI="},{"index":2,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+d8d066bceca79f539078ad7c2fc0e64cfa8cf0e0 blob 2123
+{"id":"N09","started":1787998605076,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998605126,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":37,"sha256":"64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62","base64":"RVJFT0JTMQBOMDkAMAAyADAAMQBiADEAMQAAMgAwAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42188,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998605129,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":2,"slots":[{"index":0,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="},{"index":1,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":2,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+63404f7ad05a3e7fe780b85924462d781780d55d blob 2123
+{"id":"N10","started":1787998605198,"exit":true,"close":true,"status":0,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998605253,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":37,"sha256":"3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d","base64":"RVJFT0JTMQBOMTAAMAAyADAAMQBiADEAMQAAMgAwAAAzADAAAA=="},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42212,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998605259,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":0,"cardinality":2,"slots":[{"index":0,"shellSlotPresent":true,"bytes":1,"base64":"Yg=="},{"index":1,"shellSlotPresent":true,"bytes":0,"base64":""},{"index":2,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+148ae29264444cd11e7250b1f8e0c34b8841491a blob 2117
+{"id":"N11","started":1787998605324,"exit":true,"close":true,"status":1,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998605381,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":36,"sha256":"7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e","base64":"RVJFT0JTMQBOMTEAMQAwADAAMAAAMQAwAAAyADAAADMAMAAA"},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42213,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998605384,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":1,"cardinality":0,"slots":[{"index":0,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":1,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":2,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+7a8feb3bb9444df1eaea137c24568282e49f1b31 blob 2117
+{"id":"N12","started":1787998605457,"exit":true,"close":true,"status":2,"signal":null,"stop":null,"errors":[],"signals":[],"groupObservations":[{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}},"at":1787998605517,"afterKill":false}],"group":{"state":"absent","error":{"thrownType":"object","fields":{"name":{"presence":"value","value":"Error"},"code":{"presence":"value","value":"ESRCH"},"errno":{"presence":"value","value":-3},"syscall":{"presence":"value","value":"kill"}}}},"capture":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":36,"sha256":"5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952","base64":"RVJFT0JTMQBOMTIAMgAwADAAMAAAMQAwAAAyADAAADMAMAAA"},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"filesVerified":true,"receiptPublished":false,"regularCaptureCompletion":true,"streamEOF":null,"pid":42215,"spawnObserved":true,"stdinFinished":true,"retired":true,"finished":1787998605520,"filesBefore":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"filesAfter":[{"path":"empty-path","type":"directory","mode":448},{"path":"home","type":"directory","mode":448},{"path":"tmp","type":"directory","mode":448},{"path":"work","type":"directory","mode":448}],"observation":{"regexStatus":2,"cardinality":0,"slots":[{"index":0,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":1,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":2,"shellSlotPresent":false,"bytes":0,"base64":""},{"index":3,"shellSlotPresent":false,"bytes":0,"base64":""}],"stdoutSha256":"5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952","hiddenNativeSpans":"UNOBSERVABLE","nativeParticipationFromEmptyString":"NOT_INFERRED"}}
+
+2f11369adc203377465c6a44cb076755fc6f840e blob 1392
+{"schema":"ere-native-capture-observations-v1","completed":12,"halted":false,"rows":[{"id":"N01","status":0,"stop":null,"retired":true},{"id":"N02","status":0,"stop":null,"retired":true},{"id":"N03","status":0,"stop":null,"retired":true},{"id":"N04","status":0,"stop":null,"retired":true},{"id":"N05","status":0,"stop":null,"retired":true},{"id":"N06","status":0,"stop":null,"retired":true},{"id":"N07","status":0,"stop":null,"retired":true},{"id":"N08","status":0,"stop":null,"retired":true},{"id":"N09","status":0,"stop":null,"retired":true},{"id":"N10","status":0,"stop":null,"retired":true},{"id":"N11","status":1,"stop":null,"retired":true},{"id":"N12","status":2,"stop":null,"retired":true}],"ledger":{"max":13,"peak":2,"starts":13,"active":1,"peakCharged":2,"confirmedStarts":13,"activeConfirmed":1,"peakConfirmed":2,"confirmedRoles":{"owner":1,"case":12},"roles":{"owner":1,"case":12},"sourceForkReservations":0},"outer":[{"name":"stdout","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""},{"name":"stderr","flush":true,"size":true,"hash":true,"close":true,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","base64":""}],"sourceForkCounts":"PLANNED_NOT_OBSERVED","osContainment":false,"version":"Bash3.2.57","notStarted":[],"deadline":1787999204325}
+

@@ -1,0 +1,24 @@
+commit 08e40d411dc47bd725cb138e7d419ef2079a2879
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Sat Aug 29 03:58:43 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Sat Aug 29 03:58:43 2026 -0500
+
+    docs: qualify ERE reset authority and native evidence gap
+
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/PRESEAL.md
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/RECEIPT.json
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/ROUTING.md
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/SOURCE-DATA.json
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/capture.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/check.mjs
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/outer.stderr.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/outer.stdout.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal-syntax.stderr.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal-syntax.stdout.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal.capture.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal.mjs
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal.stderr.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/seal.stdout.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/syntax.stderr.data
+tests/compatibility/bash-ere-engine-independent-20260829/authority-v1/syntax.stdout.data

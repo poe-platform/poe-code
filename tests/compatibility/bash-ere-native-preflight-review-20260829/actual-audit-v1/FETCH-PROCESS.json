@@ -1,0 +1,28 @@
+[
+  {
+    "args": [
+      "cat-file",
+      "--batch-check"
+    ],
+    "startedAt": "2026-08-29T10:26:33.080Z",
+    "pid": 54110,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "closed": true,
+    "finishedAt": "2026-08-29T10:26:33.255Z"
+  },
+  {
+    "args": [
+      "cat-file",
+      "--batch"
+    ],
+    "startedAt": "2026-08-29T10:26:33.257Z",
+    "pid": 54112,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "closed": true,
+    "finishedAt": "2026-08-29T10:26:33.409Z"
+  }
+]

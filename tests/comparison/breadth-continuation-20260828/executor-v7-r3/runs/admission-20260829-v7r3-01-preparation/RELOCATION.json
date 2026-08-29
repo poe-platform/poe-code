@@ -1,0 +1,145 @@
+{
+  "schema": "BYTE_PRESERVING_ROOT_AUTHORIZED_RELOCATION",
+  "oldRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01",
+  "newRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation",
+  "sourceCommit": "20b191d1",
+  "presealCommit": "52debe4d",
+  "originalGitRows": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "7483629be5bcf326fe424b0758141b08298b194d",
+      "bytes": 10436,
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/HOLD.json"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "5b8f2188641bc94702f40420a73782d19f9e2a0d",
+      "bytes": 3435,
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-CHILDREN.ndjson"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a4652d772248035c4782ccbb036fcd612491fcc9",
+      "bytes": 3870,
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-SEAL.json"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cc390b684fe452dc6b5ff856a0467868ee31ea11",
+      "bytes": 2781,
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/README.md"
+    }
+  ],
+  "before": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/HOLD.json",
+      "bytes": 10436,
+      "mode": 420,
+      "sha256": "a22297cc8c0d4e6c9c031ddedc3da4fddb8f884a6a0b00a4a851c5a0e8925df4",
+      "gitBlobSha1": "7483629be5bcf326fe424b0758141b08298b194d",
+      "name": "HOLD.json"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-CHILDREN.ndjson",
+      "bytes": 3435,
+      "mode": 420,
+      "sha256": "4e2e580d7c8ac71ace0506c2a4d36b71c7da2c21b4066852f6ca0ed237b71b43",
+      "gitBlobSha1": "5b8f2188641bc94702f40420a73782d19f9e2a0d",
+      "name": "PREPARATION-CHILDREN.ndjson"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/PREPARATION-SEAL.json",
+      "bytes": 3870,
+      "mode": 420,
+      "sha256": "33174ac233e023a839c23291081017cf4bca2a2b46c048f9d24c6a8d1a973bdb",
+      "gitBlobSha1": "a4652d772248035c4782ccbb036fcd612491fcc9",
+      "name": "PREPARATION-SEAL.json"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/README.md",
+      "bytes": 2781,
+      "mode": 420,
+      "sha256": "abc44bd8f42ebf4f8940ed92f2dda1bec3518a5139de41400223f91c7aba64b8",
+      "gitBlobSha1": "cc390b684fe452dc6b5ff856a0467868ee31ea11",
+      "name": "README.md"
+    }
+  ],
+  "after": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/HOLD.json",
+      "bytes": 10436,
+      "mode": 420,
+      "sha256": "a22297cc8c0d4e6c9c031ddedc3da4fddb8f884a6a0b00a4a851c5a0e8925df4",
+      "name": "HOLD.json"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PREPARATION-CHILDREN.ndjson",
+      "bytes": 3435,
+      "mode": 420,
+      "sha256": "4e2e580d7c8ac71ace0506c2a4d36b71c7da2c21b4066852f6ca0ed237b71b43",
+      "name": "PREPARATION-CHILDREN.ndjson"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PREPARATION-SEAL.json",
+      "bytes": 3870,
+      "mode": 420,
+      "sha256": "33174ac233e023a839c23291081017cf4bca2a2b46c048f9d24c6a8d1a973bdb",
+      "name": "PREPARATION-SEAL.json"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/README.md",
+      "bytes": 2781,
+      "mode": 420,
+      "sha256": "abc44bd8f42ebf4f8940ed92f2dda1bec3518a5139de41400223f91c7aba64b8",
+      "name": "README.md"
+    }
+  ],
+  "byteIdentical": true,
+  "removedOnlyEmptyOwnedDirectories": [
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation"
+  ],
+  "historicalFilesEdited": false,
+  "namespaceChecks": [
+    {
+      "path": ".",
+      "expected": 37,
+      "observed": 37,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "pass": true
+    },
+    {
+      "path": "../executor-v7-r2",
+      "expected": 33,
+      "observed": 33,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "pass": true
+    },
+    {
+      "path": "../executor-v7-r1",
+      "expected": 28,
+      "observed": 28,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "pass": true
+    },
+    {
+      "path": "../executor-v7",
+      "expected": 30,
+      "observed": 30,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "RELOCATED_PREPARATION_DATA_MANIFEST",
+  "date": "2026-08-29",
+  "selfExcluded": true,
+  "files": [
+    {
+      "path": "HOLD.json",
+      "bytes": 10436,
+      "mode": 420,
+      "sha256": "a22297cc8c0d4e6c9c031ddedc3da4fddb8f884a6a0b00a4a851c5a0e8925df4"
+    },
+    {
+      "path": "PREPARATION-CHILDREN.ndjson",
+      "bytes": 3435,
+      "mode": 420,
+      "sha256": "4e2e580d7c8ac71ace0506c2a4d36b71c7da2c21b4066852f6ca0ed237b71b43"
+    },
+    {
+      "path": "PREPARATION-SEAL.json",
+      "bytes": 3870,
+      "mode": 420,
+      "sha256": "33174ac233e023a839c23291081017cf4bca2a2b46c048f9d24c6a8d1a973bdb"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2781,
+      "mode": 420,
+      "sha256": "abc44bd8f42ebf4f8940ed92f2dda1bec3518a5139de41400223f91c7aba64b8"
+    },
+    {
+      "path": "FRESH-PREP-CAPTURE.ndjson",
+      "bytes": 21725,
+      "mode": 420,
+      "sha256": "8fb3de6b0fad6af345089e9b85d3905f9fe7638d2a87c29d0af812ea59ee3c4e"
+    },
+    {
+      "path": "RELOCATION.json",
+      "bytes": 5616,
+      "mode": 420,
+      "sha256": "c759aa97e2d46dd1b2fdbaa64c51e33af29f973b9b8bbd1bf8737d483f0a5209"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 194476,
+      "mode": 420,
+      "sha256": "fb0748ae771446d0f8bdb922ddda1b5b81fabd1fdf5aa368692cd2dfdad41ed0"
+    },
+    {
+      "path": "OFFLINE-AUTH.json",
+      "bytes": 13582,
+      "mode": 420,
+      "sha256": "a60cb7360399c020d7fffb7dc3afa405012129b611fcf55583dbf1aef0402214"
+    },
+    {
+      "path": "OFFLINE-INVENTORY.json.gz.base64",
+      "bytes": 704813,
+      "mode": 420,
+      "sha256": "b9c117c7c37cab8d6f363fc4f9741282632a128823ac65d203070fa408014495"
+    },
+    {
+      "path": "INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1477,
+      "mode": 420,
+      "sha256": "567e1de4ed417ca21b21afa75d109f32e8a48405b5263fc4f0a60847ca5346c7"
+    },
+    {
+      "path": "INACTIVE-AUTH.TEMPLATE.json",
+      "bytes": 1579,
+      "mode": 420,
+      "sha256": "30939cfa835a783343cd734b99c3bbd0719f56fabb569c4fc7f7197e9ca55fa2"
+    },
+    {
+      "path": "PROCESS-CENSUS.json",
+      "bytes": 10364,
+      "mode": 420,
+      "sha256": "6bdeae074348b70a43650a7e0c2ab5b0ea469fe472b2fde2564e14ba22fd8f37"
+    },
+    {
+      "path": "OUTER-CAPTURE-PLAN.json",
+      "bytes": 4027,
+      "mode": 420,
+      "sha256": "50323a603e68d2af933826741031544f84d1fdd0a3273f5c5340232e1608b404"
+    },
+    {
+      "path": "FRESH-PREPARATION-REPORT.json",
+      "bytes": 17605,
+      "mode": 420,
+      "sha256": "20265bd0c439e6f4adbdc680edfee89e043d799d53f517cb6ac9ae53011be3bd"
+    },
+    {
+      "path": "FRESH-HANDOFF.md",
+      "bytes": 3744,
+      "mode": 420,
+      "sha256": "cac432f12c91684c4ae49338f10795c4c4b07733ad7cbbbe793f67a280a16198"
+    }
+  ],
+  "originalCount": 4,
+  "newCount": 11,
+  "publicationTool": {
+    "alias": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+    "symlinkTarget": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "target": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+      "bytes": 228986048,
+      "mode": 493,
+      "sha256": "a14f9a907c12c8812878b70e6b7d65f81c39ed795513e46a55817d7428c0ca6b"
+    }
+  },
+  "scope": "DATA only; immutable original four files and new separately named evidence"
+}

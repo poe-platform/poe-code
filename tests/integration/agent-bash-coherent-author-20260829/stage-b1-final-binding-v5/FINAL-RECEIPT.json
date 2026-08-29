@@ -1,0 +1,36 @@
+{
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v5/FINAL-PACKET.json",
+  "bytes": 26233,
+  "sha256": "f23bf9a3af6ed9278e63606cfde791b676bd1b3c643bfa307e9f2929fdfc545d",
+  "issuedUTC": "2026-08-29T14:03:58.806Z",
+  "latestStartUTC": "2026-08-29T14:23:58.806Z",
+  "expiresUTC": "2026-08-29T14:53:58.806Z",
+  "helpers": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v5/identity.mjs",
+      "bytes": 3228,
+      "sha256": "8e2bd3172834f0cb90e6f3473cbb25ff01a5a389e5c863f614580718f9af2769"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v5/preimport.mjs",
+      "bytes": 4751,
+      "sha256": "39aa97b2ba7b62ad87d109cb96602557d2a8951988101029a74ee00f0efdb2fb"
+    }
+  ],
+  "publisherBinding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/BINDING-v2.json",
+    "bytes": 3923,
+    "sha256": "022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56"
+  },
+  "publisherPreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/PRESEAL-v2.json",
+    "bytes": 1532,
+    "sha256": "eaf5c9d789906e689eb47b7586c1b0ad41226eff4a3ae4957a51013fbded7152"
+  },
+  "runtimePreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "actualAuthority": false
+}

@@ -1,0 +1,64 @@
+{
+  "atUTC": "2026-08-29T14:06:10.926Z",
+  "elapsedSecondsFromFirstCapturedInspector": 337.473,
+  "knownStartsCompletedAtMetadataSnapshot": 21,
+  "finalGitRolesReserved": 2,
+  "knownStartsAfterSuccessfulCommit": 23,
+  "limit": 32,
+  "sourceVisiblePeak": 3,
+  "allowedPeak": 3,
+  "pureHelpers": 1,
+  "pureGroups": 8,
+  "runtimeOrEngineCalls": 0,
+  "files": 27,
+  "measuredWorkAndCaptureBytes": 114700,
+  "publicationTailReservedBytes": 1048576,
+  "captureCap": 50331648,
+  "workCap": 201326592,
+  "rawCaptures": [
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-inspect.stdout",
+      "bytes": 2628,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-inspect.stderr",
+      "bytes": 0,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-preseal.stdout",
+      "bytes": 3617,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-preseal.stderr",
+      "bytes": 0,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-validation.stdout",
+      "bytes": 1684,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-validation.stderr",
+      "bytes": 0,
+      "live": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-publication.stdout",
+      "bytes": 294,
+      "live": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-final-binding-v5-20260829-publication.stderr",
+      "bytes": 0,
+      "live": true
+    }
+  ],
+  "noFullCensus": true,
+  "noGroupAbsenceClaim": true,
+  "knownSynchronousCommandsReturned": true,
+  "finalGitReceipt": "external publication stdout after commit; not circularly inside committed evidence"
+}

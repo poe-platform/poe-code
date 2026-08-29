@@ -1,0 +1,61 @@
+{
+  "schema": "k08-source-proposal-v1",
+  "status": "IMPLEMENTATION_NOT_AUTHORIZED",
+  "writeSet": [
+    {
+      "path": "src/shell/runtime.ts",
+      "owner": "Plato until ROOT transfers exact hunks",
+      "anchors": [
+        1699,
+        3709
+      ],
+      "delta": "Import private preparer; use it immediately before existing synchronous evaluateArithmetic at arithmetic-command and arithmetic-expansion callsites; retain each original error-context catch."
+    },
+    {
+      "path": "src/shell/arithmetic-parameters.ts",
+      "new": true,
+      "delta": "Private bounded deterministic positional-text preparation; no root/public export."
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/**",
+      "new": true,
+      "delta": "Only after freeze and fresh authorization: regression/limits/moved/source/evidence."
+    }
+  ],
+  "unchanged": [
+    "src/shell/parser.ts",
+    "src/shell/arithmetic.ts",
+    "all conditional/ERE/transport/runtime-dispatch hunks",
+    "public AST/types/contracts/limits",
+    "LET and substring arithmetic policies",
+    "original K08 fixtures and expected outcomes"
+  ],
+  "privateAPI": {
+    "name": "preparePositionalArithmetic",
+    "inputs": [
+      "ArithmeticProgram",
+      "readParameter(name) with existing parameter/nounset semantics",
+      "pre-admit expanded bytes",
+      "signal checkpoint"
+    ],
+    "output": "original ArithmeticProgram when no recognized positional spans, otherwise prepareArithmetic(exact expanded text) once",
+    "phaseRules": [
+      "Deterministic scan recognizes plain one-digit $0..$9 and braced decimal positional parameters, not arbitrary shell syntax. No parameter-as-atomic-number shortcut.",
+      "Unsupported dollar/quote/escape/substitution forms retain failure rather than silently misparse or expand. Full expression prevalidation must not accidentally reinterpret malformed constructs.",
+      "Read current frame, not a parse-time snapshot; expand each span once left-to-right on active execution only.",
+      "Splice raw parameter text before arithmetic parse. Never recursively run shell expansion on resulting bytes.",
+      "Missing/empty handling uses existing requireParameter; overflow-safe index lookup cannot allocate by numeric index.",
+      "Before allocating/appending, account current-source +inserted byte lengths against existing maxExpansionBytes; use existing shell-owned/array bridge accounting where applicable, no new Budget/reset.",
+      "Preserve arithmeticVariables proxy, readonly/stale/error/caller precedence and existing synchronous evaluator work/depth/int64 rules.",
+      "No assignment to state.positional via numeric property aliases; textual lvalues resolve through the existing named-variable checked-write proxy."
+    ]
+  },
+  "alternativesRejected": [
+    "Add a $1 arithmetic-name token: loses textual precedence and incorrectly treats positionals as arithmetic variables.",
+    "Regex-replace only literal $1 -1 or mutate K08: input-specific symptom patch.",
+    "Run shell evaluation/command substitution in helper: unauthorized grammar/IO/lifecycle expansion.",
+    "Introduce runtime reparsing of an entire script: violates scope and read-time/preflight guarantees."
+  ],
+  "futureProof": "FINITE-PLAN.md",
+  "native": "No native execution; reference excerpts only; proposed controls are not native observations"
+}

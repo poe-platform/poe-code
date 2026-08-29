@@ -1,0 +1,168 @@
+{
+  "schema": "k08-source-only-prepublication-v1",
+  "scope": "SOURCE_DATA_ONLY",
+  "rootGrant": {
+    "durationMs": 600000,
+    "knownOSMaximum": 24,
+    "peakMaximum": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "startedUTC": "2026-08-29T14:11:46.834Z",
+  "deadlineUTC": "2026-08-29T14:21:46.834Z",
+  "measuredUTC": "2026-08-29T14:17:52.479Z",
+  "measuredKnownStarts": 4,
+  "measuredClosed": 4,
+  "measuredChildCaptureBytes": 423810,
+  "managedChildPeak": 1,
+  "conservativeOwnerPlusChildPeak": 2,
+  "productCalls": 0,
+  "nativeCalls": 0,
+  "workerStarts": 0,
+  "compilerBuildInstall": 0,
+  "sourceEdits": 0,
+  "oldArchiveRetries": 0,
+  "ledger": {
+    "started": 1788012706834,
+    "deadline": 1788013306834,
+    "starts": [
+      {
+        "index": 1,
+        "cmd": "/usr/bin/git",
+        "args": [
+          "status",
+          "--short",
+          "--",
+          "src/shell/parser.ts",
+          "src/shell/runtime.ts",
+          "src/shell/arithmetic.ts",
+          "tests/compatibility/bash-function-keyword-author-20260829"
+        ],
+        "started": 1788012714272,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "finished": 1788012714370,
+        "stdout": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/01.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/01.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "index": 2,
+        "cmd": "/usr/bin/git",
+        "args": [
+          "grep",
+          "-n",
+          "-F",
+          "-e",
+          "$(($1",
+          "-e",
+          "prepareArithmetic",
+          "-e",
+          "evaluateArithmetic",
+          "--",
+          "tests/shell",
+          "tests/shell-stress"
+        ],
+        "started": 1788012757905,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "finished": 1788012758437,
+        "stdout": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/02.stdout",
+          "bytes": 262428,
+          "sha256": "eebadbbea01d6d3c92f04ea3bc8de71bbd3a81d07adf2e0ce5922c4a025ecab5"
+        },
+        "stderr": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/02.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "index": 3,
+        "cmd": "/usr/bin/git",
+        "args": [
+          "ls-files",
+          "-z",
+          "--",
+          "tests/*arithmetic*",
+          "tests/*let*"
+        ],
+        "started": 1788012758439,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "finished": 1788012758490,
+        "stdout": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/03.stdout",
+          "bytes": 160716,
+          "sha256": "9eb831263d330a1b6daf73b8ecc5d382ae8afecf8f77f980b8776578d22d94ee"
+        },
+        "stderr": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/03.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "index": 4,
+        "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "started": 1788013039775,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "finished": 1788013039803,
+        "stdout": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/04.stdout",
+          "bytes": 666,
+          "sha256": "0684fcf67afaf333888618e16ed3abe72ab75788785ca102740ea8759278dab3"
+        },
+        "stderr": {
+          "path": "/private/tmp/safe-bash-k08-source-TQ75DJ/capture/04.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "captureBytes": 423810,
+    "knownOSMaximum": 24,
+    "peakMaximum": 3,
+    "captureMaximum": 33554432,
+    "workMaximum": 134217728,
+    "purpose": "SOURCE_DATA_ONLY_K08_NO_PRODUCT_NO_OLD_ARCHIVE_RETRY"
+  },
+  "preservation": "Each retained child stdout/stderr is base64 encoded losslessly; NUL-delimited git pathname inventory is never reinterpreted from quoted displays.",
+  "sourceReadQualification": "Bounded regular-file reads and exact pinned hashes. Historical grep hits are data, not runnable tests or new acceptance.",
+  "publicationTail": "Subsequent owned apply_patch/Git administration captured in same explicit ledger; final measured count returned separately, not prefilled.",
+  "primaryDocumentation": "Official GNU manual search excerpts only; full-page fetch returned no body; no native outputs invented."
+}

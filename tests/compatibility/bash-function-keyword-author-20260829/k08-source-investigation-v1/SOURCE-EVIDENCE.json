@@ -1,0 +1,212 @@
+{
+  "schema": "k08-source-binding-v1",
+  "preservedActualCommit": "47a2311e592666b9851e734120570e0ba9be6561",
+  "preseal": {
+    "sha256": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3",
+    "bytes": 9470
+  },
+  "manifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/SOURCE-MEMBERS.json",
+    "sha256": "f877aa2a5c9fe2413d28e37464fb40b458ab90436b4ecf63821463069cffd0a7"
+  },
+  "frozenSource": [
+    {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "bytes": 44537,
+      "sha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+      "revision": "AUTHOR_B35_ONLY",
+      "baseBlob": "c9065ec21a934b5ab4197e80c620b432f7b060cb"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "e013f817fd7700c59a144c395c80dc25856e4157",
+      "blob": "4e5c0747a564efa2fb19f8bbe72fa256b9a0ed5c",
+      "mode": "100644",
+      "bytes": 210813,
+      "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "mode": "100644",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "role": "accepted coherent78 unchanged"
+    }
+  ],
+  "sourceAnchors": {
+    "parser": [
+      431,
+      451,
+      455,
+      526
+    ],
+    "arithmetic": [
+      21,
+      57,
+      64,
+      134,
+      171,
+      205,
+      213
+    ],
+    "runtime": [
+      1180,
+      1185,
+      1699,
+      2244,
+      2264,
+      2282,
+      3709,
+      3755,
+      3796
+    ]
+  },
+  "excerpts": {
+    "lexerArithmetic": "449:     this.position++;\n450:     if ([\"$\", \"!\"].includes(this.source[this.position] ?? \"\") || (!quoted && [\"'\", '\"'].includes(this.source[this.position] ?? \"\"))) this.error(\"Unsupported shell quoting or special parameter\");\n451:     if (this.source.startsWith(\"((\", this.position)) {\n452:       const start = this.position + 2;\n453:       const end = arithmeticEnd(this.source, start);\n454:       const source = this.source.slice(start, end);\n455:       parts.push({ kind: \"arithmetic\", expression: prepareArithmetic(source), source, line, quoted });\n456:       this.position = end + 2;",
+    "preparer": "21: export function prepareArithmetic(source: string): ArithmeticProgram {\n22:   try { return { source, tree: parseArithmetic(source) }; }\n23:   catch (error) {\n24:     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;\n25:     return { source, error };\n26:   }",
+    "tokenizer": "57:   let position = 0;\n58:   while (position < source.length) {\n59:     if (/\\s/u.test(source[position]!)) { position++; continue; }\n60:     const value = /^(?:\\d+#[\\da-zA-Z@_]+|0[xX][\\da-fA-F]+|\\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\\*\\*|\\+\\+|--|&&|\\|\\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\\-])/u.exec(source.slice(position))?.[0];\n61:     if (!value) throw new ShellSyntaxError(\"Unsupported arithmetic token\", offset + position);\n62:     tokens.push({ value, offset: offset + position });\n63:     position += value.length;\n64:   }\n65:   let cursor = 0;\n66:   let depth = 0;",
+    "evaluatorError": "205:   try {\n206:     if (program.error) throw program.error;\n207:     return evaluate(program.tree!);\n208:   } catch (error) {\n209:     if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is \"${program.source.slice(error.offset)}\")`);\n210:     if (error instanceof ShellSyntaxError) {\n211:       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;\n212:       const reason = error.reason === \"Invalid arithmetic operand\" ? \"arithmetic syntax error: operand expected\" : \"arithmetic syntax error in expression\";\n213:       throw new Error(`${program.source.trimStart()}: ${reason} (error token is \"${program.source.slice(offset)}\")`);\n214:     }\n215:     throw error;",
+    "runtimeExpansion": "3709:     if (part.kind === \"arithmetic\") {\n3710:       try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }\n3711:       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n3712:     }",
+    "positionalLookup": "3755:     let value = part.name === \"?\" ? String(state.status)\n3756:       : part.name === \"-\" ? `${state.errexit ? \"e\" : \"\"}${state.nounset ? \"u\" : \"\"}`\n3757:       : part.name === \"#\" ? String(state.positional.length)\n3758:       : part.name === \"@\" || part.name === \"*\" ? state.positional.join(hereString && (part.name === \"@\" || !part.quoted) ? \" \" : Array.from(state.variables.IFS ?? \" \")[0] ?? \"\")\n3759:       : /^0+$/u.test(part.name) ? state.arg0 ?? \"virtual-bash\"\n3760:       : /^\\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]\n3761:       : this.variable(state, part.name);"
+  },
+  "maintainedTestSource": [
+    {
+      "path": "tests/shell/core.test.ts",
+      "sha256": "73f978e9461f0bfe1df6ba74af0fba3d557dea71501683d4e1e242ba6e6685c1",
+      "hits": [
+        {
+          "line": 64,
+          "text": "  const arithmetic = await setup().shell.exec(\"say ran; say $((1 + ))\");"
+        },
+        {
+          "line": 65,
+          "text": "  assert.equal(arithmetic.exitCode, 1);"
+        },
+        {
+          "line": 66,
+          "text": "  assert.equal(arithmetic.stdout, \"ran\\n\");"
+        },
+        {
+          "line": 112,
+          "text": "test(\"functions, positional arguments, groups, returns and exits\", async () => {"
+        }
+      ],
+      "executed": false
+    },
+    {
+      "path": "tests/shell/fatal-expansion.test.ts",
+      "sha256": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d",
+      "hits": [
+        {
+          "line": 6,
+          "text": "for (const expansion of ['\"${missing:?stop}\"', '\"$((1/0))\"']) {"
+        },
+        {
+          "line": 47,
+          "text": "test(\"arithmetic command errors remain nonfatal command failures\", async () => {"
+        }
+      ],
+      "executed": false
+    },
+    {
+      "path": "tests/shell/invocation-closure-sh.test.ts",
+      "sha256": "52d7696d5c46745204cb9472437de7e35fbe7543eaa87b2e88e54e430ecb760b",
+      "hits": [
+        {
+          "line": 52,
+          "text": "test(\"readonly protects arithmetic, parameter writes and loop variables\", async () => {"
+        }
+      ],
+      "executed": false
+    },
+    {
+      "path": "tests/shell/parser-regressions.test.ts",
+      "sha256": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761",
+      "hits": [
+        {
+          "line": 34,
+          "text": "  const arithmetic = await setup().shell.exec(\"say touched; args $((1 constructor 2))\");"
+        },
+        {
+          "line": 35,
+          "text": "  assert.equal(arithmetic.exitCode, 1);"
+        },
+        {
+          "line": 36,
+          "text": "  assert.equal(arithmetic.stdout, \"touched\\n\");"
+        },
+        {
+          "line": 37,
+          "text": "  assert.match(arithmetic.stderr, /arithmetic syntax error in expression/u);"
+        },
+        {
+          "line": 75,
+          "text": "test(\"missing compound separators reject recursively in skipped branches and functions\", async () => {"
+        }
+      ],
+      "executed": false
+    },
+    {
+      "path": "tests/shell/runtime-regressions.test.ts",
+      "sha256": "6667018d27bc26dcbf0b2dd7dae19e02081ece2689b33683d8c5fb4a8496a5b5",
+      "hits": [
+        {
+          "line": 153,
+          "text": "test(\"arithmetic stays bounded and handles short circuit, updates and overflow\", async () => {"
+        },
+        {
+          "line": 155,
+          "text": "  assert.equal((await shell.exec('COUNT=3; args \"$((COUNT * 2 + 1))\" \"$((COUNT += 2))\" \"$COUNT\"')).stdout, '[\"7\",\"5\",\"5\"]');"
+        },
+        {
+          "line": 157,
+          "text": "  assert.equal((await shell.exec('args \"$((0 && (COUNT=7)))\" \"$((1 || (COUNT=9)))\" \"$COUNT\" \"$((9223372036854775807 + 1))\"')).stdout, '[\"0\",\"1\",\"\",\"-9223372036854775808\"]');"
+        },
+        {
+          "line": 158,
+          "text": "  assert.equal((await shell.exec('args \"$((1 / 0))\"')).exitCode, 1);"
+        }
+      ],
+      "executed": false
+    },
+    {
+      "path": "tests/shell/substring-cases.ts",
+      "sha256": "31eccd1f7e2f4955e9bdab291b03c8ace027ff99a87e274294c2e9e036164767",
+      "hits": [
+        {
+          "line": 12,
+          "text": "    [\"large-length\", \"${VALUE:1:9007199254740993}\"], [\"overflow-arithmetic\", \"${VALUE:18446744073709551617:2}\"],"
+        },
+        {
+          "line": 15,
+          "text": "    [\"nested-ternary\", \"${VALUE:0?1:1?2:3:2}\"], [\"arithmetic-expansion\", \"${VALUE:$((1+1)):2}\"],"
+        },
+        {
+          "line": 17,
+          "text": "  { name: \"arithmetic-variables\", source: 'VALUE=abcdef; OFFSET=1; LENGTH=2; printf \"%s\" \"${VALUE:OFFSET+1:LENGTH*2}\"' },"
+        },
+        {
+          "line": 18,
+          "text": "  { name: \"arithmetic-side-effects\", source: 'VALUE=abcdef; INDEX=1; printf \"%s:%s\" \"${VALUE:INDEX++:++INDEX}\" \"$INDEX\"' },"
+        },
+        {
+          "line": 26,
+          "text": "  { name: \"unset-skips-arithmetic\", source: 'unset VALUE; INDEX=0; printf \"<%s>:%s\" \"${VALUE:INDEX++:++INDEX}\" \"$INDEX\"' },"
+        },
+        {
+          "line": 27,
+          "text": "  { name: \"empty-evaluates-arithmetic\", source: 'VALUE=; INDEX=0; printf \"<%s>:%s\" \"${VALUE:INDEX++:++INDEX}\" \"$INDEX\"' },"
+        },
+        {
+          "line": 38,
+          "text": "  { name: \"arithmetic-syntax-fatal\", source: 'VALUE=abc; printf before >before; printf \"%s\" \"${VALUE:1+:2}\"; printf wrong' },"
+        }
+      ],
+      "executed": false
+    }
+  ],
+  "webReferenceQualification": "Official GNU manual search excerpts retrieved 2026-08-29; full-page fetch returned no body; no binary/version/profile qualification."
+}

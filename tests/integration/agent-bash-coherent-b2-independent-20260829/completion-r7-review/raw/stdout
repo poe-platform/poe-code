@@ -1,0 +1,96 @@
+{"start":"2026-08-29T15:38:22.884Z","pid":27541,"knownRole":3,"priorInstructionRoles":2}
+INSTRUCTION_LOCATOR tests/integration/agent-bash-coherent-b2-preflight-20260829/AGENTS.md
+/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/HANDOFF.md 5402 58df752de1fbf4e1761220716c6f99ac4a6330b2669a4089c51dee4e0389590e
+# B2-r7 — permission-compatible loader trace, ready for delta review
+
+## Result and history
+
+Eight presealed synthetic controls passed; two sequential, actual permission-model
+async-loader consumers exited/closed 0 with exact literal stdout. Controller PID
+19223 and consumer PIDs 19226/19230 retired naturally, no signals. There were two
+loader admissions, one live at a time. Individual loader exits and native helper
+thread totals remain unobserved; parent exit/close is the observed boundary.
+No product, retained case, compiler, install, Regex, guest or native oracle ran.
+The entire 672/type/mutant/restore/binding runtime cohort remains UNRUN for r7.
+
+Original r6 `43a1c3dcfb23f56d0d5f13f67f62d38e7f0066e3` remains **0/672**:
+its 246-byte pre-supply trace was written before Permission Model fsync rejection.
+It did not establish source return/evaluation. EEXIST and scheduler/timer history
+are untouched. Unexecuted r7 seal-v1 remains under `history/`; v2 only corrects
+inherited control-token spellings before the first harmless qualification.
+
+## Exact bindings
+
+- Initial source/seal commit: `a4a14f522`; token correction candidate: `5d6045778`.
+- Executed PRESEAL v2 SHA256:
+  `cc2db6c9029f4d72df7a5b320de5e75789b0b6c0def5c121761b75c19a9481b2`.
+- Runtime PACKET: **6519 bytes / 31 files**, SHA256
+  `f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a`.
+- Product source remains `3adc676a0ab638c9788ef007e465931d65d2c6fe`:
+  309 inputs, 1012 actual StageA emissions, 1014 shipping members, archive SHA256
+  `2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca`.
+- Node v22.22.2 binary: 112989184 bytes, SHA256
+  `5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`.
+- Preserved raw manifest: 33 files / 16788 bytes, SHA256
+  `1f6d4611b68e2e8b80b893d037b80367778d3a983f49868a027970374145b2b8`.
+
+All source/preseal hashes were checked again after execution. Product fixture
+bytes, including the documented conditional.mjs EOF whitespace, are unchanged.
+No full product baseline was recopied. The packet's 31-file closure adds one
+static helper imported by loader and coordinator; existing trusted Node builtins
+are unchanged. `SOURCE-DELTA.json` enumerates exact changed hashes.
+
+## Trace guarantees and limits
+
+Only loader trace fsync is removed. Parent capture/publication fsync is untouched.
+Each record fully writes through checked progress and closes its owned descriptor.
+Append reopens the same inode/device at expected size, without following symlinks.
+Invalid/zero writes and close errors prevent source return; falsy thrown values
+keep identity. With simultaneous write/close failure, primary remains primary;
+the trace API does not expose the secondary close reason separately.
+
+The trace is named `authenticated-source-prepared`: it precedes source return.
+Source identity alone is not execution proof. Harmless literal stdout separately
+proves the fixture executed; future mutant credit additionally needs its exact
+failure and exact original-byte restoration result. Parent post-retirement
+verification checks complete JSONL bytes and records their SHA256. No fsync,
+crash/reboot durability, adversarial filesystem atomicity or OS containment claim.
+
+H01: 10 stdout / 807 stderr / 205 trace bytes, one prepared source.
+H02: 10 stdout / 807 stderr / 414 trace bytes, two prepared sources.
+Warnings remain raw. Eight controls cover short complete writes, zero/oversized
+progress, false/undefined write errors, zero/undefined close errors and simultaneous
+primary/close failure. They are synthetic fault controls, not native fault injection.
+
+## Future runtime — NOT AUTHORIZED
+
+`PENDING-AUTHORITY.json` has null review and all timestamp slots. No grant/window
+has been issued. Fresh roots are `/private/tmp/safe-bash-b2-runtime-r7`, its
+`.outer.raw` sibling, and `/private/tmp/B2-R7-ROOT-GO.json` (all checked absent).
+
+Prospective command, after independent review, fresh binding and ROOT actual GO:
+
+```sh
+/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/launch.sh /private/tmp/B2-R7-ROOT-GO.json 6519
+```
+
+Use repo cwd and login:false. Existing initial trusted tool-shell startup boundary
+is unchanged. Prospective caps remain 64 known OS roles (1 owner + 41 children +
+22 administration/publication), peak3, 34 async-loader admissions/one live,
+Regex0/guest0; native helper threads unobserved. Anchored 1800 seconds includes
+1620 active + 180 publication; 96MiB capture, 512MiB logical work. All 672 cases,
+6 type roles/24 negative diagnostics, 7 mutant/restore pairs and 2 bindings retain
+their original identities. These are proposal caps, not executed r7 measurements.
+
+## Preparation qualifications
+
+Fresh preparation began 15:25:19.581 UTC with expiry 15:40:19.581 UTC. Qualification
+ran 15:32:43.803–15:32:44.050 UTC. One harmless controller, two consumer children;
+tool/Git administration is separately censused. No universal descendant count.
+Raw startup files were opened before controller spawn. The publication DATA helper
+later used unavailable `require` in ESM after preserving raws; that ordinary
+in-process failure is retained in `evidence/DATA-PUBLICATION-CORRECTION.json`.
+Only missing source-delta metadata was completed; no test rerun or raw overwrite.
+
+Independent quick delta review is required. This is not 672 GO or acceptance.
+

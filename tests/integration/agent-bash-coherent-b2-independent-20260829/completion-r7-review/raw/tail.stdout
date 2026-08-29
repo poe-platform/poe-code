@@ -1,0 +1,294 @@
+FILE staged/new/classify.mjs
+import assert from "node:assert/strict";
+import path from "node:path";
+
+export function natural(result, code) { assert.equal(result.exitCode, code); assert.equal(result.exitSignal, null); assert.equal(result.exited, true); assert.equal(result.closed, true); assert.equal(result.signalCount, 0); }
+export function diagnosticIdentities(text, filename, cwd = path.dirname(path.dirname(filename))) {
+  assert.ok(!/uncaughtException|ERR_ACCESS_DENIED|SyntaxError:|MODULE_NOT_FOUND|FATAL ERROR/.test(text), "unrelated fatal diagnostic");
+  const diagnostics = [];
+  for (const line of text.split("\n")) {
+    if (!/error TS\d+:/.test(line)) continue;
+    const match = /^(.*)\((\d+),(\d+)\): error TS(\d+): (.*)$/.exec(line);
+    assert.ok(match, "unexpected compiler diagnostic form"); assert.equal(path.resolve(cwd, match[1]), filename);
+    diagnostics.push({ line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });
+  }
+  return diagnostics;
+}
+export function classifyTypes(result, text, filename, expected, negative, cwd) {
+  natural(result, negative ? 2 : 0);
+  const identities = diagnosticIdentities(text, filename, cwd);
+  assert.deepEqual(identities, negative ? expected : []);
+  return Object.freeze({ accepted: true, negative, diagnostics: identities });
+}
+export function failureIdentity(error) { assert.equal(typeof error, "string"); return error.split("\n").filter(line => !/^\s+at /.test(line)).join("\n"); }
+export function classifyCases(result, output, expectedIds) {
+  natural(result, 0); const cases = output.slice(0, -1); const summary = output.at(-1)?.summary;
+  assert.deepEqual(cases.map(row => row.id), expectedIds); assert.equal(summary?.cases, expectedIds.length); assert.equal(summary?.pass, expectedIds.length);
+  for (const row of cases) { assert.equal(row.pass, true); assert.equal(Object.hasOwn(row, "cleanupError"), false); if (Object.hasOwn(row, "cleanupFailure")) assert.equal(row.cleanupFailure, false); if (typeof row.created === "number") assert.equal(row.disposed, row.created); }
+  return Object.freeze({ accepted: true, cases: cases.length });
+}
+export function classifyMutant(result, output, trace, mutation, expectedFailure) {
+  natural(result, 1); assert.equal(output.length, 2); assert.equal(output[0].id, mutation.case); assert.equal(output[0].pass, false); if (Object.hasOwn(output[0], "cleanupFailure")) assert.equal(output[0].cleanupFailure, false); assert.equal(Object.hasOwn(output[0], "cleanupError"), false);
+  assert.equal(output[1].summary.cases, 1); assert.equal(output[1].summary.fail, 1);
+  assert.equal(failureIdentity(output[0].error), expectedFailure);
+  assert.ok(trace.some(row => row.kind === "authenticated-source-prepared" && row.member === `dist/${mutation.file}` && row.sha256 === mutation.prospectiveMutantSha256), "matching prepared mutant bytes plus exact failure required");
+  return Object.freeze({ accepted: true, loadedMutant: mutation.id, expectedAssertionKill: true });
+}
+export function classifyRestore(result, output, trace, mutation) {
+  const cases = classifyCases(result, output, [mutation.case]);
+  assert.ok(trace.some(row => row.kind === "authenticated-source-prepared" && row.member === `dist/${mutation.file}` && row.sha256 === mutation.restoreExpectedSha256), "matching prepared original bytes plus exact restoration required");
+  return Object.freeze({ ...cases, loadedRestore: mutation.id });
+}
+export function classifyBinding(result, stdout, stderr, trace, alteration, packageRoot) {
+  natural(result, 1); assert.equal(stdout.trim(), "");
+  const member = alteration === "missing" ? "dist/index.js" : "dist/shell/parser.js";
+  assert.ok(["missing", "changed"].includes(alteration));
+  const identity = `B2_BINDING_REFUSAL:${alteration}:${path.join(packageRoot, member)}`;
+  assert.ok(stderr.includes(`Error: ${identity}`));
+  assert.ok(!/ERR_ACCESS_DENIED|SyntaxError|MODULE_NOT_FOUND/.test(stderr));
+  const refusals = trace.filter(row => row.kind === "binding-refusal");
+  assert.deepEqual(refusals, [{ kind: "binding-refusal", alteration, member, filename: path.join(packageRoot, member), identity }]);
+  assert.ok(!trace.some(row => row.kind === "authenticated-source-prepared" && row.member === member));
+  return Object.freeze({ accepted: true, expectedRefusal: identity });
+}
+FILE staged/new/launch.sh
+#!/bin/zsh
+umask 077
+set -C
+exec > /private/tmp/safe-bash-b2-runtime-r7.outer.raw 2>&1 || exit $?
+cd /private/tmp || exit $?
+NODE_OPTIONS= NODE_PATH= TMPDIR=/private/tmp TMP=/private/tmp TEMP=/private/tmp HOME=/private/tmp exec /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/outer.mjs "$1" "$2"
+FILE staged/PACKET.json
+{
+  "schema": "B2_EXECUTABLE_PACKET_R7",
+  "source": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "files": [
+    {
+      "path": "legacy/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "legacy/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "legacy/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "path": "legacy/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "path": "legacy/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+    },
+    {
+      "path": "legacy/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+    },
+    {
+      "path": "legacy/harness/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "legacy/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "path": "legacy/harness/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    },
+    {
+      "path": "legacy/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "path": "legacy/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "path": "legacy/harness/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "legacy/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "path": "legacy/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    },
+    {
+      "path": "legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "legacy/types/consumer-negative.mts.fixture",
+      "bytes": 1744,
+      "sha256": "01a2ed9b7b6eb42e03e163d6da2e762bf5a3663ebf548495c5788ffc385fe7ff"
+    },
+    {
+      "path": "legacy/types/consumer-positive.mts.fixture",
+      "bytes": 1736,
+      "sha256": "c735d61e010e7f8e6528181d800c3e9e9aac6c22d20b03d1e4bcf68e3222b6ff"
+    },
+    {
+      "path": "metadata/FROZEN-BINDINGS.json",
+      "bytes": 617256,
+      "sha256": "3e4ace73b6ef5f47a3f8eb7330cb22f5d8b51742e484032ae8f2a1864f35b0e9"
+    },
+    {
+      "path": "metadata/RECIPE.json",
+      "bytes": 593493,
+      "sha256": "487065c4454c01102b578a4d7ef1524514bf74d90e3a6d8dc1d9bde513b2a091"
+    },
+    {
+      "path": "metadata/REGEX-CLOSURE.json",
+      "bytes": 101812,
+      "sha256": "2d074a0fa78e95e5d16ede088bc2725ae9b5e7a3ed2a3c11a5bae428b4b4b4c4"
+    },
+    {
+      "path": "new/classify.mjs",
+      "bytes": 4307,
+      "sha256": "356b94df4f61a5d43adf776b250580ea13289e292098e9b983f3edbefbe968bb"
+    },
+    {
+      "path": "new/controls.mjs",
+      "bytes": 3703,
+      "sha256": "b3906776beb767b4fc5989a8ea0a6bf2b8a79ec41d60df48321f9e70e6e4e15b"
+    },
+    {
+      "path": "new/coordinator.mjs",
+      "bytes": 13312,
+      "sha256": "8df4de4309ea18eb2c2e08fad3dd2a11e70c079d3f8f809e58316892f0556149"
+    },
+    {
+      "path": "new/fixture.mjs",
+      "bytes": 861,
+      "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e"
+    },
+    {
+      "path": "new/launch.sh",
+      "bytes": 418,
+      "sha256": "8b2b817e767fe621d24ccff36a25a08cff7df9b72d5aea4c05d6475d2762f5b4"
+    },
+    {
+      "path": "new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "new/outer.mjs",
+      "bytes": 1210,
+      "sha256": "01c6891d4c2214878edcc4e00c97d369f31bdc90dad5c0d330b44c637da3536f"
+    },
+    {
+      "path": "new/owner.mjs",
+      "bytes": 9152,
+      "sha256": "1e9c95b612145717bf3dbb74fa119c1abd83f44e67cec5fde233e985decc64c5"
+    },
+    {
+      "path": "new/support.mjs",
+      "bytes": 6852,
+      "sha256": "723ea89e416574904c5c24e1825011418d15367b9b90526c683a4a64d6120fdf"
+    },
+    {
+      "path": "new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865"
+    },
+    {
+      "path": "new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    }
+  ],
+  "roleCount": 41,
+  "retained": 672,
+  "runtime": "UNRUN",
+  "rootAuthority": "PENDING",
+  "independentReview": "PENDING",
+  "computedImports": [
+    {
+      "importer": "new/outer.mjs",
+      "target": "new/coordinator.mjs",
+      "constraint": "literal after packet authentication"
+    },
+    {
+      "importer": "new/loader.mjs",
+      "constraint": "file URLs must match per-role members; every supplied JS source hashed; node builtins trusted host"
+    }
+  ],
+  "knownRoleGraph": {
+    "totalMaximum": 64,
+    "peak": 3,
+    "entry": 1,
+    "supervised": 41,
+    "administrationPublicationMaximum": 22,
+    "administration": {
+      "bindingAndFreshness": 6,
+      "inspectionAndCapture": 4,
+      "evidencePublication": 6,
+      "scopedGit": 6
+    },
+    "entryExecReplacementNotExtraStart": true,
+    "guestWorkers": 0,
+    "regexWorkers": 0,
+    "mainLoaderAdmissions": 34,
+    "mainLoaderPeak": 1,
+    "qualification": "Known roles only; no universal transitive OS/thread census or individual async-loader exit proof"
+  },
+  "traceProfile": "checked-complete-write-owned-close-post-retirement-hash-NOT-fsync",
+  "priorFailure": "43a1c3dcfb23f56d0d5f13f67f62d38e7f0066e3"
+}
+    let child;
+    try {
+      child = spawn(process.execPath, args, { cwd: directory, env: { PATH: path.dirname(process.execPath), HOME: root, TMPDIR: path.join(root, "tmp"), TMP: path.join(root, "tmp"), TEMP: path.join(root, "tmp"), NODE_OPTIONS: "", NODE_PATH: "", PUBLIC_BINDING: bindingPath, PUBLIC_BINDING_BYTES: String(binding.length), PUBLIC_BINDING_SHA256: hash(binding) }, stdio: ["ignore", stdout, stderr] });
+      record.pid = child.pid; results.loaderAdmissions++;
+      const timer = setTimeout(() => { record.signals.push("SIGKILL"); child.kill("SIGKILL"); }, 15000);
+      await new Promise(resolve => {
+        child.on("error", error => { record.error = { message: error.message, code: error.code }; });
+        child.on("exit", (code, signal) => { record.exitPresent = true; record.exitCode = code; record.exitSignal = signal; });
+        child.on("close", (code, signal) => { record.closePresent = true; record.closeCode = code; record.closeSignal = signal; clearTimeout(timer); resolve(); });
+      });
+    } finally { fs.closeSync(stdout); fs.closeSync(stderr); }
+    record.closedAt = new Date().toISOString();
+    assert.equal(record.exitPresent, true); assert.equal(record.closePresent, true); assert.equal(record.exitCode, 0); assert.equal(record.closeCode, 0); assert.equal(record.exitSignal, null); assert.equal(record.signals.length, 0);
+    for (const filename of [stdoutPath, stderrPath]) assert.ok(fs.statSync(filename).size <= 65536);
+    const output = fs.readFileSync(stdoutPath); const errors = fs.readFileSync(stderrPath);
+    assert.equal(output.toString(), fixture.stdout);
+    record.stdout = { bytes: output.length, sha256: hash(output) }; record.stderr = { bytes: errors.length, sha256: hash(errors) };
+    record.trace = verifyRetiredTrace(trace, { exited: true, closed: true });
+    assert.equal(record.trace.records.length, fixture.files.length);
+    for (const member of members) assert.ok(record.trace.records.some(row => row.kind === "authenticated-source-prepared" && row.member === member.path && row.sha256 === member.sha256));
+    record.expectedLiteralObserved = true;
+  }
+  results.status = "PASS";
+} catch (error) {
+  results.status = "STOP"; results.errorPresent = true; results.error = { message: String(error?.message ?? error), stack: String(error?.stack ?? "") }; process.exitCode = 1;
+} finally {
+  results.ended = new Date().toISOString();
+  fs.writeFileSync(path.join(root, "RESULT.json"), JSON.stringify(results, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+  console.log(JSON.stringify({ status: results.status, controls: results.controls.length, children: results.children.length, loaderAdmissions: results.loaderAdmissions }));
+}

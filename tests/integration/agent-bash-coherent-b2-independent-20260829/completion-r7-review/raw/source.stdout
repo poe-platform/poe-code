@@ -1,0 +1,523 @@
+OWN ["completion-r6-review"]
+
+FILE check.mjs
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { pathToFileURL, fileURLToPath } from "node:url";
+
+const scope = path.dirname(fileURLToPath(import.meta.url));
+const hash = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
+const sealBytes = fs.readFileSync(path.join(scope, "PRESEAL.json"));
+assert.equal(hash(sealBytes), process.argv[2]);
+const seal = JSON.parse(sealBytes);
+assert.ok(Date.now() < Date.parse(seal.deadline));
+for (const row of seal.files) {
+  const filename = path.join(scope, row.path); const stat = fs.lstatSync(filename);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.size, row.bytes);
+  assert.equal(hash(fs.readFileSync(filename)), row.sha256);
+}
+const { createTrace, verifyRetiredTrace } = await import("./staged/new/trace.mjs");
+const results = { controls: [], children: [], loaderAdmissions: 0, guestEntries: 0, productRuns: 0, started: new Date().toISOString() };
+const root = seal.workRoot;
+fs.mkdirSync(root, { mode: 0o700 });
+fs.mkdirSync(path.join(root, "tmp"));
+function fake({ short = false, count, writeReason, hasWriteReason = false, closeReason, hasCloseReason = false }) {
+  let size = 0; let closed = 0;
+  return { io: {
+    openSync() { return 1; },
+    fstatSync() { return { isFile: () => true, size, dev: 1, ino: 2 }; },
+    writeSync(_descriptor, _bytes, _offset, length) {
+      if (hasWriteReason) throw writeReason;
+      const written = count === undefined ? (short ? Math.min(1, length) : length) : count;
+      if (written > 0) size += written; return written;
+    },
+    closeSync() { closed++; if (hasCloseReason) throw closeReason; }
+  }, closed: () => closed };
+}
+try {
+  const cases = [
+    { id: "T01-short-complete", options: { short: true }, success: true },
+    { id: "T02-zero-write", options: { count: 0 } },
+    { id: "T03-oversize-write", options: { count: 99999 } },
+    { id: "T04-write-false", options: { hasWriteReason: true, writeReason: false }, exact: false },
+    { id: "T05-write-undefined", options: { hasWriteReason: true, writeReason: undefined }, exact: undefined },
+    { id: "T06-close-zero", options: { hasCloseReason: true, closeReason: 0 }, exact: 0 },
+    { id: "T07-close-undefined", options: { hasCloseReason: true, closeReason: undefined }, exact: undefined },
+    { id: "T08-primary-before-close", options: { hasWriteReason: true, writeReason: false, hasCloseReason: true, closeReason: 0 }, exact: false }
+  ];
+  for (const row of cases) {
+    const model = fake(row.options); const write = createTrace("/owned/synthetic", model.io);
+    let present = false; let reason;
+    try { write({ literal: "trace" }); } catch (error) { present = true; reason = error; }
+    assert.equal(model.closed(), 1); assert.equal(present, !row.success);
+    if (Object.hasOwn(row, "exact")) assert.equal(reason, row.exact);
+    results.controls.push({ id: row.id, pass: true, caughtPresent: present, closeCalls: model.closed(), syntheticOnly: true });
+  }
+  for (const fixture of seal.fixtures) {
+    assert.ok(Date.now() < Date.parse(seal.deadline));
+    const directory = path.join(root, fixture.id); fs.mkdirSync(directory);
+    const members = [];
+    for (const row of fixture.files) {
+      const absolute = path.join(directory, row.path); const bytes = Buffer.from(row.source);
+      fs.writeFileSync(absolute, bytes, { flag: "wx", mode: 0o600 });
+      members.push({ absolute, path: row.path, bytes: bytes.length, sha256: hash(bytes) });
+    }
+    const trace = path.join(directory, "trace.jsonl");
+    const binding = Buffer.from(JSON.stringify({ packageRoot: directory, members, trace }));
+    const bindingPath = path.join(directory, "binding.json"); fs.writeFileSync(bindingPath, binding, { flag: "wx", mode: 0o600 });
+    const stdoutPath = path.join(directory, "stdout.raw"); const stderrPath = path.join(directory, "stderr.raw");
+    const stdout = fs.openSync(stdoutPath, "wx", 0o600); const stderr = fs.openSync(stderrPath, "wx", 0o600);
+    const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${scope}/staged`, `--allow-fs-read=${process.execPath}`, `--allow-fs-write=${directory}`, `--allow-fs-write=${root}/tmp`, `--allow-fs-write=${trace}`, "--allow-worker", "--loader", pathToFileURL(path.join(scope, "staged/new/loader.mjs")).href, path.join(directory, "entry.mjs")];
+    const record = { id: fixture.id, args, exitPresent: false, closePresent: false, signals: [], started: new Date().toISOString() };
+    results.children.push(record);
+    let child;
+    try {
+      child = spawn(process.execPath, args, { cwd: directory, env: { PATH: path.dirname(process.execPath), HOME: root, TMPDIR: path.join(root, "tmp"), TMP: path.join(root, "tmp"), TEMP: path.join(root, "tmp"), NODE_OPTIONS: "", NODE_PATH: "", PUBLIC_BINDING: bindingPath, PUBLIC_BINDING_BYTES: String(binding.length), PUBLIC_BINDING_SHA256: hash(binding) }, stdio: ["ignore", stdout, stderr] });
+      record.pid = child.pid; results.loaderAdmissions++;
+      const timer = setTimeout(() => { record.signals.push("SIGKILL"); child.kill("SIGKILL"); }, 15000);
+      await new Promise(resolve => {
+        child.on("error", error => { record.error = { message: error.message, code: error.code }; });
+        child.on("exit", (code, signal) => { record.exitPresent = true; record.exitCode = code; record.exitSignal = signal; });
+        child.on("close", (code, signal) => { record.closePresent = true; record.closeCode = code; record.closeSignal = signal; clearTimeout(timer); resolve(); });
+      });
+    } finally { fs.closeSync(stdout); fs.closeSync(stderr); }
+    record.closedAt = new Date().toISOString();
+    assert.equal(record.exitPresent, true); assert.equal(record.closePresent, true); assert.equal(record.exitCode, 0); assert.equal(record.closeCode, 0); assert.equal(record.exitSignal, null); assert.equal(record.signals.length, 0);
+    for (const filename of [stdoutPath, stderrPath]) assert.ok(fs.statSync(filename).size <= 65536);
+    const output = fs.readFileSync(stdoutPath); const errors = fs.readFileSync(stderrPath);
+    assert.equal(output.toString(), fixture.stdout);
+    record.stdout = { bytes: output.length, sha256: hash(output) }; record.stderr = { bytes: errors.length, sha256: hash(errors) };
+    record.trace = verifyRetiredTrace(trace, { exited: true, closed: true });
+    assert.equal(record.trace.records.length, fixture.files.length);
+    for (const member of members) assert.ok(record.trace.records.some(row => row.kind === "authenticated-source-prepared" && row.member === member.path && row.sha256 === member.sha256));
+    record.expectedLiteralObserved = true;
+  }
+  results.status = "PASS";
+} catch (error) {
+  results.status = "STOP"; results.errorPresent = true; results.error = { message: String(error?.message ?? error), stack: String(error?.stack ?? "") }; process.exitCode = 1;
+} finally {
+  results.ended = new Date().toISOString();
+  fs.writeFileSync(path.join(root, "RESULT.json"), JSON.stringify(results, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+  console.log(JSON.stringify({ status: results.status, controls: results.controls.length, children: results.children.length, loaderAdmissions: results.loaderAdmissions }));
+}
+
+FILE staged/new/trace.mjs
+import fs from "node:fs";
+import crypto from "node:crypto";
+import assert from "node:assert/strict";
+
+export function createTrace(filename, io = fs) {
+  let total = 0;
+  let identity;
+  let failed = false;
+  return value => {
+    assert.ok(!failed, "failed trace cannot be reused");
+    const bytes = Buffer.from(JSON.stringify(value) + "\n");
+    assert.ok(total + bytes.length <= 524288);
+    let descriptor;
+    let owned = false;
+    let primaryPresent = false;
+    let primary;
+    try {
+      descriptor = io.openSync(filename, identity ? fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_NOFOLLOW : fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o600);
+      owned = true;
+      const opened = io.fstatSync(descriptor);
+      assert.ok(opened.isFile());
+      assert.equal(opened.size, total);
+      if (identity) { assert.equal(opened.dev, identity.dev); assert.equal(opened.ino, identity.ino); }
+      else identity = { dev: opened.dev, ino: opened.ino };
+      let offset = 0;
+      while (offset < bytes.length) {
+        const count = io.writeSync(descriptor, bytes, offset, bytes.length - offset);
+        assert.ok(Number.isSafeInteger(count) && count > 0 && count <= bytes.length - offset, "trace write must make valid progress");
+        offset += count;
+      }
+      assert.equal(io.fstatSync(descriptor).size, total + bytes.length);
+    } catch (error) { primaryPresent = true; primary = error; }
+    if (owned) {
+      try { io.closeSync(descriptor); }
+      catch (error) { if (!primaryPresent) { primaryPresent = true; primary = error; } }
+    }
+    if (primaryPresent) { failed = true; throw primary; }
+    total += bytes.length;
+  };
+}
+
+export function verifyRetiredTrace(filename, result) {
+  assert.equal(result.exited, true); assert.equal(result.closed, true);
+  const before = fs.lstatSync(filename);
+  assert.ok(before.isFile() && !before.isSymbolicLink() && before.size <= 524288);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let bytes;
+  try {
+    const opened = fs.fstatSync(descriptor);
+    assert.equal(opened.dev, before.dev); assert.equal(opened.ino, before.ino); assert.equal(opened.size, before.size);
+    bytes = Buffer.alloc(opened.size); let offset = 0;
+    while (offset < bytes.length) { const count = fs.readSync(descriptor, bytes, offset, bytes.length - offset, offset); assert.ok(count > 0); offset += count; }
+    const after = fs.fstatSync(descriptor);
+    assert.equal(after.size, opened.size); assert.equal(after.mtimeMs, opened.mtimeMs);
+  } finally { fs.closeSync(descriptor); }
+  assert.ok(bytes.length > 0 && bytes.at(-1) === 10, "complete JSONL trace required");
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  const records = text.slice(0, -1).split("\n").map(line => JSON.parse(line));
+  return { bytes: bytes.length, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), records, afterExitAndClose: true, crashDurability: false };
+}
+
+FILE staged/new/loader.mjs
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import assert from "node:assert/strict";
+import { admit, canonical } from "./support.mjs";
+import { createTrace } from "./trace.mjs";
+
+const bindingFile = process.env.PUBLIC_BINDING;
+canonical(bindingFile);
+assert.match(process.env.PUBLIC_BINDING_BYTES ?? "", /^(0|[1-9][0-9]*)$/);
+const binding = JSON.parse(admit(bindingFile, { bytes: Number(process.env.PUBLIC_BINDING_BYTES), sha256: process.env.PUBLIC_BINDING_SHA256 }, 1048576));
+canonical(binding.packageRoot); canonical(binding.trace);
+const members = new Map(binding.members.map(row => [row.absolute, row]));
+assert.equal(members.size, binding.members.length);
+const trace = createTrace(binding.trace);
+export async function resolve(specifier, context, nextResolve) {
+  if (specifier === "virtual-bash") return { url: pathToFileURL(path.join(binding.packageRoot, "dist/index.js")).href, shortCircuit: true };
+  if (specifier.startsWith("virtual-bash/")) throw new Error("undeclared B2 public alias");
+  return nextResolve(specifier, context);
+}
+export async function load(url, context, nextLoad) {
+  if (url.startsWith("node:")) return nextLoad(url, context);
+  assert.ok(url.startsWith("file:"));
+  const filename = fileURLToPath(url);
+  const row = members.get(filename);
+  function refuse(alteration) {
+    const member = path.relative(binding.packageRoot, filename);
+    const identity = `B2_BINDING_REFUSAL:${alteration}:${filename}`;
+    trace({ kind: "binding-refusal", alteration, member, filename, identity });
+    throw new Error(identity);
+  }
+  if (!row) refuse("missing");
+  const before = fs.lstatSync(filename); assert.ok(before.isFile() && !before.isSymbolicLink()); assert.equal(before.size, row.bytes);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let source;
+  try {
+    const opened = fs.fstatSync(descriptor); assert.equal(opened.ino, before.ino); assert.equal(opened.dev, before.dev);
+    source = Buffer.alloc(row.bytes); let offset = 0;
+    while (offset < source.length) { const count = fs.readSync(descriptor, source, offset, source.length - offset, offset); assert.ok(count > 0); offset += count; }
+    const after = fs.fstatSync(descriptor); assert.equal(after.size, before.size); assert.equal(after.mtimeMs, before.mtimeMs);
+  } finally { fs.closeSync(descriptor); }
+  const digest = crypto.createHash("sha256").update(source).digest("hex");
+  if (digest !== row.sha256) refuse("changed");
+  trace({ kind: "authenticated-source-prepared", url, member: row.path, sha256: digest });
+  return { format: "module", source, shortCircuit: true };
+}
+
+FILE staged/new/coordinator.mjs
+import fs from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+import { supervisor } from "./owner.mjs";
+import { inventory } from "../legacy/stage-a-r2/common.mjs";
+import { unpackVerified } from "./tar.mjs";
+import { caps, admit, bounded, grant, ledger, rows, sha } from "./support.mjs";
+import { classifyTypes, classifyCases, classifyMutant, classifyRestore, classifyBinding } from "./classify.mjs";
+import { verifyRetiredTrace } from "./trace.mjs";
+
+export async function main(grantFile, stageRoot, packet) {
+  const authority = grant(JSON.parse(bounded(grantFile, 16384)));
+  const recipe = JSON.parse(admit(path.join(stageRoot, "metadata/RECIPE.json"), packet.files.find(row => row.path === "metadata/RECIPE.json")));
+  const frozen = JSON.parse(admit(path.join(stageRoot, "metadata/FROZEN-BINDINGS.json"), packet.files.find(row => row.path === "metadata/FROZEN-BINDINGS.json")));
+  const root = authority.workRoot;
+  const accounting = ledger([root, stageRoot, root + ".outer.raw"], authority.times.deadline);
+  const directory = path.join(root, "children"); fs.mkdirSync(directory, { mode: 0o700 });
+  const allowedExitCodes = Object.fromEntries(recipe.roles.map(role => [role.role, [role.exitCode]]));
+  const manager = supervisor(directory, 1620, caps.childRawBytes, { started: authority.started, roles: recipe.roles.map(role => role.role), allowedExitCodes, io: accounting.io, observe: () => accounting.observe() });
+  const completed = []; const classifications = [];
+  function put(filename, body, mode) { accounting.write(filename, body); if (mode !== undefined) fs.chmodSync(filename, mode); }
+  function closure(packageRoot, members = frozen.packageMembers) {
+    const expected = [...members].sort((left, right) => left.path < right.path ? -1 : 1);
+    assert.deepEqual(inventory(packageRoot), expected);
+  }
+  function stageConsumer(layout) {
+    const directory = path.join(root, layout, "__consumer");
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    for (const row of packet.files.filter(row => row.path.startsWith("legacy/harness/"))) put(path.join(directory, path.basename(row.path)), admit(path.join(stageRoot, row.path), row));
+    for (const polarity of ["positive", "negative"]) {
+      const row = packet.files.find(row => row.path === `legacy/types/consumer-${polarity}.mts.fixture`);
+      put(path.join(directory, `consumer-${polarity}.mts`), admit(path.join(stageRoot, row.path), row));
+    }
+    return directory;
+  }
+  const environment = { PATH: path.dirname(process.execPath), HOME: path.join(root, "home"), TMPDIR: path.join(root, "tmp"), TMP: path.join(root, "tmp"), TEMP: path.join(root, "tmp"), LANG: "C", LC_ALL: "C", TZ: "UTC", NODE_OPTIONS: "", NODE_PATH: "", NPM_CONFIG_USERCONFIG: path.join(root, "home/user.npmrc"), NPM_CONFIG_GLOBALCONFIG: path.join(root, "home/global.npmrc"), NPM_CONFIG_OFFLINE: "true", NPM_CONFIG_AUDIT: "false", NPM_CONFIG_FUND: "false", NPM_CONFIG_UPDATE_NOTIFIER: "false" };
+  try {
+    for (const name of ["home", "tmp", "cache", "input", "bindings", "traces", "source-built"]) fs.mkdirSync(path.join(root, name), { mode: 0o700 });
+    put(environment.NPM_CONFIG_USERCONFIG, ""); put(environment.NPM_CONFIG_GLOBALCONFIG, "");
+    const sourceRoot = "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source";
+    const toolsRoot = "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools";
+    assert.deepEqual(inventory(toolsRoot, recipe.toolLinks), recipe.toolInventory);
+    for (const row of frozen.selectedInputs) admit(path.join(sourceRoot, row.path), row);
+    for (const row of frozen.actualEmitted) admit(row.observedPath, row);
+    assert.equal(frozen.producerReceipt.producerClosed, true);
+    const compressed = admit(frozen.compressedPackage.path, frozen.compressedPackage, 930368);
+    unpackVerified(compressed, frozen.packageMembers);
+    const archive = path.join(root, "input/product.tgz"); put(archive, compressed);
+    const sourcePackage = path.join(root, "source-built/node_modules/virtual-bash");
+    for (const row of frozen.packageMembers) put(path.join(sourcePackage, row.path), admit(path.join(sourceRoot, row.path), row), row.mode);
+    closure(sourcePackage);
+    const metadata = JSON.parse(admit(path.join(sourcePackage, "package.json"), frozen.packageMembers.find(row => row.path === "package.json")));
+    assert.deepEqual(metadata.dependencies ?? {}, {});
+    for (const hook of ["preinstall", "install", "postinstall", "prepare"]) assert.equal(metadata.scripts?.[hook], undefined);
+    stageConsumer("source-built");
+    let installedIdentity;
+    let mutantCreated = false;
+    for (const role of recipe.roles) {
+      manager.remaining(); accounting.observe();
+      if (role.kind === "install") {
+        const installed = path.join(root, "installed"); fs.mkdirSync(installed, { mode: 0o700 }); put(path.join(installed, "package.json"), '{"private":true,"type":"module"}\n');
+        const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${toolsRoot}`, `--allow-fs-read=${process.execPath}`, `--allow-fs-write=${installed}`, `--allow-fs-write=${root}/cache`, `--allow-fs-write=${root}/home`, recipe.npm, "install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false", "--cache", path.join(root, "cache"), "--prefix", installed, archive];
+        await manager.run(role.role, process.execPath, args, { cwd: installed, env: environment, seconds: 120 }); closure(path.join(installed, "node_modules/virtual-bash")); stageConsumer("installed"); completed.push(role.role); continue;
+      }
+      if (role.layout === "physically-moved" && !installedIdentity) {
+        const before = fs.statSync(path.join(root, "installed/node_modules/virtual-bash"));
+        fs.renameSync(path.join(root, "installed"), path.join(root, "physically-moved"));
+        const after = fs.statSync(path.join(root, "physically-moved/node_modules/virtual-bash"));
+        assert.equal(after.ino, before.ino); assert.equal(after.dev, before.dev); assert.equal(fs.existsSync(path.join(root, "installed")), false);
+        installedIdentity = { before: { ino: before.ino, dev: before.dev }, after: { ino: after.ino, dev: after.dev } };
+      }
+      if (role.layout === "mutant-copy" && !mutantCreated) {
+        for (const row of frozen.packageMembers) put(path.join(root, "mutant-copy/node_modules/virtual-bash", row.path), admit(path.join(root, "physically-moved/node_modules/virtual-bash", row.path), row), row.mode);
+        stageConsumer("mutant-copy"); mutantCreated = true;
+      }
+      const layoutRoot = path.join(root, role.layout);
+      const packageRoot = path.join(layoutRoot, "node_modules/virtual-bash");
+      const consumer = path.join(layoutRoot, "__consumer");
+      if (role.kind === "type") {
+        const filename = path.join(consumer, `consumer-${role.negative ? "negative" : "positive"}.mts`);
+        const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${toolsRoot}`, `--allow-fs-read=${process.execPath}`, recipe.compiler, "--strict", "--exactOptionalPropertyTypes", "--noEmit", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--skipLibCheck", "--pretty", "false", "--listFiles", "--typeRoots", recipe.typeRoots, filename];
+        const result = await manager.run(role.role, process.execPath, args, { cwd: layoutRoot, env: environment, seconds: 120 });
+        const text = bounded(result.stdout, 4194304).toString() + bounded(result.stderr, 4194304).toString();
+        classifications.push(classifyTypes(result, text, filename, recipe.expectedDiagnostics, role.negative, layoutRoot));
+        const declarations = text.split("\n").filter(line => line.endsWith(".d.ts") && line.includes("/dist/")); assert.ok(declarations.length > 0);
+        for (const file of declarations) { const real = fs.realpathSync(file); assert.ok(real.startsWith(packageRoot + "/dist/")); const row = frozen.packageMembers.find(item => item.path === path.relative(packageRoot, real)); assert.ok(row); admit(real, row); }
+        closure(packageRoot); completed.push(role.role); continue;
+      }
+      const mutation = role.mutation ? recipe.mutations.find(row => row.id === role.mutation) : null;
+      const mutatedPath = mutation ? path.join(packageRoot, "dist", mutation.file) : null;
+      let original;
+      if (role.kind === "mutant") {
+        original = admit(mutatedPath, frozen.packageMembers.find(row => row.path === `dist/${mutation.file}`));
+        assert.equal(original.toString().split(mutation.before).length, 2);
+        const altered = Buffer.from(original.toString().replace(mutation.before, mutation.after)); assert.equal(sha(altered), mutation.prospectiveMutantSha256);
+        accounting.replace(mutatedPath, altered); accounting.observe();
+      }
+      const members = frozen.packageMembers.filter(row => row.path.endsWith(".js")).map(row => ({ ...row, absolute: path.join(packageRoot, row.path), ...(role.kind === "mutant" && row.path === `dist/${mutation.file}` ? { bytes: fs.statSync(mutatedPath).size, sha256: mutation.prospectiveMutantSha256 } : {}) }));
+      for (const row of packet.files.filter(row => row.path.startsWith("legacy/harness/") && row.path.endsWith(".mjs"))) members.push({ path: `harness/${path.basename(row.path)}`, absolute: path.join(consumer, path.basename(row.path)), bytes: row.bytes, sha256: row.sha256 });
+      if (role.kind === "binding" && role.alteration === "missing") members.splice(members.findIndex(row => row.path === "dist/index.js"), 1);
+      if (role.kind === "binding" && role.alteration === "changed") members.find(row => row.path === "dist/shell/parser.js").sha256 = "0".repeat(64);
+      const trace = path.join(root, "traces", `${role.role}.jsonl`); const bindingFile = path.join(root, "bindings", `${role.role}.json`);
+      const bindingBody = Buffer.from(JSON.stringify({ packageRoot, members, trace }));
+      put(bindingFile, bindingBody);
+      const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${stageRoot}`, `--allow-fs-read=${process.execPath}`, `--allow-fs-write=${consumer}`, `--allow-fs-write=${root}/tmp`, `--allow-fs-write=${trace}`, "--allow-worker", "--loader", pathToFileURL(path.join(stageRoot, "new/loader.mjs")).href, path.join(consumer, role.script)];
+      let result;
+      try {
+        result = await manager.run(role.role, process.execPath, args, { cwd: layoutRoot, env: { ...environment, PUBLIC_BINDING: bindingFile, PUBLIC_BINDING_BYTES: String(bindingBody.length), PUBLIC_BINDING_SHA256: sha(bindingBody), PRODUCT_ROOT: packageRoot, LAYOUT: role.layout, ...role.environment }, seconds: role.kind === "retained" ? 420 : 60 });
+        const output = bounded(result.stdout, 4194304).toString(); const stderr = bounded(result.stderr, 4194304).toString();
+        const verifiedTrace = verifyRetiredTrace(trace, result);
+        put(trace + ".verified.json", JSON.stringify(verifiedTrace));
+        if (role.kind === "binding") classifications.push(classifyBinding(result, output, stderr, verifiedTrace.records, role.alteration, packageRoot));
+        else if (role.kind === "mutant") classifications.push(classifyMutant(result, rows(output), verifiedTrace.records, mutation, recipe.mutantFailures[mutation.id]));
+        else if (role.kind === "restore") classifications.push(classifyRestore(result, rows(output), verifiedTrace.records, mutation));
+        else classifications.push(classifyCases(result, rows(output), role.ids));
+      } finally { if (original) { accounting.replace(mutatedPath, original); admit(mutatedPath, frozen.packageMembers.find(row => row.path === `dist/${mutation.file}`)); } }
+      closure(packageRoot); completed.push(role.role);
+    }
+    assert.equal(completed.length, 41); assert.equal(classifications.filter(row => row.cases && !row.loadedMutant).reduce((sum, row) => sum + row.cases, 0), 679);
+    for (const row of frozen.selectedInputs) admit(path.join(sourceRoot, row.path), row);
+    for (const row of frozen.actualEmitted) admit(row.observedPath, row);
+    assert.deepEqual(inventory(toolsRoot, recipe.toolLinks), recipe.toolInventory);
+    const retirement = manager.finish();
+    accounting.terminal(path.join(root, "RESULT.json"), { schema: "B2_COMPLETED_RUNTIME_ONLY_R3", status: "PASS", retainedCases: 672, typeChecks: 6, expectedNegativeDiagnostics: 24, loadedMutants: 7, restores: 7, bindingRefusals: 2, completed, classifications, installedIdentity, retirement, accounting: accounting.snapshot(), regexWorkersExpectedByStaticClosure: 0, mainLoaderAdmissions: 34, guestEngines: 0, coherentAcceptance: false });
+  } catch (error) {
+    const retirement = manager.abort(error);
+    try { accounting.terminal(path.join(root, "PARTIAL-FAILURE.json"), { schema: "B2_PARTIAL_FAILURE_R3", completed, primary: String(error?.stack ?? error), retirement, successSchema: false, automaticRetry: false }); } catch (secondary) { process.stderr.write(JSON.stringify({ terminalPersistence: false, primary: String(error), secondary: String(secondary) }) + "\n"); }
+    throw error;
+  }
+}
+if (process.argv[2] === "--authorized-child") await main(process.argv[3], process.argv[4], JSON.parse(bounded(process.argv[5], 1048576)));
+
+FILE staged/new/support.mjs
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import assert from "node:assert/strict";
+
+export const caps = Object.freeze({ seconds: 1800, reserveSeconds: 180, knownOsStarts: 64, peakOs: 3, rawBytes: 100663296, childRawBytes: 67108864, workBytes: 536870912, terminalReserveBytes: 4194304, traceBytesPerRole: 524288, loaderAdmissions: 34, regexWorkers: 0, regexLoaderAdmissions: 0, guestEngines: 0, loaderThreads: 34, peakLoaderThreads: 1, decoderBytes: 67108864, maximumInventoryEntries: 16384 });
+export const sha = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
+export function canonical(filename) { assert.equal(typeof filename, "string"); assert.ok(filename.startsWith("/private/tmp/") && !filename.includes("\0")); assert.equal(path.normalize(filename), filename); return filename; }
+export function admit(filename, expected, maximum = 33554432) {
+  assert.ok(expected && Number.isSafeInteger(expected.bytes) && expected.bytes >= 0 && expected.bytes <= maximum);
+  assert.match(expected.sha256, /^[a-f0-9]{64}$/);
+  const before = fs.lstatSync(filename);
+  assert.ok(before.isFile() && !before.isSymbolicLink()); assert.equal(before.size, expected.bytes);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const opened = fs.fstatSync(descriptor); assert.equal(opened.ino, before.ino); assert.equal(opened.dev, before.dev);
+    const bytes = Buffer.alloc(expected.bytes); let offset = 0;
+    while (offset < bytes.length) { const count = fs.readSync(descriptor, bytes, offset, bytes.length - offset, offset); assert.ok(count > 0); offset += count; }
+    const after = fs.fstatSync(descriptor); assert.equal(after.size, opened.size); assert.equal(after.mtimeMs, opened.mtimeMs); assert.equal(sha(bytes), expected.sha256); return bytes;
+  } finally { fs.closeSync(descriptor); }
+}
+export function bounded(filename, maximum) { const stat = fs.lstatSync(filename); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum); const bytes = fs.readFileSync(filename); assert.equal(bytes.length, stat.size); return bytes; }
+export function grant(value, now = Date.now()) {
+  assert.equal(value.schema, "B2_RUNTIME_GO_R7");
+  assert.equal(value.authority, "ROOT_B2_672_EXPLICIT_FRESH_GO");
+  assert.equal(value.reviewAuthority, "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED");
+  assert.match(value.reviewCommit, /^[a-f0-9]{40}$/); assert.match(value.packetSha256, /^[a-f0-9]{64}$/);
+  for (const [key, expected] of Object.entries(caps)) { assert.ok(Number.isSafeInteger(value.caps[key]) && Number.isFinite(value.caps[key])); assert.equal(value.caps[key], expected); }
+  const times = {};
+  for (const key of ["issuedAt", "notBefore", "activeDeadline", "deadline"]) { assert.equal(typeof value[key], "string"); assert.match(value[key], /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); times[key] = Date.parse(value[key]); assert.ok(Number.isFinite(times[key])); assert.equal(new Date(times[key]).toISOString(), value[key]); }
+  assert.ok(Number.isFinite(now) && times.issuedAt <= times.notBefore && times.notBefore <= now && now < times.activeDeadline && times.activeDeadline < times.deadline);
+  assert.equal(times.deadline - times.notBefore, caps.seconds * 1000); assert.equal(times.deadline - times.activeDeadline, caps.reserveSeconds * 1000);
+  canonical(value.workRoot); assert.equal(value.workRoot, "/private/tmp/safe-bash-b2-runtime-r7");
+  return Object.freeze({ ...value, times: Object.freeze(times), started: performance.now() - (now - times.notBefore) });
+}
+export function census(roots) {
+  const rows = []; let bytes = 0; let entries = 0;
+  function visit(filename) {
+    assert.ok(++entries <= caps.maximumInventoryEntries);
+    const stat = fs.lstatSync(filename);
+    if (stat.isDirectory()) for (const child of fs.readdirSync(filename).sort()) visit(path.join(filename, child));
+    else { assert.ok(stat.isFile() || stat.isSymbolicLink()); bytes += stat.size; rows.push(Object.freeze({ path: filename, bytes: stat.size, symlinkNotFollowed: stat.isSymbolicLink() })); }
+  }
+  for (const root of roots) if (fs.existsSync(root)) visit(root);
+  assert.ok(bytes <= caps.workBytes);
+  return Object.freeze({ bytes, entries, rows: Object.freeze(rows) });
+}
+export function ledger(roots, deadline) {
+  let written = 0; let terminalWritten = 0;
+  function charge(count, terminal = false) {
+    assert.ok(Number.isSafeInteger(count) && count >= 0);
+    assert.ok(Date.now() < deadline);
+    if (terminal) { terminalWritten += count; assert.ok(terminalWritten <= caps.terminalReserveBytes); }
+    else { written += count; assert.ok(written <= caps.workBytes - caps.terminalReserveBytes); }
+  }
+  function write(filename, body, terminal = false) {
+    const bytes = Buffer.isBuffer(body) ? body : Buffer.from(body); charge(bytes.length, terminal);
+    fs.mkdirSync(path.dirname(filename), { recursive: true, mode: 0o700 });
+    const descriptor = fs.openSync(filename, "wx", 0o600);
+    try { let offset = 0; while (offset < bytes.length) { const count = fs.writeSync(descriptor, bytes, offset, bytes.length - offset); assert.ok(count > 0); offset += count; } fs.fsyncSync(descriptor); } finally { fs.closeSync(descriptor); }
+  }
+  function replace(filename, bytes) {
+    assert.ok(Buffer.isBuffer(bytes)); charge(bytes.length);
+    const before = fs.lstatSync(filename); assert.ok(before.isFile() && !before.isSymbolicLink());
+    const descriptor = fs.openSync(filename, fs.constants.O_WRONLY | fs.constants.O_NOFOLLOW);
+    try {
+      const opened = fs.fstatSync(descriptor); assert.equal(opened.ino, before.ino); assert.equal(opened.dev, before.dev);
+      let offset = 0;
+      while (offset < bytes.length) { const count = fs.writeSync(descriptor, bytes, offset, bytes.length - offset, offset); assert.ok(count > 0); offset += count; }
+      fs.ftruncateSync(descriptor, bytes.length); fs.fsyncSync(descriptor);
+    } finally { fs.closeSync(descriptor); }
+  }
+  const io = Object.create(fs); io.writeSync = (descriptor, buffer, offset, length) => { charge(length); return fs.writeSync(descriptor, buffer, offset, length); };
+  return Object.freeze({ write, replace, io, observe() { assert.ok(Date.now() < deadline); const sample = census(roots); assert.ok(sample.bytes <= caps.workBytes - caps.terminalReserveBytes); const rawBytes = sample.rows.filter(row => /(?:\.stdout|\.stderr|\.outer\.raw|\.jsonl)$/.test(row.path)).reduce((sum, row) => sum + row.bytes, 0); assert.ok(rawBytes <= caps.rawBytes); return sample; }, terminal(filename, value) { write(filename, JSON.stringify(value, null, 2) + "\n", true); }, snapshot() { return Object.freeze({ written, terminalWritten, census: census(roots) }); } });
+}
+export function rows(text) { return text.trim().split("\n").filter(Boolean).map(line => JSON.parse(line)); }
+
+FILE PENDING-AUTHORITY.json
+{
+  "schema": "B2_RUNTIME_GO_R7",
+  "authority": "ROOT_B2_672_EXPLICIT_FRESH_GO",
+  "reviewAuthority": "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED",
+  "reviewCommit": null,
+  "packetSha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a",
+  "caps": {
+    "seconds": 1800,
+    "reserveSeconds": 180,
+    "knownOsStarts": 64,
+    "peakOs": 3,
+    "rawBytes": 100663296,
+    "childRawBytes": 67108864,
+    "workBytes": 536870912,
+    "terminalReserveBytes": 4194304,
+    "traceBytesPerRole": 524288,
+    "loaderAdmissions": 34,
+    "regexWorkers": 0,
+    "regexLoaderAdmissions": 0,
+    "guestEngines": 0,
+    "loaderThreads": 34,
+    "peakLoaderThreads": 1,
+    "decoderBytes": 67108864,
+    "maximumInventoryEntries": 16384
+  },
+  "workRoot": "/private/tmp/safe-bash-b2-runtime-r7",
+  "issuedAt": null,
+  "notBefore": null,
+  "activeDeadline": null,
+  "deadline": null
+}
+
+FILE RECEIPT.json
+{
+  "schema": "B2_R7_AUTHOR_REPAIR_RECEIPT",
+  "created": "2026-08-29T15:35:30.249Z",
+  "sourceCommits": {
+    "a4a14f522": "a4a14f522f733e38e3feda4a920d43c68b56b350",
+    "5d6045778": "5d60457781b73783eecdd61e34d33ec7916d891b"
+  },
+  "packet": {
+    "bytes": 6519,
+    "sha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a"
+  },
+  "presealSha256": "cc2db6c9029f4d72df7a5b320de5e75789b0b6c0def5c121761b75c19a9481b2",
+  "rawManifestSha256": "1f6d4611b68e2e8b80b893d037b80367778d3a983f49868a027970374145b2b8",
+  "outcomes": {
+    "synthetic": 8,
+    "harmlessConsumers": 2,
+    "loaderAdmissions": 2,
+    "loaderPeak": 1,
+    "product": 0,
+    "retained": 0,
+    "compiler": 0,
+    "install": 0,
+    "regex": 0,
+    "guest": 0
+  },
+  "retirement": {
+    "controller": 19223,
+    "consumers": [
+      19226,
+      19230
+    ],
+    "allExitCloseZero": true,
+    "individualLoaderExit": "UNOBSERVED",
+    "nativeThreads": "UNOBSERVED"
+  },
+  "knownOs": {
+    "observedBeforeFinalPublication": {
+      "git": 5,
+      "controller": 1,
+      "consumers": 2
+    },
+    "toolShellAndApplyPatchConservative": 8,
+    "finalGitPlanned": 3,
+    "totalConservativeAfterFinal": 19,
+    "maximum": 40,
+    "maximumObservedChildOverlap": 2,
+    "maximumIncludingToolHostConservative": 3,
+    "fullTransitiveCensus": false
+  },
+  "storage": {
+    "snapshotLogicalBytes": 1556170,
+    "snapshotEntries": 125,
+    "finalPublicationReservationBytes": 4194304,
+    "maximum": 268435456,
+    "hardOsQuota": false,
+    "gitInternalStorage": "trusted development-tool boundary, not measured"
+  },
+  "futureRuntime": "PENDING_DIFFERENT_REVIEW_AND_FRESH_ROOT_GO_NO_WINDOW",
+  "originalR6": "43a1c3dcfb23f56d0d5f13f67f62d38e7f0066e3 preserved 0/672"
+}

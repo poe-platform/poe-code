@@ -1,0 +1,3344 @@
+{
+  "schema": 2,
+  "startedAt": "2026-08-29T17:01:44.877Z",
+  "completedAt": "2026-08-29T17:01:45.150Z",
+  "status": "PENDING_ROOT_FINAL_GO_NOT_DISPATCHED",
+  "reviewCommit": "2e6d59787df9d1949d9e342fbd2769cb76240651",
+  "reviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-l02-followup-independent-20260829/r4/REVIEW-ACCEPTANCE.json",
+    "size": 1250,
+    "sha256": "39244351bc27769439f7f881cdeb6b68b92f694eb9f21c316a9f0eff44acea69"
+  },
+  "profileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/receipt-gate.mjs",
+      "size": 12089,
+      "mode": 420,
+      "sha256": "c82bd134ea73abc74547de9832a62d0fa46cf1efb60826fa45fe4e5c961b2c59"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/retirement-latch.mjs",
+      "size": 886,
+      "mode": 420,
+      "sha256": "528643d2a81cc8a0d017cf2b1053767173a4023cf2720b4e03f40d13a1363bee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/supervisor.mjs",
+      "size": 5529,
+      "mode": 420,
+      "sha256": "cf1b60f675185e200cc03a4c2e713a1b1ca73c4853bd6d3f47ff420d3198ba83"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/activation.mjs",
+      "size": 2798,
+      "mode": 420,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/admin-publication.mjs",
+      "size": 4474,
+      "mode": 420,
+      "sha256": "801b06eaae6d72f442a2064c63eec5c1cbd839372ff3608ffcf4c0072151c8cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/startup-receipt.mjs",
+      "size": 1693,
+      "mode": 420,
+      "sha256": "ec9da2e9670b153503b819d7c875e172ffedadcf38d1ea5b896aafa38f62fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/budget.mjs",
+      "size": 2364,
+      "mode": 420,
+      "sha256": "4d0078d54afb6ca729688112efa5133a7f4998398b81373d2982cd81f370d34a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/controls.mjs",
+      "size": 6760,
+      "mode": 420,
+      "sha256": "a5c2d6a7fa063a8a46d06503586fee348b8f42448b3bd40686cfc81781c4c7c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/provision.mjs",
+      "size": 3702,
+      "mode": 420,
+      "sha256": "5ceba2f2b5a5a734e8a399268d431c8e174deaf7ef867e8ee1b9e52ef1f37fa4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "mode": 420,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "mode": 420,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "size": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "caseInputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/CASE.json",
+      "size": 3741,
+      "mode": 420,
+      "sha256": "78e6cc43b132bc316d791cf0265d32b51260a0e90fbe96e2bcd5c0e5944c21e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/CASE.json",
+      "size": 4895,
+      "mode": 420,
+      "sha256": "38ed04d02c35823c1836481f5e13c5ac875d9124b70e7647ec255b746306adc5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/CASE.json",
+      "size": 5141,
+      "mode": 420,
+      "sha256": "1f53bbead15d8d0f174684e50ecb933878fc05d6a69252233b2451b5e738c1b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/CASE.json",
+      "size": 3731,
+      "mode": 420,
+      "sha256": "63e01c128862c8420db6a09edb7c5a63d401c44ec88e3726b0f0d7ed3816da29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/CASE.json",
+      "size": 4885,
+      "mode": 420,
+      "sha256": "1e79b7cce2311f12aad4377c3f4bdf5f4d83511c599142c99321e75bd4d86a16"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/CASE.json",
+      "size": 5131,
+      "mode": 420,
+      "sha256": "740a431d59a109a1b17a74d7cdb0c53f846b75370cfa617d7732f12457cbf9c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/CASE.json",
+      "size": 3727,
+      "mode": 420,
+      "sha256": "b945a4766b63e9865298ac3b71a9474025bf307e4bf87ec1939ee52aa3780806"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/CASE.json",
+      "size": 4881,
+      "mode": 420,
+      "sha256": "b2c4da92bd0f63f40ebd264bffd5cc5b85c27f5c0a26ce53249b89a870251c08"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/CASE.json",
+      "size": 5127,
+      "mode": 420,
+      "sha256": "49c8865890d1ae81874e2c46b045d74eb805d67bd3b97c692fa9159e93fd316b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/CASE.json",
+      "size": 3731,
+      "mode": 420,
+      "sha256": "d075d2b83b689b375e19928b8e5550792fd35bae569c9ae7b00d603fbf53b5a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/CASE.json",
+      "size": 4885,
+      "mode": 420,
+      "sha256": "9665a8f65cea69853b9d372e661a612a1d41d671ba844af564953c9d75049b04"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/CASE.json",
+      "size": 5131,
+      "mode": 420,
+      "sha256": "f73e4a570618e9402332f88e06a35aab9864d30d5ada8768f978301c984b991e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/CASE.json",
+      "size": 3739,
+      "mode": 420,
+      "sha256": "0a0326778ed13fb2fd8ed598109204b1cb84269b064f91e701a33ebbdc2c5e7e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/case-runner.mjs",
+      "size": 7083,
+      "mode": 420,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/journal.mjs",
+      "size": 2588,
+      "mode": 420,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/package.json",
+      "size": 228,
+      "mode": 420,
+      "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/state.mjs",
+      "size": 299,
+      "mode": 420,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/worker-bridge.mjs",
+      "size": 2490,
+      "mode": 420,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    }
+  ],
+  "caseFiles": 390,
+  "caseBytes": 1381586,
+  "fixedDirectoryChecks": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES",
+      "entries": [
+        "01-constructor-built",
+        "02-constructor-installed",
+        "03-constructor-moved",
+        "04-normal-built",
+        "05-normal-installed",
+        "06-normal-moved",
+        "07-post-built",
+        "08-post-installed",
+        "09-post-moved",
+        "10-single-built",
+        "11-single-installed",
+        "12-single-moved",
+        "13-persistent-built"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "package",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/01-constructor-built/package/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "node_modules",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/02-constructor-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "relocated",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated",
+      "entries": [
+        "node_modules"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/03-constructor-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "package",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/04-normal-built/package/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "node_modules",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/05-normal-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "relocated",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated",
+      "entries": [
+        "node_modules"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/06-normal-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "package",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/07-post-built/package/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "node_modules",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/08-post-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "relocated",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated",
+      "entries": [
+        "node_modules"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/09-post-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "package",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/10-single-built/package/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "node_modules",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/11-single-installed/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "relocated",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated",
+      "entries": [
+        "node_modules"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules",
+      "entries": [
+        "@safe-bash-internal"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal",
+      "entries": [
+        "ere-transport-review"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/12-single-moved/relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built",
+      "entries": [
+        "CASE.json",
+        "case-runner.mjs",
+        "journal.mjs",
+        "package",
+        "state.mjs",
+        "worker-bridge.mjs"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package",
+      "entries": [
+        "ere",
+        "package.json"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere",
+      "entries": [
+        "errors.d.ts",
+        "errors.js",
+        "limits.d.ts",
+        "limits.js",
+        "matcher.d.ts",
+        "matcher.js",
+        "syntax.d.ts",
+        "syntax.js",
+        "transport",
+        "types.d.ts",
+        "types.js"
+      ]
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES/13-persistent-built/package/ere/transport",
+      "entries": [
+        "accounting.d.ts",
+        "accounting.js",
+        "owner.d.ts",
+        "owner.js",
+        "protocol.d.ts",
+        "protocol.js",
+        "root.d.ts",
+        "root.js",
+        "validation.d.ts",
+        "validation.js",
+        "wire-engine.d.ts",
+        "wire-engine.js",
+        "worker-entry.d.ts",
+        "worker-entry.js"
+      ]
+    }
+  ],
+  "recursiveDiscovery": false,
+  "unusedPaths": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/ROOT-GRANT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/outer.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/outer.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/admin-outer.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/admin-outer.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/bootstrap.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/bootstrap.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/owner.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/owner.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/admin.stdout",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/admin.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/ACTIVATION.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/RUNTIME-RESULT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/OUTER-CLOSE.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/RESULT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/STOP.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/FUTURE-ACTUAL-01/EMERGENCY.json"
+  ],
+  "futureDirectoryEmpty": true,
+  "outputs": {
+    "grant": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/PENDING-GRANT.json",
+      "size": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78"
+    },
+    "base64": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/PENDING-GRANT.base64.data",
+      "size": 701,
+      "sha256": "50bf736475de368e5fc475a91a8ca194ff1f3db52c8bf48dda0e790a39f3a733"
+    },
+    "command": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/ACTIVATION-COMMAND.sh.data",
+      "size": 1739,
+      "sha256": "7c13045d3b06de10486ce29a3c7160cae665c4fed1f7b8eb62bb155f2f0a0d95"
+    }
+  },
+  "commandSource": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/HANDOFF.md",
+    "sha256": "b6405fd40b17db7ff2e9974bc38f8774eda277d64bd543ff4a14a1c379b43a15"
+  },
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v2/prepare.mjs",
+    "size": 8421,
+    "mode": 420,
+    "sha256": "461476fab4940e49468f48961aafa898e17b5e0b7bbafa370971d6645bb28193"
+  },
+  "grantKeys": [
+    "schema",
+    "authorized",
+    "profileSha256",
+    "runId",
+    "reviewCommit",
+    "reviewReceiptSha256",
+    "issuedAt",
+    "latestStartAt",
+    "expiresAt",
+    "cases",
+    "Workers",
+    "wallMilliseconds",
+    "knownOS",
+    "captureBytes",
+    "workingBytes"
+  ],
+  "validation": "Existing admitGrant validated at issuedAt and latestStartAt as DATA only; no activation authorization installed",
+  "startup": "RESERVED_POSTCHECK_NOT_PREWRITE_ENFORCED_NO_EOF_CENSUS",
+  "Git": "SHARED_INDEX_OBJECT_TEMP_PHYSICAL_STORAGE_EXCLUDED_TRUSTED_UNOBSERVED",
+  "actualWorkers": 0,
+  "productImports": 0,
+  "dispatch": false,
+  "preservedFailure": "ec5d57a0400058cfa8422881154055cf134d42d4"
+}

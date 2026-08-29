@@ -1,0 +1,34 @@
+# Root handoff: ERE12 scoped preexecution acceptance
+
+Reviewed successor `2d07f5921010fda988dcda36ac81a89831fbac55`.
+Independent preseal `83f65e7c4378c85cf86a1bf3ee90be79bf0e3b94`.
+Original outcomes plus I04-only correction preseal
+`564039b8da61297ba78fdfd4f37897d5bc9f96a4`.
+
+- Executable seal SHA256:
+  `211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457`.
+- Author controls seal SHA256:
+  `b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03`.
+- Requests SHA256:
+  `2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8`.
+- `BINDINGS.json` SHA256:
+  `09d39a3175cfdfcc911728bc13651a1ea884a20817346d27fca97bf30036ecbb`.
+- Non-runtime `REVIEW-RESULT.json` SHA256:
+  `679e7e6cb7beade1a5816725d9efea133d74bcd3617e23601d3fd73b83c002f3`.
+
+Unchanged author12/12 controls,196 assertions. Independent original7/8 with one
+wrong diagnostic expectation preserved; separately sealed I04-v2 passes8 assertions.
+Version-mapped eight families =66 successful assertions, not an original8/8 rescore.
+Three DATA children naturally retired, no Bash/native entry imported/executed.
+Eight other modules and all12 literal programs remain byte-identical.
+
+No source repair blocker found. This is **not** runtime native approval: all12
+observations remain UNRUN. Root must separately create a fresh runtime review
+receipt and GO, with fresh expiry/provision/source/tool checks; then validate the
+exact resolved hash slot and obtain `require_escalated`, `login:false`, no-prefix
+tool approval. The trusted initial shell-startup boundary and old fence/forced-
+termination HOLDs remain. R01/manual/native semantics remain unresolved. No
+GNU5.3, containment, global process census or hidden capture-span inference.
+
+See `REPORT.md` for source/lifecycle scope, precise old failures, and protocol
+assumptions; `PROCESS-ACCOUNTING.md` separates known roles from unknown transitives.

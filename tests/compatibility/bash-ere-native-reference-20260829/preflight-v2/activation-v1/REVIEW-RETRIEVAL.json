@@ -1,0 +1,40 @@
+{
+  "commit": "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8",
+  "sourcePath": "tests/compatibility/bash-ere-native-preflight-review-20260829/HANDOFF.md",
+  "bytes": 1892,
+  "sha256": "5ff1400f9621fef789cf42f9867aaa4817b21d1850c4f17ced17edc6d97d544b",
+  "calls": [
+    {
+      "id": "handoff-size",
+      "args": [
+        "cat-file",
+        "-s",
+        "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8:tests/compatibility/bash-ere-native-preflight-review-20260829/HANDOFF.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 12360,
+      "bytes": 5,
+      "sha256": "60174dd2ea0c0708c6b216fdd0672d8e9dd97790eb5fcb07e0185cdfb1684940",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retired": true
+    },
+    {
+      "id": "handoff-blob",
+      "args": [
+        "cat-file",
+        "blob",
+        "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8:tests/compatibility/bash-ere-native-preflight-review-20260829/HANDOFF.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 12361,
+      "bytes": 1892,
+      "sha256": "5ff1400f9621fef789cf42f9867aaa4817b21d1850c4f17ced17edc6d97d544b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retired": true
+    }
+  ]
+}

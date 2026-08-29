@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const own=path.resolve('tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1');
+const commit='f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8';
+const sourcePath='tests/compatibility/bash-ere-native-preflight-review-20260829/HANDOFF.md';
+const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const calls=[];
+function git(id,args,maximum=65536){
+ const stdout=fs.openSync(own+'/raw/'+id+'.stdout',fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600),stderr=fs.openSync(own+'/raw/'+id+'.stderr',fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
+ let result,bytes,errorBytes;
+ try{result=spawnSync('/usr/bin/git',['-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null',...args],{cwd:process.cwd(),shell:false,stdio:['ignore',stdout,stderr],timeout:5000,killSignal:'SIGKILL'});fs.fsyncSync(stdout);fs.fsyncSync(stderr);const out=fs.fstatSync(stdout),err=fs.fstatSync(stderr);if(!out.isFile()||!err.isFile()||out.size>maximum||err.size>65536)throw Error('GIT_CAPTURE');bytes=fs.readFileSync(stdout);errorBytes=fs.readFileSync(stderr);if(result.error||result.signal||result.status!==0)throw Error('GIT_METADATA_STOP');}
+ finally{fs.closeSync(stdout);fs.closeSync(stderr);}
+ calls.push({id,args,status:result.status,signal:result.signal,pid:result.pid,bytes:bytes.length,sha256:digest(bytes),stderrBytes:errorBytes.length,stderrSha256:digest(errorBytes),retired:true});return bytes;
+}
+if(git('review-type',['cat-file','-t',commit]).toString('utf8')!=='commit\n')throw Error('REVIEW_TYPE');
+const size=Number(git('handoff-size',['cat-file','-s',commit+':'+sourcePath]).toString('ascii'));if(!Number.isSafeInteger(size)||size<1||size>65536)throw Error('HANDOFF_SIZE');
+const bytes=git('handoff-blob',['cat-file','blob',commit+':'+sourcePath]);if(bytes.length!==size)throw Error('HANDOFF_BYTES');
+fs.writeFileSync(own+'/REVIEW-HANDOFF.md.data',bytes,{flag:'wx',mode:0o600});fs.writeFileSync(own+'/REVIEW-RETRIEVAL.json',JSON.stringify({commit,sourcePath,bytes:size,sha256:digest(bytes),calls},null,2)+'\n',{flag:'wx',mode:0o600});
+console.log(JSON.stringify({commit,sourcePath,bytes:size,sha256:digest(bytes),metadataChildren:3}));console.log(bytes.toString('utf8'));

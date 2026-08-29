@@ -1,0 +1,275 @@
+{
+  "outer": {
+    "pid": 24857,
+    "childPid": 24859,
+    "primaryPresent": false,
+    "primary": null,
+    "result": {
+      "code": 0,
+      "signal": null,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true
+    },
+    "captureBytes": 3438,
+    "limits": {
+      "seconds": 90,
+      "cleanupSeconds": 5,
+      "captureBytes": 8388608
+    },
+    "productImports": 0
+  },
+  "controls": [
+    {
+      "id": "C01",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "HASH",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C02",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "SIZE",
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C03",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "SIZE",
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C04",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "HASH",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C05",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "TYPE",
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C06",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "TYPE",
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C07",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "MUTATION",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C08",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "MUTATION",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C09",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "MUTATION",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C10",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "AGGREGATE",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 40
+      }
+    },
+    {
+      "id": "C11",
+      "status": "PASS",
+      "counts": {
+        "decoder": 1,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "HASH",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    },
+    {
+      "id": "C12",
+      "status": "PASS",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "reasonCode": "HASH",
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      }
+    }
+  ],
+  "artifact": {
+    "status": "PASS",
+    "result": {
+      "members": 954,
+      "payloadBytes": 4821648,
+      "decodedBytes": 5545984,
+      "extractionCalls": 0
+    },
+    "compressedBytes": 872281,
+    "decodedBytes": 5545984,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "counts": {
+      "decoder": 1,
+      "parser": 1,
+      "extraction": 0
+    },
+    "events": [
+      "lstat-type-size",
+      "bounded-read",
+      "postread-identity",
+      "exact-hash",
+      "descriptor-closed",
+      "concurrent-buffers-reserved",
+      "decoded",
+      "parsed"
+    ],
+    "ledger": {
+      "current": 0,
+      "peak": 70078298,
+      "maximum": 100663296
+    }
+  },
+  "post": {
+    "artifactRegular": true,
+    "artifactBytes": 872281,
+    "artifactSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "fixtureDirectory": [
+      "RESULT.json"
+    ],
+    "elapsedSeconds": 420.43
+  }
+}
+package-admission.mjs:28   const before = await fs.lstat(filename);
+package-admission.mjs:31   operations.events.push('lstat-type-size');
+package-admission.mjs:40     descriptor = await fs.open(filename, constants.O_RDONLY | constants.O_NOFOLLOW);
+package-admission.mjs:45     compressed = Buffer.alloc(authority.bytes);
+package-admission.mjs:46     const probe = Buffer.alloc(1);
+package-admission.mjs:57     if (!sameFile(opened, await descriptor.stat()) || !sameFile(opened, await fs.lstat(filename))) refuse('MUTATION');
+package-admission.mjs:60     if (digest !== authority.sha256) refuse('HASH');
+package-admission.mjs:61     operations.events.push('exact-hash');
+package-admission.mjs:75     const parseReserve = operations.parseReserve ?? 2 * 1024 * 1024;
+package-admission.mjs:77     reserve(decodedLimit + parseReserve);
+package-admission.mjs:80     const decoded = operations.decode(compressed, { maxOutputLength: decodedLimit });
+package-admission.mjs:83     const result = operations.parse(decoded);
+parse-manifest.mjs:3 export function validateTar(buffer, expected) {
+parse-manifest.mjs:45     if (digest !== member.sha256) throw new Error(`member hash: ${path}`);
+controls.mjs:14   const stat = await fs.lstat(filename);
+controls.mjs:23 const { validateTar } = await import(pathToFileURL(path.join(directory, 'parse-manifest.mjs')));
+controls.mjs:85     const result = await admitPackage(authority.path, authority, ledger, {
+controls.mjs:88       parse(bytes) { counts.parser++; return validateTar(bytes, expected); },
+outer.mjs:8 const stdout = fs.openSync(path.join(output, 'stdout.raw'), 'wx');
+outer.mjs:9 const stderr = fs.openSync(path.join(output, 'stderr.raw'), 'wx');
+outer.mjs:10 const events = fs.openSync(path.join(output, 'events.jsonl'), 'wx');
+outer.mjs:12 emit({ event: 'capture-open', pid: process.pid });
+outer.mjs:28     const stat = fs.lstatSync(filename);
+outer.mjs:31   const toolStat = fs.lstatSync(seal.node.path);
+outer.mjs:34   const descriptor = fs.openSync(seal.node.path, 'r');
+outer.mjs:35   try { const chunk = Buffer.alloc(65536); let count; while ((count = fs.readSync(descriptor, chunk)) !== 0) toolHash.update(chunk.subarray(0, count)); }
+outer.mjs:42   child = spawn(seal.node.path, args, { cwd: directory, env: { LANG: 'C', LC_ALL: 'C', TZ: 'UTC' }, stdio: ['ignore', 'pipe', 'pipe'] });
+outer.mjs:62     emit({ event: 'enrolled-listeners-installed', pid: child.pid ?? null });

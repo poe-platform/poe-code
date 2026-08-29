@@ -1,0 +1,4 @@
+{"at":1787993660632,"event":"capture-open","pid":24604}
+{"at":1787993660747,"event":"git-close","pid":24605,"status":0,"signal":null,"error":null}
+{"at":1787993660976,"event":"git-close","pid":24607,"status":0,"signal":null,"error":null}
+{"at":1787993660978,"event":"capture-closure"}

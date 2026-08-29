@@ -1,0 +1,88 @@
+{
+  "schema": 3,
+  "createdAt": "2026-08-29T16:31:37.660Z",
+  "deadline": "2026-08-29T16:38:49.087Z",
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/budget.mjs",
+      "size": 2364,
+      "sha256": "179c81488ac5b5287cd5d61d9ac90a64a231860286f4e6c5b06b19ebb9390a22"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/startup-receipt.mjs",
+      "size": 1693,
+      "sha256": "ec9da2e9670b153503b819d7c875e172ffedadcf38d1ea5b896aafa38f62fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/activation.mjs",
+      "size": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/supervisor.mjs",
+      "size": 5309,
+      "sha256": "75e06c5f30484f0fb123b176dd1d7137d89d3125b5457bedd196f8110035a58f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/admin-publication.mjs",
+      "size": 4474,
+      "sha256": "801b06eaae6d72f442a2064c63eec5c1cbd839372ff3608ffcf4c0072151c8cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/controls.mjs",
+      "size": 3360,
+      "sha256": "2a5caa1f11fb2745c24fdacc97637ce8aa967e04ecc6349ae574e5e768c9e9fa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs",
+      "size": 2588,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs",
+      "size": 12014,
+      "sha256": "30423812ddc5e82a9598878f63a628aa781987616e3239cedc8680ce661401a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "size": 3704880,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "executionProfileSha256": "1c2b19a7b8a8b2d91bae89045d6077e81b4b0f10af359da44d89d8b469fe808e",
+  "helper": {
+    "entry": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/controls.mjs",
+    "groups": 6,
+    "children": 0,
+    "Workers": 0,
+    "sourceOnly": [
+      "activation.mjs",
+      "supervisor.mjs",
+      "admin-publication.mjs",
+      "postcheckFile filesystem route"
+    ]
+  },
+  "roleBudget": {
+    "knownOS": 24,
+    "peak": 3,
+    "helpers": 1,
+    "capture": 25165824,
+    "work": 100663296
+  },
+  "historicalResultsUnchanged": true
+}

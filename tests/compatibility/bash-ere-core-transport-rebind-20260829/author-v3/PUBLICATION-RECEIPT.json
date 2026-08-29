@@ -1,0 +1,350 @@
+{
+  "schema": "CORE_CORRECTED_ROOT_AUTHOR_DATA_PUBLICATION_V3",
+  "at": "2026-08-29T16:10:16.115Z",
+  "verdict": "AUTHOR_BUILD_PACKAGE_AND_FINITE_DATA_COMPLETE_PENDING_INDEPENDENT_AUDIT",
+  "producerCommit": "b8e181757058ff51c32e00387abc730cd1acc29c",
+  "producerReceipt": {
+    "path": "output/PRE-INFLATE-RECEIPT.json",
+    "size": 821512,
+    "mode": 292,
+    "sha256": "52b75de5a8b9af27effc7d5dcf5ffa64eeb8171383413810709143b144fef54d"
+  },
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+    "size": 909885,
+    "mode": 292,
+    "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+  },
+  "sourceComposition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "sourceSelection": {
+    "inputs": 305,
+    "unchanged": 303,
+    "overlays": 2
+  },
+  "tools": {
+    "nodeTypes": [
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "dependencies": {
+          "undici-types": "~6.21.0"
+        },
+        "types": "index.d.ts",
+        "typesVersions": {
+          "<=5.6": {
+            "*": [
+              "ts5.6/*"
+            ]
+          }
+        },
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+        "isolatedCopy": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types/node"
+      },
+      {
+        "name": "undici-types",
+        "version": "6.21.0",
+        "dependencies": {},
+        "types": "index.d.ts",
+        "typesVersions": null,
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+        "isolatedCopy": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/undici-types"
+      }
+    ],
+    "files": 115,
+    "bytes": 2522132,
+    "allOriginalPinsReauthenticated": true,
+    "compiler": "5.9.3",
+    "typeManifest": {
+      "path": "TYPE-TOOLS.json",
+      "size": 52345,
+      "mode": 292,
+      "sha256": "3999f2c74779a57e6366b7c52b03f327fd7eac1094e19eb0b67f151ce2733351"
+    }
+  },
+  "compiler": {
+    "id": "strict-build",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source/tsconfig.build.json",
+      "--typeRoots",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source",
+    "started": "2026-08-29T16:06:13.329Z",
+    "pid": 53077,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "signals": [],
+    "primaryPresent": false,
+    "primary": null,
+    "bytes": {
+      "stdout": 0,
+      "stderr": 0
+    },
+    "finished": "2026-08-29T16:06:17.835Z",
+    "stdout": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stdout",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "retired": true
+  },
+  "pack": {
+    "id": "offline-pack",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "pack",
+      "--offline",
+      "--ignore-scripts",
+      "--json",
+      "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+      "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+      "--pack-destination=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source",
+    "started": "2026-08-29T16:06:18.186Z",
+    "pid": 53117,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "signals": [],
+    "primaryPresent": false,
+    "primary": null,
+    "bytes": {
+      "stdout": 113591,
+      "stderr": 208
+    },
+    "finished": "2026-08-29T16:06:19.717Z",
+    "stdout": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stdout",
+      "size": 113591,
+      "mode": 384,
+      "sha256": "a699777fd24947f9fb74e14755d5a07f26f1a9afc825dc9f5887b494e805619c"
+    },
+    "stderr": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stderr",
+      "size": 208,
+      "mode": 384,
+      "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    "retired": true
+  },
+  "commitBarrier": {
+    "id": "commit-barrier",
+    "executable": "/usr/bin/git",
+    "args": [
+      "cat-file",
+      "--batch"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "started": "2026-08-29T16:07:04.735Z",
+    "pid": 53322,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "signals": [],
+    "primaryPresent": false,
+    "primary": null,
+    "bytes": {
+      "stdout": 1731505,
+      "stderr": 0
+    },
+    "finished": "2026-08-29T16:07:04.766Z",
+    "stdout": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stdout",
+      "size": 1731505,
+      "mode": 384,
+      "sha256": "68ad48533978544c7c58a16621b42653c0528cebc4f363e87117f11d7f59c6f7"
+    },
+    "stderr": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "retired": true
+  },
+  "compilerAttemptsThisGrant": 1,
+  "compilerAttemptsIncludingPreservedV2Failure": 2,
+  "packAttempts": 1,
+  "decodeInvocations": 1,
+  "emitCounts": {
+    "unchanged": 992,
+    "changed": 8,
+    "added": 0,
+    "removed": 0
+  },
+  "changedPaths": [
+    "dist/commands/regex-execution/ere/transport/owner.d.ts",
+    "dist/commands/regex-execution/ere/transport/owner.d.ts.map",
+    "dist/commands/regex-execution/ere/transport/owner.js",
+    "dist/commands/regex-execution/ere/transport/owner.js.map",
+    "dist/commands/regex-execution/ere/transport/root.d.ts",
+    "dist/commands/regex-execution/ere/transport/root.d.ts.map",
+    "dist/commands/regex-execution/ere/transport/root.js",
+    "dist/commands/regex-execution/ere/transport/root.js.map"
+  ],
+  "failedEmitCausePaths": 18,
+  "resolvedFailedOnlyDifferences": 10,
+  "shippingMembers": 1002,
+  "privateAssets": 48,
+  "literalStaticEdges": 29,
+  "layouts": [
+    {
+      "name": "source-built",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app",
+      "manifest": {
+        "path": "output/layouts/source-built/LAYOUT.json",
+        "size": 271895,
+        "mode": 384,
+        "sha256": "63ce42604adf68a1047fe7b4b0290c5724a3a8d3a174d920b5c7ca9d2c4d2827"
+      },
+      "files": 1392,
+      "bytes": 9203237,
+      "productTreeFiles": 1305,
+      "privateAssets": 48,
+      "physicalMove": {
+        "performed": false,
+        "from": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app",
+        "to": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app"
+      }
+    },
+    {
+      "name": "installed",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app",
+      "manifest": {
+        "path": "output/layouts/installed/LAYOUT.json",
+        "size": 230995,
+        "mode": 384,
+        "sha256": "28cce495ada324c3f321699d5d167314f0c10007922e0ce77b799f5a8b9d69ae"
+      },
+      "files": 1089,
+      "bytes": 6537603,
+      "productTreeFiles": 1002,
+      "privateAssets": 48,
+      "physicalMove": {
+        "performed": false,
+        "from": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app",
+        "to": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app"
+      }
+    },
+    {
+      "name": "moved",
+      "app": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app",
+      "manifest": {
+        "path": "output/layouts/moved/LAYOUT.json",
+        "size": 230995,
+        "mode": 384,
+        "sha256": "9764f04f196914ee1463f22b2d5710aa1895ee3d4c496f8e4383bbb62455e8df"
+      },
+      "files": 1089,
+      "bytes": 6522935,
+      "productTreeFiles": 1002,
+      "privateAssets": 48,
+      "physicalMove": {
+        "performed": true,
+        "from": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/staging-app",
+        "to": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app"
+      }
+    }
+  ],
+  "definitions": 70,
+  "cells": 210,
+  "guardPreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CORE-GUARD-PRESEAL.json",
+    "size": 627317,
+    "mode": 292,
+    "sha256": "e832b9cf2342c99d09a785f801ae4c73f5905a3d349c9efbc2818e6955c1f66e"
+  },
+  "finalBindings": {
+    "path": "output/FINAL-BINDINGS.json",
+    "size": 1791846,
+    "mode": 292,
+    "sha256": "470b39c48b72d618189611c95ff1cc8b04efbd69b2aab3533f3052df504f788c"
+  },
+  "futureLogicalBound": {
+    "components": {
+      "retainedAndFreshLayoutCopies": 44743495,
+      "uniqueCellEvents": 55050240,
+      "uniqueCellPipesIncludingFinalAudits": 55050240,
+      "coordinatorCapture": 8388608,
+      "administrativeToolCaptures": 8388608,
+      "publicationTails": 4194304,
+      "generatedBindingsManifestsMetadata": 16777216,
+      "onePublicationCopyOfAllCaptures": 131072000,
+      "archivedPackage": 909885,
+      "extraMetadataReserve": 8388608
+    },
+    "logicalBytes": 332963204,
+    "uniqueCaptureBytes": 131072000,
+    "conditional": true,
+    "excludes": [
+      "Git internal physical storage",
+      "allocated disk blocks",
+      "RSS"
+    ]
+  },
+  "currentResources": {
+    "knownStartsThroughThisCensus": 29,
+    "plannedRemainingPublicationStarts": 7,
+    "conditionalFinalKnownStarts": 36,
+    "maximumKnownStarts": 48,
+    "conservativePeak": 3,
+    "maximumPeak": 3,
+    "allOwnedFileCount": 6992,
+    "allOwnedLogicalBytes": 63159447,
+    "captureBytes": 8041673,
+    "publicationReserveBytes": 33554432,
+    "logicalBoundIncludingPublication": 96713879,
+    "maximumWork": 536870912,
+    "maximumCapture": 100663296,
+    "perDataFileMaximum": 16777216,
+    "exclusions": [
+      "Git internal physical storage",
+      "allocated disk blocks",
+      "RSS"
+    ],
+    "deadline": "2026-08-29T16:23:05Z",
+    "retirementQualification": "Compiler, pack and Git children exit/close/both EOF observed; administrative closure from completed tool calls, current/final publication helpers pending their direct completion"
+  },
+  "actualRuntimeAuthority": false,
+  "product": 0,
+  "Workers": 0,
+  "Shell": 0,
+  "nativeOracles": 0,
+  "installs": 0,
+  "independentProducerReview": null,
+  "priorFailurePreserved": "58ba544b0c702ff47ff7b623f05afb1229ffe3ca"
+}

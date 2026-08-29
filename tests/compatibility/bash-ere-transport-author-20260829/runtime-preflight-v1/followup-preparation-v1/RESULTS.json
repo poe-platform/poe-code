@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "status": "THIRTEEN_CELL_MATERIALIZED_PREEXEC_REVIEW_PENDING; FULL_CAMPAIGN_HOLD",
+  "actual": {
+    "DATAHelpers": 1,
+    "PUREControlHelpers": 1,
+    "syntaxOnlyHelpers": 1,
+    "controls": 10,
+    "passed": 10,
+    "harmlessChildren": [
+      {
+        "pid": 28932,
+        "exit": 0,
+        "state": "RETIRED",
+        "closed": true,
+        "captureComplete": true,
+        "termRequested": false,
+        "killRequested": false
+      },
+      {
+        "pid": 28933,
+        "exit": 7,
+        "state": "RETIRED",
+        "closed": true,
+        "captureComplete": true,
+        "termRequested": false,
+        "killRequested": false
+      }
+    ],
+    "Workers": 0,
+    "matching": 0,
+    "compiler": 0,
+    "productImports": 0
+  },
+  "sourceAcceptance": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "executionPresealSha256": "347c4d415ce3e1db5f11aafc3727b0c6c9b30a6044e7df1664327882bf32506a",
+  "inertGrantSha256": "13e47667ec58801e641b456eb0d7304bfdab4d16adc3d8bb8e35d5f48e5020cd",
+  "inertGrantBytes": 256,
+  "caseInventorySha256": "798090817dd88be2f3e598dddd257c6ad5792630b4e8c14fe800dbb219789528",
+  "capsuleSha256": "1ab7fd2f00fd359217c608c939c8686158935899588ec9284f6b80870789be23",
+  "raw": [
+    {
+      "path": "capture/materialize.stdout",
+      "size": 157,
+      "sha256": "c8dfefaf7b61a5d799a0fb92142c8b8b50afbc466c0372cbd7259721e46ae6e9"
+    },
+    {
+      "path": "capture/materialize.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/controls.stdout",
+      "size": 62,
+      "sha256": "d8e6978d4487d7706746e424445c5450c6a46b01a21c06c8c55321105e01d891"
+    },
+    {
+      "path": "capture/controls.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/syntax.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/syntax.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/J09-natural-owned.stdout",
+      "size": 6,
+      "sha256": "33bff9108736f23280e9cd50cb1472e3a5b4403ed3f2da1fe67b8487a4fb75c6"
+    },
+    {
+      "path": "capture/J09-natural-owned.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/J10-nonzero-owned.stdout",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/J10-nonzero-owned.stderr",
+      "size": 14,
+      "sha256": "ded1cf921829ed5844a9b96cd33407bfdaf21bc42c8f8f29f854bbe21e44f2f2"
+    }
+  ],
+  "rawBytes": 239,
+  "sourceOnlySupervisorDelta": "ca275457182416239de776924a9981ee3fbbd23a4260df3d863790d1dc0e6fac",
+  "fullCampaignBlockers": [
+    "per-case successor T1 close predicates not implemented for all135",
+    "L08 recovery-like NativeWorker.terminate order needs explicit authority; terminal cells isolated",
+    "L07 injected-event proof acceptance and B07 preemption proof needed",
+    "exact public Expr consumer/declaration/type bindings missing; cannot give full numerical Worker total including Expr"
+  ],
+  "futureCells": 13,
+  "futureWorkers": 10,
+  "ROOTGrantInstalled": false,
+  "history": "5001/extra-archive STOP preserved; no rescoring",
+  "completed": "2026-08-29T15:49:54.094Z"
+}

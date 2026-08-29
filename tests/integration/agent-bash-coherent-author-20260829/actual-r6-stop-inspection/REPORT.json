@@ -1,0 +1,165 @@
+{
+  "schema": "B1-r6-readonly-stop-inspection",
+  "observedUTC": "2026-08-29T16:19:53.754Z",
+  "phase": "SEPARATE_INSPECTION_NOT_ACTUAL_LEDGER",
+  "actualToolResult": "Exact requested route returned exit78; no phase output to tool channel",
+  "rootAuthority": "ROOT qualified adjudication accepted for actual attempt; independent reviewer terminal HOLD remains, not rewritten PASS",
+  "ownerStdout": "/private/tmp/coherent-b1-r5-owner.stdout",
+  "ownerStderr": "/private/tmp/coherent-b1-r5-owner.stderr",
+  "observations": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+      "bytes": 24620,
+      "mode": 420,
+      "inode": 189967124,
+      "dev": 16777232,
+      "mtimeMs": 1788019030731.3174,
+      "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9",
+      "status": "READONLY_OBSERVED",
+      "stableSizeModeInodeMtime": true,
+      "excerpt": "{\n  \"schema\": \"B1-final-admin-r5\",\n  \"repo\": \"/Users/kjopek/Workspace/safe-bash\",\n  \"maxKnownOS\": 36,\n  \"peak\": 3,\n  \"issuedUTC\": \"2026-08-29T15:57:10.730Z\",\n  \"latestStartUTC\": \"2026-08-29T16:17:10.730Z\",\n  \"expiresUTC\": \"2026-08-29T16:47:10.730Z\",\n  \"action\": \"ROOT_B1_PUBLIC15_ACTUAL\",\n  \"actualAuthority\": false,\n  \"sourceTree\": \"3adc676a0ab638c9788ef007e465931d65d2c6fe\",\n  \"sourceInputs\": 309,\n  \"package\": {\n    \"path\": \"tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz\",\n    \"bytes\": 930368,\n    \"sha256\": \"2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca\"\n  },\n  \"members\": 1014,\n  \"actualStageAEmissions\": 1012,\n  \"reviewBindings\": {\n    \"runtime\": \"53ad11083d9e33fbcd5782672fde0d5dcb24180a\",\n    \"publisher\": \"7c8fb0e336499142398ef9ebe7169e64b7cfedfa logical profile only\",\n    \"adminSource\": \"07e3249ae35e7ec4fc09816de9f587609b3d8210\",\n    \"adminControls\": \"d1006a259514c59b7cd74eacf540c23a3b731ea3\",\n    \"finalReview\": \"PENDING_R6; old r5 window RETIRED_UNUSED\"\n  },\n  \"adminRoot\": \"/private/tmp/coherent-b1-r5-admin\",\n  \"runtimeRoot\": \"/private/tmp/coherent-b1-r5-runtime\",\n  \"publicationRoot\": \"/private/tmp/coherent-b1-r5-publication\",\n  \"captureRoot\": \"/private/tmp/coherent-b1-r5-admin/capture\",\n  \"metadataHome\": \"/private/tmp/coherent-b1-r5-admin/metadata-home\",\n  \"adminOwner\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs\",\n    \"bytes\": 7874,\n    \"sha256\": \"3ae47a93c2ce7481b0b2973e38f804ee104847ca880ec1613d76b374f1a48bf6\"\n  },\n  \"ownerKernel\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs\",\n    \"bytes\": 7970,\n    \"sha256\": \"00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446\"\n  },\n  \"dispatch\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/admin-dispatch.mjs\",\n    \"bytes\": 2245,\n    \"sha256\": \"8d9604f846097351ece00394ef0777661a55b9ef9425e650827a2b0f5d2ff041\"\n  },\n  \"preimportEntry\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs\",\n    \"bytes\": 3624,\n    \"sha256\": \"7825c69b107d89664b169b7be9945b34ec90a8444e53c8f8f70e411fb9d6ef85\"\n  },\n  \"adminFiles\": [\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs\",\n      \"bytes\": 7874,\n      \"sha256\": \"3ae47a93c2ce7481b0b2973e38f804ee104847ca880ec1613d76b374f1a48bf6\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs\",\n      \"bytes\": 7970,\n      \"sha256\": \"00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/admin-dispatch.mjs\",\n      \"bytes\": 2245,\n      \"sha256\": \"8d9604f846097351ece00394ef0777661a55b9ef9425e650827a2b0f5d2ff041\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs\",\n      \"bytes\": 7144,\n      \"sha256\": \"09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/identity.mjs\",\n      \"bytes\": 3228,\n      \"sha256\": \"8e2bd3172834f0cb90e6f3473cbb25ff01a5a389e5c863f614580718f9af2769\"\n    }\n  ],\n  \"preimportFiles\": [\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs\",\n      \"bytes\": 3624,\n      \"sha256\": \"7825c69b107d89664b169b7be9945b34ec90a8444e53c8f8f70e411fb9d6ef85\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs\",\n      \"bytes\": 7144,\n      \"sha256\": \"09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/identity.mjs\",\n      \"bytes\": 3228,\n      \"sha256\": \"8e2bd3172834f0cb90e6f3473cbb25ff01a5a389e5c863f614580718f9af2769\"\n    }\n  ],\n  \"publisherFiles\": [\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs\",\n      \"bytes\": 14111,\n      \"sha256\": \"d6071cd81c646360830529a590140de11095ead643beecc60145691c59355eb8\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs\",\n      \"bytes\": 4556,\n      \"sha256\": \"0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs\",\n      \"bytes\": 7144,\n      \"sha256\": \"09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs\",\n      \"bytes\": 2495,\n      \"sha256\": \"fb7411f820f3dbb55621cb3e3421ce308c94dd832ce091b8c2a44c8d7b7bbd40\"\n    }\n  ],\n  \"runtimePreseal\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json\",\n    \"bytes\": 20784,\n    \"sha256\": \"576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5\"\n  },\n  \"publisherBinding\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-BINDING.json\",\n    \"bytes\": 4746,\n    \"sha256\": \"39f13f45b6bf663c7e2157f0f861f5a337fa628e399272a015955a459fbd6e14\"\n  },\n  \"publisherPreseal\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-PRESEAL.json\",\n    \"bytes\": 1461,\n    \"sha256\": \"2d6efeee6a235603a5fc9bff0a4dfa6279ba729cdcd32b66f200b9a9e6304445\"\n  },\n  \"runtimeInputFiles\": [\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64\",\n      \"bytes\": 1939657,\n      \"sha256\": \"18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs\",\n      \"bytes\": 1484,\n      \"sha256\": \"2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64\",\n      \"bytes\": 461669,\n      \"sha256\": \"8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json\",\n      \"bytes\": 47291,\n      \"sha256\": \"8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs\",\n      \"bytes\": 7095,\n      \"sha256\": \"e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json\",\n      \"bytes\": 172028,\n      \"sha256\": \"806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json\",\n      \"bytes\": 177394,\n      \"sha256\": \"8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/TOOLS-BEFORE.json\",\n      \"bytes\": 424701,\n      \"sha256\": \"4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b/PUBLIC-ENGINE-RECEIPT.json\",\n      \"bytes\": 76582,\n      \"sha256\": \"a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json\",\n      \"bytes\": 102475,\n      \"sha256\": \"806c9ee4706132fd169925aaa84b569764029f5c3af303c338f773e224bd03a4\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PROFILE.md\",\n      \"bytes\": 4641,\n      \"sha256\": \"863bb866d9ce95aaa72bdc6b49a12be9cd43cf686ba2e808b60059ed15c304c1\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/controls.mjs\",\n      \"bytes\": 1509,\n      \"sha256\": \"795f8f376a83452f1c6301e776706e43f71a850f2c3432a950368e58f665a8d6\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/denials.mjs\",\n      \"bytes\": 627,\n      \"sha256\": \"b2bfd8baaed8db8e7868510554d98d889ffe1d700d3395045fb601e23d75e52e\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/loader.mjs\",\n      \"bytes\": 1180,\n      \"sha256\": \"a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/outer.sh\",\n      \"bytes\": 466,\n      \"sha256\": \"c107d6e6fde336542f595ff84381ef1d7330c72b325a42181f6f569782a8a1f0\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/resources.mjs\",\n      \"bytes\": 1978,\n      \"sha256\": \"ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/runner.mjs\",\n      \"bytes\": 1507,\n      \"sha256\": \"91364ceea4c6b7534c77eae922a8d1632883c6a995b8f2dd77233fd37826503a\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/stageAProducerPreseal.json\",\n      \"bytes\": 47291,\n      \"sha256\": \"8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json\",\n      \"bytes\": 11952,\n      \"sha256\": \"78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PROFILE.md\",\n      \"bytes\": 3364,\n      \"sha256\": \"07607e2231b1f5d58bcf327a53a34780513fe8133b467fff0d3a593ac1661c03\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/bootstrap.mjs\",\n      \"bytes\": 1094,\n      \"sha256\": \"10d7d7356f54c449b76584c62781d24584031eaf42cc56fefbb4f42bb519995c\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/controls.mjs\",\n      \"bytes\": 8279,\n      \"sha256\": \"e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh\",\n      \"bytes\": 383,\n      \"sha256\": \"79517b807510970efe95e35a140ed4ff700ba41e4f2ffca7f4c8c614caf87c34\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs\",\n      \"bytes\": 8991,\n      \"sha256\": \"9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs\",\n      \"bytes\": 11225,\n      \"sha256\": \"318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/AUTHENTICATED-INPUTS.json\",\n      \"bytes\": 46356,\n      \"sha256\": \"a0b42a698ff33a77ea1f6ce7ae58d23dc3ee28e04f000d6cbc922201d0ccc60f\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/ORIGINALS.json\",\n      \"bytes\": 50159,\n      \"sha256\": \"6dcadb4d77e3b5a3980535adc24787d8486e2cafcfb0ca9570f9a8eacc541b78\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PROFILE.md\",\n      \"bytes\": 5634,\n      \"sha256\": \"f9726f1287af27a49de0091b65341fbc3013dffbff8b92ede70c27dc539faaf0\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/STAGED-IMPORT-ORIGINS.json\",\n      \"bytes\": 1345134,\n      \"sha256\": \"08eb0cebbf0c5e23a4b3e14b29a69b517917cc8dad4d0bb715947c38d6dac37c\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/admission.mjs\",\n      \"bytes\": 1244,\n      \"sha256\": \"cebccec076b1aeca7c7d45a91c0210e901317a1130b0a408d99a2e18aee2a2a2\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/bootstrap.mjs\",\n      \"bytes\": 1369,\n      \"sha256\": \"426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs\",\n      \"bytes\": 3920,\n      \"sha256\": \"81ded635c046b78d0d3a91bc99f4445c4139864152fcb2e907eabc1f9c406bf7\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/controls.mjs\",\n      \"bytes\": 7493,\n      \"sha256\": \"6a8999567b3c4c1a1ef87ea20764e987cdf75f971a59412b06172ff8a5159f6d\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh\",\n      \"bytes\": 395,\n      \"sha256\": \"1536452f59950c0686c21582cb3c26440e990ac12346d990fa41452e0f6b3dcd\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/origins.mjs\",\n      \"bytes\": 5931,\n      \"sha256\": \"7f9438019a614b79fae8e14001cdecaeef28a2bc6e02d89f97e54417e2f21dcb\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/prepare.mjs\",\n      \"bytes\": 6657,\n      \"sha256\": \"56a1b01f792e57b1f75e534a1b38c3b392b18a79ba9734d4dfa801c19870dc28\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs\",\n      \"bytes\": 12887,\n      \"sha256\": \"5f94ab64d58ebfa4c3ea7ff7dbdb16a8bafd8e8e37425c74615bc64583f2765a\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal.mjs\",\n      \"bytes\": 9876,\n      \"sha256\": \"c39a996c798c1b052f06414e1d7bdb13002d01f256106ef7e934750a110f087b\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json\",\n      \"bytes\": 4160,\n      \"sha256\": \"fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json\",\n      \"bytes\": 137864,\n      \"sha256\": \"ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20",
+      "excerptTruncated": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-owner.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "inode": 189999805,
+      "dev": 16777232,
+      "mtimeMs": 1788020234690.4692,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "READONLY_OBSERVED",
+      "stableSizeModeInodeMtime": true,
+      "excerpt": "",
+      "excerptTruncated": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-owner.stderr",
+      "bytes": 275,
+      "mode": 420,
+      "inode": 189999806,
+      "dev": 16777232,
+      "mtimeMs": 1788020234721.9648,
+      "sha256": "07553a464bec6aa0b457b7cdf487596063f36727acfe0afc88107a3024cad703",
+      "status": "READONLY_OBSERVED",
+      "stableSizeModeInodeMtime": true,
+      "excerpt": "{\"status\":\"STOP\",\"primaryPresent\":true,\"primaryType\":\"object\",\"message\":\"The expression evaluated to a falsy value:\\n\\n  assert(started >= Date.parse(packet.issuedUTC) && started <= Date.parse(packet.latestStartUTC) && started + 1800000 <= Date.parse(packet.expiresUTC))\\n\"}\n",
+      "excerptTruncated": false
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/START.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/ROOT-GRANT.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/PRIOR-LEDGER.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/PREIMPORT-ADMISSION.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/PUBLISH-AUTHORITY.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/FINAL.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/STOP.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-runtime/RESULT.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-runtime/STOP.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-runtime/capture/events.jsonl",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-publication/FINAL.json",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-publication/git-add.stdout",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stdout",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stderr",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stdout",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stderr",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr",
+      "status": "ABSENT_AT_INSPECTION",
+      "implication": "Not proof of zero activity or clean retirement"
+    }
+  ],
+  "existingJournals": [],
+  "inferencePolicy": "Absent journals do not establish zero calls/roles or cleanup. No signals, replay, publication-main invocation or prior artifact edits.",
+  "actualRoleCount": "UNKNOWN unless an existing journal records it",
+  "actualWorkerRetirement": "UNKNOWN unless an existing journal records it",
+  "inspectionOwner": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-56646",
+      "role": "administrative-owner",
+      "pid": 56646,
+      "startUTC": "2026-08-29T16:19:53.697Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [],
+    "attempts": [],
+    "knownStarts": 1,
+    "activeKnownPIDs": [],
+    "captureBytes": 0,
+    "metadataBytes": 474,
+    "elapsedMs": 57.760417000000004,
+    "poisoned": false
+  }
+}

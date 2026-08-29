@@ -1,0 +1,32 @@
+{
+  "schema": "bash-surface-root-grant-v1",
+  "decision": "PREPARATION_ONLY_NOT_GO",
+  "phase": "semantics",
+  "presealSha256": "BIND_FINAL_PRESEAL_SHA256_AFTER_REVIEW",
+  "root": "/private/tmp/safe-bash-surface-semantics-20260829-01",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "deadlineEpochMs": null,
+  "bounds": {
+    "root": "/private/tmp/safe-bash-surface-semantics-20260829-01",
+    "wallMs": 600000,
+    "allProcesses": 128,
+    "peakProcesses": 8,
+    "perCaseMs": 3000,
+    "cleanupMs": 2000,
+    "captureBytes": 67108864,
+    "perStreamBytes": 262144,
+    "workBytes": 134217728,
+    "subjects": 80,
+    "identities": 40,
+    "decision": "NO_GO"
+  },
+  "oracle": {
+    "path": null,
+    "sha256": null,
+    "qualifiedProfile": "GNU Bash 5.3 patch015",
+    "qualificationReceipt": null,
+    "rootAcceptance": null
+  },
+  "provider": null
+}

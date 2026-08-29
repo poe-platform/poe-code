@@ -1,0 +1,95 @@
+{
+  "schema": "surface-data-controls-v1",
+  "role": "DATA_ONLY_NO_NATIVE_PRODUCT_WORKER",
+  "count": 22,
+  "controls": [
+    {
+      "id": "literal40-preserved",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "binary-exact-positive",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "raw-stderr-prefix-not-normalized",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "nul-byte-difference",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "status-mismatch",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "fs-byte-mismatch",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "fs-mode-mismatch",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "fs-extra-file",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "host-rejection-not-status",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "missing-case",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "duplicate-case",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "reordered-case",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "changed-program-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "changed-env-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "unknown-retirement-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "duplicate-process-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "unreaped-process-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "capture-overflow-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "missing-provider-refused",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "no-semantic-local-fallback",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "all-original-inputs-null-expected",
+      "expected": "finite assertion satisfied; not native/product proof"
+    },
+    {
+      "id": "version-observation-no-qualification",
+      "expected": "finite assertion satisfied; not native/product proof"
+    }
+  ]
+}

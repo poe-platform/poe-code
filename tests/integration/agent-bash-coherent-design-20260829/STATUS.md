@@ -22,3 +22,17 @@ new reproduction or independent inspection by this design author.
 Only dependency/status documentation and the DATA helper's status label change.
 No selected source blob, fixture, shipping count, package API or old evidence is
 modified. Future repair bytes require a fresh composition identity and preseal.
+
+## Later author repair, independent acceptance pending
+
+Source7196bace8ea2c141d5ed1020fef5bf721c321ace is an N14 runtime-only successor,
+derivedbf079ada185a79aec864b068f3738ddc5520822e/full954 package
+3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49.
+Author versioned672/672 (636 retained+36 focused),6 type groups/24 negatives,
+7 loaded mutants/restores and2 binding refusals pass; earlier bootstrap/staging
+failures remain. Different Dirac follow-up is still required. See
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/HANDOFF.md.
+
+This does NOT replace this design's original9bb inputs/tree, accept Unit4's new
+source, or authorize a combined build. Node a6 and Unit3 acceptance remain scoped;
+coherent design/actual composition stays HOLD pending reviewed runtime selection.

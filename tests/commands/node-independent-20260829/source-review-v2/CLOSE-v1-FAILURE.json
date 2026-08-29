@@ -1,0 +1,13 @@
+{
+  "role": "METADATA_HELPER_FAILURE_NOT_PRODUCT",
+  "command": "node tests/commands/node-independent-20260829/source-review-v2/close-preparation.mjs",
+  "exitCode": 1,
+  "signal": null,
+  "error": "Error: invalid source inventory",
+  "location": "close-preparation.mjs:22:121",
+  "cause": "The helper's declared [a-z-]+ path domain incorrectly excludes the known immutable README.md entry. This is a helper schema bug, not a bad source name or changed source hash.",
+  "child": "Synchronous bounded Git metadata child had status0/no signal/no stderr and returned before parsing. No live child remains.",
+  "captureQualification": "Full outer error/stack returned in tool call c30390. The inner Git stdout was completely captured in memory but not durably serialized before this helper exception; do not claim an original persisted raw inventory. V2 will preserve its own raw bytes BEFORE parsing and is a fresh metadata replay, not an original-pass rescore.",
+  "dependentState": "No SOURCE-INVENTORY or SEAL written. Source DATA archive and prior18 checks unchanged. No product/compiler/Worker/guest execution.",
+  "correction": "Preserve v1 helper; version v2 uses the exact manifest pathname domain, owns complete metadata output before parsing, and keeps original failure separate."
+}

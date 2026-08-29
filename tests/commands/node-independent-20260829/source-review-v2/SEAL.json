@@ -1,0 +1,123 @@
+{
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "authorPreseal": "ee150ba1d2c9165118310d78de8d6453020b9271",
+  "role": "SOURCE_AND_DATA_ONLY",
+  "ordering": "UTF8 unsigned byte lexical pathname traversal; no C-quoted parsing",
+  "files": [
+    {
+      "path": "CLOSE-v1-FAILURE.json",
+      "bytes": 1290,
+      "sha256": "1c8ebc69abaec33a0335fc438116d1d121e1fec9bc1dbe2acb0ba915ecb8d8ed"
+    },
+    {
+      "path": "FINDINGS.json",
+      "bytes": 2873,
+      "sha256": "7ab89ffab7c1d7e0a076f15018bf62701cad8ff1503108ca3110c71e4b486309"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 7713,
+      "sha256": "9145ce412ea7bb42faa169cacdd22c577ec8c2360e3f2299171019e765666ddf"
+    },
+    {
+      "path": "INVENTORY-v2-CAPTURE.json",
+      "bytes": 1904,
+      "sha256": "c9d2fd23f07746727cb2ad762acd9e0cbda40b15b10bd82e1d209e8e48e6021f"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 2716,
+      "sha256": "3265a48c075d368675ead79ebf1052a4b471527c7e1bf95d5347ba8893926792"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 9022,
+      "sha256": "54f684c3c238009a045d155009efd1cb2cd16e02af6af3f60a1f97b157a0096b"
+    },
+    {
+      "path": "SOURCE-DATA.json.gz.base64",
+      "bytes": 177821,
+      "sha256": "734689ebb3f7a8fe42297cfc82d95b15decc1512766413a325331861a5654912"
+    },
+    {
+      "path": "SOURCE-INVENTORY.json",
+      "bytes": 2425,
+      "sha256": "8380636efaf21f072c7aedca81a69c222969196cb452dbd80f9b29f347e07991"
+    },
+    {
+      "path": "candidate-binding-preparation/BINDINGS.json",
+      "bytes": 52301,
+      "sha256": "76afd2cca5c318bc72c338e32a39ec434676db07757a71152f911cc845b7e269"
+    },
+    {
+      "path": "candidate-binding-preparation/DATA-RESULTS-v1.json",
+      "bytes": 2407,
+      "sha256": "e5427b6ff026c3d1f117e35d5532419b03ca7080cc2c05ca62163eb34dba5134"
+    },
+    {
+      "path": "candidate-binding-preparation/PRESEAL.md",
+      "bytes": 2544,
+      "sha256": "b5961b47a4a2a204868b8ddfb2f71e1fd7325ecbd3e381417423c6722c6c09ab"
+    },
+    {
+      "path": "candidate-binding-preparation/data-runner.mjs",
+      "bytes": 11360,
+      "sha256": "8c93f0cb461d26896c283e209d7cb345c608a556fdab6844e2b9c58de553cc60"
+    },
+    {
+      "path": "candidate-binding-preparation/raw-controls.mjs.data",
+      "bytes": 7070,
+      "sha256": "a220a9a77e615d94a884e4590a098015a1b7207527bdd8691d140805ce2939a4"
+    },
+    {
+      "path": "close-preparation-v2.mjs",
+      "bytes": 4776,
+      "sha256": "0983c0421356173846aab5cfba99b76c51172c33abe93e2bb50fd6ca1f7caed2"
+    },
+    {
+      "path": "close-preparation.mjs",
+      "bytes": 4205,
+      "sha256": "3b64502fd71f7cc32c55cdbf6c8af0d55398dd499105cacb1124d67ec6513aa3"
+    },
+    {
+      "path": "inspect.mjs",
+      "bytes": 4396,
+      "sha256": "ae8ac065ee4a7159faa34d0d5da889e77b8e1ab9364f19e6c4567d5f8243d992"
+    }
+  ],
+  "totals": {
+    "files": 16,
+    "bytes": 294823
+  },
+  "observedData": {
+    "checks": 18,
+    "passed": 18,
+    "freshInventoryBindings": 16,
+    "semanticFamiliesBound": 38,
+    "typeFamiliesBound": 8,
+    "loadFamiliesBound": 6,
+    "rawControlsPreparedNotRun": 12
+  },
+  "execution": {
+    "product": 0,
+    "workers": 0,
+    "guests": 0,
+    "compiler": 0,
+    "install": 0,
+    "network": 0,
+    "private": 0
+  },
+  "child": {
+    "role": "fresh v2 NUL tree metadata",
+    "status": 0,
+    "signal": null,
+    "stdoutBytes": 1320,
+    "stderrBytes": 0
+  },
+  "limitations": [
+    "No current candidate artifacts/load proof; full E/S variant executor still requires candidate-specific seal",
+    "Initial context-only tool display truncation not a test execution/capture; complete admitted source captured separately",
+    "V1 metadata helper failed and lacked a persisted inner raw inventory; v2 is a separate fresh replay",
+    "No mutable source inspection; no concurrent author result qualification"
+  ]
+}

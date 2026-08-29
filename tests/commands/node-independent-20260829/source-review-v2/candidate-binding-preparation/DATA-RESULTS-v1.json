@@ -1,0 +1,110 @@
+{
+  "role": "DATA_ONLY_NOT_PRODUCT",
+  "checks": [
+    {
+      "id": "D01-sealed-source-archive",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D02-all-source-blob-hashes",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D03-complete-module-manifest",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D04-original-semantic-inventory",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D05-original-type-inventory",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D06-original-load-inventory",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D07-twelve-disarmed-raw-controls",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D08-no-target-import-in-raw-data",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D09-unsupported-activation-role",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D10-own-data-null-prototype",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D11-accessor-rejection-without-read",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D12-missing-key",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D13-extra-key",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D14-own-undefined-presence",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D15-array-not-a-record",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D16-in-memory-hash-negative",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D17-all-source-anchors-exist",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "D18-no-ungranted-activation-bindings",
+      "pass": true,
+      "role": "DATA_ONLY"
+    }
+  ],
+  "counts": {
+    "semanticFamiliesBound": 38,
+    "typeFamiliesBound": 8,
+    "loadFamiliesBound": 6,
+    "preparedRawControls": 12,
+    "dataChecks": 18,
+    "product": 0,
+    "compiler": 0,
+    "workers": 0,
+    "guests": 0,
+    "childProcessesSpawnedByThisDispatcher": 0
+  },
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "archiveSha256": "b5b1c044eed4dd167197aac336a190f2b0f784bb05bea7f3097f4c7f2e8617ad",
+  "rawControlSha256": "a220a9a77e615d94a884e4590a098015a1b7207527bdd8691d140805ce2939a4"
+}

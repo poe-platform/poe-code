@@ -1,0 +1,22 @@
+[main 259373954] Preseal bounded administrative owner and harmless controls
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 7 files changed, 392 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs

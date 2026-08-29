@@ -1,0 +1,120 @@
+{
+  "schema": "B1-admin-owner-author-preseal-r1",
+  "authority": "Fresh 15-minute preparation ONLY; no B1 activation.",
+  "sources": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+      "bytes": 7970,
+      "sha256": "00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs",
+      "bytes": 6838,
+      "sha256": "bfc0764f1f833c3ad6e208c6784180338cbd36d0dd2a7588cef38a23224a8d9b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs",
+      "bytes": 3980,
+      "sha256": "cc0cc50823e7837505c00f67f3e0c5ba79bffb93330a7960de28dee0ea2ae30e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+      "bytes": 256,
+      "sha256": "3437aa925c8d0d88b00e63deca19a68126d6f786d413bca019ae6e7d6d280805"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh",
+      "bytes": 288,
+      "sha256": "69040b5f98307d933df92a9e84e0f4b19a877fcc8f8dca54fe0c9b359b0e7a4a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md",
+      "bytes": 4447,
+      "sha256": "9de8b19682416e14831722b040e7401baa82252d45a70593fea677c82d6f5677"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "inherited": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/preimport.mjs",
+      "bytes": 4751,
+      "sha256": "39aa97b2ba7b62ad87d109cb96602557d2a8951988101029a74ee00f0efdb2fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PRESEAL.json",
+      "bytes": 20804,
+      "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PUBLICATION-BINDING.json",
+      "bytes": 3872,
+      "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+    }
+  ],
+  "controls": {
+    "pure": 11,
+    "harmlessChildren": 2,
+    "identities": [
+      "C01-short",
+      "C02-zero",
+      "C03-second-open-dual",
+      "C04-falsy",
+      "C05-live-self",
+      "C06-tail",
+      "C07-clock",
+      "C08-postpublication-bytes",
+      "C09-failed-spawn",
+      "C10-unknown-tool",
+      "C11-ready",
+      "C11-exit7",
+      "C12-duplicate"
+    ]
+  },
+  "config": {
+    "raw": "/private/tmp/b1-admin-owner-r1-controls",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/private/tmp/b1-admin-owner-r1-controls",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "GIT_CONFIG_NOSYSTEM": "1"
+    },
+    "tools": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "path": "/usr/bin/git",
+        "bytes": 118928,
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      }
+    ],
+    "wallMs": 180000,
+    "reserveMs": 30000,
+    "cleanupMs": 2000,
+    "maxStarts": 16,
+    "peak": 3,
+    "captureLimit": 2097152,
+    "metadataLimit": 2097152,
+    "tailBytes": 65536
+  },
+  "qualifications": [
+    "Trusted file-based source preparation bootstrap. Own PID begins at coordinator construction; no claim about earlier instruction/edit tool PIDs.",
+    "No product imports, Workers, installs, compiler, network or native oracle.",
+    "Failed-spawn/FD/write faults are PURE injections, not native FD/failure proof.",
+    "Live-owner strict publication protocol HOLD; no automatic actual route."
+  ]
+}

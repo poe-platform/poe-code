@@ -1,0 +1,46 @@
+{
+  "deadline": "2026-08-29T14:01:19.681Z",
+  "grant": {
+    "minutes": 10,
+    "knownOS": 28,
+    "peak": 3,
+    "capture": 33554432,
+    "work": 134217728
+  },
+  "roles": [
+    {
+      "role": "instruction-only readers",
+      "count": 2
+    },
+    {
+      "role": "bootstrap and implementation apply_patch",
+      "count": 2
+    },
+    {
+      "role": "inspect owner + Git",
+      "count": 2
+    },
+    {
+      "role": "up to three bounded metadata readers",
+      "count": 3
+    },
+    {
+      "role": "preseal owner + syntax child + Git add/commit",
+      "count": 4
+    },
+    {
+      "role": "audit owner + single PURE helper",
+      "count": 2
+    },
+    {
+      "role": "publication owner + Git add/commit/status",
+      "count": 4
+    }
+  ],
+  "planned": 19,
+  "reserve": 9,
+  "peakPlanned": 2,
+  "product": 0,
+  "Workers": 0,
+  "native": 0
+}

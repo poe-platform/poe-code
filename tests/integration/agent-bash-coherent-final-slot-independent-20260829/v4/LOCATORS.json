@@ -1,0 +1,72 @@
+{
+  "author": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4",
+  "files": [
+    {
+      "name": "CONTROL-PRESEAL.json",
+      "bytes": 1214,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "CONTROLS.json",
+      "bytes": 674,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "FINAL-PACKET.json",
+      "bytes": 23330,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "FINAL-RECEIPT.json",
+      "bytes": 1577,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "HANDOFF.md",
+      "bytes": 5270,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "STATUS.json",
+      "bytes": 1034,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "capture",
+      "bytes": 192,
+      "regular": false,
+      "mode": 493
+    },
+    {
+      "name": "controls.mjs",
+      "bytes": 1940,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "identity.mjs",
+      "bytes": 1562,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "prepare.mjs",
+      "bytes": 8348,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "preseal.mjs",
+      "bytes": 879,
+      "regular": true,
+      "mode": 420
+    }
+  ],
+  "capture": "/tmp/b1-v4-slot-inspect-wEVIYG"
+}

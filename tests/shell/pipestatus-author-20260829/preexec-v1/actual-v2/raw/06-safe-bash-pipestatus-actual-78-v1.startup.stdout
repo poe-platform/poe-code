@@ -1,0 +1,18 @@
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/PRESEAL.md: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/admission.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/owner.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/outer.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/case-driver.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/prepare.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/controls.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch.sh: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/host-protocols.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/auth.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/profile.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/guard.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/finalization.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/direct-child.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/publish.mjs: OK
+/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/HANDOFF.md: OK
+{"qualified":true,"status":2,"receiptSha256":"812432df65247cd2f5311ddbd124531f21650a6a02388d0db4ded8522469ef6e"}

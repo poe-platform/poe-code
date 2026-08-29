@@ -1,1 +1,3948 @@
-{"status":"NOT_LAUNCHED","authorization":"ROOT_PIPESTATUS_20260829_ACTUAL_V2_AFTER_PREP_INT_FAILURE"}
+{
+  "status": "ASSERTION_FAILURES",
+  "authorization": "ROOT_PIPESTATUS_20260829_ACTUAL_V2_AFTER_PREP_INT_FAILURE",
+  "rootReceipt": "ebde485bdf3ccbb5d6494965365b8e47b02c8371",
+  "grant": {
+    "action": "execute-pipestatus-78-v1",
+    "sealSha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5",
+    "rootReceipt": "ebde485bdf3ccbb5d6494965365b8e47b02c8371",
+    "started": 1788021896555,
+    "deadline": 1788023696555,
+    "bytes": 224,
+    "sha256": "b1b9e0fdf72930a0a11d97cb033032e6fa8579f165bf31d44ccc5ba443bbc7f5"
+  },
+  "sealSha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5",
+  "sourceProjection": "74fec4d4e26d9c0b2d27613c15af7a88cb56f628",
+  "sourceInputs": 307,
+  "manualArtifact": {
+    "members": 1010,
+    "sha256": "6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5"
+  },
+  "layouts": {
+    "source-built": {
+      "pass": 25,
+      "fail": 1,
+      "ids": [
+        {
+          "id": "R01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R08",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R09",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R10",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R11",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R12",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R13",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R14",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R15",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R16",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R17",
+          "pass": false,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R18",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H08",
+          "pass": true,
+          "cleanupQualified": true
+        }
+      ]
+    },
+    "installed": {
+      "pass": 25,
+      "fail": 1,
+      "ids": [
+        {
+          "id": "R01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R08",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R09",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R10",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R11",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R12",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R13",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R14",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R15",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R16",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R17",
+          "pass": false,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R18",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H08",
+          "pass": true,
+          "cleanupQualified": true
+        }
+      ]
+    },
+    "physically-moved": {
+      "pass": 25,
+      "fail": 1,
+      "ids": [
+        {
+          "id": "R01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R08",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R09",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R10",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R11",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R12",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R13",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R14",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R15",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R16",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R17",
+          "pass": false,
+          "cleanupQualified": true
+        },
+        {
+          "id": "R18",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H01",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H02",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H03",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H04",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H05",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H06",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H07",
+          "pass": true,
+          "cleanupQualified": true
+        },
+        {
+          "id": "H08",
+          "pass": true,
+          "cleanupQualified": true
+        }
+      ]
+    }
+  },
+  "failures": [
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "source-built",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "installed",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "physically-moved",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    }
+  ],
+  "actualCells": 78,
+  "plannedPublicExecCalls": 81,
+  "plannedContextInvokes": 3,
+  "callCensusQualification": "The frozen fixture plan has81 exec/3 invoke; no new actual call counter is inferred from an early-failing fixture.",
+  "summary": {
+    "status": "ASSERTION_FAILURES",
+    "cases": 78,
+    "managedChildren": 79,
+    "retired": true,
+    "final": {
+      "primaryPresent": false,
+      "secondaryPresent": false,
+      "secondary": [],
+      "sampledWorkPresent": true,
+      "sampledWork": {
+        "bytes": 46763381,
+        "files": 2985
+      },
+      "publicationAttempted": true,
+      "publicationSucceeded": true
+    }
+  },
+  "retired": true,
+  "childQualifications": [
+    {
+      "id": "offline-install",
+      "pid": 67831,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R01",
+      "pid": 67878,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R02",
+      "pid": 67879,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R03",
+      "pid": 67887,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R04",
+      "pid": 67889,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R05",
+      "pid": 67890,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R06",
+      "pid": 67891,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R07",
+      "pid": 67894,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R08",
+      "pid": 67895,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R09",
+      "pid": 67899,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R10",
+      "pid": 67905,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R11",
+      "pid": 67907,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R12",
+      "pid": 67912,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R13",
+      "pid": 67914,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R14",
+      "pid": 67921,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R15",
+      "pid": 67927,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R16",
+      "pid": 67929,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R17",
+      "pid": 67934,
+      "status": 1,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-R18",
+      "pid": 67935,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H01",
+      "pid": 67940,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H02",
+      "pid": 67959,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H03",
+      "pid": 67961,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H04",
+      "pid": 67963,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H05",
+      "pid": 67969,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H06",
+      "pid": 67971,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H07",
+      "pid": 67979,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "source-built-H08",
+      "pid": 67984,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R01",
+      "pid": 67985,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R02",
+      "pid": 67991,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R03",
+      "pid": 67992,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R04",
+      "pid": 67993,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R05",
+      "pid": 68001,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R06",
+      "pid": 68003,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R07",
+      "pid": 68006,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R08",
+      "pid": 68007,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R09",
+      "pid": 68009,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R10",
+      "pid": 68011,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R11",
+      "pid": 68012,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R12",
+      "pid": 68020,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R13",
+      "pid": 68021,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R14",
+      "pid": 68024,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R15",
+      "pid": 68026,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R16",
+      "pid": 68027,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R17",
+      "pid": 68028,
+      "status": 1,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-R18",
+      "pid": 68036,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H01",
+      "pid": 68038,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H02",
+      "pid": 68039,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H03",
+      "pid": 68041,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H04",
+      "pid": 68043,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H05",
+      "pid": 68044,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H06",
+      "pid": 68045,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H07",
+      "pid": 68054,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "installed-H08",
+      "pid": 68081,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R01",
+      "pid": 68082,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R02",
+      "pid": 68084,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R03",
+      "pid": 68086,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R04",
+      "pid": 68087,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R05",
+      "pid": 68095,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R06",
+      "pid": 68096,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R07",
+      "pid": 68099,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R08",
+      "pid": 68142,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R09",
+      "pid": 68158,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R10",
+      "pid": 68165,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R11",
+      "pid": 68168,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R12",
+      "pid": 68175,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R13",
+      "pid": 68176,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R14",
+      "pid": 68178,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R15",
+      "pid": 68180,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R16",
+      "pid": 68181,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R17",
+      "pid": 68182,
+      "status": 1,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-R18",
+      "pid": 68190,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H01",
+      "pid": 68192,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H02",
+      "pid": 68194,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H03",
+      "pid": 68195,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H04",
+      "pid": 68196,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H05",
+      "pid": 68198,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H06",
+      "pid": 68199,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H07",
+      "pid": 68207,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    },
+    {
+      "id": "physically-moved-H08",
+      "pid": 68208,
+      "status": 0,
+      "qualified": true,
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "knownOutstanding": 0,
+      "forced": false
+    }
+  ],
+  "outerQualified": true,
+  "knownProcesses": {
+    "preparationAndLauncherAndOwnerImages": 10,
+    "innerChildren": 79,
+    "throughRuntime": 89,
+    "publicationShellAndNode": 2,
+    "remainingGitCalls": 2,
+    "prospectiveTotal": 93,
+    "peak": 3,
+    "qualification": "Conservative exec-image count; final returned Git calls recorded in outer publication capture, not universal native-thread census."
+  },
+  "workingProfile": "512MiB sampled/quiescent logical work only; no prewrite/native peak/RSS/disk quota claim",
+  "captureProfile": "Existing96MiB aggregate and per-child caps unchanged; raw files retained before metadata",
+  "rawInventory": [
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/RESULT.json",
+      "bytes": 182625,
+      "mode": 384,
+      "sha256": "ef1e874a177eef7d26f5d96d318963534b0e54eccba82c6b10330bd9e2dc2af5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/install.stderr",
+      "bytes": 208,
+      "mode": 384,
+      "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/install.stdout",
+      "bytes": 23,
+      "mode": 384,
+      "sha256": "84b3615a2b55669c4069410770606e7290261ae70a9db72789bff656c372ce48"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H01.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "23132eae4021b90cbc0e9bb48f3baa11a8721740c960f3c84d546f0fca1a7991"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H01.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "d6fd4fb3f086bd504c584c8035ee8345a28d92535dc113ae586f920be235f98e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H01.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "d19d942f3220ac616389baaec07324370c90062d954540c95d6b538c0699bf28"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H01.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "911854e521eb7186057f91efc7b6ae74347696f9962d2a568aa8c3b019e57912"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H02.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "c409c860543a69516b3ef560c4c9ea3f05b38321ac738aea3fcfc9f4903953bd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H02.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "3cc0d944de9dad1fbb948ad9eb3d2407379b0c2f260fc3b29da170d0379682a2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H02.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "83a5a08163f0399e71ac1d2af170930492b7ce4815200bb57370c70778387e91"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H02.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "453f171ffab4a1737e3c6c55ceab538ff0d16d86c695c7f1a4cb4c6d65c04b5a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H03.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "02147132a46e96ba9c6efba49aa811f10109a0ff339513f9e7d28eb06c83c56d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H03.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "a0d0080fc840f693cdb91fadbc78a7e3d72c124c01cadae2bcfdd396d739b40f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H03.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "d7695a653a679c3e0b11bd45eb7c7e7295a1a42c779ad08b2dd589e8442be880"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H03.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "0b0e300d5c4f6876e14d721dc2456f153217b99b54b800ef0016b6510cd88aea"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H04.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "1433a88daf7beedee8ba65da6a3310b5f2da6a55bc30ff26404cc021978ab278"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H04.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "f2195e2f24bfde7f6477372d8105475df4816922ce625dbe37761b83d19a6ee4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H04.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "7c8fd097657f149d749f7cb03d9b731a70352174f31083053471ac7bf15e244a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H04.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "a267b7a4b0e6779ff10f8f769b3ea201eb94d135d2b4756439af25996103b538"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H05.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "f69cffd366b34be930754d8a0912b0393cf3d85aea802f5275b15a4b8f5d2a8e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H05.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "48dffe03afcceda992a14ea311d1059ce0fa34a4594f1ab07405be6fecc09e33"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H05.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "8d12f9de642b2fdbf8c3795d368c641b0df926dbfcde77cdf42b97bb658f211c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H05.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "dd079d41cf1ccb11827d163efcf0ff36218b7513d5499041269d1742de950e54"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H06.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "219db309b6ccd3c80e79daaf3d3eb80ef62a77742e0863b24e5eb57a9670d16f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H06.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "eaeeeb940249afaee1d92840c5f4efb65899301f9e7f3e0680d688c37df96116"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H06.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "1ddd17b2091ef69aaeb87ff1be9194e9aa5aace341d6e9a04cf29577b52f1ef5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H06.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "bd3934593eefd18d0c2ce2be7e890b9e94af43440db001bcc3eeb2a428e5876e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H07.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "37eaf1d09cc87f9068bc13d9f06faf4dc747b9d872c801b82d0c8f6d04768643"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H07.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "6e2b090dbf678ab620dcd323e745c7fc22e703cd7bbcc849e427e1d289a19491"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H07.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "710e9f5395cfbd9042205412b30d1c851958605778651ce468b90eb2457e2c22"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H07.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "e0612d5895b976110d42d00506fb4ba87db52275179e9d942dc75aeda65b9b3b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H08.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "31c2cb64068523c47310bb651539c1e6b7807e36e4bef3d7f6c18cf6db62ba19"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H08.role.json",
+      "bytes": 259577,
+      "mode": 420,
+      "sha256": "87ce2ec58a13a5702962bfce1f6e530c31e4b5fc50f95e2b2a1c41c8858f2320"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H08.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "9a491f19a9175a12ac3c07a6e12b1cb5f5e84d8a105073920b7c642b2138d8b5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-H08.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "49d2a2582d58d975d55940f04423117eac857e66cbd2dbcbe0da4559ccccee70"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R01.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "37f290db9857c043c34529bbae94dfdcaa4088af3ceecf88ef8f36d8d7892f30"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R01.role.json",
+      "bytes": 259655,
+      "mode": 420,
+      "sha256": "862cb974bd7dff5d8ff230503f148619862e500ca767a780eade7ad24f2c32da"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R01.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "dfcecf5af8e20ec342362f6ee21b76ecb0887760298d564aa631988bf20cc270"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R01.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "e2d0e50740445cac0af891b5e95dc33f1b40009cb85a0348ca2ec2ddf3c5a795"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R02.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "cb8255f0b42aaae531efe70e60d81d075cd84f836a9810a53a3c6358db68ac27"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R02.role.json",
+      "bytes": 259663,
+      "mode": 420,
+      "sha256": "a7b2b9ca0553a58a9cb8d850a45220764be1ff73cb85b2ae0e45b2a7df3a6e45"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R02.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "79988c6f6f50910199d6ff5d5b72ad889e1f303b31efd1e4adf34e1e8ec54c70"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R02.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "a7a159060fceaef17fce1f2e80fc0891367da6f5174253a54773390811dab6c5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R03.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "0eac4773693803acdc2984027c816d0ac038e98ac863d39dfb9297bbfa48cd0b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R03.role.json",
+      "bytes": 259694,
+      "mode": 420,
+      "sha256": "909743fce8d1e775e9df96e10ce8000ea991b6f1e1f3185afd6a40439a9fd001"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R03.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "a24995c8947b9db69e934304aad89cd3bfb31345bb530691106e314ff13083b2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R03.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "1fde3c3d74583ee32956fc3037a48ca60d9fc46c11a1e499210f0c369d423e14"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R04.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "681fe1757b04f196d28bbe31ab2300d2431949cbc6dea0e6b5218d98ba1edf92"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R04.role.json",
+      "bytes": 259701,
+      "mode": 420,
+      "sha256": "e202538bd922d0a2ead9fb19e07ff35f59d61dd67680be834f269644f82103e8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R04.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "91291f8fe92cb98ba6c6ac92b8710d0e8812dd2cf99a4d0d87bda25cc334c8ca"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R04.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "0b74f5f21d0fceaafde51714700e7a41a6180fc570dcce3b305342ce158fa001"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R05.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "90d1f18c8b05557c150df7308bf589d03adce15fd0ace8c16c471a7c80dec53d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R05.role.json",
+      "bytes": 259686,
+      "mode": 420,
+      "sha256": "d522eeb427e7981cab9f652ca6b3a715d3e7e728ef505989535c5738dbd54dc8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R05.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "62ba2cb23d4515ec5a6dacd636015f290f0ab1348a0ee91feb17e293906eba58"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R05.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "2296e36c852fa028ab05a27901e366bf6930471f8176609d3a1f48d308025c51"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R06.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "8b7aa6600813a3fe463b1941efa7894c4be69d13d182d25a724cbdcdda35fd1d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R06.role.json",
+      "bytes": 259683,
+      "mode": 420,
+      "sha256": "812fc266eef0fb6c6600e9967e970fd0ca50d2ef260d66e340da266fc9af1a64"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R06.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "3f7ff02f41fc9ab2c95db267c5a53bcafe1c6ddda247a9c75d99d46ac43adb9b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R06.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "a18aa1233d8338177a8486857bbe3d15a8b3b4413d65ee049fd59919c9fe3f54"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R07.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "237a7757d26b19cdce3a324c9350a4c5f5287acd87fc3c54933b87bc6f10d39f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R07.role.json",
+      "bytes": 259677,
+      "mode": 420,
+      "sha256": "3ce79728d60c07545e0a4244a4b25e0153127498f149a8f906604a8d37428e0a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R07.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "232cb6314543db86db7d9bcef0e946158bf6e3bdabaf32715ca65055d165c253"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R07.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "a6dd0e9e5f81f47eb7f80f294453778dde203c247145b6eaeeb52c629d0db820"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R08.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "1c465954c4b33e14ac6a2038e3f5825a2f0e6833369dc138b06de411b7efe132"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R08.role.json",
+      "bytes": 259668,
+      "mode": 420,
+      "sha256": "9576c78d20a9424d8b1fdfe88344daa22dee06bfb1f41a5f32c35e0c5e575e10"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R08.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "9fdda97486ff0f68404654ff7cf0192edc7b4880c2ca29ffa973b19867b7aa30"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R08.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "012be7483b5bc65895aab26dc7f9507b0b395ebb5fdc12941776001071ac6dde"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R09.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "cf7e0a5a5bc556b3790ce7e21b405795ed3f2de6b89fd9c1abce4a7b056fd549"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R09.role.json",
+      "bytes": 259761,
+      "mode": 420,
+      "sha256": "6903da19163b1b58d73a2712c7663aee307aa3c821b5adb42e4989b6f238e4d1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R09.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R09.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "df33ad01740ad95ab6591fce9b1ec2312a942ec178ecb30784f7a347a5d55f21"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R09.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "d8af22331261dfb62b62618cfa85c74b73a5706949430f85968d17a41808649e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R10.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "ccbb64a447cd981574b447136a00aad72de9b86282360fbd7031197947f6f1fa"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R10.role.json",
+      "bytes": 259733,
+      "mode": 420,
+      "sha256": "eaaaac8ad2eeae0f72a0a56ac3f4907a04e95fd5d7b7dfed9a960d08e7df6f4f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R10.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R10.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "a67f1620ba2312f1277bf12e89ca9b4244aecb5cf1b8450cb92d0e54ed6088c5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R10.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "e99ef670a680df16a40da1f785f7adeb0c10ca31e2a56c3d81cf2ceb7f5dfe9b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R11.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "81809db22ac3036f7045648b7b91269d379db62cf0ac95a13b92135d467746ec"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R11.role.json",
+      "bytes": 259673,
+      "mode": 420,
+      "sha256": "fbaeff313dcb7475cd05535b10ea5725d50d8e64664fb2e11b619111237e9452"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R11.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R11.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "a908169012a7a1a2178978b761f2206ac302b7c233d8bbec02a47b6b6ac8cd7b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R11.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "2264c404341be8751f490206111a1e10762e97f2bf6161b61c76e3935e21c525"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R12.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "6a343726faa6974d0316ff14d43095c12f9b5dd19b0895898553de6250334813"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R12.role.json",
+      "bytes": 259681,
+      "mode": 420,
+      "sha256": "d6c62c8d3b7e217d1879ec0d822fac57f555aee64b2af93237f2b8aef1d5ba34"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R12.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R12.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "ae6686c36a9d31384a1cd7d7f56e878d8d5b203d92f5ddb70399d23b9b2bd501"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R12.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "77e0053de7ba07d8c2b56f486a61e1a6247e12873e19a8f29039e7c9ebd4fb1b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R13.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "5e3bf4cd85bc80402a2083c35f77dcc16310d7fd65af9b3423c5416fc15723c5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R13.role.json",
+      "bytes": 259758,
+      "mode": 420,
+      "sha256": "2538040d3fe87235ad4553eab07b4407dc7fc9bd9c7ac677ff49146965b11c2c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R13.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R13.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "80a6d0dd873d34070710a39ea6f027eab43498bb3305e6e2b1facf445a4be37c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R13.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "7158b33acfd85084359d7e03ad1179cab9b4273f5eefd9c3ab4314695638dff7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R14.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "dc0c97f122001d34a514889b1ddab941a1423f3f47bdb87066fd8c31f03fe629"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R14.role.json",
+      "bytes": 259747,
+      "mode": 420,
+      "sha256": "92b683e220eceedbcda17ce1fc159ad6e08729e1cb02d15d5557e3d637def794"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R14.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R14.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "5364258455a3fccc12b707b3161706e6c95c7cf3ec7af832172ed132c4cbac34"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R14.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "adde91905f6aaa959b5d39e2a6ed073cfdebd136cfb9c1a3c78673f879e1a825"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R15.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "27df27f24c19b6636df74286b7c2566ad254e0f9bf24bd2d4156dd370c11b03e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R15.role.json",
+      "bytes": 259678,
+      "mode": 420,
+      "sha256": "f6e2109eaa51df9741a4c450b4cb69690df058ac024d2b8b2eea298d1f740ade"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R15.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R15.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "635f748f70ca9a7d53fbdabb36fd74a4f89264c070a9ef9fbe146bf87ab3ff5b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R15.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "b213280c7cad4a63d5c45cfb2ca2848e8d6fa1fcb8bef733dcce65a38f6ecc0c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R16.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "95a72906df0de98e92b29de1efea1bed848d92bb681cf13bd819c3d2ec514229"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R16.role.json",
+      "bytes": 259768,
+      "mode": 420,
+      "sha256": "75d6758dd04bae114f05bab43d1d4ab2c94cdec82fed7a0aa53360613cef1829"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R16.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R16.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "70a90a9c8e04f97c2c2f7dfe11ea24f2dceffd5dd852e8ceffed68431f20d295"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R16.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "6f9d895c950c44e808d079b14482ebaf8ba9afd4f90b6ee3015ec7dfd6a83d55"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.json",
+      "bytes": 96608,
+      "mode": 384,
+      "sha256": "b85cb5160712bea6635d5a90940e9fe14382a56602b16158f37c5a8a76c38f9d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.role.json",
+      "bytes": 259772,
+      "mode": 420,
+      "sha256": "7bd33c18aa5a7c581011b8b82e6b8db536524e93f984f2fafbdff5f2a6b1b9fe"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.stdout",
+      "bytes": 402,
+      "mode": 384,
+      "sha256": "0d9e402eb2ff00121739fa0ce33e3ef69869920fd4d4885478d2e373c5dd033e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "e4fb2758d125aa6b6d263d8289ec88f22ed152d3966047adf65794bc17285c67"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R18.json",
+      "bytes": 96137,
+      "mode": 384,
+      "sha256": "995d5c11603ac642c95df2c8c09dc4578dea606baada8d9eb0e8a228d7cf7f75"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R18.role.json",
+      "bytes": 259677,
+      "mode": 420,
+      "sha256": "114999a01ca9aa5042b8731cf47078d39395e5e09dd46e69b1291bd29856acc9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R18.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R18.stdout",
+      "bytes": 218,
+      "mode": 384,
+      "sha256": "3a0a48897345003699f912a5053342930bc69f35a188aea9e066e8ce2cdefa0d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R18.trace",
+      "bytes": 80075,
+      "mode": 420,
+      "sha256": "a59444e90389d96bab431441b031249839a9351ba6fe5b1d91169979e2d4f6f7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H01.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "69b685c24577304f5bdf0c950de7c5306fdaa799522f6a602f8555dd95770f97"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H01.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "1cfb41a2525efcd43898f8ef38d57f95a738a9f902fc86ad0a9e3b02f63e4adc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H01.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "786e4dccdd0ba5167673ec60fea235ce2f15594a1558fc89a684c5e0021f79cb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H01.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "f1f09c01413828d78bea0400afb5e4d72dad1f287b9f1738b23efeac1007a301"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H02.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "78bfcf68ed31ff6ef9c2e206a4bb9d0c4919fbb9f0631c58b45395ffa283a84d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H02.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "00961ff4b4a43f9c91421099d2432b22a53ff190e0c7f1d38e4a9cc0598be06f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H02.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "a6c1616e8f5997d1be336e2e718ec5a63932e14e1a2f4c5965fa81202b72681e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H02.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "658f98d9221b0f1e4df2edfee25a52a73bac275121074780020fd18dc0ab37f9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H03.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "388252d9267bc565dcfa74fe526e89bed834775166e351c03dc6f82d4e95d5b5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H03.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "8d1928c593f5b11313537beb6e2160c01561e9501dc6d241cdb8b7a01d4a687a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H03.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "a9ad92c83e18770677bb7666f49eabfc197705078ae556c913c3e1ca7206b0e0"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H03.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "5d0bec815fe7de2a1e7a7fdfc54c377316253894b66266696610da07dc29b35f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H04.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "4f43ca3fc7a2a5e466088e087db4c66906a604ed5afd5aaecd38b172fc8794ed"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H04.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "44e6d53cb989c67bdf12d618fa69e9bebfa28c6c33dec255365795dbf0734f11"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H04.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "23824f9949a4a1179fd3e3d0ac323fbe7016d13a406b087d3351154e25faec80"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H04.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "1694784f4836c9fef14097e75e69a0a016daeff9b10d163a61bfd08e1d8ff6ed"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H05.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "5e1a0f4d8a937094e9cfd3259e095c3459df88798be74b5cd8dd4684d1ccc0d2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H05.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "e53db5a8ebd1f9735e3f453d423441e261ea5d6e34f450026d3e81b1c9fd003f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H05.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "8930049363a084e4fea640508bc1669116f099941ddacf9e23ed835f1abf0b53"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H05.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "d7188a0a3cf70a45f26d83fa1976b19063f6dd4bccc9c47b1499d15aff6b8b53"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H06.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "3ea1a5f735cd8200c97bfbf18d81a7a85db847f8e4ca0ca5b275c17de67aeeda"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H06.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "fe004fd908ccd16c9e8595782b19264d848813e70ed61607542c7ae8bfb27615"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H06.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "53bc3ffad53adeabead3a53382a83b3e213014f9c9ded96bcf759c22a8b1c198"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H06.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "43905362a9003fb0a28ce7f2a3a654df44ea24cab9b613895bfd708b05eee403"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H07.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "c14af55d56088449626f897d7cd9396fa080a926abe920b9ea181613cc82d9ee"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H07.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "bec50e0ccbf51fec30c5692a6afd15e4d187c4a3ae54e35b65a4a7e2460f717a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H07.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "5a39ecb160a1e0fa799ca97654626489550415cb1bb7ad0b05ab0b9104bc075c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H07.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "0d3647d2fcf208e83a27ce0b9d7e2c74ef31940daca140f3c9441cfed1320532"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H08.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "eac6a41b0bd6849c29535572896fa9a9bf7cf80ab8208f9f5ce4620d1a37bc45"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H08.role.json",
+      "bytes": 254503,
+      "mode": 420,
+      "sha256": "2fd0d8a40ec659a93377fb4f6bb66b8053f26541e51611d0307cb31f0796d390"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H08.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "d24bfa75a05ddaae009c05a3eb2a4e4c2f72fd6a269df21ffc08e6d06dd9a92d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-H08.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "2c66e247d4340fa2a4f3115ea33b2442c0ce8c6a96fab56b7cda40d3a77a2712"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R01.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "d40f5775b75495d908ed92b28de089b09092798c926902a70300bace576270bb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R01.role.json",
+      "bytes": 254581,
+      "mode": 420,
+      "sha256": "cc23528be7997909b554448e05d4337c33f43b824183c5159c74a02653ca5253"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R01.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "3c09d46e212b2ccc0241de76a3e284989fe300418fdfd42a715e420caeb21fbf"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R01.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "431ba20fe4927960ea38d38c00a7944a2b5483dcc9dc8ad31bca808472099e05"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R02.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "56fefa733f6cc541755c13d8610771aaa9d41e7c2125a10f0090f04a2156feb2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R02.role.json",
+      "bytes": 254589,
+      "mode": 420,
+      "sha256": "4e0fdeb50ed9975a1f5e0639165e0a30727995013b3e29fadcefb698dd570ee8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R02.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "16ab04c4b60d7f1b7517b1ee125afac7ea15a49c9f2400613a635459150d2fcd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R02.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "728ce81ae7fa4da89fd9ca17583440d9063ba1378b0c664c0f2c45814e4b46dd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R03.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "8075007c23e951bd3299d11ec3db987f0ce0708039d4485a417ebb970dd2d8f9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R03.role.json",
+      "bytes": 254620,
+      "mode": 420,
+      "sha256": "38b63f4c4d96ac644ca73e1aaa23b29c7ef15655ecfdba33ab2f9485ebf983a7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R03.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "4c2ee2b644146028530207184460c912d80afc2e53714008454b4f056bbe23d5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R03.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "84f012a3043d9ada73d939e47109e2c15f794274d7dcfc14d3cf7885d59cd8b2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R04.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "348563de5dd1e80f02f2f77636ae8436ea300a55640720e3fd05dd37a476c054"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R04.role.json",
+      "bytes": 254627,
+      "mode": 420,
+      "sha256": "10b6d14fca8605f11e25a235eb9b2fae0ad1a30a18d048d8d7384a100d5ce861"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R04.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "b9fece207f2ed355394de2fab34fef814f21f4d3374b0de2e97aa522fc378484"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R04.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "a644e0b3bdb0544bae6ae2f6766f39bc9b8df8045560e46ddf566c0928892d2c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R05.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "22efaf545e85408e0eaecc170ab01a8097b933bd716d4abc859350a63b157fd5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R05.role.json",
+      "bytes": 254612,
+      "mode": 420,
+      "sha256": "0804a4e5a30bc47f870daed5a1a6d7b6a1373dcc4b89d43d886b92b574b6e305"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R05.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "29191ed798e0140214f37b6de4a22b76570452be37ad10cee9f4d8190147e3cb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R05.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "5f783bb66ffb24bcb78d79292d499a03832eda6d4656a9b05454efae678891be"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R06.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "58575863cb405a005a775c57f667003902b4ebab0676f35a2415ddeb0e96c653"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R06.role.json",
+      "bytes": 254609,
+      "mode": 420,
+      "sha256": "4905ebcbafdc6328ae2432b6d8632003b6b101e2cd852f86260e7dc4bfe08421"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R06.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "89e539d37009c2ba71ab702b449069828a619311a9adaab8a26934d45871a2ac"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R06.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "4b7645aa617aeed99fe8db07e24a68e27c6f8fa944e6b241f67a51fa5e4116f9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R07.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "623a5892f191adf4f3208a4c26e32912ccad2bcdda7fd0ed9db01f06c6a717f5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R07.role.json",
+      "bytes": 254603,
+      "mode": 420,
+      "sha256": "e7503c9c7172aa33729788a8af32a323fc1dd9257aa4c40ba7b9e8b0a7fb1139"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R07.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "84f7e3e419b931c7fc5e95be33e964d072b8d52d89b473116d8f4f077aaba05d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R07.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "5702ce1a8189c64ae95303699508e98e9d81d8b2af1956570be6aa110126efcd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R08.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "bed2eea5792ef9097bf62ad4003b6b2039bb433c6a906c293f352f91369f74e1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R08.role.json",
+      "bytes": 254594,
+      "mode": 420,
+      "sha256": "73f35528c0b7dfee6a8333e2b3641babf01cdb0642f141cba593f9161c7dbc76"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R08.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "443dd4f8f8057381b509016443eb9147c18b45780095461aed5e52800b6a1fe7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R08.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "d6d6d92f750db65af00d843b7718a6c8d625537991500f61ff249d6dedf0ae02"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R09.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "e8377ec4f01f8d0039124a4f71e23a5054bca1ed779f69f0c150f989ccec97d9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R09.role.json",
+      "bytes": 254687,
+      "mode": 420,
+      "sha256": "2ada9277b572e2bde0ff3b97fe64b3edfbae9e67eff4e56117039655610240ce"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R09.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R09.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "e63b2e02742b1ecdd644fc518932acc4d748174a2b0116704df626da7e9b3f43"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R09.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "d8e80da6e4ddc6c78f09d75c554c612dce5e05aa4f861b36dbf6592fdcb41b01"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R10.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "7b928254d88c4e3abc35e134978958a7f67760eb191143a8991c910e539979e6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R10.role.json",
+      "bytes": 254659,
+      "mode": 420,
+      "sha256": "282d7837935bcfa75d198e2a0a9ec9bbbe15aad2b7de3484d45f9d95bc6e5c06"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R10.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R10.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "4a4b479cd70c4e3735b9502996f18947ba4d539c57a2cdf3e13904f0bff72f93"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R10.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "12b98284e69bb9220ab03985f0575980462e4aa69cc1ce05ac67aef5ad981586"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R11.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "2ea780ed69519ed864dec4f42a5950087272b6a11eb3814ed04786b99768b7e9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R11.role.json",
+      "bytes": 254599,
+      "mode": 420,
+      "sha256": "e3edf1b7b91b59c2edb21334a21c1f82826ae9d2e841bbb99e19da621b17ef31"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R11.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R11.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "d36077a766632867c9a3648cf1e6628437798d3aa01f6872bb31fb8c74d16221"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R11.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "45ffed1ab2d9bc16d939670f7efee5d955e61e41f9735ddb8d241b3691323278"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R12.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "1ff1adc312606787c4e7e7aac9b479b9098ecd7188a2d25602c42e48da8c11db"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R12.role.json",
+      "bytes": 254607,
+      "mode": 420,
+      "sha256": "e4bc7d7497530945e5b4cedee97cd0cf5e05da83ebccf6225be1e6792e445d7d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R12.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R12.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "5e4835f98fc42ed56784ffddcae1326899fe9ec9b50884acdbd717ac6bc93f21"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R12.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "854caa62f634712ccbdfc2892e444c6c9f0eb4ff8b174b80d71de44ffdc7a001"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R13.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "40be3073c32338a31deb552824428be5c44c042550865692b45cd4a93ceca136"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R13.role.json",
+      "bytes": 254684,
+      "mode": 420,
+      "sha256": "7c8f8837d48c3773640295b6a87480e71052737022f04b874f8785eb7d242b40"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R13.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R13.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "666ba037a841a2f04a72984ae07669517514c82c1048ee78fa6dbee25bd34bb7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R13.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "1e9f64b2e8976e6edb01b57fb9ed32b5c47d83d680cb0978f188cb71d46cb54b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R14.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "07c1204a430ca218d1dbbe788165c1ba6cbc9c9e3dd19f82f5f5b79be75626f7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R14.role.json",
+      "bytes": 254673,
+      "mode": 420,
+      "sha256": "c34ca8a8d5c5653c5a5a3940ca922a495fdf8e9820f96f634e972619396880bc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R14.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R14.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "88312174a5e1e90253901fd0c732409dc50bd6e29d6570973427724322ead090"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R14.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "6f0b6648a921df4fdb3745f31b76ae1ffc3753ef0cb98ddab45e0721de35ef57"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R15.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "e0ba1521e81b8d01e0c9ff18a3d5ca0fedc6f7c95db6c5ccf2f10f6441520868"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R15.role.json",
+      "bytes": 254604,
+      "mode": 420,
+      "sha256": "aae0871b5f315c69681924d60692b2d27ecf69f698eac29196906c8624eb7030"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R15.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R15.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "cccbfaec5357d0faa1fc87a70888ef964478734807baf249d65a0584bd00a2ef"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R15.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "0f981f41c4e1b653fcb89afc0a6b97b6cc3fc0dfe3cb52e220d17f22792050a3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R16.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "42dc79110a2cc15cf46e07ba686257bd1b72b34fe56850c57a6cc8481b68dd35"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R16.role.json",
+      "bytes": 254694,
+      "mode": 420,
+      "sha256": "2b6bf36a7aa778a68c5f62a055f877ea143e233206d6f3f3c26d198f1719bd8c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R16.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R16.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "05206c27eacdcdad9976e059ba536547d1afe072c8b2b9f3113dc74fab03292a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R16.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "c15be743b46147ae6dcf7ac4e44c7f7198b5dd124b55a5bf557d692982a907f1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.json",
+      "bytes": 97369,
+      "mode": 384,
+      "sha256": "1b85526b30cb3cb3d576cdfc59e710c71fb1a5babe4dbac3cab0fb288605f953"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.role.json",
+      "bytes": 254698,
+      "mode": 420,
+      "sha256": "c865b1c8df76df089c3701f1fcb4e88bfa699d9d48bc796b27e0ea1496202340"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.stdout",
+      "bytes": 409,
+      "mode": 384,
+      "sha256": "61246c1712ff2d110e0e26d4a3aacc0337419a2f35e12a20a472ad986802bd40"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "aabd643e2bf1e46bcdb85ed67eb7ed5101581dc115ae0c23ba506b069a829cef"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R18.json",
+      "bytes": 96894,
+      "mode": 384,
+      "sha256": "dc8bae45585ffaf64ad1d9b74042b49f7d0afb093ed83fdeb6477d60ac57e3e4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R18.role.json",
+      "bytes": 254603,
+      "mode": 420,
+      "sha256": "022fa800dee8ee44d4d34c95172186ad95b43eafc5ddc617d50aa837ca8e4cf3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R18.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R18.stdout",
+      "bytes": 225,
+      "mode": 384,
+      "sha256": "11ee15206cca73e32ccf17f10f4edbb70609c7458a1d624a177513db33522984"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R18.trace",
+      "bytes": 80824,
+      "mode": 420,
+      "sha256": "3a598cce463a738954c6c016a4e8416eb8cdc1ccc79988e04a6c4f1e9db74f65"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H01.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "0c4454a42d7a239cf2dd45a86f4ea545ba6b6b23b7317db57e23d793035068be"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H01.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "e8b720cbcbb0b94adce688cfba02184fe032dd6487d7fabb6fc0b6e80373bbed"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H01.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "feaaeb7a35f9a3fc72c968d35f151e47e8c31cb81e6636915a7d977ad8dfe341"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H01.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "41d178e6e82d83d818617e35b327bac0e364520ebab7d99c2d6cee1d37f21437"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H02.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "bee9fad038cedcaa23d399d465708cf8f39c29232ee420f4d2d8a23d5d511d2f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H02.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "3c7f87c1c140fde01694d6f30fa9106ecaffeaaffc88b47ff519fd59bbeddbd4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H02.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "e3ce97aa3b0b5535f7ea1486696f141e7cda262df8291b9e099642b1f43fab71"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H02.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "3581ac0d68d7cda44ccbae32aa6322a32988b4a784aa27ea6c94dd2f1fea1cf4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H03.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "3c00fa86a98cddc1cb3cc6d22634d42baf5921d061897bd88e77c90dfd3c40b8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H03.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "8e3b102d4ceecc50de88a36aedc33bd41c30e097b80c94c8a33cd173922b0c94"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H03.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "5b2f9257512551d2d1b49956c32ea53a30840787e381e5fbb3d120896286feb5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H03.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "eb14e96dd0341b81dfb8d4bcfea2c7645e66d612b97be5ae92430e1ef6102b19"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H04.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "58aacf6424cf739e1a68a32cb3e7f483d1bb0aabc6d798916636ccc51492e0be"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H04.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "663c5b1bbbe44c1b53bb1ab319375b835699606ada990358aa74dad93fdb4283"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H04.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "bb6fc29189834241e53a2b8b6f49680af9173a153a04a2ce7fe36d2851bdaa26"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H04.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "e05c1765ca47d1147d08fdcea31ce62dda26834ef3af920cfa4706b033050127"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H05.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "0b23257554097458694f44c1dc58d742fa4b7aaa206f6f6a1fe66bc9e77be7eb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H05.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "6d81f423424f81e3338ead24b2aea4434986f97651f397c30b0c4d815eb852f6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H05.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "c4d6fc6c1e170f08c8e0eaa720531cc064caea63363ce8a5265290d8f161cc31"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H05.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "b681ca8e70bb7324552da2082b03a01e0ad6906a14afdc8092900fa358125d00"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H06.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "360b84de604d7ce122a62b1a1b92e5376e9c4d28e74701391d1a818c185773a1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H06.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "5f80b33ad45321b6f26b480236d352cc3bba12066e82d74e0741a278560de49a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H06.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "8204459ec67e5f653da5d2746d23b716f3d9c0e0ab9cec330034281bca2e59c0"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H06.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "5a50bed80e6b1083a6127fe90cb61a7d61fd758570961784e9df38e416d8200c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H07.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "bbd9ce6da88e87f371e98942470c07bcb07a8a8fa17c175896a9e43b4bf40d83"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H07.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "1c399bccbf374996778118eb909d05a12dd8cb8a3c957f375a29bc065e7df5a1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H07.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "67e7782f855f682ca8ddf26e29c2e86fa8c87d3cbd78e34b46ba332244e6fc1d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H07.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "937acd90bd125a65b9f81408e69a5e241276bdda735e76f59ef72957c8362fd4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H08.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "928f50838a9c57a11135631d43cbb8fb8a35fd8048f0bfe5287f6b70e132e8a1"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H08.role.json",
+      "bytes": 240496,
+      "mode": 420,
+      "sha256": "d910447c1fd45664749df74fe1c04b7ef9d6eeab1a42c12c96ce58f04bae66db"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H08.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "d389b38dee8c991a76f123ddec54ce57b2b501f3c158ab4c288098760b6cea2b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-H08.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "67a6538cb194487f606f0f7cb91b66181b30226ad67ba4cf66522413bcab7ce8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R01.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "356755018cdd18966f166558df13c31c16e92f1c81ed404b68b0dc1c5661beab"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R01.role.json",
+      "bytes": 240574,
+      "mode": 420,
+      "sha256": "717b7089c260abcd65abe78879c9265e7243d4eaf68aacc656531e0c48a9b184"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R01.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R01.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "71de40ee98658aea131c3591d469c6ebf1e5c7d510b639ab710158fe7d256471"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R01.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "8e66fc7b8736024d363bb956956505371e84f8a266e8284cbf94b4543c208679"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R02.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "437da19244551dc798cef082389873d4120d22aaa7098c1f96715ba134838aa9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R02.role.json",
+      "bytes": 240582,
+      "mode": 420,
+      "sha256": "1c23ab2105c31242bd6dce635e3ca953528f8508af01bbecac246cf2e75238f2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R02.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R02.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "1e580cd2eeadcbcd2843fcb3b758b4ef6bdf8278a6b5e888649918be04c2f384"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R02.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "995fc6e261cafa10ea2bfc66e82c54da1626c239397793ef8ebc8af1089a22df"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R03.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "c1eefd4392753e068adc2fe2c6efe2bb73845d4695c2ab4b9b1b1c9cebcff03f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R03.role.json",
+      "bytes": 240613,
+      "mode": 420,
+      "sha256": "c352a9525cd281aad36c91a4e20dd547ee5b90d1ae3120a311256cd56cf0734e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R03.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R03.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "2d7502c5dfee82071f7ab28fb5b41c6603ff2f5b98464dff7d2182077857ab5d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R03.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "6a11d3bdc1956a7f4d394cc82d6f2553203614e5a703b734ae313adf00568def"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R04.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "77465e6b257d0b8a546e33640c06e7f0d0009b13b222dd476e1006846f5b07c5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R04.role.json",
+      "bytes": 240620,
+      "mode": 420,
+      "sha256": "055b039e38be1d48cff35785e4b81c1a2c244930d92bf8155d05a2485aec8128"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R04.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R04.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "5aa622ef2ac73328443dd07dba8c47a98b9f69c32c3951f7c81f132d71d8ac27"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R04.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "25a065f514409ca1e61b7eb5345ee638ea861ee3f2ffb5d535a00d03065df4b7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R05.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "6d4aac1fe039fb45ef833c8a804fa23d7bffee8bf951574afb664a374183d59d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R05.role.json",
+      "bytes": 240605,
+      "mode": 420,
+      "sha256": "0716ab0d553c57404fce6c98b30c6852361f0ecc222f4f7a669a5938115a8261"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R05.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R05.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "1c7634e6dd85505f67bace32446a5df1dd5856b27f853fecdb4638b235f191cb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R05.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "3acb64707d00c20901ad9a8861e55a798187fcf8ff6572bd3184bd76aebaf0cd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R06.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "7f71bcbe3a92dd93959c3f4e7181f74cf136ab9a5540c7991d6feb7908113301"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R06.role.json",
+      "bytes": 240602,
+      "mode": 420,
+      "sha256": "ca7bb1095c2f3b76e32a5ec67f87be01242fd73906bc9eb9e6f55b710f6fb61f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R06.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R06.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "af1bdb2f95758670e340737ea3622c8ab7d0f4c72fd77377b7e936f54adaa4e0"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R06.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "0ccdf65fb229c6880d0d662a5091c68fccee978e6fb381bc32c837c1f201411d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R07.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "346874e52a1ac6bd816b7f41881247e105e2f237867bb69bce40d3b7ecf4d148"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R07.role.json",
+      "bytes": 240596,
+      "mode": 420,
+      "sha256": "58c1083dd518ac6fcd7b64514cdbdd50b6eb5da5d039267772f23b4fc22dd4da"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R07.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R07.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "c839845bf26cb2c52ff0906c5c5239d5611bf6dfa3d866f2ba615372c0b9b562"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R07.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "e4fddebb921e88a56ed857e6e514ed77c70856c1d765799f592e386ce4f75482"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R08.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "ec0f3d74293f68c8987679d9409cba912234545966988b0e51fc626e9e6dfe9c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R08.role.json",
+      "bytes": 240587,
+      "mode": 420,
+      "sha256": "a656f4943736821cbc9539020b6f28466ac8550ad9e312f90bc2f84dddc9a845"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R08.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R08.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "be154494beba90df2c86ea6c4e8b2901e61e48e816071acb778a4fe190de7e79"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R08.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "47131ceebf056f5457a15ac68780e5068773524446ed8db1446f2d6bc00e7648"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R09.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "67e0393527218ed52451181d11a6272388fce9df8a33995ffb85971884315471"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R09.role.json",
+      "bytes": 240680,
+      "mode": 420,
+      "sha256": "9eb7de8776b00b3e1d93381ef8a4175900431eaa8276197e182ce4851c184a6b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R09.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R09.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "d6b0659137cf49892684907182cc20758e006167789dee45b765d010e50a19ab"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R09.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "3894fd6ae6b857cbdda95c2d462f249620cacee521cdfe90c7d9dfc8d648d9ac"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R10.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "c83eda59d14123eb7d3693ba1767c5fe8c3e77ee8ae79e07c4b48bd4648ac2c0"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R10.role.json",
+      "bytes": 240652,
+      "mode": 420,
+      "sha256": "8109496d43534ecdba6c3c7d1946ab7410a9c4fe692537828d0efea0e91a64b4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R10.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R10.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "60bbc0b2da303b91b442f97f2cccfcfecf755ca9f33c90dbe371a6a6d6a4a8f2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R10.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "cadf76bd063d86ffe882627458f315316768d9f071df02b44339f3956ac9f816"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R11.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "dd2f1c695a652d2f41fd4e08c6837be448335f998ffd7038d110e398fa2df72c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R11.role.json",
+      "bytes": 240592,
+      "mode": 420,
+      "sha256": "fc62a2559ce40b76b3c1d3c942e5020fae592bc95da1bf5f45e4fb2ea2602afa"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R11.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R11.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "1b211e50851b7110a120c4d44918a5a2ab5e139a979c039e9e439a5da402506b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R11.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "42b6d8674b8ef0c562db1450a4fbee618f624f7ef9d6d4186688866965d7c811"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R12.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "e9835b75ea6e49fc85dff76bb07ba2ceae3d20a18e5a65fe6c87de5a0bc1f04d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R12.role.json",
+      "bytes": 240600,
+      "mode": 420,
+      "sha256": "3e98c3a1d7295d1da7f9e8f9495af62c124da5b7ba91e982dd5c2094e75e0378"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R12.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R12.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "776369f93593815b092a9da6b889de948193d3f274cad33beada175b68fa73e9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R12.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "2ef87e6720235ec30e8b0eb7bec0372f06ac508f90bc78790ceca82c028dcefd"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R13.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "2615273209f0d5f987384b409ba71a6609c11254b8da6a86a0164004892ac590"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R13.role.json",
+      "bytes": 240677,
+      "mode": 420,
+      "sha256": "4a8e7fe2edcd4595347b13bee1fbb3a5e65235022513b7793139f79adca2df10"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R13.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R13.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "c7a868f53089bb9415ae479f4e8526156301b2f12a15d1301b3d4938521ac426"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R13.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "41bb5ce4540fb79f2985e884d05198ccfba28edb03acf490f9ac2935ba4b630d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R14.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "0aadf241363eec977390fdfec71a62ad2f175a76275134081b31888288df03bb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R14.role.json",
+      "bytes": 240666,
+      "mode": 420,
+      "sha256": "ca05c1838be62b103af8d0d62770420409cbee41297bc5bf3e449a4f04b40d39"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R14.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R14.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "f93ad2337154bd260a9fc945bd5c15e9f4fd4a5d807fd956014a0604601293bc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R14.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "93cd6ac64fc68172c6fa62d44b6f25eac883da59e95fa29cea8760422c16f425"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R15.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "9b157ab9ef226be64922f9819363e0d283e3f09bd8da4730133c1c9a4990e72d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R15.role.json",
+      "bytes": 240597,
+      "mode": 420,
+      "sha256": "4b0f612b8465e3338f9d07feb799b8069739f69d5180434f9a9d6437fdd6abb8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R15.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R15.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "f74da291a09f9faa812a6363575a320f04d37a8dfdaddd9007eddba654dfaadf"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R15.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "ca272028b1566f77536025a588505cd3f92dae111cb8b1680b0ba05dc6aac6e3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R16.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "54018aaac51764c518d610dc08d788379990691f6825e19ca41e2f343da0a5e4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R16.role.json",
+      "bytes": 240687,
+      "mode": 420,
+      "sha256": "d0c895a15d93315cca4d81778d2d39e691677ac871e4ae57859595d8e23cac04"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R16.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R16.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "e1baa13a0fb2d4764bc9ea161af321bc2fe7b814b02641e930dc157e61c16d5f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R16.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "8d00fb51a91c1c3ec775a8c55ab9acd7bf2af4c04f7b19835a22ce874bc1ad62"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.json",
+      "bytes": 93714,
+      "mode": 384,
+      "sha256": "8ab8a6d6f6c238a9fff1ecac3b58615c26d6976431ca06b4bb0abf28f3cce934"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.role.json",
+      "bytes": 240691,
+      "mode": 420,
+      "sha256": "574d6abf5c09efba7bd53a18226472faa5879d37647b028bb11cfb1c3af90c3d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.stdout",
+      "bytes": 405,
+      "mode": 384,
+      "sha256": "17d062dd659940c142332f3b390ac18e5c65587502314a47c6f01602934ca094"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "25a43e0ce6bfed498c58ab76d687f3d9c042974fc34a89a90e7f38ed657507ab"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R18.json",
+      "bytes": 93243,
+      "mode": 384,
+      "sha256": "dbb27f916422351358920cef35853ce9fc6fab4289cfa4b2c7df27585bfd4f5d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R18.role.json",
+      "bytes": 240596,
+      "mode": 420,
+      "sha256": "0f48004edc812a6a149a7985d2e659a47e14631751fc0a207f329b1f9697a28f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R18.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R18.stdout",
+      "bytes": 221,
+      "mode": 384,
+      "sha256": "ef99d365019db9da829123cccc6c589572faf2f52f752c6409116dd27fee7092"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R18.trace",
+      "bytes": 77177,
+      "mode": 420,
+      "sha256": "c10e583d25abedc55abf277ada2130bba80d937b19c911fe56d195e1a3c3e793"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/OUTER.json",
+      "bytes": 1395,
+      "mode": 420,
+      "sha256": "812432df65247cd2f5311ddbd124531f21650a6a02388d0db4ded8522469ef6e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/owner.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/owner.stdout",
+      "bytes": 280,
+      "mode": 384,
+      "sha256": "36753a135241edaab0c5b7f3bb4853ba0e56751a30a3f5c5560fbace78f816aa"
+    }
+  ],
+  "copiedRaw": [
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/PREPARATION.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/01-PREPARATION.stdout",
+      "bytes": 690,
+      "mode": 420,
+      "sha256": "64d5db89100579d99138562c5740b90821c10239fbf3ea04bbc418fc90c049b2"
+    },
+    {
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/PREPARATION.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/02-PREPARATION.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-v2-preparation.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/03-safe-bash-pipestatus-actual-v2-preparation.stdout",
+      "bytes": 666,
+      "mode": 420,
+      "sha256": "712c128fd6c9ed924c7867e822cd7bacd505c2f70686d34df4a606e81c1938e2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-v2-preparation.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/04-safe-bash-pipestatus-actual-v2-preparation.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-v2-authorization-commit.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/05-safe-bash-pipestatus-actual-v2-authorization-commit.stdout",
+      "bytes": 450,
+      "mode": 420,
+      "sha256": "f6580028ca22186c3b3c087600b507fa18c60d1f348f15215907a5c266012703"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/06-safe-bash-pipestatus-actual-78-v1.startup.stdout",
+      "bytes": 1855,
+      "mode": 420,
+      "sha256": "503ec761eacb30361e6abe5af39d16618f8dd49f5859f196b157fc9dbf65a955"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/07-safe-bash-pipestatus-actual-78-v1.startup.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/owner.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/08-owner.stdout",
+      "bytes": 280,
+      "mode": 420,
+      "sha256": "36753a135241edaab0c5b7f3bb4853ba0e56751a30a3f5c5560fbace78f816aa"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/owner.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/09-owner.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer/OUTER.json",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/10-OUTER.json",
+      "bytes": 1395,
+      "mode": 420,
+      "sha256": "812432df65247cd2f5311ddbd124531f21650a6a02388d0db4ded8522469ef6e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/RESULT.json",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/raw/11-RESULT.json",
+      "bytes": 182625,
+      "mode": 420,
+      "sha256": "ef1e874a177eef7d26f5d96d318963534b0e54eccba82c6b10330bd9e2dc2af5"
+    }
+  ],
+  "copiedBytes": 187961,
+  "sourceOnly": [
+    "H01 private postreject",
+    "H07 internal pre-errexit"
+  ],
+  "noRetry": true,
+  "scope": "One frozen PIPESTATUS attempt; original v1 prep failure and all historical qualifications remain; no broader feature/native/wholeHEAD claim",
+  "publicationStarted": "2026-08-29T16:47:21.001Z",
+  "deadline": "2026-08-29T17:14:56.555Z"
+}

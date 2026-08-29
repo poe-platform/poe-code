@@ -1,0 +1,75 @@
+{
+  "at": "2026-08-29T15:17:54.903Z",
+  "started": "2026-08-29T15:11:13Z",
+  "publicationDeadline": "2026-08-29T15:26:13.000Z",
+  "authorCommit": "47a2311e592666b9851e734120570e0ba9be6561",
+  "stopSha256": "cb024e8206bac5a540fff7bd03a1f30e1e6b3fa79ca5cda3c8bfbc87e32c82cb",
+  "findingsSha256": "5945a1ade2d22f1200dce49613b3d84d03db5487badcf7f0651343a87bc80885",
+  "authenticatedFiles": 375,
+  "authenticatedBytes": 24291650,
+  "primaryPass": 51,
+  "primaryFail": 3,
+  "completeLegacyPairsEqual": 24,
+  "mutantsDetected": 3,
+  "mutantCalls": 5,
+  "bindingRefusals": 2,
+  "buildExitZero": 1,
+  "typecheckExitZero": 3,
+  "strictCommandQualification": "Build/typecheck lifecycle receipts retain no executable/argv; exact proof commands and strict flags are NOT independently authenticated by this manifest",
+  "knownClosed": 71,
+  "controls": {
+    "pass": 6,
+    "fail": 0
+  },
+  "helperInvocations": 2,
+  "actualProduct": false,
+  "archiveInflated": false,
+  "archiveRepacked": false,
+  "verdict": "FINITE DATA ACCEPT; CAMPAIGN PUBLICATION HOLD; strict proof argv absent from retained lifecycle data",
+  "sourceFixTransfer": false,
+  "filesBeforeReceiptAndPublication": [
+    {
+      "name": "AUTHENTICATED.json",
+      "bytes": 69599,
+      "sha256": "8d59156847168163046bac3b3faf7ae955c63cafe42dd1d135ce9cb3879b8091"
+    },
+    {
+      "name": "AUTHOR-INPUTS.json",
+      "bytes": 177253,
+      "sha256": "4757e4c188f2d802365549cfbd4059f776f77966e554638187713dd6914a79ea"
+    },
+    {
+      "name": "DIRECT-CAPTURE.log",
+      "bytes": 116866,
+      "sha256": "2f40a6123c65af51b82719ef9acb728434ad748507aef2ac4dc0e94a4b6c2421"
+    },
+    {
+      "name": "EVIDENCE-DIFF.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "FINDINGS.json",
+      "bytes": 104953,
+      "sha256": "5945a1ade2d22f1200dce49613b3d84d03db5487badcf7f0651343a87bc80885"
+    },
+    {
+      "name": "audit.mjs",
+      "bytes": 5215,
+      "sha256": "8aa9dd0c91bd573634c4769ac559c510a0e23f650536ecc0b71e52fb2cfbe309"
+    },
+    {
+      "name": "locate.mjs",
+      "bytes": 1795,
+      "sha256": "eef2a97a0aeacc9db33ad6a698e27b4b97da51e1811fcfd94e9e155dfd1dd40c"
+    },
+    {
+      "name": "verify.mjs",
+      "bytes": 20435,
+      "sha256": "6d56d7903221d47d529ebeecd4582138bc44957d7488544e6d548f6c9b6e8a31"
+    }
+  ],
+  "logicalBytesBeforeReceiptAndPublication": 496116,
+  "publicationReserveBytes": 1048576,
+  "priorFailuresPreserved": true
+}

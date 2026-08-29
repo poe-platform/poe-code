@@ -1,0 +1,11 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/source-review-v1/admit.mjs:22
+for(let index=0;index<rows.length;index++){const record=/^([a-f0-9]{40}) blob (\d+)$/.exec(metadata[index]);if(!record)throw new Error(`explicit input unavailable: ${rows[index].ref}`);Object.assign(rows[index],{blob:record[1],size:Number(record[2])});total+=Number(record[2]);if(Number(record[2])>1048576||total>4194304)throw new Error('source size cap');}
+                                                                                                                             ^
+
+Error: explicit input unavailable: 02782056c436c9f2a8319f73a9eb8e2b4b5aebd5:src/commands/regex-execution/ere/transport/worker.ts
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/source-review-v1/admit.mjs:22:126
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

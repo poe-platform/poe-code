@@ -1,0 +1,19 @@
+diff --git a/220d6c28a6e50f459a48aaee2030f24a841f4ab7 b/08e332c471d01fe5eabfb3403f885e6090a43e9a
+index 220d6c28a..08e332c47 100644
+--- a/220d6c28a6e50f459a48aaee2030f24a841f4ab7
++++ b/08e332c471d01fe5eabfb3403f885e6090a43e9a
+@@ -168,13 +168,13 @@ export class Shell implements PluginHost {
+     const owner = new RootInvocationCancellationOwner(scope);
+     const boundary = createRootCancellationLink({
+       admission: Runtime.rootCancellationAdmission(budget),
+       callerSignal: options.signal,
+       controls: [{ role: "budget-control", signal: budget.controller.signal }],
+     });
+-    try { owner.activate(boundary); }
++    try { Runtime.registerEreRoot(budget, scope); owner.activate(boundary); }
+     catch (error) {
+       scope.failures.push(...boundary.close().failures);
+       await scope.close();
+       cancellationState.close();
+       throw error;
+     }

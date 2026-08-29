@@ -1,0 +1,5 @@
+{"at":1787994997242,"event":"capture-open","pid":56941}
+{"at":1787994997304,"event":"enrolled","pid":56944,"args":["runner.mjs","run","ACTUAL-01"]}
+{"at":1787995002829,"event":"exit","code":1,"signal":null}
+{"at":1787995002829,"event":"close","code":1,"signal":null}
+{"at":1787995002829,"event":"capture-closure","childClosed":true}

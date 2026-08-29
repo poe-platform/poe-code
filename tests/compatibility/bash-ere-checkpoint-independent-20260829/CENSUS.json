@@ -1,0 +1,27 @@
+{
+  "preparation": {
+    "conservativeKnownRoleSlots": 28,
+    "cap": 32,
+    "qualified": "Direct tools/Git/syntax children plus shell/patch interpreter role allowances; not exact transitive OS census."
+  },
+  "actual": {
+    "runtimeKnownRoles": 24,
+    "directExecutionChildren": 22,
+    "outerAndCoordinator": 2,
+    "peakRoles": 3,
+    "loaderThreads": 0,
+    "workers": 0,
+    "knownPostDataHelpers": 2,
+    "publicationEditRoleAllowance": 3,
+    "publicationOwnerAndGitRoles": 7,
+    "conservativeTotalWithPublication": 36,
+    "cap": 80,
+    "allObservedDirectNatural": true,
+    "elapsedRuntimeMs": 5472,
+    "rawChildCaptureBytes": 64124,
+    "workBytes": 26184940
+  },
+  "retainedWork": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work",
+  "publicationCapture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/ere-r02-independent-publication-5lVvdx",
+  "verdict": "HOLD; N01 fails three layouts; no retries or product edits; R01/native untouched"
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "FUNCTIONAL_V2_EVIDENCE_MANIFEST",
+  "sourceCommit": "45dd71f18882900070c5a925a5c01e0a6045aa5b",
+  "sourceSealSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "controlResultSha256": "87ba1827810f02557c6afbacb1ea1f6e6e3d9203a4dc603bcc3dca31012409be",
+  "newFamilies": 14,
+  "newFamilyPasses": 14,
+  "retainedDataControls": 3,
+  "retainedPasses": 3,
+  "attempts": 1,
+  "files": [
+    {
+      "path": "ADMIN.ndjson",
+      "bytes": 23392,
+      "mode": 384,
+      "sha256": "1106188d75781217f51025e3c532d848e1de6791dc6a4e26f6e93b7bdefaa2c4"
+    },
+    {
+      "path": "CONTROL-RESULT.json",
+      "bytes": 1991,
+      "mode": 384,
+      "sha256": "87ba1827810f02557c6afbacb1ea1f6e6e3d9203a4dc603bcc3dca31012409be"
+    },
+    {
+      "path": "FIXTURE-ARCHIVE-MANIFEST.json",
+      "bytes": 183977,
+      "mode": 384,
+      "sha256": "fbe885e66f18eb692837e5d189078af5c30f2993fe3cc84e882276a107bc2ff1"
+    },
+    {
+      "path": "LIFECYCLE.json",
+      "bytes": 1323,
+      "mode": 384,
+      "sha256": "0739955fb329455b96e0c5f29ab8fd4579f93272a54f64b96bce0ed007a4b8b0"
+    },
+    {
+      "path": "POSTGUARDS.json",
+      "bytes": 25711,
+      "mode": 384,
+      "sha256": "d03b5115c71d67ffa1603a2a0d00c55d42f1691938bf574903115298222bf9a9"
+    },
+    {
+      "path": "PREPARATION-ERRORS.json",
+      "bytes": 749,
+      "mode": 384,
+      "sha256": "760f081d14535d482dddd8950848650cb4cc34adf3a066909dd3f41732ad6e68"
+    },
+    {
+      "path": "PREPARATION-LOSS.json",
+      "bytes": 320,
+      "mode": 384,
+      "sha256": "750c0f06c3400bc19ff72377d806fc9a56c1dc9138bd98dffa678711468dc3a2"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 5175,
+      "mode": 420,
+      "sha256": "ab61d4b18f4b576954f18355f24c95ded69c1c8a076377cdcfcdebbd0bb50a3d"
+    },
+    {
+      "path": "SOURCE-DELTAS.json",
+      "bytes": 13003,
+      "mode": 384,
+      "sha256": "581999cda06262196a62d610fb4f2080d6993dbb92dc636f9dde70450c2aa49e"
+    },
+    {
+      "path": "SYNTHETIC-FIXTURES.jsonl.gz",
+      "bytes": 28231925,
+      "mode": 384,
+      "sha256": "0af03206d00961cbcffce689002c20a9df37dc3103ff74b060e13b59ba47dff6"
+    }
+  ],
+  "prepublicationProcessRows": 11,
+  "allJournaledClosed": true,
+  "actualEngines": 0,
+  "realWorkers": 0,
+  "C11": 0,
+  "actualPrograms": 0,
+  "readiness": "DIFFERENT_PREEXECUTION_REVIEW_REQUIRED; REAL_READINESS_UNPROVED; NO_ACTIVE_AUTH",
+  "finalEvidenceCommit": "The commit publishing this manifest is captured by the caller tool after closure; not self-hashed into its own artifact.",
+  "oldFailuresUnchanged": true
+}

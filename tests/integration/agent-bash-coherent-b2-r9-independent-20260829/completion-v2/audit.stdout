@@ -1,0 +1,63 @@
+{
+  "verdict": "FINITE DATA HOLD",
+  "checks": [
+    {
+      "id": "root-grant-source-review-and-window",
+      "pass": true
+    },
+    {
+      "id": "author-summary-and-retirement",
+      "pass": true
+    },
+    {
+      "id": "all-child-raw-bytes-and-finite-outcomes",
+      "pass": true
+    },
+    {
+      "id": "three-layout-byte-mode-postguards",
+      "pass": true
+    },
+    {
+      "id": "loader-traces-bindings-and-prepared-hashes",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n35 !== 34\n"
+    },
+    {
+      "id": "raw-lifecycle-events-present-and-closed",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: raw lifecycle file not located in exact children directory; no ancestor inference"
+    },
+    {
+      "id": "identity-receipts-disjoint-authenticated-payload-links",
+      "pass": true
+    },
+    {
+      "id": "cache-and-preserved-reader-error",
+      "pass": true
+    }
+  ],
+  "controls": [
+    {
+      "id": "byte-tamper",
+      "rejected": true
+    },
+    {
+      "id": "pass-bit-tamper",
+      "rejected": true
+    },
+    {
+      "id": "diagnostic-message-tamper",
+      "rejected": true
+    },
+    {
+      "id": "installed-mode-escalation",
+      "rejected": true
+    }
+  ],
+  "gaps": [
+    "Exact mutant defect expectations and per-mutant changed/restored path-hash pairing require further independent binding interpretation; author accepted classifications alone do not discharge this.",
+    "Packet 7320-byte content, pinned installer origin/umask derivation, and unused-binding refusal source expectations are bound by author receipts but not independently reinterpreted here."
+  ],
+  "receiptSha256": "fcb769117c9d06335d0da8e49fb4a401e4910145eca510e2f1b015c6b4edffe4",
+  "receiptBytes": 46426
+}

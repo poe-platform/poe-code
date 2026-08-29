@@ -1,0 +1,65 @@
+{
+  "at": "2026-08-29T15:02:55.337Z",
+  "start": "2026-08-29T14:56:37Z",
+  "deadline": "2026-08-29T15:11:37.000Z",
+  "source": "e33b99af9fbec345b4f5a76d50f627c3d4d9f73a",
+  "evidence": "d40efe4068545ecff91cfb4051806dc0417427da",
+  "sealSha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2",
+  "authorPass": 11,
+  "authorFail": 1,
+  "novelPass": 8,
+  "novelFail": 0,
+  "helpers": {
+    "maximum": 2,
+    "actual": 2,
+    "first": "permission-denied before controls; preserved raw",
+    "second": "restricted VM replay + novel PURE + DATA audit"
+  },
+  "files": [
+    {
+      "name": "AUDIT.json",
+      "bytes": 8024,
+      "sha256": "4cd8233c54d9b0a7d0bb785ab9520a133acc5ced07f2f507154c605218b8aea4"
+    },
+    {
+      "name": "AUTHOR-DIFF.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "AUTHOR-REPLAY.json",
+      "bytes": 2346,
+      "sha256": "eb71b6ce27a65074a6eae369761c40529e19155ed37456deea6a9f9f4d05d4da"
+    },
+    {
+      "name": "DIRECT-CAPTURE.log",
+      "bytes": 19125,
+      "sha256": "eed37de6660e5746ef51ec865010ca5322a9345bfc2051e94fa9d92024276795"
+    },
+    {
+      "name": "NOVEL-RESULT.json",
+      "bytes": 901,
+      "sha256": "30bfa1feffe22f2d687212e9bd4a6ee3305d8d3fb6ba3568e528fb5673e342a0"
+    },
+    {
+      "name": "audit.mjs",
+      "bytes": 2553,
+      "sha256": "919266b5382d451245c2407dc076acf7ee997c2d7600527bdd10e64455869d9c"
+    },
+    {
+      "name": "review.mjs",
+      "bytes": 13863,
+      "sha256": "f65015aeb7db6f9ed7670b60c6c6e12f4e2b8bd24c5789aacfb5f533e666eb5c"
+    }
+  ],
+  "logicalBytesBeforeReceiptAndPublication": 46812,
+  "publicationReserveBytes": 1048576,
+  "actualProduct": false,
+  "actualWorkers": 0,
+  "actualNative": 0,
+  "bound": {
+    "logicalMaximum": 332129069,
+    "uniqueCaptureMaximum": 131072000,
+    "qualification": "conditional prospective logical regular-file accounting; not OS disk/RSS/Git physical quota or fresh materialized-layout qualification"
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "phase": "SOURCE_DATA_ONLY",
+  "at": "2026-08-29T15:01:05.300Z",
+  "rows": [
+    {
+      "name": "AUTHOR-SUMMARY.json",
+      "size": 2689,
+      "sha256": "b0b74590ae9f9f32e02a9d3565a52943606b0701106d538fe970e04fa038db03"
+    },
+    {
+      "name": "BINDING-RECIPE.json",
+      "size": 2881,
+      "sha256": "db1b3881f68c18dded62dfc5bf8818f8404b06ecbddbef69ee52ab52ef5bfbca"
+    },
+    {
+      "name": "CONTROL-EVIDENCE.json",
+      "size": 1726,
+      "sha256": "ec4ad7d3dde5e530fafa23c4b393a995f9fbbcfc2f8caf4edfedd0f8eddc9aaf"
+    },
+    {
+      "name": "CONTROL-EXECUTION.json",
+      "size": 172,
+      "sha256": "16738acd5a842d85f80e9ce78cba5dc00d57e3547c3073636e0690e36d68669b"
+    },
+    {
+      "name": "CONTROL-RESULT.json",
+      "size": 1147,
+      "sha256": "986f8002f7b82c1f3e9aa89cd8a60820c1c3597cb3e29cf4dc12212ff700d3d6"
+    },
+    {
+      "name": "EXECUTION-SEAL.json",
+      "size": 3206,
+      "sha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2"
+    },
+    {
+      "name": "HANDOFF.md",
+      "size": 5247,
+      "sha256": "b322c7266b21e123871d2bd1683a0b5b906a77b0ae1150d292f56f13f42cd03f"
+    },
+    {
+      "name": "INTEGRATION.patch",
+      "size": 16020,
+      "sha256": "7dab4402f3e6e8be1326a64cbd647318fd9ef74b804d0708a59816d1c7b17739"
+    },
+    {
+      "name": "PRESEAL.md",
+      "size": 2296,
+      "sha256": "7f82ab637b02765e4a29260f99d607be3b759c0adb81275b24ffccea852bbaf1"
+    },
+    {
+      "name": "PUBLICATION-SNAPSHOT.json",
+      "size": 14662,
+      "sha256": "ba7b0076dbfa998af8a59bda185ac868597a47edc194c24de3ff99a9b1fc7e5f"
+    },
+    {
+      "name": "RESOURCE-PROPOSAL.md",
+      "size": 5138,
+      "sha256": "3e18e17065b307b4375bb187669f1c460863b6e4c67465f5fc63dc9ef09781a3"
+    },
+    {
+      "name": "SOURCE-PREPARATION.json",
+      "size": 360,
+      "sha256": "7df6e0901a4d716f771390b82b8350a1a03301b7564265fe61b702725601c019"
+    },
+    {
+      "name": "WORKING-BOUND.json",
+      "size": 1229,
+      "sha256": "c92b0d0694eb189b81b4631fa2399d6bb607ae844f26a2a85f251e34373a8f47"
+    },
+    {
+      "name": "admin.mjs",
+      "size": 7565,
+      "sha256": "93b9175a7a42ee8578d461279b1a530574a80adc8236a372a7db469900ef8be3"
+    },
+    {
+      "name": "cell.mjs",
+      "size": 7621,
+      "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+    },
+    {
+      "name": "controls.mjs",
+      "size": 8255,
+      "sha256": "7406169ef39fa177968889c86f1b4dbe3d57fc9c74496db6808ad0dde3116929"
+    },
+    {
+      "name": "dispatch.mjs",
+      "size": 7890,
+      "sha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02"
+    },
+    {
+      "name": "event-writer.mjs",
+      "size": 3516,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "name": "final-data.mjs",
+      "size": 2380,
+      "sha256": "b5092c6c82feb49e39cea8021a9e0b7bd7eff00d4b39a8604b4c34eabe1ba717"
+    },
+    {
+      "name": "finalize-cell.mjs",
+      "size": 1147,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    },
+    {
+      "name": "prepare.mjs",
+      "size": 8157,
+      "sha256": "2dc87121253bf6b1249a6e9f39f2390d5f467dc28a662f4d348eae2cf295eeb6"
+    },
+    {
+      "name": "raw",
+      "directory": true
+    }
+  ],
+  "layouts": [
+    {
+      "name": "source-built",
+      "files": 1390,
+      "bytes": 8923286,
+      "cells": 70
+    },
+    {
+      "name": "installed",
+      "files": 1087,
+      "bytes": 6261263,
+      "cells": 70
+    },
+    {
+      "name": "moved",
+      "files": 1087,
+      "bytes": 6246595,
+      "cells": 70
+    }
+  ],
+  "staticBytes": 21431144,
+  "bound": {
+    "domain": "prospective logical regular-file bytes, not allocated blocks/RSS/Git internal storage",
+    "components": {
+      "retainedAndFreshLayoutCopies": 43910864,
+      "uniqueCellEvents": 55050240,
+      "uniqueCellPipesIncludingFinalAudits": 55050240,
+      "coordinatorCapture": 8388608,
+      "administrativeToolCaptures": 8388608,
+      "publicationTails": 4194304,
+      "generatedBindingsManifestsMetadata": 16777216,
+      "onePublicationCopyOfAllCaptures": 131072000,
+      "archivedPackage": 908381,
+      "extraMetadataReserve": 8388608
+    },
+    "logicalMaximum": 332129069,
+    "limit": 536870912,
+    "captureMaximum": 131072000,
+    "captureLimit": 134217728,
+    "sourceBasis": "all frozen layout row sizes; twice for old/new copies; exact per-cell event and combined pipe reservations; fixed metadata/tool/publication ceilings; immutable inventory must admit copied bytes before materialization",
+    "conditions": [
+      "No arbitrary additional files or duplicate evidence copies",
+      "Only declared bounded write roles",
+      "Git object/index/internal storage explicitly outside this logical budget",
+      "No raw whole executable copies; stream tool hashes",
+      "Existing old roots remain immutable"
+    ],
+    "runtimeAuthority": false
+  },
+  "binding": {
+    "status": "SOURCE_REPAIR_NOT_MATERIALIZED_RUNTIME",
+    "frozenExecutionSealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+    "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+      "size": 908381,
+      "mode": 420,
+      "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+    },
+    "definitions": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CASES-v4.json",
+      "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb",
+      "count": 70,
+      "layoutCells": 210
+    },
+    "priorCellSha256": "d08db63b92ee90dc043d34b20038530997aa18896ffa29c8257b67da7ee414ee",
+    "newCellSha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b",
+    "priorDispatchSha256": "656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80",
+    "newDispatchSha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02",
+    "unchangedBody": {
+      "bytes": 5865,
+      "sha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+      "startAnchor": "  const cell = JSON.parse(",
+      "endAnchor": "} catch (error) { primaryFailed = true;"
+    },
+    "newModules": [
+      "event-writer.mjs",
+      "finalize-cell.mjs"
+    ],
+    "requiredNextBinding": "copy exact new harness modules into newly owned layout copies and regenerate only paths/manifests/controller seals; never mutate v4/v6 roots; reauthenticate same product files before imports",
+    "layouts": [
+      {
+        "name": "source-built",
+        "manifest": {
+          "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+          "size": 302100,
+          "mode": 384,
+          "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+        },
+        "files": 1390,
+        "bytes": 8923286,
+        "cells": 70,
+        "privateAssets": 48
+      },
+      {
+        "name": "installed",
+        "manifest": {
+          "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+          "size": 254534,
+          "mode": 384,
+          "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+        },
+        "files": 1087,
+        "bytes": 6261263,
+        "cells": 70,
+        "privateAssets": 48
+      },
+      {
+        "name": "moved",
+        "manifest": {
+          "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+          "size": 254534,
+          "mode": 384,
+          "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+        },
+        "files": 1087,
+        "bytes": 6246595,
+        "cells": 70,
+        "privateAssets": 48
+      }
+    ],
+    "productExecuted": false,
+    "Workers": 0
+  },
+  "products": 0,
+  "workers": 0
+}

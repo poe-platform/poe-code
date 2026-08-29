@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const scope = import.meta.dirname;
+const describe = file => { const stat = fs.lstatSync(file); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size < 1048576); const body = fs.readFileSync(file); return { path: path.relative(process.cwd(), file), bytes: body.length, sha256: crypto.createHash('sha256').update(body).digest('hex') }; };
+const source = describe(path.join(scope, 'PRESEAL.json'));
+assert.equal(source.bytes, 17692); assert.equal(source.sha256, '007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc');
+const target = path.join(scope, 'CONTROL-PRESEAL.json');
+fs.writeFileSync(target, JSON.stringify({ action: 'PURE_B1_R2_CONTROLS_ONLY', created: new Date().toISOString(), source, groups: 12, expectedNodeControllers: 1, childProcesses: 0, productImports: 0, engineImports: 0, workers: 0, deadlineSeconds: 30, files: ['control-entry.mjs','seal-controls.mjs'].map(name => describe(path.join(scope,name))) }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(describe(target)));

@@ -1,0 +1,28 @@
+{
+  "action": "PURE_B1_R2_CONTROLS_ONLY",
+  "created": "2026-08-29T12:36:45.917Z",
+  "source": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "groups": 12,
+  "expectedNodeControllers": 1,
+  "childProcesses": 0,
+  "productImports": 0,
+  "engineImports": 0,
+  "workers": 0,
+  "deadlineSeconds": 30,
+  "files": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/control-entry.mjs",
+      "bytes": 1492,
+      "sha256": "d2b7a3981e4c7880e25c07d3fe418a91bce6931607aa7ecb5288034f46b0900b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/seal-controls.mjs",
+      "bytes": 1153,
+      "sha256": "1b48e7a66cecc6691ea3bf630ef00d4d0a14bc0171c0f95174df4a01d7eb04c7"
+    }
+  ]
+}

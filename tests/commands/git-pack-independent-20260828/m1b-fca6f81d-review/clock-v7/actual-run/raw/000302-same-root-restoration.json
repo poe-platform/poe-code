@@ -1,0 +1,1 @@
+{"batch":"COUNTER-restored-S","physicalRoot":"/private/tmp/git-m1b-fca-independent-20260829-clock7-cca4001dd09743a1/mutants/S-L-COUNTER","target":"dist/commands/git/io.js","mode":420,"bytes":17198,"sha256":"d84c0bb8d259d5720d33f0321e1db42cc7f1393cbe21228957a1017b61816f52","knownPriorMutantRetirement":true,"newWorkerRequired":true}

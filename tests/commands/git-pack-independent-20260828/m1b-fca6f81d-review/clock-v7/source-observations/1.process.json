@@ -1,0 +1,1 @@
+{"args":["ls-tree","-rz","--full-tree","69b5afa5635629dd2a75b113376c9a9401aae81f","--","tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/verification-v6/TYPE-CASES.json"],"status":0,"signal":null,"error":null,"elapsedMs":141.673541}

@@ -1,0 +1,2 @@
+import { createGitCommands } from "/private/tmp/git-m1b-fca-independent-20260829-clock7-cca4001dd09743a1/moved-package/dist/commands/git/index.js";
+createGitCommands({ discoveryBoundary: 1 });

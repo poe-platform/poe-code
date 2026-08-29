@@ -1,0 +1,16 @@
+{
+  "sourceRoot": "/private/tmp/git-m1b-fca-independent-20260829-clock7-cca4001dd09743a1",
+  "knownRetirementBeforeTransfer": true,
+  "transferredRawFiles": 582,
+  "originalFileBytes": 329351927,
+  "originalFiles": 6781,
+  "originalEntries": 7585,
+  "unchangedRemainingFullMembership": true,
+  "removedRootAbsent": true,
+  "metadataBytesBeforeCleanupReceipt": 1762180,
+  "elapsedMsFromFreshOrigin": 802117.35325,
+  "deadlineMs": 7200000,
+  "additionalCleanupProcesses": 1,
+  "targetExecutions": 0,
+  "noRetry": true
+}

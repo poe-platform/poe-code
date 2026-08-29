@@ -1,0 +1,4 @@
+export const state={mode:'',expectedURL:'',records:[],handles:[],errors:[],messages:0,postCount:0,constructed:0,rescues:0,captureFault:null,afterValidation:null,firstPost:null,resolvePost:null,replyGate:null,resolveReplies:null};
+state.firstPost=new Promise(resolve=>{state.resolvePost=resolve});state.replyGate=new Promise(resolve=>{state.resolveReplies=resolve});
+export function record(value){try{const text=JSON.stringify(value);if(Buffer.byteLength(text)>256||state.records.length>=512)throw Error('trace cap');state.records.push(value);}catch(reason){state.captureFault??=reason;}}
+export async function joinWorkers(){await Promise.all(state.handles.flatMap(row=>[row.exited,row.stdoutDone,row.stderrDone]));if(state.captureFault)throw state.captureFault;}

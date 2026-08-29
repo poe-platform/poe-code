@@ -1,0 +1,9 @@
+{
+  "toolRecord": "da711f",
+  "phase": "inline metadata preparation SyntaxError before execution",
+  "message": "Unexpected token ')'",
+  "evidence": "Tool transcription only, not reconstructed raw capture",
+  "successor": "prepare.mjs file entry with direct capture",
+  "productFinding": false,
+  "controlsRunByFailedRole": 0
+}

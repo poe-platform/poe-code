@@ -1,0 +1,302 @@
+{
+  "schema": "k08-v3-archive-controls-v1",
+  "rows": [
+    {
+      "id": "A01",
+      "status": "PASS",
+      "evidence": {
+        "admission": {
+          "result": {
+            "members": 1006,
+            "expectedMembers": 1006,
+            "payloadBytes": 5037566,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "format": "ustar-regular-v1",
+            "terminatorBytes": 1024,
+            "paddingBytes": 249346,
+            "paddingZero": true,
+            "fullSetVerified": true,
+            "extractionCalls": 0
+          },
+          "compressedBytes": 981948,
+          "decodedBytes": 5803008,
+          "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+        },
+        "observation": {
+          "events": [
+            "lstat-type-size",
+            "bounded-read",
+            "postread-identity",
+            "exact-hash",
+            "descriptor-closed",
+            "concurrent-buffers-reserved",
+            "decoded",
+            "parsed"
+          ],
+          "decodeCalls": 1,
+          "ledger": {
+            "current": 0,
+            "peak": 36633533,
+            "maximum": 67108864
+          },
+          "decoderInput": {
+            "bytes": 981948,
+            "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+          }
+        },
+        "oldPredicate": {
+          "expected1002": true,
+          "alignment": 0
+        }
+      }
+    },
+    {
+      "id": "A02",
+      "status": "PASS",
+      "evidence": [
+        {
+          "kind": "type",
+          "code": "TYPE",
+          "observation": {
+            "events": [],
+            "decodeCalls": 0,
+            "ledger": {
+              "current": 0,
+              "peak": 0,
+              "maximum": 67108864
+            }
+          }
+        },
+        {
+          "kind": "size",
+          "code": "SIZE",
+          "observation": {
+            "events": [],
+            "decodeCalls": 0,
+            "ledger": {
+              "current": 0,
+              "peak": 0,
+              "maximum": 67108864
+            }
+          }
+        },
+        {
+          "kind": "hash",
+          "code": "HASH",
+          "observation": {
+            "events": [
+              "lstat-type-size",
+              "bounded-read",
+              "postread-identity",
+              "descriptor-closed"
+            ],
+            "decodeCalls": 0,
+            "ledger": {
+              "current": 0,
+              "peak": 981949,
+              "maximum": 67108864
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "status": "PASS",
+      "evidence": [
+        {
+          "name": "TarAdmissionError",
+          "code": "MANIFEST_COUNT",
+          "expectedMembers": 1002,
+          "actualMembers": 1006,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": -1
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "MANIFEST_COUNT",
+          "expectedMembers": 1006,
+          "actualMembers": 1005,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": -1
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "MANIFEST_DUPLICATE",
+          "expectedMembers": 1006,
+          "actualMembers": 1006,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": -1
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "MANIFEST_SHAPE",
+          "expectedMembers": 1006,
+          "actualMembers": 1006,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": -1
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "status": "PASS",
+      "evidence": [
+        {
+          "name": "TarAdmissionError",
+          "code": "TAR_ALIGNMENT",
+          "expectedMembers": 1006,
+          "actualMembers": 1006,
+          "decodedBytes": 5803007,
+          "alignmentRemainder": 511,
+          "memberIndex": -1
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "TAR_TRUNCATED",
+          "expectedMembers": 1006,
+          "actualMembers": 0,
+          "decodedBytes": 512,
+          "alignmentRemainder": 0,
+          "memberIndex": 0
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "TAR_TERMINATOR",
+          "expectedMembers": 1006,
+          "actualMembers": 1006,
+          "decodedBytes": 5802496,
+          "alignmentRemainder": 0,
+          "memberIndex": -1
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "status": "PASS",
+      "evidence": [
+        {
+          "name": "TarAdmissionError",
+          "code": "MEMBER_UNEXPECTED",
+          "expectedMembers": 1006,
+          "actualMembers": 0,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": 0
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "MEMBER_DUPLICATE",
+          "expectedMembers": 1006,
+          "actualMembers": 1,
+          "decodedBytes": 5854720,
+          "alignmentRemainder": 0,
+          "memberIndex": 1
+        }
+      ]
+    },
+    {
+      "id": "A06",
+      "status": "PASS",
+      "evidence": {
+        "name": "TarAdmissionError",
+        "code": "MEMBER_COUNT",
+        "expectedMembers": 1006,
+        "actualMembers": 1005,
+        "decodedBytes": 5751296,
+        "alignmentRemainder": 0,
+        "memberIndex": -1
+      }
+    },
+    {
+      "id": "A07",
+      "status": "PASS",
+      "evidence": [
+        {
+          "name": "TarAdmissionError",
+          "code": "MEMBER_HASH",
+          "expectedMembers": 1006,
+          "actualMembers": 0,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": 0
+        },
+        {
+          "name": "TarAdmissionError",
+          "code": "MEMBER_METADATA",
+          "expectedMembers": 1006,
+          "actualMembers": 0,
+          "decodedBytes": 5803008,
+          "alignmentRemainder": 0,
+          "memberIndex": 0
+        }
+      ]
+    },
+    {
+      "id": "A08",
+      "status": "PASS",
+      "evidence": {
+        "records": [
+          {
+            "name": "TarAdmissionError",
+            "code": "TAR_FORMAT",
+            "expectedMembers": 1006,
+            "actualMembers": 0,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "memberIndex": 0
+          },
+          {
+            "name": "TarAdmissionError",
+            "code": "MEMBER_TYPE",
+            "expectedMembers": 1006,
+            "actualMembers": 0,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "memberIndex": 0
+          },
+          {
+            "name": "TarAdmissionError",
+            "code": "MEMBER_LINK",
+            "expectedMembers": 1006,
+            "actualMembers": 0,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "memberIndex": 0
+          },
+          {
+            "name": "TarAdmissionError",
+            "code": "MEMBER_PATH",
+            "expectedMembers": 1006,
+            "actualMembers": 0,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "memberIndex": 0
+          },
+          {
+            "name": "TarAdmissionError",
+            "code": "TAR_PADDING",
+            "expectedMembers": 1006,
+            "actualMembers": 0,
+            "decodedBytes": 5803008,
+            "alignmentRemainder": 0,
+            "memberIndex": 0
+          }
+        ],
+        "syntaxOnly": 14,
+        "noEvaluation": true
+      }
+    }
+  ],
+  "groups": 8,
+  "passes": 8,
+  "productEvaluations": 0,
+  "extractions": 0,
+  "scope": "DATA admission and synthetic archive mutations; no product calls"
+}
+INDEPENDENT {"utc":"2026-08-29T16:03:14.566Z","authorGroups":8,"authorExit":0,"novel":[{"id":"N01-count-versus-alignment","pass":true,"record":{"name":"TarAdmissionError","code":"MANIFEST_COUNT","expectedMembers":1005,"actualMembers":1006,"decodedBytes":5803007,"alignmentRemainder":511,"memberIndex":-1}},{"id":"N02-duplicate-after-complete-set","pass":true,"record":{"name":"TarAdmissionError","code":"MEMBER_DUPLICATE","expectedMembers":1006,"actualMembers":1006,"decodedBytes":5854720,"alignmentRemainder":0,"memberIndex":1006}},{"id":"N03-aligned-missing-payload","pass":true,"record":{"name":"TarAdmissionError","code":"TAR_TRUNCATED","expectedMembers":1006,"actualMembers":0,"decodedBytes":1024,"alignmentRemainder":0,"memberIndex":0}}],"admission":{"result":{"members":1006,"expectedMembers":1006,"payloadBytes":5037566,"decodedBytes":5803008,"alignmentRemainder":0,"format":"ustar-regular-v1","terminatorBytes":1024,"paddingBytes":249346,"paddingZero":true,"fullSetVerified":true,"extractionCalls":0},"compressedBytes":981948,"decodedBytes":5803008,"sha256":"0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"},"observation":{"events":["lstat-type-size","bounded-read","postread-identity","exact-hash","descriptor-closed","concurrent-buffers-reserved","decoded","parsed"],"decodeCalls":1,"ledger":{"current":0,"peak":36633533,"maximum":67108864},"decoderInput":{"bytes":981948,"sha256":"0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"}},"postguards":28,"unusedPaths":7,"emptyCapture":true,"archiveAdmissionCallsInThisHelper":2,"productCalls":0,"extractions":0,"workers":0}

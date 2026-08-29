@@ -1,0 +1,37 @@
+{
+  "beforeProvision": [
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/future-v3-capture",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.080Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-installed",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.080Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.080Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M01",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.081Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M02",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.081Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M03",
+      "absent": true,
+      "observedAt": "2026-08-29T15:56:01.081Z"
+    }
+  ],
+  "captureProvisioned": true,
+  "captureMode": 448,
+  "observedAt": "2026-08-29T15:56:01.089Z"
+}

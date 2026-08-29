@@ -1,0 +1,5 @@
+{"event":"start","utc":"2026-08-29T16:05:16.177Z"}
+{"event":"before","name":"git-add"}
+{"event":"after","name":"git-add","pid":52829,"status":0,"signal":null}
+{"event":"before","name":"git-commit"}
+{"event":"after","name":"git-commit","pid":52830,"status":0,"signal":null}

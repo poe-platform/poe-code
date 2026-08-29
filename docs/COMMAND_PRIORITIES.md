@@ -6,6 +6,55 @@ below. This documentation update performs no new product, native-oracle, compile
 build, private-engine or gate execution. Product source, exports, dependencies
 and historical expectations are unchanged.
 
+## Current compatibility snapshot — August 29, 2026 UTC
+
+**Goal, not a completed guarantee:** normal Bash-like surface behavior is the
+user's target. The project does not yet promise indistinguishability from Bash,
+full GNU Bash5 compatibility, full Git/Node behavior, or a general security
+sandbox. Finite accepted profiles below are not a whole-product green gate.
+The active code is in `/Users/kjopek/Workspace/safe-bash`.
+
+The package manifest uses TypeScript build tooling and declares no runtime
+dependencies. npm/npx are excluded **product commands**, not excluded development
+tools. Requested priorities remain sed, rg, git, printf, nl, cat, node, head,
+apply_patch, echo, find, tail and ls, plus the separately requested curl. Their
+presence is not a claim of complete native flags or semantics; the dated command
+profiles later in this document retain their limits.
+
+Filesystem support includes memory, confined host-real, S3-compatible and WebDAV
+backends, with mount/readonly/overlay policies. Backend capability declarations
+and refusals matter: this is not universal POSIX or cross-backend transactional
+equivalence. Curl stays explicit opt-in. Node stays explicit opt-in with a
+trusted provider and restricted profile; there is no implied bundled engine,
+ambient host authority or native fallback. See the existing
+[Node](../src/commands/node/README.md), [Git](../src/commands/git/README.md),
+[S3](../src/fs/s3/README.md) and [WebDAV](../src/fs/webdav/README.md) profiles.
+
+| Workstream | Current, scope-qualified status |
+| --- | --- |
+| K08 arithmetic positional parameter | Accepted finite69/69, with independent `cb5f9280`; not general arithmetic/Bash parity. [Independent evidence](../tests/compatibility/bash-function-keyword-k08-actual-independent-20260829/REPORT.md). |
+| PIPESTATUS | Old frozen artifact retains **75 PASS /3 FAIL**, all three R17 (`local -a`), in actual commit `5009e090`. Generic indexed-local source `ec74e14` now exists, but independent review/build/runtime validation is pending; it does not rescore the old artifact. [Actual findings](../tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/inspection-v1/HANDOFF.md); [new SOURCE/PURE scope](../tests/shell/pipestatus-author-20260829/local-a-v1/HANDOFF.md). |
+| B1 | Author15/15 reported; publication remains **HOLD**, DATA recovery pending. Not independently accepted runtime proof. |
+| B2 | r7 records224 source cases;448 installed/moved cells remain **UNRUN**, with r8 pending. Do not sum them into a completed three-layout result. |
+| CORE / ERE integration | Limited pilot evidence only; remaining private/integration gates are pending. [Pilot review](../tests/compatibility/bash-ere-core-public-pilot-independent-20260829/runtime-review-v2/REPORT.md). |
+| Final composition | The proposed323-input composition plus the independently reviewed local-declaration delta still needs its final bound build/smoke. Separate accepted artifacts do not certify that composition or moving HEAD. |
+| Comparison | The comparator is paused. No current overall “better than just-bash” result is established; historical scoped measurements remain scoped. |
+
+Known restrictions remain those of the existing contracts, not newly invented
+compatibility promises: the accepted Unit3 profile refuses reached ERE/extglob,
+aggregate `-v` and other documented unsupported predicates; later ERE work must
+earn its own integrated acceptance. The rg profile is not Rust-regex/PCRE2 parity;
+Git explicitly refuses unsupported repository formats/external gitdir bindings.
+Node's restricted provider/Worker profile is not full Node or universal
+all-jobs-settled/RSS proof. See the detailed profile sections below rather than
+assuming one command name means all Bash/GNU forms work.
+
+This is a documentation/coordination snapshot, not a new test run. B1/B2 pending
+states are ROOT-reported, not independently remeasured here. Original failures,
+source-only/mixed proofs, native-profile differences and resource qualifications
+remain intact. README (including the selected PUBLIC309 README), product source
+and historical fixtures are unchanged by this update.
+
 ## Authoritative request
 
 **2026-08-29 Node status:** ROOT qualified-accepted explicit-provider public source

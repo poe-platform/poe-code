@@ -55,11 +55,22 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }),
       fromEntries: createSandboxClosure({
         sandbox: true,
-        call: ([value]) =>
-          allocateProducedSandboxValue(
-            Object.setPrototypeOf(Reflect.apply(Object.fromEntries, Object, [value]), null),
-            options.budget
-          ),
+        call: ([value]) => {
+          const iterator = getSandboxIterator(value);
+          if (iterator === undefined) {
+            throw new TypeError("Object.fromEntries requires an iterable.");
+          }
+          if (!iterator.generator) {
+            return allocateProducedSandboxValue(
+              Object.setPrototypeOf(
+                Reflect.apply(Object.fromEntries, Object, [{ [Symbol.iterator]: () => iterator }]),
+                null
+              ),
+              options.budget
+            );
+          }
+          return objectFromSandboxEntries(iterator, options.budget);
+        },
         name: "fromEntries"
       }),
       freeze: createSandboxClosure({
@@ -183,6 +194,42 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       name: "Boolean"
     })
   };
+}
+
+async function objectFromSandboxEntries(
+  iterator: NonNullable<ReturnType<typeof getSandboxIterator>>,
+  budget: Budget
+): Promise<SandboxValue> {
+  const object = Object.create(null) as SandboxObject;
+  try {
+    while (true) {
+      const result = await iterator.next();
+      if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+        throw new TypeError("Iterator result must be an object.");
+      }
+      if (result.done) break;
+      const entry = result.value;
+      if ((typeof entry !== "object" && typeof entry !== "function") || entry === null) {
+        throw new TypeError("Object.fromEntries requires entry objects.");
+      }
+      const key = (entry as SandboxObject)[0];
+      const value = (entry as SandboxObject)[1];
+      Object.defineProperty(object, key as PropertyKey, {
+        configurable: true,
+        enumerable: true,
+        value,
+        writable: true
+      });
+    }
+  } catch (error) {
+    try {
+      await iterator.return?.();
+    } catch {
+      throw error;
+    }
+    throw error;
+  }
+  return allocateProducedSandboxValue(object, budget);
 }
 
 function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[]): SandboxValue {

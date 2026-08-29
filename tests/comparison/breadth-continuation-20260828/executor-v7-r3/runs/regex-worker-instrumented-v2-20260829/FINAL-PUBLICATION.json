@@ -1,0 +1,47 @@
+{
+  "schema": "EVIDENCE_PUBLICATION_V1",
+  "evidenceCommit": "a1aa3bfebf99e68402f08e99e1d7f7a0a58446d9",
+  "presealCommit": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "sealSha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a",
+  "at": "2026-08-29T08:48:44.574Z",
+  "elapsedMilliseconds": 904567,
+  "knownOwnedAlreadyClosed": 37,
+  "toolServiceReservation": 1,
+  "remainingThisPublicationCalls": 2,
+  "expectedFinalOwned": 39,
+  "osCap": 64,
+  "runtimeChildrenClosed": 25,
+  "workersCreated": 0,
+  "actualEngineCalls": 0,
+  "controlStreamBytesObserved": 10597,
+  "controlStreamBytesRetained": 10597,
+  "allRuntimeCaptureDescriptorsClosed": true,
+  "unsafeStopPreserved": true,
+  "lateBindings": [
+    {
+      "path": "admin/publication-0.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/publication-0.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/publication-1.stdout",
+      "bytes": 40424,
+      "mode": 384,
+      "sha256": "1c573f698535bb4c78c4813233090579053674ea958d2ffa351e630f20a11a70"
+    },
+    {
+      "path": "admin/publication-1.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "publicationScope": "Authenticates bounded Git publication output left outside the previous commit; no runtime replay, source repair or rescore. Final two publisher closures are observed by the returning tool, not asserted prospectively."
+}

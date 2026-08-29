@@ -1,0 +1,80 @@
+{
+  "status": "FINAL_BINDING_READY_NOT_ACTUAL_GO",
+  "checkedAt": "2026-08-29T17:29:03.142Z",
+  "review": {
+    "commit": "8c88c15553488aacee8eb469fbd012fd00f8fb27",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-independent-review-20260829/r9-delta/RECEIPT.json",
+    "bytes": 22988,
+    "sha256": "c65013b32f58e6335d1f4a232d97691c8e11dc5dddf08ca7a333ddc72e3db48c"
+  },
+  "grant": {
+    "path": "GRANT.pending.json",
+    "bytes": 1081,
+    "sha256": "073bb0c9e7fb1678edd150f12e588a938f97d5577c59398b94b2aa633dc04aaf",
+    "mode": "0600",
+    "installed": false
+  },
+  "packet": {
+    "path": "staged/PACKET.json",
+    "bytes": 7320,
+    "sha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d"
+  },
+  "command": {
+    "text": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/launch.sh /private/tmp/B2-R9-ROOT-GO.json 7320",
+    "sha256": "b7f8a9ce325e90c7c1ac371e2cb0a71834942ad3f465a500b843c0fc5a62a5a4",
+    "encoding": "UTF8_NO_LF",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  },
+  "window": {
+    "notBefore": "2026-08-29T17:25:00.000Z",
+    "externalLatestStart": "2026-08-29T17:30:00.000Z",
+    "activeEnd": "2026-08-29T17:52:00.000Z",
+    "absoluteExpiry": "2026-08-29T17:55:00.000Z",
+    "fixedSeconds": 1800,
+    "publicationReserveSeconds": 180,
+    "delayedStartShrinksRemaining": true
+  },
+  "authenticated": {
+    "packetFiles": 32,
+    "selectedSourceInputs": 309,
+    "package": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    "installerToolFiles": 4,
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "unusedSlots": [
+    "/private/tmp/B2-R9-ROOT-GO.json",
+    "/private/tmp/safe-bash-b2-runtime-r9",
+    "/private/tmp/safe-bash-b2-runtime-r9.outer.raw"
+  ],
+  "issuedAtPolicy": "Original pending-template issuedAt retained; fresh checkedAt records this review binding. No backdated new issuance.",
+  "rootSupersession": "ROOT explicitly replaces unactivated 17:20 and 17:22 series with 17:25 series; older receipt window is not actual authority.",
+  "caps": {
+    "seconds": 1800,
+    "reserveSeconds": 180,
+    "knownOsStarts": 64,
+    "peakOs": 3,
+    "rawBytes": 100663296,
+    "childRawBytes": 67108864,
+    "workBytes": 536870912,
+    "terminalReserveBytes": 4194304,
+    "traceBytesPerRole": 524288,
+    "loaderAdmissions": 34,
+    "regexWorkers": 0,
+    "regexLoaderAdmissions": 0,
+    "guestEngines": 0,
+    "loaderThreads": 34,
+    "peakLoaderThreads": 1,
+    "decoderBytes": 67108864,
+    "maximumInventoryEntries": 16384
+  },
+  "cacheAuthority": "ROOT_ACCEPTS_BEST_EFFORT_MUTABLE_CACHE_R8"
+}

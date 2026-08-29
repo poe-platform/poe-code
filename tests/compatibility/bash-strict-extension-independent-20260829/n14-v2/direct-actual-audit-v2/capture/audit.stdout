@@ -1,0 +1,79 @@
+{
+  "at": "2026-08-29T11:55:38.068Z",
+  "schema": "virtual37-independent-data-readjudication-v2",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "packageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "rawFrames": 678,
+  "rawBytes": 35655081,
+  "observations": 111,
+  "equal": 57,
+  "different": 54,
+  "checks": 2348,
+  "passed": 2348,
+  "failed": [],
+  "controls": [
+    {
+      "name": "wrong bytes",
+      "pass": true
+    },
+    {
+      "name": "wrong hash",
+      "pass": true
+    },
+    {
+      "name": "noncanonical framing",
+      "pass": true
+    },
+    {
+      "name": "missing presence",
+      "pass": true
+    },
+    {
+      "name": "valid NUL byte",
+      "pass": true
+    },
+    {
+      "name": "false status is not zero",
+      "pass": true
+    },
+    {
+      "name": "file mode difference retained",
+      "pass": true
+    },
+    {
+      "name": "stderr difference retained",
+      "pass": true
+    }
+  ],
+  "differingIds": [
+    "B12",
+    "B13",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B30",
+    "B32",
+    "B34",
+    "B35",
+    "B36",
+    "B38",
+    "B39"
+  ],
+  "shippingFiles": 34,
+  "knownManagedChildren": 115,
+  "publicSettlements": 111,
+  "oldFailure": {
+    "commit": "05707e3b0011864154707266f2375d88cf80c6a1",
+    "assertions": 222,
+    "exit": 1,
+    "preserved": true
+  },
+  "qualification": "Fresh DATA mapping proof, not product rerun; historical final-accounting HOLD remains. Known direct retirement, no group/hidden-job/global census.",
+  "noInflation": true
+}

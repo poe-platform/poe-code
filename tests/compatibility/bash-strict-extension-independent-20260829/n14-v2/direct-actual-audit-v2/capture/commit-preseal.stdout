@@ -1,0 +1,47 @@
+[main b9b47ce1f5211738622403eb6154a4e87f2513b0] test: preseal corrected virtual37 receipt-layer data audit
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 33 files changed, 4766 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/INPUTS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/SCHEMA.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/SEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/START.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/SYNTAX.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/audit.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/old-index-git.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/old-index-git.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/prepare.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/publication-layout-patch.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/publication-layout-patch.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/publication-syntax.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/publication-syntax.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/seal.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/stage-preseal.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/stage-preseal.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/syntax-audit.mjs.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/syntax-audit.mjs.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/syntax-supervise.mjs.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/syntax-supervise.mjs.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/capture/syntax.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/prepare.outer.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/prepare.outer.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/seal.outer.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/seal.outer.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/supervise.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/syntax-owner.outer.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/syntax-owner.outer.stdout
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/syntax.outer.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/syntax.outer.stdout

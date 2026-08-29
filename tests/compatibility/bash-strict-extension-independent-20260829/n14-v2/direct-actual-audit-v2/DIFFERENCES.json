@@ -1,0 +1,4580 @@
+[
+  {
+    "id": "B12",
+    "program": "shopt -s nullglob; printf '<%s>\\n' before absent-* after",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 17,
+        "sha256": "0ad6d5a6a2d8fdf23bd9fc162e9612c4497b212c5e21ec82cc8e920bb6073d1f",
+        "base64": "PGJlZm9yZT4KPGFmdGVyPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 28,
+        "sha256": "35417b7cc0fc35f51faf4a321a9c4d4eb3ea74b7fff61d1863a6b3982c978bce",
+        "base64": "PGJlZm9yZT4KPGFic2VudC0qPgo8YWZ0ZXI+Cg=="
+      },
+      "stderr": {
+        "bytes": 90,
+        "sha256": "fb831a17df64d50ea8efd6c3f48fa22b9f4cda8d211ef745b498e3394b46279f",
+        "base64": "c2hlbGw6IGxpbmUgMTogc2hvcHQ6IG51bGxnbG9iOiB1bnN1cHBvcnRlZCBzaGVsbCBvcHRpb24gbmFtZSAob25seSBkb3RnbG9iIGlzIHN1cHBvcnRlZCkK"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B13",
+    "program": "shopt -s extglob\nprintf '<%s>\\n' @(a|b).txt",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 16,
+        "sha256": "ac23f64a9e2afbd9d61cf016371318b2589af225a991b82c7129886e0429cb20",
+        "base64": "PGEudHh0Pgo8Yi50eHQ+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 2,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 136,
+        "sha256": "17c79e83e2763da0071a26d0aa2d3a42e78bbf37c036fc63d463118aa95fbfa7",
+        "base64": "c2hlbGw6IGxpbmUgMTogc2hvcHQ6IGV4dGdsb2I6IHVuc3VwcG9ydGVkIHNoZWxsIG9wdGlvbiBuYW1lIChvbmx5IGRvdGdsb2IgaXMgc3VwcG9ydGVkKQpzaGVsbDogRXhwZWN0ZWQgY29tbWFuZCBzZXBhcmF0b3IgYXQgb2Zmc2V0IDM0Cg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B17",
+    "program": "a=(zero one two); i=1; printf '%s\\n' \"${a[i+1]}\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "27dd8ed44a83ff94d557f9fd0412ed5a8cbca69ea04922d88c01184a07300a5a",
+        "base64": "dHdvCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 2,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 56,
+        "sha256": "caf3e0d37acb8502890b8da622f0cac628f8ec72774064ceed6976d647460cc4",
+        "base64": "c2hlbGw6IFVuc3VwcG9ydGVkIGluZGV4ZWQtYXJyYXkgc3Vic2NyaXB0IGF0IG9mZnNldCA0Mgo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B18",
+    "program": "declare -a a; a[2]=two; declare -p a; declare -rx v=value; declare -p v",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 49,
+        "sha256": "117334f8378b688723329aaa9b9a13cf99335e2e4caea001b2e251caef48c6b5",
+        "base64": "ZGVjbGFyZSAtYSBhPScoWzJdPSJ0d28iKScKZGVjbGFyZSAtcnggdj0idmFsdWUiCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 127,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 168,
+        "sha256": "34f16218c390d47a1d2e32d80be4965ea3a556d60e0ec276267727f36cd9a0c5",
+        "base64": "c2hlbGw6IGxpbmUgMTogZGVjbGFyZTogY29tbWFuZCBub3QgZm91bmQKc2hlbGw6IGxpbmUgMTogZGVjbGFyZTogY29tbWFuZCBub3QgZm91bmQKc2hlbGw6IGxpbmUgMTogZGVjbGFyZTogY29tbWFuZCBub3QgZm91bmQKc2hlbGw6IGxpbmUgMTogZGVjbGFyZTogY29tbWFuZCBub3QgZm91bmQK"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B19",
+    "program": "typeset -a a; a[0]=zero; typeset -p a",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 28,
+        "sha256": "3f28499edbdb4ef47f5b772f9898abe677f103cfe233b13fd893e4d9acf79959",
+        "base64": "ZGVjbGFyZSAtYSBhPScoWzBdPSJ6ZXJvIiknCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 127,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 84,
+        "sha256": "fb1d8ccb0a19fc6ae51b46e14e0df53f32c6e650aa6ec79c9a1e44c5b3caba4f",
+        "base64": "c2hlbGw6IGxpbmUgMTogdHlwZXNldDogY29tbWFuZCBub3QgZm91bmQKc2hlbGw6IGxpbmUgMTogdHlwZXNldDogY29tbWFuZCBub3QgZm91bmQK"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B20",
+    "program": "mapfile -t a; printf '<%s>\\n' \"${a[@]}\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 3,
+        "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+        "base64": "PD4K"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 41,
+        "sha256": "751e41202700cbb2e5bd35f4c717c363efbb03ce0e09db876454e2154bf6882c",
+        "base64": "c3VyZmFjZS1jYXNlOiBtYXBmaWxlOiBjb21tYW5kIG5vdCBmb3VuZAo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 3,
+        "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+        "base64": "PD4K"
+      },
+      "stderr": {
+        "bytes": 42,
+        "sha256": "69a331d6fdf178654699cf1e89964f6dcc360e65fa3d0478dff98d0563931dfe",
+        "base64": "c2hlbGw6IGxpbmUgMTogbWFwZmlsZTogY29tbWFuZCBub3QgZm91bmQK"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": true,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B21",
+    "program": "a=(keep old); readarray -t -O 1 -n 1 a; printf '<%s>\\n' \"${a[@]}\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 13,
+        "sha256": "e0085f7808dc54fed4b9ba87f0cdbf92a476adf0441c242cc865dae44e2ddffb",
+        "base64": "PGtlZXA+CjxvbGQ+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 43,
+        "sha256": "f4aabe5a9d213358b9f6120e840cac6667382aa807223c246cb70c77024088d2",
+        "base64": "c3VyZmFjZS1jYXNlOiByZWFkYXJyYXk6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 13,
+        "sha256": "e0085f7808dc54fed4b9ba87f0cdbf92a476adf0441c242cc865dae44e2ddffb",
+        "base64": "PGtlZXA+CjxvbGQ+Cg=="
+      },
+      "stderr": {
+        "bytes": 44,
+        "sha256": "b451cf1dd70447f90ffd55908961b5d45d02dd7492115ebec4b15afed08db25d",
+        "base64": "c2hlbGw6IGxpbmUgMTogcmVhZGFycmF5OiBjb21tYW5kIG5vdCBmb3VuZAo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": true,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B22",
+    "program": "IFS=: read -r -a a; printf '<%s>\\n' \"${a[@]}\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "10aa77bb9db6646abc7efcf0d7cd497656fe113dd42758c1fdc5f384c1e7d3fc",
+        "base64": "PGE+Cjw+CjxiPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 3,
+        "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+        "base64": "PD4K"
+      },
+      "stderr": {
+        "bytes": 50,
+        "sha256": "2bda2ae57b5712758cc3b74ad801f6640319ded9a106f03d0cb1af5618048b2a",
+        "base64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B23",
+    "program": "{ printf O; printf E >&2; } 2>&1 >out; printf '|'; while IFS= read -r -N 1 ch; do printf '%s' \"$ch\"; done <out",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 2,
+        "sha256": "04d70d9d0e8ec1819725a2af68ac7db502686550aa0a90657c0ea9e8c749dd8e",
+        "base64": "RXw="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 150,
+        "sha256": "a97cf235d711e7fec1c247e4ead88046d62afe1da7be60ebdebca3f24704e16c",
+        "base64": "c3VyZmFjZS1jYXNlOiBsaW5lIDA6IHJlYWQ6IC1OOiBpbnZhbGlkIG9wdGlvbgpyZWFkOiB1c2FnZTogcmVhZCBbLWVyc10gWy11IGZkXSBbLXQgdGltZW91dF0gWy1wIHByb21wdF0gWy1hIGFycmF5XSBbLW4gbmNoYXJzXSBbLWQgZGVsaW1dIFtuYW1lIC4uLl0K"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 420,
+          "base64": "Tw=="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 3,
+        "sha256": "ddcc4c764558f83af029e6220cc2c26989b2784ad4ba6a777016af43a8a5032b",
+        "base64": "RXxP"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 438,
+          "base64": "Tw=="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": false
+    }
+  },
+  {
+    "id": "B24",
+    "program": "{ printf 'O\\n'; printf 'E\\n' >&2; } |& while IFS= read -r line; do printf '<%s>\\n' \"$line\"; done",
+    "native": {
+      "status": 2,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 190,
+        "sha256": "a14536b734334a2452cd7a8b22ef20e697e1e4137bd7261ed9750fe56ec828a2",
+        "base64": "c3VyZmFjZS1jYXNlOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGAmJwpzdXJmYWNlLWNhc2U6IC1jOiBsaW5lIDA6IGB7IHByaW50ZiAnT1xuJzsgcHJpbnRmICdFXG4nID4mMjsgfSB8JiB3aGlsZSBJRlM9IHJlYWQgLXIgbGluZTsgZG8gcHJpbnRmICc8JXM+XG4nICIkbGluZSI7IGRvbmUnCg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 8,
+        "sha256": "0bea2c5d73b49ca1ca2765a892de92120de345a9b759cd5615d0fa1141f34410",
+        "base64": "PE8+CjxFPgo="
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B25",
+    "program": "{ printf O; printf E >&2; } &>out; printf 'done\\n'",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 5,
+        "sha256": "d117fa006ba9208500b2930ce69cbde436c647afa917cb7396a9bc9111a46dd2",
+        "base64": "ZG9uZQo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 420,
+          "base64": "T0U="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 5,
+        "sha256": "d117fa006ba9208500b2930ce69cbde436c647afa917cb7396a9bc9111a46dd2",
+        "base64": "ZG9uZQo="
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 438,
+          "base64": "T0U="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": true,
+      "stderr": true,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": false
+    }
+  },
+  {
+    "id": "B30",
+    "program": "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+        "base64": "PDE+CjwwPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 3,
+        "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+        "base64": "PD4K"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": true,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B32",
+    "program": "set -euo pipefail; printf '%s\\n' \"${missing-default}\"; printf '%s\\n' \"$missing\"; printf BAD",
+    "native": {
+      "status": 1,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "01666ec060466c14b9fa06c613fbac449163f2a2017558fe16526209ab78c6b0",
+        "base64": "ZGVmYXVsdAo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "a52eec196e947864ec3bf60821f99b7cb36e22c4e521e2233fbf622743a9297d",
+        "base64": "c3VyZmFjZS1jYXNlOiBtaXNzaW5nOiB1bmJvdW5kIHZhcmlhYmxlCg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 1,
+      "stdout": {
+        "bytes": 8,
+        "sha256": "01666ec060466c14b9fa06c613fbac449163f2a2017558fe16526209ab78c6b0",
+        "base64": "ZGVmYXVsdAo="
+      },
+      "stderr": {
+        "bytes": 41,
+        "sha256": "ec1947ed5b1689e3d5c11d6cbd1472dcc6ca35f058fe7f8dde7fe4fbe038d321",
+        "base64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogdW5ib3VuZCB2YXJpYWJsZQo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": true,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B34",
+    "program": "for ((i=0;i<3;i++)); do printf '%s\\n' \"$i\"; done",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 6,
+        "sha256": "b78a1987bcbdc0903ba6ba29ee3e1f4e7cc1ca868a60889beb141e26e06cb005",
+        "base64": "MAoxCjIK"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 2,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 40,
+        "sha256": "b8141d286f7c4561cd73d1803be2103c37e6e379643d14461ef175c73e93f61f",
+        "base64": "c2hlbGw6IEludmFsaWQgZm9yIHZhcmlhYmxlIGF0IG9mZnNldCA1Cg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B35",
+    "program": "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "c8d107905bbbf7f29936382d88eddcacfcd85bdd16898913c20537f0ae14c7b3",
+        "base64": "Zjp2YWx1ZQo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 2,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 62,
+        "sha256": "dc5cba64110f9dc978b56bfef4d0961d2367a118f7d133d7b4484b51ab2f9131",
+        "base64": "c2hlbGw6IFVuZXhwZWN0ZWQgb3IgdW5zdXBwb3J0ZWQga2V5d29yZCBmdW5jdGlvbiBhdCBvZmZzZXQgMAo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B36",
+    "program": "case x in x) printf A ;& y) printf B ;; esac; printf '\\n'",
+    "native": {
+      "status": 2,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 151,
+        "sha256": "bc52ccdd26f5e4d73c669ca517079355d4e64f0904bf4221b24f19dbf2a2c1d4",
+        "base64": "c3VyZmFjZS1jYXNlOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGAmJwpzdXJmYWNlLWNhc2U6IC1jOiBsaW5lIDA6IGBjYXNlIHggaW4geCkgcHJpbnRmIEEgOyYgeSkgcHJpbnRmIEIgOzsgZXNhYzsgcHJpbnRmICdcbicnCg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 3,
+        "sha256": "7167a273aea114c65e741c2b287e24748542a292aab9607a3d586c1cb051ed6c",
+        "base64": "QUIK"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": false,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B38",
+    "program": "trap 'printf cleanup' EXIT; printf body; exit 7",
+    "native": {
+      "status": 7,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "46c572d27662dab3a278384f6955d004a8496cf0b0193c4b38a767f3ec358b9b",
+        "base64": "Ym9keWNsZWFudXA="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 7,
+      "stdout": {
+        "bytes": 4,
+        "sha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+        "base64": "Ym9keQ=="
+      },
+      "stderr": {
+        "bytes": 39,
+        "sha256": "a6076b71827f51a60f79c0e3dbe861d968f10108824b295f01c6b4599b3a76e0",
+        "base64": "c2hlbGw6IGxpbmUgMTogdHJhcDogY29tbWFuZCBub3QgZm91bmQK"
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": false,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  },
+  {
+    "id": "B39",
+    "program": "__surface_missing_command__; printf 'status:%s\\n' \"$?\"",
+    "native": {
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "bf2e8a0bf23d5e08257f2cb0f19689c4475cc36c56b573f4f062dac7a80c64eb",
+        "base64": "c3RhdHVzOjEyNwo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 61,
+        "sha256": "eee4fa6a7a6ef282ed1961e83ae3839b3c97e55c682485b6f94363c51833dab2",
+        "base64": "c3VyZmFjZS1jYXNlOiBfX3N1cmZhY2VfbWlzc2luZ19jb21tYW5kX186IGNvbW1hbmQgbm90IGZvdW5kCg=="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ]
+    },
+    "virtual": {
+      "kind": "resolved",
+      "status": 0,
+      "stdout": {
+        "bytes": 11,
+        "sha256": "bf2e8a0bf23d5e08257f2cb0f19689c4475cc36c56b573f4f062dac7a80c64eb",
+        "base64": "c3RhdHVzOjEyNwo="
+      },
+      "stderr": {
+        "bytes": 62,
+        "sha256": "694a94b445e0d289b86ce40d93f0ce2faa95e28ec55f456611db9f3f0d23f556",
+        "base64": "c2hlbGw6IGxpbmUgMTogX19zdXJmYWNlX21pc3NpbmdfY29tbWFuZF9fOiBjb21tYW5kIG5vdCBmb3VuZAo="
+      },
+      "filesBefore": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "filesAfter": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work/.hidden",
+          "type": "file",
+          "mode": 384,
+          "base64": "SAo="
+        },
+        {
+          "path": "work/a.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "QQo="
+        },
+        {
+          "path": "work/b.txt",
+          "type": "file",
+          "mode": 384,
+          "base64": "Qgo="
+        },
+        {
+          "path": "work/source-fixture",
+          "type": "file",
+          "mode": 384,
+          "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+        }
+      ],
+      "cleanup": {
+        "attempted": true,
+        "settled": true,
+        "rejected": false
+      },
+      "publicSettlement": {
+        "execObserved": true,
+        "disposeSettled": true,
+        "disposeRejected": false,
+        "events": [
+          "exec-started",
+          "exec-resolved",
+          "dispose-started",
+          "dispose-resolved"
+        ],
+        "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+        "privateOutstandingJobs": "NOT_OBSERVED"
+      },
+      "hasPrimary": false,
+      "hasCleanupError": false,
+      "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+    },
+    "comparison": {
+      "stdout": true,
+      "stderr": false,
+      "status": true,
+      "filesBefore": true,
+      "filesAfter": true
+    }
+  }
+]

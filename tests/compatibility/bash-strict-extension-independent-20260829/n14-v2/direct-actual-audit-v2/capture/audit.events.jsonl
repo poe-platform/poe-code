@@ -1,0 +1,7 @@
+{"at":"2026-08-29T11:55:37.783Z","event":"owner-start","pid":58049,"mode":"audit"}
+{"at":"2026-08-29T11:55:37.795Z","event":"capture-open","label":"audit"}
+{"at":"2026-08-29T11:55:37.799Z","event":"enrolled","label":"audit","pid":58050,"executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/audit.mjs","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/INPUTS.json"]}
+{"at":"2026-08-29T11:55:38.076Z","event":"exit","label":"audit","pid":58050,"code":0,"signal":null}
+{"at":"2026-08-29T11:55:38.084Z","event":"close","label":"audit","pid":58050,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:55:38.087Z","event":"capture-closed","label":"audit"}
+{"at":"2026-08-29T11:55:38.092Z","event":"owner-complete","pid":58049,"code":0}

@@ -1,0 +1,13 @@
+{"id":"I01-literal-inventory","pass":true,"created":0,"disposed":0,"cleanupFailure":false}
+{"id":"I02-root-subpath","pass":true,"created":0,"disposed":0,"cleanupFailure":false}
+{"id":"I03-standalone","pass":false,"error":"AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:1","created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I04-options-boundary","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I05-nul-pipeline","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I06-packed-show","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I07-patch-effect","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I08-array-argv","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I09-readonly","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I10-middleware","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I11-corrupt-index","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"I12-abort-reason","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"summary":{"cases":12,"pass":11,"fail":1}}

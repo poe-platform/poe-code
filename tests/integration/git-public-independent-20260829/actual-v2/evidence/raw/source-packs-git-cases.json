@@ -1,0 +1,476 @@
+{
+  "cases": [
+    {
+      "id": "P01",
+      "status": "PASS",
+      "elapsedMs": 35
+    },
+    {
+      "id": "P02",
+      "status": "PASS",
+      "elapsedMs": 21
+    },
+    {
+      "id": "P03",
+      "status": "PASS",
+      "elapsedMs": 11
+    },
+    {
+      "id": "P04",
+      "status": "PASS",
+      "elapsedMs": 10
+    },
+    {
+      "id": "P05",
+      "status": "PASS",
+      "elapsedMs": 10
+    },
+    {
+      "id": "P06",
+      "status": "PASS",
+      "elapsedMs": 8
+    },
+    {
+      "id": "P07",
+      "status": "PASS",
+      "elapsedMs": 18
+    },
+    {
+      "id": "P08",
+      "status": "PASS",
+      "elapsedMs": 11
+    },
+    {
+      "id": "P09",
+      "status": "PASS",
+      "elapsedMs": 7
+    },
+    {
+      "id": "P10",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "P11",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "P12",
+      "status": "PASS",
+      "elapsedMs": 27
+    },
+    {
+      "id": "P13",
+      "status": "PASS",
+      "elapsedMs": 11
+    },
+    {
+      "id": "D01",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "P01-workflow-1",
+      "status": "PASS",
+      "elapsedMs": 9
+    },
+    {
+      "id": "P01-workflow-2",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "P01-workflow-3",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "P01-workflow-4",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P01-workflow-5",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "P01-workflow-6",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-1",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-2",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-3",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-4",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-5",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "P02-workflow-6",
+      "status": "PASS",
+      "elapsedMs": 4
+    },
+    {
+      "id": "N01",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N02",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N03",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N04",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N05",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N06",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N07",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N08",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N09",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N10",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N11",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N12",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "N13",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N14",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "N15",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "minimum-0",
+      "status": "PASS",
+      "elapsedMs": 8
+    },
+    {
+      "id": "minimum-1",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "minimum-2",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "minimum-3",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "zero-result-four",
+      "status": "PASS",
+      "elapsedMs": 4
+    },
+    {
+      "id": "empty-direct",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "idx-n1-l1",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "idx-n0-slot",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "object-hash",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "ref-cycle",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "second-member",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "truncated",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "declared-short",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "sidecar-rev",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-bitmap",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-keep",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-mtimes",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "sidecar-objects/pack/multi-pack-index",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-objects/info/packs",
+      "status": "PASS",
+      "elapsedMs": 4
+    },
+    {
+      "id": "sidecar-objects/info/commit-graph",
+      "status": "PASS",
+      "elapsedMs": 4
+    },
+    {
+      "id": "refuse-promisor",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "refuse-unknown",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "refuse-idx-only",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "refuse-link",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "sidecar-no-body-read",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-observable-change",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "pack-content-change",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "stat--1",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "stat-NaN",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "stat-Infinity",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "stat-33554433",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "borrowed-subarray",
+      "status": "PASS",
+      "elapsedMs": 7
+    },
+    {
+      "id": "readfile-fallback",
+      "status": "PASS",
+      "elapsedMs": 6
+    },
+    {
+      "id": "abort-null",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "abort-false",
+      "status": "PASS",
+      "elapsedMs": 3
+    },
+    {
+      "id": "abort-0",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "abort-abort",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "preabort-no-read",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "sink-identity",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "shell-pipeline",
+      "status": "PASS",
+      "elapsedMs": 28
+    },
+    {
+      "id": "duplicates-pinned",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "nine-packs",
+      "status": "PASS",
+      "elapsedMs": 4
+    },
+    {
+      "id": "sidecar-unobservable-body",
+      "status": "PASS",
+      "elapsedMs": 5
+    },
+    {
+      "id": "sidecar-stat-cap",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "pinned-three-large-bodies",
+      "status": "PASS",
+      "elapsedMs": 265
+    },
+    {
+      "id": "cumulative-work-four-bodies",
+      "status": "PASS",
+      "elapsedMs": 350
+    },
+    {
+      "id": "empty-chunk-budget",
+      "status": "PASS",
+      "elapsedMs": 30
+    },
+    {
+      "id": "preclosed-local-output",
+      "status": "PASS",
+      "elapsedMs": 1
+    },
+    {
+      "id": "reader-cleanup-identity",
+      "status": "PASS",
+      "elapsedMs": 2
+    },
+    {
+      "id": "ref-external-loose-base",
+      "status": "PASS",
+      "elapsedMs": 2
+    }
+  ],
+  "pass": 93,
+  "fail": 0,
+  "invocations": 104,
+  "cleanupScopes": 104,
+  "nativeRuns": 0,
+  "actualSafeJsRuns": 0,
+  "qualification": "Finite author examples; allocation/native/observer and unexecuted matrix variants not inferred"
+}

@@ -1,0 +1,14 @@
+{"kind":"bootstrap","pid":26831,"allowance":32}
+{"kind":"worker-admit","entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","options":{"execArgv":[],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}}}
+{"kind":"worker-create","id":1,"threadId":2,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","live":1}
+{"kind":"worker-exit","id":1,"code":1,"live":0}
+{"kind":"worker-admit","entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","options":{"execArgv":[],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}}}
+{"kind":"worker-create","id":2,"threadId":3,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","live":1}
+{"kind":"worker-exit","id":2,"code":1,"live":0}
+{"kind":"worker-admit","entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","options":{"execArgv":[],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}}}
+{"kind":"worker-create","id":3,"threadId":4,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","live":1}
+{"kind":"worker-exit","id":3,"code":1,"live":0}
+{"kind":"worker-admit","entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","options":{"execArgv":[],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}}}
+{"kind":"worker-create","id":4,"threadId":5,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/dist/commands/regex-execution/worker.js","sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","live":1}
+{"kind":"worker-exit","id":4,"code":1,"live":0}
+{"kind":"before-exit","created":4,"live":0}

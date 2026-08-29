@@ -1,0 +1,10 @@
+{
+  "conditionalRootGo": true,
+  "sourceCommit": "7b2cea72044957ab06faa374365cc98d12618515",
+  "dispatchSealSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+  "executionSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "namespaceUnused": true,
+  "pid": 26062,
+  "sameProcessExecReplacement": true,
+  "originalHoldsPreserved": true
+}

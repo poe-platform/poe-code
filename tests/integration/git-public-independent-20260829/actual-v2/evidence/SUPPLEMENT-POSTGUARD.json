@@ -1,0 +1,164 @@
+{
+  "dispatchSealSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+  "rows": [
+    {
+      "path": "dispatch.py",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-FIXTURES.json",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "unchanged": true
+    },
+    {
+      "path": "PRECONTROL-TOOL.json",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-COMMIT.json",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-RECEIPT.json",
+      "unchanged": true
+    },
+    {
+      "path": "controls-cli.stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "controls-cli.stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "README.md",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C01-missing-reference-btuihf92/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C01-missing-reference-btuihf92/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C01-missing-reference-btuihf92/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C01-missing-reference-btuihf92/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C02-preauth-throw-96b5xij7/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C02-preauth-throw-96b5xij7/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C02-preauth-throw-96b5xij7/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C02-preauth-throw-96b5xij7/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C03-exec-spawn-failure-h9jp9pz5/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C03-exec-spawn-failure-h9jp9pz5/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C03-exec-spawn-failure-h9jp9pz5/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C03-exec-spawn-failure-h9jp9pz5/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C04-falsy-primary-cleanup-sa57vagu/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C04-falsy-primary-cleanup-sa57vagu/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C04-falsy-primary-cleanup-sa57vagu/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C04-falsy-primary-cleanup-sa57vagu/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C05-normal-tiny-child-zwbx3fdu/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C05-normal-tiny-child-zwbx3fdu/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C05-normal-tiny-child-zwbx3fdu/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C05-normal-tiny-child-zwbx3fdu/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C06-capture-closure-6cwpjrr0/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C06-capture-closure-6cwpjrr0/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C06-capture-closure-6cwpjrr0/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/C06-capture-closure-6cwpjrr0/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/entry-pikmhgvx/CONTROL-RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/entry-pikmhgvx/RESULT.json",
+      "unchanged": true
+    },
+    {
+      "path": "captures/entry-pikmhgvx/events.jsonl",
+      "unchanged": true
+    },
+    {
+      "path": "captures/entry-pikmhgvx/stderr.raw",
+      "unchanged": true
+    },
+    {
+      "path": "captures/entry-pikmhgvx/stdout.raw",
+      "unchanged": true
+    },
+    {
+      "path": "SHIPPING-UNCHANGED.json",
+      "unchanged": true
+    }
+  ],
+  "allUnchanged": true,
+  "sourceSha256": "3270b11f5cdbc13b7c4f3ec9175d0938ded7b1f68571aea4e20f06f2d2173c77",
+  "productOrControlRerun": false
+}

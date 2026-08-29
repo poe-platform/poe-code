@@ -1,0 +1,278 @@
+{
+  "cases": [
+    {
+      "id": "G01-public-exports",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "G02-exact80",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G03-standalone",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G04-collision-global-false",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "G05-replace-global-true",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "G06-discovery-boundary",
+      "pass": true,
+      "shells": 2,
+      "closed": 2
+    },
+    {
+      "id": "G07-fixed-options",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "G08-standalone-replacement",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "G09-readonly-packed",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G10-pipeline",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G11-apply-crossfeature",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G12-array-function",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G13-preaborted-caller",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G14-corrupt-pack-before-output",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G15-unsupported-storage",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G16-usage-not-version-stub",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G17-diff-exit-one",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "G18-stdout-backpressure",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-1",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-2",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-3",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-4",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-5",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "loose-workflow-6",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-1",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-2",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-3",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-4",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-5",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P01-workflow-6",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-1",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-2",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-3",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-4",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-5",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P02-workflow-6",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P03-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P04-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P05-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P06-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P07-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P08-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P09-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P11-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P12-public-verified-blob",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    }
+  ],
+  "pass": 45,
+  "fail": 0,
+  "nativeRuns": 0,
+  "privateRuns": 0
+}

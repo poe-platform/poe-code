@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "id": "G01-public-exports",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- [Function: createGitCommand]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/registration-mutant/public.mjs:51:87\n    at record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/registration-mutant/public.mjs:36:15)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/registration-mutant/public.mjs:50:7",
+      "shells": 0,
+      "closed": 0
+    }
+  ],
+  "pass": 0,
+  "fail": 1,
+  "nativeRuns": 0,
+  "privateRuns": 0
+}

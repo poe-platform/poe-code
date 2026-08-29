@@ -1,0 +1,95 @@
+{
+  "actualTree": {
+    "bytes": 84099175,
+    "files": 6477,
+    "dirs": 786
+  },
+  "dispatchTree": {
+    "bytes": 147305,
+    "files": 59,
+    "dirs": 9
+  },
+  "knownRuntimePids": [
+    26062,
+    26066,
+    26069,
+    26157,
+    26211,
+    26230,
+    26240,
+    26252,
+    26271,
+    26300,
+    26314,
+    26331,
+    26359,
+    26369,
+    26397,
+    26499,
+    26528,
+    26535,
+    26549,
+    26574,
+    26601,
+    26609,
+    26628,
+    26647,
+    26663,
+    26677,
+    26693,
+    26727,
+    26766,
+    26773,
+    26787,
+    26794,
+    26815,
+    26823,
+    26831,
+    26876,
+    26905,
+    26914,
+    26928,
+    26945,
+    26949,
+    26955,
+    26964,
+    26978,
+    27004
+  ],
+  "knownRuntimePidCount": 45,
+  "allKnownInnerClosed": true,
+  "innerSignals": [],
+  "outerNaturalClose": {
+    "naturalClose": true,
+    "returncode": 1,
+    "capturedBytes": 517,
+    "elapsedSeconds": 69.43400929198833
+  },
+  "groupAbsent": {
+    "ownedGroupAbsentAfterCleanup": 26066
+  },
+  "maintainedTap": {
+    "tests": 83,
+    "pass": 83,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "movedConsumerTap": {
+    "tests": 21,
+    "pass": 21,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "noInstructionFilenamesObserved": true,
+  "retainedScratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP",
+  "cleanup": "All observed owned runtime processes closed naturally; isolated scratch retained read-only as evidence, not erased or vendored. No global census claim.",
+  "timing": {
+    "innerMilliseconds": 68709,
+    "outerSeconds": 69.43400929198833,
+    "elapsedActualIncludingEvidenceSeconds": 397.731
+  }
+}

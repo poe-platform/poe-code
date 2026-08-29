@@ -1,0 +1,19 @@
+{
+  "status": "ONE_ACTIVATION_ENROLLED_BEFORE_CLI",
+  "startedAt": "2026-08-29T03:53:05.753Z",
+  "startMs": 1787975585753,
+  "maxSeconds": 3600,
+  "sourceCommit": "d469a6e7bf75c8dbc2e50ebeca24a86dcb76bbe8",
+  "dispatchSealSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+  "successorSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "actualBindingSha256": "1e8c1a08d29d14b2bc99f75d50703c545681977b3a30caf13c54c8cf5919209d",
+  "namespaceUnused": true,
+  "processTopology": "exec-replaced pinned Python dispatcher=>same PID original launcher=>Node coordinator=>one serial child; no resident extra dispatcher",
+  "outerProcessReserve": 18,
+  "internalLoaderCap": 32,
+  "regexCap": 32,
+  "rawBeforeInterpreter": true,
+  "noRetry": true
+}

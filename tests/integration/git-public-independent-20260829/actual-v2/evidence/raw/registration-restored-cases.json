@@ -1,0 +1,14 @@
+{
+  "cases": [
+    {
+      "id": "G02-exact80",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    }
+  ],
+  "pass": 1,
+  "fail": 0,
+  "nativeRuns": 0,
+  "privateRuns": 0
+}

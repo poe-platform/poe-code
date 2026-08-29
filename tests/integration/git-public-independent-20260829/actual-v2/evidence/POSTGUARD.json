@@ -1,0 +1,1311 @@
+{
+  "role": "POST_EXECUTION_DATA_EQUALITY_NO_RERUN",
+  "sourceInputs": {
+    "count": 292,
+    "allUnchanged": true,
+    "rows": [
+      {
+        "path": "README.md",
+        "pass": true
+      },
+      {
+        "path": "package.json",
+        "pass": true
+      },
+      {
+        "path": "src/commands/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/create.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/extract.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/format.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/archive/stream.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/basic.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/checksums/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/checksums/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/files.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/gunzip.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/compression/stream.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/base.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/od.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/encoding/xxd.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/bytes/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/column.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/display.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/column/table.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/copy-identity.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/GNU-DIFF.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/GNU-PATCH.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/PARSER.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/diff-format.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/diff.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch-envelope.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch-formats.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch-path.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/patch.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/diff-patch/unified.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/arguments.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/budget.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/du.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/format.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/du/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/env-split.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/bre-worker.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/evaluate.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/expr/syntax.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/file/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/file/classify.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/file/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/file/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/filesystem.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/find.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/grep-aliases/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/grep-aliases/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/grep.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/budget.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/entities.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/input.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/parser.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/render.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/html-to-markdown/text.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/chmod.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/mktemp.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/metadata/stat.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/move.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/args.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/body.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/curl.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/output.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/transport.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/network/types.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/predicates.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/regex-execution/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/regex-execution/client.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/regex-execution/matching.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/regex-execution/protocol.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/regex-execution/worker.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/io.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/render.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/safejs/types.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/glob.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/matcher.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/output.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/rg.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/search/walk.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/io.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/names.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/outputs.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/split/split.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/nl.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/rev.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/seq.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-format/unexpand.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/expand.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/fold.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/numeric-options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/strings.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/stream-inspection/tac.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/input.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/interpreter.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/jq.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/limits.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/numbers.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/parser.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/split.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/structured/values.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/comm.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/join.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/table-text/paste.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/awk-runtime.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/awk-syntax.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/awk-values.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/awk.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/regex.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/sed.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text-programs/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/text.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/calendar.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/date.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/format.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/printenv.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/time-env/sleep.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/timeout/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/timeout/duration.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/timeout/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/timeout/scheduler.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/arguments.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/charset.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/io.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/pattern.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/tree/tree.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/ACCESS-POLICY-v2.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/DESIGN.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/design-evidence/access-provenance-v2.json",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/design-evidence/getopt-source.data",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/design-evidence/provenance.json",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/design-evidence/which-manual.data",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/design-evidence/which-source.data",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/which/which.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/command.md",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/errors.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/filesystem.md",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/filesystem.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/path.ts",
+        "pass": true
+      },
+      {
+        "path": "src/contracts/plugin.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/mount/COMPARISON.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/mount/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/mount/comparison.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/mount/identity.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/mount/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/overlay/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/overlay/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/readonly/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/readonly/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/real/allocation.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/real/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/COMPARISON.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/SDK_COMPARISON.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/authority.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/filesystem.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/request.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/signature.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/transport.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/types.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/http/xml.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/mock.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/s3/transport.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/resource-id.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/webdav.ts",
+        "pass": true
+      },
+      {
+        "path": "src/fs/webdav/xml.ts",
+        "pass": true
+      },
+      {
+        "path": "src/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/integrations/safejs/filesystem.ts",
+        "pass": true
+      },
+      {
+        "path": "src/integrations/safejs/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/integrations/safejs/shell.ts",
+        "pass": true
+      },
+      {
+        "path": "src/integrations/safejs/stats.ts",
+        "pass": true
+      },
+      {
+        "path": "src/integrations/safejs/values.ts",
+        "pass": true
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/arithmetic.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/arrays/bindings.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/arrays/ledger.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/arrays/state.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/arrays/syntax.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/cancellation.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/display.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/getopts.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/input.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/locale.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/pattern.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "pass": true
+      },
+      {
+        "path": "src/shell/types.ts",
+        "pass": true
+      },
+      {
+        "path": "tsconfig.build.json",
+        "pass": true
+      },
+      {
+        "path": "tsconfig.json",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/apply.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/matcher.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/options.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/parser.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/apply-patch/shared.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/README.md",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/arguments.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/codec.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/config.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/crc.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/delta.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/diff.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/ignore.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/index.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/io.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/limits.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/pack.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/queries.ts",
+        "pass": true
+      },
+      {
+        "path": "src/commands/git/repository.ts",
+        "pass": true
+      }
+    ]
+  },
+  "sourceTree": {
+    "expected": 288,
+    "observed": 288,
+    "equal": true,
+    "sha256": "488c2fefced99efad562cd45cdbe8b622669dde0cd537354be761851a931cdd9",
+    "ordering": "UTF8 full-relative-path byte order, explicit path/mode/bytes/SHA256 tuples"
+  },
+  "sourceDist": {
+    "expected": 948,
+    "observed": 948,
+    "equal": true
+  },
+  "movedPackage": {
+    "expected": 950,
+    "observed": 950,
+    "equal": true,
+    "sha256": "34bcb349734961de5738d1c42c772cf1cd4ca4d943d89a91b7a830f3e315fdb9"
+  },
+  "installedPathAbsent": true,
+  "toolChecks": [
+    {
+      "name": "typescript",
+      "regular": 132,
+      "links": 0,
+      "unchanged": true
+    },
+    {
+      "name": "@types/node",
+      "regular": 74,
+      "links": 0,
+      "unchanged": true
+    },
+    {
+      "name": "undici-types",
+      "regular": 41,
+      "links": 0,
+      "unchanged": true
+    },
+    {
+      "name": "npm",
+      "regular": 2027,
+      "links": 12,
+      "unchanged": true
+    }
+  ],
+  "shipping": [
+    {
+      "path": "launch.py",
+      "unchanged": true
+    },
+    {
+      "path": "run.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "prepare.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "resources.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "worker-policy.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "loader.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "novel.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "unchanged": true
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "SOURCE.json",
+      "unchanged": true
+    },
+    {
+      "path": "PRESEAL.json",
+      "unchanged": true
+    },
+    {
+      "path": "EXECUTOR.json",
+      "unchanged": true
+    },
+    {
+      "path": "INPUT-BINDINGS.json",
+      "unchanged": true
+    },
+    {
+      "path": "CENSUS.json",
+      "unchanged": true
+    },
+    {
+      "path": "COHORTS.json",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-COVERAGE-MAP.json",
+      "unchanged": true
+    },
+    {
+      "path": "SOURCE-RECONCILIATION.json",
+      "unchanged": true
+    },
+    {
+      "path": "ADMISSION.md",
+      "unchanged": true
+    },
+    {
+      "path": "HANDOFF.md",
+      "unchanged": true
+    }
+  ],
+  "archive": {
+    "bytes": 864000,
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "mode": 420
+  },
+  "noPrivatePostguard": "No private path accessed or attested",
+  "limitations": "Known retained inventories only; tool original entries checked, no append-proof claim for entire original tool directories; no global worktree/host/descendant census."
+}

@@ -1,0 +1,329 @@
+{
+  "schema": "ere-transport-future-validation-v1",
+  "status": "ALL_UNRUN",
+  "families": 32,
+  "finiteVariants": 60,
+  "notExecutionAuthorization": true,
+  "native": 0,
+  "currentWorkers": 0,
+  "currentCompiler": 0,
+  "currentProductExecutions": 0,
+  "rows": [
+    {
+      "id": "P01",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "matched-vector"
+      ],
+      "expected": "Exact five-key result and seven-key usage; matching ID/grant; complete0..N non-null group0, usage.work/allocatedUnits equality; accept only once."
+    },
+    {
+      "id": "P02",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "empty-versus-absent"
+      ],
+      "expected": "Same bounded subject with one null capture and one {start:1,end:1}; preserve distinction through transport, not truthiness."
+    },
+    {
+      "id": "P03",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "no-match-two-groups"
+      ],
+      "expected": "Compile groupCount2, pure no-match empty vectors; adapter sends3 null spans, no values; no false truncated success."
+    },
+    {
+      "id": "P04",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "undefined",
+        "null",
+        "false",
+        "0",
+        "empty-string"
+      ],
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity."
+    },
+    {
+      "id": "P05",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "getter",
+        "proxy",
+        "extra-symbol"
+      ],
+      "expected": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys."
+    },
+    {
+      "id": "P06",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "hole",
+        "wrong-count",
+        "outside-overall"
+      ],
+      "expected": "Reject bounded sparse/cardinality/out-of-range frames before capture copying."
+    },
+    {
+      "id": "P07",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "over-grant",
+        "noninteger",
+        "duplicate-counter-mismatch"
+      ],
+      "expected": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption."
+    },
+    {
+      "id": "P08",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "syntax-usage",
+        "unsupported-usage",
+        "profile-limit-usage"
+      ],
+      "expected": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero."
+    },
+    {
+      "id": "P09",
+      "role": "synthetic-protocol",
+      "status": "UNRUN",
+      "variants": [
+        "duplicate",
+        "stale-id",
+        "wrong-operation"
+      ],
+      "expected": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication."
+    },
+    {
+      "id": "L01",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "register-throws",
+        "closed-before-activation"
+      ],
+      "expected": "No Worker/timer/listener acquisition after registration failure or prior close; raw primary retained."
+    },
+    {
+      "id": "L02",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "handler-setup-throws",
+        "postMessage-throws"
+      ],
+      "expected": "Returned Worker handle is already owned; all fallible post-acquisition routes drain, including publication failure."
+    },
+    {
+      "id": "L03",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "variants": [
+        "queued-abort-false"
+      ],
+      "expected": "Bounded queued child abort(false) removes only that request; sibling finishes; raw false and parent ledger retained."
+    },
+    {
+      "id": "L04",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "variants": [
+        "active-abort-zero"
+      ],
+      "expected": "Abort the active held request with actual AbortController.abort(0); preserve raw0 and require actual Worker retirement/session cleanup before settlement. Do not assume abort(undefined) produces undefined; undefined failure identity is exercised on explicit rejection/cleanup routes."
+    },
+    {
+      "id": "L05",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "variants": [
+        "reply-then-parent-abort"
+      ],
+      "expected": "Validated usage accounted once; caller abort before publication wins by actual runtime provenance, not payload equality."
+    },
+    {
+      "id": "L06",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "variants": [
+        "startup-timeout",
+        "request-timeout"
+      ],
+      "expected": "Each timed-out acquired Worker is retired; no match/syntax result; unproved grant consumed, no automatic restart refund."
+    },
+    {
+      "id": "L07",
+      "role": "real-Worker-future",
+      "status": "UNRUN",
+      "variants": [
+        "worker-error",
+        "messageerror",
+        "unexpected-exit"
+      ],
+      "expected": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events."
+    },
+    {
+      "id": "L08",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "termination-rejects-undefined"
+      ],
+      "expected": "Failed termination retains presence/ownership; other cleanups attempted; cannot mark free/clean."
+    },
+    {
+      "id": "L09",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "instrumented-publication-rejects"
+      ],
+      "expected": "If test instrumentation returns async work, enroll/await it and cleanup; its failure cannot mask earlier caller/execution reason. No new public observer hook."
+    },
+    {
+      "id": "B01",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "root-descendants"
+      ],
+      "expected": "One explicit root performs successive ERE jobs through internal invoke, pipeline and substitution; shared remaining counters, no state-clone refund."
+    },
+    {
+      "id": "B02",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "fresh-independent-exec"
+      ],
+      "expected": "Two independent public exec calls on same Shell each create fresh ERE root; concurrent roots never share mutable usage."
+    },
+    {
+      "id": "B03",
+      "role": "data-accounting-future",
+      "status": "UNRUN",
+      "variants": [
+        "zero",
+        "exact-boundary",
+        "one-over"
+      ],
+      "expected": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures."
+    },
+    {
+      "id": "B04",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "crash-unproved",
+        "malformed-unproved"
+      ],
+      "expected": "Consume complete unresolved cumulative allowance; fresh Worker cannot restore credit; live storage release waits retirement."
+    },
+    {
+      "id": "B05",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "failed-syntax-then-job"
+      ],
+      "expected": "Known syntax failure commits measured pure-ledger usage; next job sees residual root grant with unchanged per-input caps."
+    },
+    {
+      "id": "B06",
+      "role": "synthetic-owner",
+      "status": "UNRUN",
+      "variants": [
+        "input-mutation-after-admission"
+      ],
+      "expected": "Caller mutates fragment container after awaited transfer; owned snapshot stable, copy/queue overhead precharged, no unbounded empty-fragment vector."
+    },
+    {
+      "id": "B07",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "capture-byte-overflow",
+        "capture-slot-overflow"
+      ],
+      "expected": "Span sums/slots exceed private cap before string/array publication; status3, prior captures preserved, no maxExpansionFields fabrication."
+    },
+    {
+      "id": "C01",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "readonly-capture-target"
+      ],
+      "expected": "Match remains0/1 under approved readonly rule, old binding unchanged, required diagnostic awaited; no attribute removal."
+    },
+    {
+      "id": "C02",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "public-expansion-limit",
+        "public-output-limit",
+        "sink-raw-false"
+      ],
+      "expected": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them."
+    },
+    {
+      "id": "C03",
+      "role": "runtime-integration-future",
+      "status": "UNRUN",
+      "variants": [
+        "short-circuited-regex"
+      ],
+      "expected": "Unvisited RHS has zero expansion, compilation, Worker starts, usage and capture mutation; parser errors still belong to shell grammar."
+    },
+    {
+      "id": "A01",
+      "role": "legacy-regression-future",
+      "status": "UNRUN",
+      "variants": [
+        "expr-contract-pins"
+      ],
+      "expected": "Old RegexExecutionOptions/Descriptor/Request/Reply/Expr* declaration bodies unchanged; replay bounded already-owned expr contract cases only under future GO, never reinterpret ERE as expr-match."
+    },
+    {
+      "id": "A02",
+      "role": "package-load-future",
+      "status": "UNRUN",
+      "variants": [
+        "source-built",
+        "installed",
+        "physical-move"
+      ],
+      "expected": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback."
+    },
+    {
+      "id": "A03",
+      "role": "loader-authority-future",
+      "status": "UNRUN",
+      "variants": [
+        "workerData-env-execArgv"
+      ],
+      "expected": "Exact inert WorkerData, empty env and approved bootstrap execArgv; actual ERE Worker load identity observed, not merely parent hook. Legacy expr Worker flags unchanged."
+    },
+    {
+      "id": "A04",
+      "role": "types-future",
+      "status": "UNRUN",
+      "variants": [
+        "positive-new-method",
+        "negative-old-union"
+      ],
+      "expected": "New internal session/type shapes compile against actual engine declarations; old descriptor/request methods reject shell-ere and no new root/export/options key appears."
+    }
+  ]
+}

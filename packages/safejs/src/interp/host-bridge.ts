@@ -71,7 +71,7 @@ type HostCallbacks = {
   sourceFunctions: Map<number, SandboxClosure>;
   active: Set<Promise<unknown>>;
   seen: WeakMap<SandboxClosure, (...args: readonly unknown[]) => Promise<unknown>>;
-  nextInvocation: number;
+  nextReissuedInvocation?: number;
   restored: Array<{ id: number; arguments: ReplayData; result: Promise<unknown> }>;
 };
 
@@ -148,7 +148,6 @@ function wrapCallerInjectedFunction(
           sourceFunctions: new Map(),
           active: new Set(),
           seen: new WeakMap(),
-          nextInvocation: 0,
           restored: []
         };
         const hostArgs = deepCopyFromSandbox([...args], {
@@ -356,7 +355,6 @@ function executeHostCall(
     );
   }
   if (restored && record.policy === "read-side-effect" && record.lifecycle !== "created") {
-    if (callbacks !== undefined) callbacks.nextInvocation = callbacks.restored.length;
     const context =
       callbacks === undefined
         ? undefined
@@ -373,6 +371,7 @@ function executeHostCall(
     return createHostCallPromise(record, hostCalls.reconcile(record, context), hostCalls);
   }
 
+  if (restored && callbacks !== undefined) callbacks.nextReissuedInvocation = 0;
   hostCalls.start(record);
   let result: unknown;
   try {
@@ -639,7 +638,9 @@ function wrapSandboxClosureForHost(
       "<callback>"
     ) as SandboxValue[];
     const restored =
-      callbacks === undefined ? undefined : callbacks.restored[callbacks.nextInvocation++];
+      callbacks?.nextReissuedInvocation === undefined
+        ? undefined
+        : callbacks.restored[callbacks.nextReissuedInvocation++];
     if (restored !== undefined) {
       if (
         restored.id !== id ||

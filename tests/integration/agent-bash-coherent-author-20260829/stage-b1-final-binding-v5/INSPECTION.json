@@ -1,0 +1,21 @@
+{
+  "startedUTC": "2026-08-29T14:00:33.453Z",
+  "finishedUTC": "2026-08-29T14:00:33.769Z",
+  "commit": "b4cdef973a996ca00199cab721c3565c5d6ee9ed",
+  "records": [
+    {
+      "path": "tests/integration/agent-bash-coherent-final-slot-independent-20260829/v4/RECEIPT.json",
+      "blob": "f6c8d60d65759dad6d075d90f766052c24c099e6",
+      "bytes": 10278,
+      "sha256": "771a5c71c542701f63456a879c34279a3abecba47141569b07863d689758c69d"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-final-slot-independent-20260829/v4/REPORT.md",
+      "blob": "892b893051f3d68f443b54bdee914697b1581b95",
+      "bytes": 2461,
+      "sha256": "02a514b353d527a0734968678c055e32fbd0a277bcc403cc61d4416bed92d500"
+    }
+  ],
+  "gitChildren": 5,
+  "productCalls": 0
+}

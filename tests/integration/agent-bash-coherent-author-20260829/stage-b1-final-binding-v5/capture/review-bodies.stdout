@@ -1,0 +1,244 @@
+f6c8d60d65759dad6d075d90f766052c24c099e6 blob 10278
+{
+  "decision": "HOLD_FINAL_ACTIVATION",
+  "atUTC": "2026-08-29T13:57:49.691Z",
+  "packet": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/FINAL-PACKET.json",
+    "bytes": 23330,
+    "sha256": "01402a8cba3669130b9f441a04bca017bad67f8c33b2791e669da3e62db97a6e"
+  },
+  "checks": 27898,
+  "controls": 4,
+  "sourceInputs": 309,
+  "emissions": 1012,
+  "packageMembers": 1014,
+  "packageQualification": "authenticated producer1014-member inventory and compressed package bytes/hash; no fresh inflate/parse",
+  "regularTools": 2274,
+  "toolLinks": 12,
+  "runtimeFiles": 45,
+  "publisherFiles": 5,
+  "preimportFiles": 1,
+  "reviews": [
+    {
+      "commit": "ebf511e84bdb7d6fb0b11bca05310710c56967b9",
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/RECEIPT.json",
+      "bytes": 5276,
+      "sha256": "12c8f7e03af23977ccf5015a902fe04956681a26c89f59165409d606fc0578c2"
+    },
+    {
+      "commit": "7c8fb0e336499142398ef9ebe7169e64b7cfedfa",
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-publication-v2-review/RECEIPT.json",
+      "bytes": 3585,
+      "sha256": "602295f8ab1366c86bce9e719076a8c107e5107019fdbc31ff4b2892049239c5"
+    }
+  ],
+  "absent": [
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/actual-evidence",
+    "/private/tmp/coherent-b1-publication-v2-20260829-results",
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+    "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr",
+    "/private/tmp/coherent-b1-publication-v2-20260829.startup.stdout",
+    "/private/tmp/coherent-b1-publication-v2-20260829.startup.stderr",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PUBLICATION-AUTHORITY-v3.json",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PREPUBLICATION-LEDGER-v3.json",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stdout",
+    "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stderr",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/ACTUAL-ROOT-GRANT.json"
+  ],
+  "window": {
+    "issued": "2026-08-29T13:45:11.543Z",
+    "latestStart": "2026-08-29T14:05:11.543Z",
+    "expires": "2026-08-29T14:35:11.543Z",
+    "remainingAtCheckMs": 2241852
+  },
+  "commands": {
+    "runtime": {
+      "executable": "/bin/zsh",
+      "argv": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+        "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc",
+        "17692"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "login": false,
+      "env": {
+        "B1_ROOT_GO": "ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION"
+      }
+    },
+    "preimport": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v3/preimport.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/FINAL-PACKET.json",
+        {
+          "slot": "finalPacketSha256",
+          "source": "FINAL-RECEIPT.json.sha256"
+        },
+        {
+          "slot": "finalPacketBytes",
+          "source": "FINAL-RECEIPT.json.bytes"
+        },
+        {
+          "slot": "rootGrantSha256",
+          "source": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/ACTUAL-ROOT-GRANT.json"
+        },
+        {
+          "slot": "rootGrantBytes",
+          "source": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/ACTUAL-ROOT-GRANT.json"
+        },
+        {
+          "slot": "measuredPriorLedgerSha256",
+          "source": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PREPUBLICATION-LEDGER-v3.json"
+        },
+        {
+          "slot": "measuredPriorLedgerBytes",
+          "source": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PREPUBLICATION-LEDGER-v3.json"
+        }
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "login": false,
+      "capture": [
+        "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stdout",
+        "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stderr"
+      ],
+      "rule": "trusted capture/admission precedes helper entry; metadata-only, no automatic dispatch"
+    },
+    "publication": {
+      "executable": "/bin/zsh",
+      "argv": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/publication.sh",
+        "--publish",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/BINDING-v2.json",
+        "022ff1fc4ec15f25ef937419062a69ade7a0b3e3df482a0dcea7318e802fce56",
+        "3923",
+        "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PUBLICATION-AUTHORITY-v3.json",
+        {
+          "slot": "authoritySha256",
+          "type": "sha256",
+          "producedBy": "preimport.mjs from same written bytes after measured ledger authentication"
+        },
+        {
+          "slot": "authorityBytes",
+          "type": "positive integer decimal",
+          "producedBy": "same authority Buffer"
+        }
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "login": false,
+      "env": {
+        "PATH": "/usr/bin:/bin"
+      }
+    }
+  },
+  "slots": {
+    "authorityPath": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PUBLICATION-AUTHORITY-v3.json",
+    "ledgerPath": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/PREPUBLICATION-LEDGER-v3.json",
+    "preimportCapture": [
+      "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stdout",
+      "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/publication-preimport-v3.stderr"
+    ],
+    "rootGrantFile": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/ACTUAL-ROOT-GRANT.json",
+    "knownStartsBeforePublication": {
+      "status": "UNMEASURED; no runtime",
+      "type": "integer7..27",
+      "rule": "6..26 observed retired prior starts plus executing preimport self PID; coordinator observes helper exit/close; no intervening OS starts"
+    }
+  },
+  "bounds": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "finding": {
+    "id": "F01",
+    "severity": "ACTIVATION_HOLD",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v3/preimport.mjs",
+    "sha256": "4bcd89b4f43e51380f0f12baccc1e7d25f39e0b44541cb2e7f721d4dc044dd76",
+    "line": 29,
+    "source": "for (const entry of [...packet.publisherFiles, packet.preimportFiles]) read(entry.path, entry.sha256, entry.bytes, 131072);",
+    "exactPacketShape": {
+      "publisherRecords": 5,
+      "preimportFilesArrayLength": 1,
+      "iterations": 6,
+      "lastIsArray": true,
+      "lastPathPresent": false
+    },
+    "cause": "Preparation spread fixed, but the immutable future preimport helper still appends the whole preimportFiles array. Its sixth entry.path/sha256/bytes are undefined. The read helper calls fs.lstatSync(file) before type admission, so a valid future grant/ledger reaches a path-type failure before authority publication.",
+    "proof": "source and authenticated DATA composition; real preimport protocol NOT executed",
+    "minimumRepair": "Author a separate preimport helper revision using ...packet.preimportFiles plus finite shape validation before subject reads; rebind helper hash/origin, FINAL-PACKET and command slots, then different review. Do not mutate this sealed packet or issue actual GO."
+  },
+  "shapeQualification": {
+    "id": "S02",
+    "scope": "source-only validation claim limit",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v4/identity.mjs",
+    "line": 10,
+    "note": "Object.keys ignores nonenumerable and symbol own keys. Required enumerable own-data fields are checked, but the stronger exact-all-own-keys claim is not established. No extra dynamic probe executed beyond the four authorized groups."
+  },
+  "qualifications": [
+    "author preparation peak3 exceeded authorized2; historical compliance HOLD remains, never amended",
+    "this prospective identity reauthentication does not repair author run or grant runtime authority",
+    "PUBLIC runtime-bound encoded fixture/engine receipts hashed only; no decoding/origin/load-trace/engine execution",
+    "trusted Git internal physical storage remains outside measured logical-work budget",
+    "future measured6..26 retired starts plus helper self yields7..27; coordinator must observe helper exit/close, no intervening starts; slot still UNMEASURED",
+    "window enforcement external; all actual grant/root/work slots absent at check; no renewal or reuse"
+  ]
+}
+
+892b893051f3d68f443b54bdee914697b1581b95 blob 2461
+# B1 v4 independent final-slot review
+
+**HOLD final activation.** Four original PURE identity controls pass, and fresh309 source/1012 emitted files, authenticated1014-member producer inventory/package2fe,2274 regular tools+12links,45 runtime/5 publisher/1preimport pins and both independent acceptance receipts matched. No product/Worker/compiler/install/native execution.
+
+## F01: future preimport still has the nested-array defect
+
+/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v3/preimport.mjs:29
+
+```js
+for (const entry of [...packet.publisherFiles, packet.preimportFiles]) read(entry.path, entry.sha256, entry.bytes, 131072);
+```
+
+Bound hash 4bcd89b4f43e51380f0f12baccc1e7d25f39e0b44541cb2e7f721d4dc044dd76. Preparation correctly uses ...preimportFiles, but the future helper has five publisher records followed by one ARRAY. The sixth iteration reads undefined entry.path and calls fs.lstatSync(undefined); source catch maps the error to78 before writing PUBLICATION-AUTHORITY-v3.json. This is source/DATA proof, not an actual preimport run or product failure. A minimal separately versioned helper/packet rebind and different review are required before ROOT can consider actual GO.
+
+The identity validator's Object.keys also does not enforce absence of hidden/symbol own keys; its four controls establish the narrower tested enumerable-own-data profile, not all-own-key exactness.
+
+## Authority and accounting
+Issued 2026-08-29T13:45:11.543Z; latest start 2026-08-29T14:05:11.543Z; expiry 2026-08-29T14:35:11.543Z. All12 actual slots remained absent at 2026-08-29T13:57:49.691Z, but freshness is not authority and does not override F01. Exact commands/typed runtime-derived hash and measured-role slots are in RECEIPT.json. Publication count must use actually observed prior6..26 retired starts plus helper self, not reservations/zero. Future32-knownOS/peak3/1800s/64MiBcapture/768MiBlogical-work bounds unchanged; trusted Git internal disk is outside that logical accounting.
+
+Author preparation peak3/authorized2 stays historical HOLD. This independent peak3 grant cannot amend it. Old draft windows/undefined-path failure remain preserved. No actual authorization issued. Known roles planned through this publication20 (including two instruction-only readers, four metadata readers, patches, syntax, Git and one PURE helper), direct peak2 within3. No universal transitive census claim.
+

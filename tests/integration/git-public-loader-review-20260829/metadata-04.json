@@ -1,0 +1,28 @@
+{
+  "args": [
+    "ls-tree",
+    "-rz",
+    "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f",
+    "--",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/run.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/internal-loader-arguments.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/hash-regular-file.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/loader.mjs",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/HANDOFF.md",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/CONTROL-COVERAGE-MAP.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/EXECUTION-SEAL.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/PRESEAL.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/ROOT-AUTHORIZATION-TEMPLATE.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE-RECONCILIATION.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/CENSUS.json",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/ADMISSION.md",
+    "tests/integration/git-public-independent-20260829/successor-bindings-v2/EXECUTOR.json"
+  ],
+  "pid": 2240,
+  "closed": true,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,444 @@
+{
+  "commit": "7b2a72e98c50d43fe4d06ded0773ca857e5d233a",
+  "repairSeal": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "bytes": 7604272,
+    "mode": 493,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+  },
+  "pathDomain": "UTF-8 repository-relative ASCII selected paths; NUL records; byte-lexical ordering",
+  "members": [
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/CONTROL-SEAL-V2.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "8a4f14a62ce810fffabffe883a08cc0da748d719",
+      "bytes": 2695,
+      "sha256": "274d1553b23af283c81245842a214c6128060ae873f56676052422ebda378005",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/FINAL-SUMMARY-V2.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "e9f617205f79523692b4eb079cc30426674b87b4",
+      "bytes": 2229,
+      "sha256": "a88e7a207a403675708b10c05fbb4810800f0bb34aa2ea4ba1d62e64327b8043",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/FUTURE-PROFILE-V2.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "00be787a5cb49fcb5d8591d90218fecc0ecea8d1",
+      "bytes": 3607,
+      "sha256": "419c6e06a2ec07b9fcf921c4763893225181d41c96f92e62a81cd673b6764f4e",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/HASH-CONTROL-RESULT.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "733e46a87f08aaa5a52a7f0218947a43c4be2ffa",
+      "bytes": 545,
+      "sha256": "c862ab55b88bfd02efc824b8c30e8697448af8079b10cb2b813d3ae5f1c3924b",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/HASH-CONTROL-SEAL.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "a89162026bae92cbfe59b43071ce2cab9fefc380",
+      "bytes": 631,
+      "sha256": "4a6f7ec2637553eb7882a62356a2de0876ac799aaf8655c689d7ed5fe7f52117",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/METHOD-RESOLUTION.md",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "ae1abab421347e5f9da2ac2e7cc2092341c6f8cd",
+      "bytes": 1008,
+      "sha256": "3754a2f7c079489aadc455945d755fed4c65131bf4f9d0793c24431c43d46bf1",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/PLAN.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "741ab6d824783c43325126c455287128cec2f18b",
+      "bytes": 3041,
+      "sha256": "a94d66ccb738bab886e15dcd0db402adb56a0e3c2a81c0017a5e812b9a307cac",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/REPAIR-PRESEAL-V2.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "7e0e27ac9ab609cc714c07663b893e75d461672e",
+      "bytes": 4245,
+      "sha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/REPORT.md",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "2b9af8b92c4fa1836185146bd224d88b6dfe0806",
+      "bytes": 5342,
+      "sha256": "d2d2018cf73756815dfd807227ac71569fb42b2ed28f4c7921abc32866295d57",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-CONTROLS-01/RESULT.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "6345b27c60abaa5fde29d84d95ade9341bb91624",
+      "bytes": 32607,
+      "sha256": "3cccadabc1f4ea573fcb3448cd472256dbfec10df04860f0a2790250a75ebc39",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-CORRECTION-01/RESULT.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "bea0d85ca29ea38b518034f90f61dfc24a152695",
+      "bytes": 9660,
+      "sha256": "be73698694a7bf00f8dfd9ffc0eb0c81e3a7563302ebc93d6a5c44cc7cafe8cc",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-SUCCESSOR-V2.mjs.data",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "b49ecf36a8819c1ce2627849b71ef95e6aaed872",
+      "bytes": 34829,
+      "sha256": "5dfbe0522523c3960785f69e96a07d0f926feeae0785cfb6a14feba26a9d74d8",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-SUCCESSOR.mjs.data",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "0c9d3ba6bdd4b7503b1e127c913cfc575ff96bd0",
+      "bytes": 34770,
+      "sha256": "2b6fbd8a9059abdc1af04e0b9e614b98b50de3987e5a77b305bf94aa1517ac8c",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/SOURCE-CORRESPONDENCE.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "45bb756e4dea0b0d7ac0ac13f3233f8a0a46c7bf",
+      "bytes": 2927,
+      "sha256": "0711cdbcc0988fbca1a4f7b607187d13098abe2c7c30dd2c1aa26e47d3993400",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/admission.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "dd9ffe31f11770f710147c0921562885c64d8fc6",
+      "bytes": 1822,
+      "sha256": "4db8aafc983b238d79c3fe1dd5c7d056f1142d55e0e1745999ac04121b1277af",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/application-error.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "4b26db018e63b614f7c98512204ffaa55c82894a",
+      "bytes": 38,
+      "sha256": "85a589494dba83523c5573e54ae2f783e2d64bf12a6d7dbd582ee7be98699e0a",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/application.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "fc318fc1fc0f59f3f7aefdad54635841769e11ef",
+      "bytes": 106,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/bootstrap.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "d28e2735985d20f6e1d36d21e35d6858990af1a4",
+      "bytes": 2200,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/consumer-v2.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "c197397966c9f0a677aeb1b6f8dfa89881707415",
+      "bytes": 2726,
+      "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/consumer.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "512c8e000b5f44c1f3ce24cc8d9c3182a76c80c5",
+      "bytes": 2692,
+      "sha256": "435a7ea69e8c88d6b5852384c3e66c2d350a55422e77c2b4e2502e2e49bfcb4b",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/controls-v2.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "90e0a3f3b1cac3e7787c1b083f0a1ac158dd9a01",
+      "bytes": 8633,
+      "sha256": "e6775828ccd8098bcf65fb3dd2484155e6740b3249725ccbb7430bdf92b978d2",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/controls.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "8cce57ad9dbd24911afbc4b606511bab50c0d816",
+      "bytes": 10826,
+      "sha256": "4272cd598ceeae034a1c58f4601e4e16de57bc344a7fd53d64653c7b31e202fa",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/hash-controls.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "2264501ee8116590e9663ea6340ee389e06bf492",
+      "bytes": 1155,
+      "sha256": "b4198e6829fafc9dcf7a1977d287f29a75639b016667e4716b60c746c06887ef",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/hash-regular-file.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "2f5d1436cf40ed0548146e9cf9801427bcecd4d1",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/internal-loader-arguments.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/tiny-loader.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "588c95a532b85aa4eabeaa43652ca7b9160dc94f",
+      "bytes": 1278,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/worker-policy.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/loader.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "f92cd818d9965c7b48211cd6ad3e5b86680d6164",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/resources.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "efd880e3a394fa4e1b2e1a5c0063edf220572255",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/run.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "58891f6497a41fb89b64b9407003daa388f33ff4",
+      "bytes": 33275,
+      "sha256": "582f7c4df2d3dd3d7f4298b428c548046ceefd8a30d9071be58b7002bbc74570",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/worker-policy.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/ADMISSION.md",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "18f45c8886318bc41e41dcb17df297676950e719",
+      "bytes": 3960,
+      "sha256": "17db8369829460479da2747cb274c33f944e505127040bf66cddc730ce48bc31",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/CENSUS.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "d322c8d8710aa1ca26dfd419d580131e610007dc",
+      "bytes": 3169,
+      "sha256": "7a6a8bebb7fd2b206f2e770586fdc869dded9d3bb54a3e0dd1634d09e871cc01",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/CONTROL-COVERAGE-MAP.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "794d8fea72192a56b368ab006901a1a8065c3f33",
+      "bytes": 3236,
+      "sha256": "490d840e83be873c50ee435ea936d01d5cc85b3fef9f67a3adc362dfc5837840",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/EXECUTION-SEAL.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "cb45d5663aacf99e97d343488d86b9f13d1dceef",
+      "bytes": 8650,
+      "sha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/EXECUTOR.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "18671324d8bc914b5205fdd2caca9ea725b5fae1",
+      "bytes": 8468,
+      "sha256": "92f285aeb3fb820beb526a3abe0f3930ac44817fbf949a24d04947521b6e8e8b",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/HANDOFF.md",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "ab35998f7aa8c14c983ab16aa840a3823faf43ec",
+      "bytes": 2915,
+      "sha256": "0838fe0a849e0d2cf97dc4b198aca8c8dc65dfd864b75f3fc8e3f39d487c76c0",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/PRESEAL.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "8092d38963595304ce47675e6e7be1db862fd4b3",
+      "bytes": 6214,
+      "sha256": "6bef125d6e78073d1c4e3bb4045b52db34e210d6593f440d443fe168262f7aad",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/ROOT-AUTHORIZATION-TEMPLATE.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "489ed8dd0ba3da6b56b281890e261fa9a7424b3d",
+      "bytes": 740,
+      "sha256": "cc90c3ef500f71164be0ce894870077dd3167e7e2e355cbbb7652d3ce2c9c559",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE-RECONCILIATION.json",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "dbb936343a7cf219493a144ea107a80a8592dbfe",
+      "bytes": 2630,
+      "sha256": "c8611ceeaf0e143dda3da7fb16255d1663758559fc838198245daa196ebbaabe",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/hash-regular-file.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "2f5d1436cf40ed0548146e9cf9801427bcecd4d1",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/internal-loader-arguments.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "aed6b9093cecdf29f006318e2f9e09f5a43a6ff7",
+      "bytes": 5612,
+      "sha256": "9d37eccaec9e7e8217b7915135002e047761d597ce048a7799969d0cb7e62f8a",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/loader.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "f92cd818d9965c7b48211cd6ad3e5b86680d6164",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "efd880e3a394fa4e1b2e1a5c0063edf220572255",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/run.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "4d93ca6796de978de00cb88f96abfe4b891a25e5",
+      "bytes": 34829,
+      "sha256": "a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce",
+      "physicalMode": 420
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+      "mode": "100644",
+      "kind": "blob",
+      "blob": "0df32688f37e4dfffb9ca98d76836a1299f1115d",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "physicalMode": 420
+    }
+  ],
+  "successorCommit": "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f",
+  "successorExecutionSeal": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808"
+}

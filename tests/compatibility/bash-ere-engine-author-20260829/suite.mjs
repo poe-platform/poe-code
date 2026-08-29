@@ -134,6 +134,19 @@ if (selection === 'all') {
       if (offset >= 0) assert.deepEqual(result.captures, [{ start: offset, end: offset + pattern.length }]);
     }
   });
+  await check('L12-negation-work', async () => {
+    const ledger = new EreLedger(bounds, { work: 100 });
+    await assert.rejects(compileEre('[^a]', ledger), error => error.resource === 'work');
+    assert.equal(ledger.usage.work, 100);
+  });
+  await check('L13-composite-work', async () => {
+    const ledger = new EreLedger(bounds);
+    await compileEre('abc', ledger);
+    assert.equal(ledger.usage.work, 12);
+    const alternativeLedger = new EreLedger(bounds);
+    await compileEre('a|b|c', alternativeLedger);
+    assert.equal(alternativeLedger.usage.work, 14);
+  });
   await check('P02-alternative-permutations', async () => {
     for (const pattern of ['(a|aa)(a?)', '(aa|a)(a?)']) for (const subject of ['aa', 'aaa']) {
       const ledger = new EreLedger(bounds);

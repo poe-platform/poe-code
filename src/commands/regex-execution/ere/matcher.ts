@@ -31,6 +31,7 @@ async function historyOrder(left: History | null, right: History | null, ledger:
   const leftCount = left?.count ?? 0;
   const rightCount = right?.count ?? 0;
   for (let ordinal = 1; ordinal <= Math.min(leftCount, rightCount); ordinal++) {
+    ledger.charge("work", 1, signal);
     let leftEntry = left!;
     let rightEntry = right!;
     for (let remaining = leftCount; remaining > ordinal; remaining--) {

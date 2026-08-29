@@ -93,6 +93,7 @@ class Parser {
       this.offset++;
     }
     if (alternatives.length === 1) return alternatives[0]!;
+    this.ledger.charge("work", alternatives.length * 2, this.signal);
     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
   }
 
@@ -130,6 +131,7 @@ class Parser {
     }
     if (children.length === 0) return this.node(() => ({ kind: "empty", nullable: true, captured: false }));
     if (children.length === 1) return children[0]!;
+    this.ledger.charge("work", children.length * 2, this.signal);
     return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
   }
 
@@ -182,7 +184,10 @@ class Parser {
       this.ledger.charge("work", 1, this.signal);
       if (this.at("]") && !first) {
         this.offset++;
-        if (negate) for (let code = 1; code < 128; code++) members[code] = !members[code];
+        if (negate) for (let code = 1; code < 128; code++) {
+          this.ledger.charge("work", 1, this.signal);
+          members[code] = !members[code];
+        }
         return this.node(() => ({ kind: "set", members: Object.freeze(members), nullable: false, captured: false }));
       }
       first = false;

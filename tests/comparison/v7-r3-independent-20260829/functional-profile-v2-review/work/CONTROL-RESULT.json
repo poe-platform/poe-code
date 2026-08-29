@@ -1,0 +1,115 @@
+{
+  "schema": "FUNCTIONAL_V2_PREEXECUTION_CONTROLS",
+  "presealSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "attempt": 1,
+  "newFamilies": 14,
+  "retainedAdmissionDataControls": 3,
+  "passed": 17,
+  "failed": 0,
+  "rows": [
+    {
+      "id": "P01",
+      "pass": true,
+      "detail": {
+        "constructorSourceOnly": true,
+        "helperExecuted": true
+      }
+    },
+    {
+      "id": "P02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "P03",
+      "pass": true,
+      "detail": {
+        "externalGuardSourceOnly": true,
+        "noActualGuardOrEngineExecuted": true
+      }
+    },
+    {
+      "id": "P04",
+      "pass": true,
+      "detail": {
+        "modeledRows": 198,
+        "realWorkers": 0
+      }
+    },
+    {
+      "id": "T01",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T03",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T04",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T05",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T06",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T07",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T08",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "T09",
+      "pass": true,
+      "detail": {
+        "full248MiBBoundaryNotAllocated": true
+      }
+    },
+    {
+      "id": "T10",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "A01",
+      "pass": true,
+      "detail": {
+        "retainedProtocolData": true,
+        "newAdmissionExecution": false
+      }
+    },
+    {
+      "id": "A02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "A03",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "actualEngines": 0,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemanticPrograms": 0,
+  "sourceBindingsUnchanged": true
+}

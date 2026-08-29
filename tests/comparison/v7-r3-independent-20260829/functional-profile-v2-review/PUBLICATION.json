@@ -1,0 +1,133 @@
+{
+  "schema": "FUNCTIONAL_V2_INDEPENDENT_PUBLICATION",
+  "status": "PREEXECUTION_ACCEPTED",
+  "recipeSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "review": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json",
+    "bytes": 159,
+    "mode": 420,
+    "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+  },
+  "authorNew": {
+    "passed": 14,
+    "total": 14
+  },
+  "retainedAdmissionData": {
+    "passed": 3,
+    "total": 3
+  },
+  "originalNovel": {
+    "passed": 11,
+    "total": 12
+  },
+  "versionedN07": {
+    "status": "PASS",
+    "missingFinalNegative": "REFUSED"
+  },
+  "rawCaptures": [
+    {
+      "pid": 27478,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "streams": {
+        "stdout": 297,
+        "stderr": 0,
+        "fd3": 12978
+      },
+      "primary": null,
+      "childCount": 1,
+      "preflight": true,
+      "postflight": true
+    },
+    {
+      "pid": 29328,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "streams": {
+        "stdout": 93,
+        "stderr": 0,
+        "fd3": 2026
+      },
+      "primary": null,
+      "childCount": 1,
+      "preflight": true,
+      "postflight": true
+    }
+  ],
+  "rawChildBytes": 15394,
+  "archive": {
+    "status": "ARCHIVED_VERIFIED_SCOPED_CLEANUP",
+    "files": 861,
+    "rawBytes": 78554341,
+    "archive": {
+      "path": "SYNTHETIC-EVIDENCE.ndjson.gz",
+      "bytes": 31277964,
+      "mode": 384,
+      "sha256": "9aa17d81d7cf9083858062aa9aecfb184bc9d20631cf0b1d90cb537da1a1dfd2"
+    },
+    "combinedRawPlusArchiveBytes": 109832305,
+    "captureCap": 134217728,
+    "reservedOtherCaptureBytes": 8388608,
+    "everyHeaderChunkHashModeVerified": true,
+    "removed": 858,
+    "removedDirectories": 72,
+    "retainedLive": [
+      "RESULT.json",
+      "CONTROL-RESULT.json",
+      "NOVEL-OBSERVATIONS.ndjson"
+    ],
+    "postguards": 124,
+    "children": 0,
+    "noProductPayloadArchive": true
+  },
+  "finalPostguards": 124,
+  "liveEvidenceBytes": 31956961,
+  "conservativeCombinedCaptureIncludingOneMiBPublicationReserve": 111559878,
+  "processes": {
+    "taskRoleAccountingUpperBoundIncludingFinalGitPublication": 64,
+    "authorizedAllOwnedCap": 80,
+    "accounting": "Conservative tool-call/role bound, not a kernel census. Includes exec-replaced Node helpers, shell/Git/patch administration allowances, two capture parents and their two dispatch children. No control-created descendants. No CLI leaf.",
+    "actualControlDispatchChildren": 2,
+    "controlCaptureParents": 2,
+    "controlPeak": 2,
+    "authorizedPeak": 3,
+    "allObservedToolCommandsCompletedAtPublication": true,
+    "controlChildrenExitAndCloseObserved": true,
+    "globalAbsenceClaim": false
+  },
+  "actualEngines": 0,
+  "actualWorkers": 0,
+  "semanticPrograms": 0,
+  "C11": 0,
+  "activation": false,
+  "full416Replayed": false,
+  "historicResultsRescored": false,
+  "ordinaryDataHelperError": {
+    "requested": "INTERFACE.json",
+    "result": "ENOENT",
+    "correction": "Select sealed INTERFACE-DELTA.json from bounded directory metadata",
+    "childLaunched": false,
+    "testRetried": false
+  },
+  "bounds": {
+    "minutesIncludingPublication": 40,
+    "allOwnedProcesses": 80,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workBytes": 805306368
+  },
+  "checkpoint": "2026-08-29T07:05:54.953Z",
+  "publicationTail": "Final explicit-path Git commit and status confirmation still follow this receipt; successful dispositions are reported in the final handoff. No prospective final Git completion is counted as already observed."
+}

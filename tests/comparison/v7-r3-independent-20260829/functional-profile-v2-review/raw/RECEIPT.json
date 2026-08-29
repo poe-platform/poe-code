@@ -1,0 +1,20 @@
+{
+  "pid": 27478,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "streams": {
+    "stdout": 297,
+    "stderr": 0,
+    "fd3": 12978
+  },
+  "primary": null,
+  "childCount": 1,
+  "preflight": true,
+  "postflight": true
+}

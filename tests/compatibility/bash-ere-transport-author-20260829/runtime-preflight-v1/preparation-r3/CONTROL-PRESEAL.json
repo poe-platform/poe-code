@@ -1,0 +1,58 @@
+{
+  "schema": 3,
+  "role": "C1 PURE only: 33 versioned old, 8 independent malformed, 8 causal/loader, 2 synthetic unknown; zero OS children",
+  "inputs": [
+    {
+      "name": "controls.mjs",
+      "size": 8728,
+      "sha256": "84b0dd6799114cd060a76da32c406a93dff8d98f5e492ba1ad9a294a40045cc8"
+    },
+    {
+      "name": "data-controls-r3.mjs",
+      "size": 3756,
+      "sha256": "bf2e806b29c79aab864fe91b89a4b361740a60b4eb7395f0b785509f89590e96"
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "name": "owner-controls.mjs",
+      "size": 2643,
+      "sha256": "7e37d9e7894b06c43dd8733bb7bc2baae4e7779bc870f195b987db79536ccbb1"
+    },
+    {
+      "name": "receipt-fixture.mjs",
+      "size": 2228,
+      "sha256": "475fa0165cdb16fcffb3cac6cbf58ed1e9b9379e775b9b38a27ef5132f4557f5"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 12624,
+      "sha256": "f814127b1f05730a3fc188ca098803389597fed639915788ea21170e279b56fe"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 161,
+      "sha256": "f6d8033b9b7019fac81a5cd1999d3df672f0cb834fe237edf5a4457ea5b2ca22"
+    }
+  ],
+  "limits": {
+    "milliseconds": 30000,
+    "children": 0,
+    "Workers": 0,
+    "captureBytes": 4194304,
+    "workBytes": 16777216
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  }
+}

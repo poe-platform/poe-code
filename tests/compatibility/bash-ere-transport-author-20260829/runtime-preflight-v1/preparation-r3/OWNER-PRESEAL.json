@@ -1,0 +1,48 @@
+{
+  "schema": 3,
+  "role": "C2 +4 harmless Node children; no Worker/engine/product",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "inputs": [
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "name": "owner-controls.mjs",
+      "size": 2643,
+      "sha256": "7e37d9e7894b06c43dd8733bb7bc2baae4e7779bc870f195b987db79536ccbb1"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 12624,
+      "sha256": "f814127b1f05730a3fc188ca098803389597fed639915788ea21170e279b56fe"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 161,
+      "sha256": "f6d8033b9b7019fac81a5cd1999d3df672f0cb834fe237edf5a4457ea5b2ca22"
+    }
+  ],
+  "limits": {
+    "milliseconds": 30000,
+    "controllers": 1,
+    "children": 4,
+    "peakIncludingTool": 3,
+    "captureBytes": 4194304,
+    "workBytes": 16777216
+  },
+  "expected": [
+    "normal0",
+    "clock-false SIGTERM",
+    "publication-undefined SIGTERM",
+    "deadline SIGTERM"
+  ],
+  "unknown": "synthetic C1 only"
+}

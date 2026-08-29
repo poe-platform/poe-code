@@ -1,0 +1,25 @@
+{
+  "schema": "SYNTHETIC_DATA_ARCHIVE_RECONCILIATION_V1",
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/SYNTHETIC-RECEIPTS.ndjson.gz",
+    "bytes": 27345541,
+    "mode": 384,
+    "sha256": "cac2e2e5b2aad8bac330903cc221b1586c6ed798867f5853067bc633c70772a3"
+  },
+  "plan": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/ARCHIVE-PLAN.json",
+    "bytes": 191868,
+    "mode": 384,
+    "sha256": "4d8feadcc277e9a0bc9056b2fd21cd968147544e419461bc25cd1c1834e909ca"
+  },
+  "verifiedFiles": 817,
+  "verifiedBytes": 72540826,
+  "completeByteRestorationVerified": true,
+  "allHeadersHashesModesAndChunkOrderMatched": true,
+  "rawOwnedFilesRemovedAfterVerification": 817,
+  "ownedDirectoriesRemoved": 31,
+  "cleanupMethod": "Exact authenticated owned regular file unlink followed by empty rmdir; no symlinks/chmod/foreign paths",
+  "historicalRawLossReconstruction": false,
+  "cumulativePrecleanupEvidencePlusArchiveBytes": 100098125,
+  "capBytes": 134217728
+}

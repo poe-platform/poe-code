@@ -1,0 +1,126 @@
+{
+  "schema": "SEMANTIC_MODE_AUTHOR_HANDOFF_V1",
+  "date": "2026-08-29",
+  "status": "READY_FOR_DIFFERENT_PREEXECUTION_REVIEW_NOT_ACTUAL_GO",
+  "candidatePresealCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/SEAL.json",
+    "bytes": 15131,
+    "mode": 420,
+    "sha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d"
+  },
+  "interface": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/INTERFACE-DELTA.json",
+    "bytes": 4242,
+    "mode": 420,
+    "sha256": "42e988c1194ea12f482dc19b60dd4db8a0f5ce728e9f9ebf4447ed3ffab5e319"
+  },
+  "sourceDelta": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/SOURCE-DELTA.patch.data",
+    "bytes": 40819,
+    "mode": 384,
+    "sha256": "4e83637d0598a1af9c1556456be7eeddbb438c5e8b0034cd4a9aefa8ff65a23d"
+  },
+  "controls": {
+    "invocations": 1,
+    "new": 18,
+    "retainedAdmissionData": 3,
+    "passed": 21,
+    "failed": 0,
+    "unrun": 0,
+    "controlExit": {
+      "code": 0,
+      "signal": null
+    },
+    "controlClose": {
+      "code": 0,
+      "signal": null
+    },
+    "captureFailureCount": 0
+  },
+  "syntheticQualification": {
+    "modeledReceiptRows": 198,
+    "realEngineImports": 0,
+    "realWorkers": 0,
+    "actualC11": 0,
+    "actualSemanticPrograms": 0,
+    "actualProductionAuthority": false,
+    "actualPackageStaging": false,
+    "actualLoadProof": false
+  },
+  "sourceGuards": {
+    "successor": 23,
+    "inherited": 38,
+    "unchangedAfterControls": true,
+    "oldAdmissionFilesEdited": 0
+  },
+  "archive": {
+    "schema": "SYNTHETIC_DATA_ARCHIVE_RECONCILIATION_V1",
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/SYNTHETIC-RECEIPTS.ndjson.gz",
+      "bytes": 27345541,
+      "mode": 384,
+      "sha256": "cac2e2e5b2aad8bac330903cc221b1586c6ed798867f5853067bc633c70772a3"
+    },
+    "plan": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/ARCHIVE-PLAN.json",
+      "bytes": 191868,
+      "mode": 384,
+      "sha256": "4d8feadcc277e9a0bc9056b2fd21cd968147544e419461bc25cd1c1834e909ca"
+    },
+    "verifiedFiles": 817,
+    "verifiedBytes": 72540826,
+    "completeByteRestorationVerified": true,
+    "allHeadersHashesModesAndChunkOrderMatched": true,
+    "rawOwnedFilesRemovedAfterVerification": 817,
+    "ownedDirectoriesRemoved": 31,
+    "cleanupMethod": "Exact authenticated owned regular file unlink followed by empty rmdir; no symlinks/chmod/foreign paths",
+    "historicalRawLossReconstruction": false,
+    "cumulativePrecleanupEvidencePlusArchiveBytes": 100098125,
+    "capBytes": 134217728
+  },
+  "recipeChanges": [
+    "Separate cohort-only launch/auth/body/worker route and successor seal",
+    "New14field cohort grant with explicit BOUNDED_SEMANTIC_TERMINAL_V1; old admission schema untouched",
+    "99 exactconfig/workerreceipt/operation/authority/load/bootstrap/cleanup witness reconciliation",
+    "Unchanged qualifier applied to captured per-case reports;99+66=165freshcalls,C11zero",
+    "Exactordinary-failure coordinatorstatus1 vs protocolcompleted launcherstatus0; counts always explicit",
+    "Inheritedcaptureimplementation/budgets unchanged; private600capture and022execwrapper retained"
+  ],
+  "future": {
+    "runId": "semantic-20260829-v7r3-01",
+    "namespaceConsumed": false,
+    "grantActive": false,
+    "processes": {
+      "runtime": 302,
+      "admin": 20,
+      "slack": 14,
+      "cap": 336,
+      "peak": 5
+    },
+    "totalMs": 5400000,
+    "ownerMs": 4500000,
+    "adminMs": 900000,
+    "workerMs": 30000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "metadataMs": 10000,
+    "captureBytes": 269484032,
+    "workingBytes": 805306368,
+    "oldSpaceMiB": 256,
+    "RSSClaim": false,
+    "guaranteeAll99Fit": false
+  },
+  "reviewReceiptExactTemplate": {
+    "role": "different-reviewer",
+    "verdict": "PREEXECUTION_ACCEPTED",
+    "recipeSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d"
+  },
+  "neededBeforeActual": [
+    "Archimedes independent source/composed review against this seal",
+    "Exact future different receipt reference and root grant commit/AUTH rawhash",
+    "Fresh actual rootGO, unused output/capture namespaces and real-payload preflight",
+    "Complete admin dispatch/capture census within336, no waiting parent or slack-based retry"
+  ],
+  "history": "All oldadmission/grants/HOLD/loss/score qualifications unchanged;W07uncredited, nonstockbootstrap and W03partialtelemetry remain"
+}

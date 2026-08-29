@@ -1,0 +1,88 @@
+{
+  "schema": "SEMANTIC_MODE_EVIDENCE_MANIFEST_V1",
+  "presealCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "sealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "files": [
+    {
+      "path": "ARCHIVE-PLAN.json",
+      "bytes": 191868,
+      "mode": 384,
+      "sha256": "4d8feadcc277e9a0bc9056b2fd21cd968147544e419461bc25cd1c1834e909ca"
+    },
+    {
+      "path": "ARCHIVE-RECONCILIATION.json",
+      "bytes": 1170,
+      "mode": 384,
+      "sha256": "6c4eeeea5e0b2ef8aa378639c91e64ec28c82f5dabf9068c386ab4ab83e9f5c4"
+    },
+    {
+      "path": "CONTROL-RESULT.json",
+      "bytes": 2496,
+      "mode": 384,
+      "sha256": "87127a8b8a411a0d5218052499488e8717c377e40011b78cdf08ddb3079f8801"
+    },
+    {
+      "path": "CONTROL-STDERR.bin",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "CONTROL-STDOUT.bin",
+      "bytes": 147,
+      "mode": 384,
+      "sha256": "c9db8ab7fe57da955b72a64ad7b498a927e431fdc555b713fa433aa1cd9ad459"
+    },
+    {
+      "path": "HANDOFF.json",
+      "bytes": 4929,
+      "mode": 384,
+      "sha256": "47e89113d0da4759061bcdae11e6a0919ac448901950c8cb2ec215f3771247de"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2645,
+      "mode": 420,
+      "sha256": "63ae9a19900189a130c2d6da303f222c6f6808f1e1dbee44192e89751d6ad753"
+    },
+    {
+      "path": "PREPARATION-CAPTURE.ndjson",
+      "bytes": 78509,
+      "mode": 384,
+      "sha256": "caee5a453fb656d8a60e980cd3bf2e0b93300442503d387b4f031c7fb6c76133"
+    },
+    {
+      "path": "PUBLICATION-HELPER-FAILURE.json",
+      "bytes": 384,
+      "mode": 384,
+      "sha256": "8d5455f8fa972a60ccd7835d06d63b26f63dcf0866cf2da64b2931bf73bd6033"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 2907,
+      "mode": 384,
+      "sha256": "f1cec7a48a7b9e08d642a64c1d40f7ae5d566732e07042e8d539859a48b24d6f"
+    },
+    {
+      "path": "SOURCE-DELTA.patch.data",
+      "bytes": 40819,
+      "mode": 384,
+      "sha256": "4e83637d0598a1af9c1556456be7eeddbb438c5e8b0034cd4a9aefa8ff65a23d"
+    },
+    {
+      "path": "SYNTHETIC-RECEIPTS.ndjson.gz",
+      "bytes": 27345541,
+      "mode": 384,
+      "sha256": "cac2e2e5b2aad8bac330903cc221b1586c6ed798867f5853067bc633c70772a3"
+    }
+  ],
+  "selfExcluded": true,
+  "publicationTail": "PUBLICATION-CAPTURE.ndjson bound separately after closure",
+  "passedNew": 18,
+  "passedRetainedData": 3,
+  "realWorkers": 0,
+  "actualSemanticPrograms": 0,
+  "archiveVerifiedAndOwnedFixtureCleanupComplete": true,
+  "allOldAdmissionFilesUnchanged": true,
+  "publicationHelperFailurePreserved": true
+}

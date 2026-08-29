@@ -33,12 +33,14 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }),
       values: createSandboxClosure({
         sandbox: true,
-        call: ([value]) => budgetSandboxValue(getOwnEnumerableValues(value), options.budget),
+        call: ([value]) =>
+          allocateProducedSandboxValue(getOwnEnumerableValues(value), options.budget),
         name: "values"
       }),
       entries: createSandboxClosure({
         sandbox: true,
-        call: ([value]) => budgetSandboxValue(getOwnEnumerableEntries(value), options.budget),
+        call: ([value]) =>
+          allocateProducedSandboxValue(getOwnEnumerableEntries(value), options.budget),
         name: "entries"
       }),
       hasOwn: createSandboxClosure({
@@ -54,7 +56,10 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       fromEntries: createSandboxClosure({
         sandbox: true,
         call: ([value]) =>
-          budgetSandboxValue(Reflect.apply(Object.fromEntries, Object, [value]), options.budget),
+          allocateProducedSandboxValue(
+            Object.setPrototypeOf(Reflect.apply(Object.fromEntries, Object, [value]), null),
+            options.budget
+          ),
         name: "fromEntries"
       }),
       freeze: createSandboxClosure({

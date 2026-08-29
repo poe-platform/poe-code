@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>People at Savannah: Chet Ramey profile [Savannah]</title>
+<meta name="Generator" content="Savane 3.17-dfaf, see https://savannah.gnu.org/source/savane-dfaf8a9487ea4c658df0ce641e87357250b26bfd.tar.gz" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<link rel="stylesheet" type="text/css" href="/css/Savannah.css" />
+<link rel="icon" type="image/png" href="/images/Savannah.theme/icon.png" />
+<meta name="Author" content="Copyright 2026 Free Software Foundation, Inc.
+Verbatim copying and distribution of this entire article
+is permitted in any medium, provided this notice is preserved." />
+<meta name="description" content="Savannah is a central point for development, distribution
+and maintenance of free software, both GNU and non-GNU." />
+
+</head>
+<body>
+<div class='realbody'>
+
+<ul class='menu'>
+<li class='menulogo'>
+          <a href="/"><img  alt="Back to Savannah Homepage" border="0" src="/images/Savannah.theme/floating.png" width="144" height="125" /></a>
+</li><!-- end menulogo -->
+<li class='menutitle'>Not Logged in</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="/account/login.php?uri=%2Fusers%2Fchet" class="menulink" title="Login page - you must have registered an account first">Login</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/account/register.php" class="menulink" title="Account registration form">New User</a></li><!-- end menuitem -->
+<li class='menutitle'>This Page</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="/i18n.php?lang_uri=%2Fusers%2Fchet" class="menulink" title="Choose website language">Language</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/users/chet?reload=1&amp;" class="menulink" title="Reload the page without risk of reposting data">Clean Reload</a></li><!-- end menuitem -->
+<li class='menutitle'>Search</li><!-- end menutitle -->
+       <li class="menusearch">
+<form action="/search/#options" method="get">
+<input type="text" id="words1" name="words1"  title="Terms to look for" /><br />
+ <label for='type_of_search1'>Area to search in</label>
+<select name='type_of_search' id='type_of_search1'>
+<option value="soft" selected="selected">Groups</option>
+<option value="people">People</option>
+<option value="support"><!-- Search... in -->Support</option>
+<option value="bugs"><!-- Search... in -->Bugs</option>
+<option value="task"><!-- Search... in -->Tasks</option>
+<option value="patch"><!-- Search... in -->Patches</option>
+</select>
+<input type='hidden' name="exact" value="1" />
+<br />
+<input type="submit" name="search" value="Search" />&nbsp;
+</form>
+       </li><!-- end menusearch --><li class='menutitle'>Hosted Projects</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="/register/requirements.php" class="menulink">Hosting requirements</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/register/" class="menulink" title="Register your project at Savannah">Register New Project</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/search/index.php?type_of_search=soft&amp;words=%%%" class="menulink" title="Browse the full list of hosted projects">Full List</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/people/" class="menulink" title="Browse the list of request for contributions">Contributors Wanted</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/stats/" class="menulink" title="Browse statistics about Savannah">Statistics</a></li><!-- end menuitem -->
+<li class='menutitle'>Site Help</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="/maintenance/FrontPage/" class="menulink">User Docs: FAQ</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/maintenance/back-page/" class="menulink" title="In-depth Documentation dedicated to any users, including group admins">User Docs: In Depth Guide</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/support/?group=administration" class="menulink" title="Get help from the Admins of Savannah, when documentation is not enough">Get Support</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="/contact.php" class="menulink" title="Contact address of Savannah Admins">Contact Savannah</a></li><!-- end menuitem -->
+<li class='menutitle'>GNU Project</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="//www.gnu.org/help/help.html" class="menulink">Help GNU</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.gnu.org/software/software.html" class="menulink">All GNU Packages</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.gnu.org/software/devel.html" class="menulink">Dev Resources</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.gnu.org/licenses/license-list.html" class="menulink">License List</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.gnu.org/prep/ftp.html" class="menulink">GNU Mirrors</a></li><!-- end menuitem -->
+<li><span class="button"><a href="//www.fsf.org/associate/support_freedom/join_fsf?referrer=2442"><img  alt="Support freedom" border="0" src="/images/Savannah.theme/thin-image.png" width="240" height="28" />
+<br />Help us protect your freedom and the rights of computer
+users everywhere by becoming a member of the FSF.
+<br /><strong>Join Now!</strong></a></span>
+</li>
+
+<li class='menutitle'>Free Software Foundation</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="//www.fsf.org/events/" class="menulink">Coming Events</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.fsf.org/directory/" class="menulink">Free Software Directory</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//savannah.gnu.org/maintenance/SavannahCryptographicRestrictions" class="menulink">Cryptographic software legal notice</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//www.fsf.org/about/dmca-notice" class="menulink">Copyright infringement notification</a></li><!-- end menuitem -->
+<li class='menutitle'>Related Forges</li><!-- end menutitle -->
+
+<li class='menuitem'>
+<a href="//savannah.nongnu.org/" class="menulink">Savannah Non-GNU</a></li><!-- end menuitem -->
+
+<li class='menuitem'>
+<a href="//puszcza.gnu.org.ua/" class="menulink">Puszcza</a></li><!-- end menuitem -->
+
+</ul><!-- end menu -->
+<div id='top' class='main'>
+<h1 class='toptitle'><img  width="48" height="48" alt="people" class="pageicon" border="0" src="/images/Savannah.theme/contexts/people.orig.png" />People at Savannah: Chet Ramey profile</h1>
+
+<div class='topmenu' id='topmenu'>
+<span class='topmenutitle' title="Site Wide Scope"> Site Wide
+</span><!-- end topmenutitle -->
+</div><!-- end pagemenu -->
+<div id='topmenunooverlap'>&nbsp;</div>
+<div id='topmenunooverlapbis'>&nbsp;</div>
+<br />
+
+<div class='splitfirst'>
+<div class="box">
+<div class='boxtitle'><h2>General information</h2>
+</div><!-- end boxtitle -->
+
+<div class='boxitem'><br />
+<table width='100%' cellpadding='0' cellspacing='0' border='0'>
+<tr valign='top'>
+<td>Id: </td>
+<td><b>#2590</b></td>
+</tr>
+<tr valign='top'>
+<td>Display name: </td>
+<td><b>Chet Ramey</b></td>
+</tr>
+<tr valign='top'>
+<td>Login name: </td>
+<td><b>chet</b></td>
+</tr>
+<tr valign='top'>
+<td>Email address: </td>
+<td><a href="/sendmessage.php?touser=2590&cc_me=cc_me">-email is unavailable-</a></td>
+</tr>
+<tr valign='top'>
+<td>Site member since:</td>
+<td><b>Thu 08 Nov 2001 02:56:23 PM UTC</b>
+</td>
+</tr>
+<tr valign='top'>
+<td></td>
+<td>This user did not enable Resume & Skills.</td>
+</tr>
+<tr valign='top'>
+<td></td><td><a href="/people/viewgpg.php?user_id=2590">Download GPG Key</a></td>
+</tr>
+</table>
+</div><!-- end boxitem -->
+
+</div><!-- end box -->
+<br />
+<div class="box">
+<div class='boxtitle'><h2>Group membership</h2>
+</div><!-- end boxtitle -->
+<ul class='boxli'><li class="boxhighlight"><a href="/projects/bash/">The GNU Bourne-Again SHell</a><br />
+</li>
+<li class="boxhighlight"><a href="/projects/readline/">The GNU Readline library</a><br />
+</li>
+</ul>
+
+</div><!-- end box -->
+
+</div><!-- end splitfirst -->
+<div class='splitsecond'>
+<div class="box">
+<div class='boxtitle'><h2>Open items assigned to Chet Ramey</h2>
+</div><!-- end boxtitle -->
+None found
+</div><!-- end box -->
+<br />
+<div class="box">
+<div class='boxtitle'><h2>Open items submitted by Chet Ramey</h2>
+</div><!-- end boxtitle -->
+None found
+</div><!-- end box -->
+
+</div><!-- end splitsecond -->
+<p class="warn floatleft">You could send a message if you were logged in.</p>
+
+<p class='backtotop'>
+<a href="#top"><img  alt="Back to the top" border="0" src="/images/Savannah.theme/arrows/top.orig.png" width="48" height="48" /></a>
+</p>
+<p class="footer">
+Copyright &copy; 2026 Free Software Foundation, Inc.
+<br />
+Verbatim copying and distribution of this entire article
+is permitted in any medium, provided this notice is preserved.
+<br />
+The <a href="//www.gnu.org/graphics/meditate.html">Levitating,
+Meditating, Flute-playing Gnu</a> logo is a GNU GPL'ed image provided
+by the Nevrax Design Team.<br />
+<a href="//git.savannah.nongnu.org/cgit/administration/savane.git/plain//frontend/php/users?id=dfaf8a9487ea4c658df0ce641e87357250b26bfd">Page source code</a></p>
+<div align='right'><p>Powered by Savane 3.17-dfaf.<br /><a href="https://savannah.gnu.org/source/savane-dfaf8a9487ea4c658df0ce641e87357250b26bfd.tar.gz">Corresponding source code</a></p></div>
+</div> <!-- class='main' -->
+</div> <!-- class='realbody' -->
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+{
+  "startedAt": "2026-08-29T04:59:46.670Z",
+  "paths": [
+    [
+      "/Library/Developer/CommandLineTools/usr/bin/otool",
+      "BINARY"
+    ],
+    [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool",
+      "BINARY"
+    ],
+    [
+      "/usr/bin/otool",
+      "BINARY"
+    ],
+    [
+      "/usr/lib/dyld",
+      "BINARY"
+    ],
+    [
+      "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "BINARY"
+    ],
+    [
+      "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "BINARY"
+    ],
+    [
+      "/System/Library/CoreServices/SystemVersion.plist",
+      "TEXT"
+    ],
+    [
+      "/opt/homebrew/Cellar/gnupg/2.5.21/share/man/man1/gpgv.1",
+      "TEXT"
+    ]
+  ],
+  "urls": [
+    [
+      "https://savannah.gnu.org/maintenance/GpgKeyrings/",
+      131072,
+      "keyring-guidance.html"
+    ],
+    [
+      "https://savannah.gnu.org/projects/bash/",
+      131072,
+      "bash-project.html"
+    ],
+    [
+      "https://savannah.gnu.org/p/release-gpgkeys.php?group=bash",
+      131072,
+      "release-key-page.html"
+    ],
+    [
+      "https://savannah.gnu.org/p/release-gpgkeys.php?group=bash&download=1",
+      4194304,
+      "release-keys.data"
+    ],
+    [
+      "https://savannah.gnu.org/maintenance/UsingGpg/",
+      131072,
+      "gpg-guidance.html"
+    ]
+  ],
+  "children": 0,
+  "rootBudgetMs": 1500000
+}

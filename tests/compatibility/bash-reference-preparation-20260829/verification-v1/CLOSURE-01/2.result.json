@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "type": "spawn",
+      "pid": 6653
+    },
+    {
+      "type": "exit",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 18.51495799999998
+    },
+    {
+      "type": "close",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 18.528165999999942
+    }
+  ],
+  "lengths": {
+    "stdout": 2516,
+    "stderr": 0
+  },
+  "disposition": {
+    "code": 0,
+    "signal": null
+  },
+  "allClosed": true,
+  "failure": null,
+  "elapsedMs": 19.653332999999975
+}

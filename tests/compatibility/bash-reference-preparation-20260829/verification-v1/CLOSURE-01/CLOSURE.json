@@ -1,0 +1,279 @@
+{
+  "bindings": [
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "bytes": 538432,
+      "mode": "555",
+      "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "bytes": 1074432,
+      "mode": "555",
+      "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+    },
+    {
+      "path": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib",
+      "resolved": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+      "bytes": 228800,
+      "mode": "444",
+      "sha256": "0c6d618e75fea85cc3d631e164a71766fba9341d19ce1f723300c52e63037c51"
+    },
+    {
+      "path": "/opt/homebrew/opt/libgcrypt/lib/libgcrypt.20.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+      "bytes": 974496,
+      "mode": "444",
+      "sha256": "0c69b9bb708895ce5f5f966aefa3db58b3faad7bb7d98c8fde7839c8ce13c644"
+    },
+    {
+      "path": "/opt/homebrew/opt/libassuan/lib/libassuan.9.dylib",
+      "resolved": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+      "bytes": 98896,
+      "mode": "444",
+      "sha256": "95756ea58650c98c22e238599c4cae84319d45062ab143f14ddd498a6f86b658"
+    },
+    {
+      "path": "/opt/homebrew/opt/npth/lib/libnpth.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+      "bytes": 54848,
+      "mode": "444",
+      "sha256": "af7db20f7445a08cfca04680e110e414faad8919e4993d7d73d0cc5b9a663e62"
+    },
+    {
+      "path": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+      "bytes": 181920,
+      "mode": "444",
+      "sha256": "bff87750b336d72fd4ba3db1f174979e662043b56f1e659c6f2c2a9b5500fa85"
+    },
+    {
+      "path": "/opt/homebrew/opt/readline/lib/libreadline.8.dylib",
+      "resolved": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+      "bytes": 314272,
+      "mode": "444",
+      "sha256": "7d74566dcbd3f64a5ec6266c8285e48f0214a9d2f36ad5f158b4282a3f10b9a9"
+    }
+  ],
+  "batches": [
+    {
+      "depth": 0,
+      "inputs": [
+        "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+        "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg"
+      ],
+      "dependencies": [
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/usr/lib/libz.1.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/usr/lib/libbz2.1.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/opt/homebrew/opt/libgcrypt/lib/libgcrypt.20.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/opt/homebrew/opt/libassuan/lib/libassuan.9.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/opt/homebrew/opt/npth/lib/libnpth.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/usr/lib/libiconv.2.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/usr/lib/libz.1.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/usr/lib/libbz2.1.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/usr/lib/libsqlite3.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/libgcrypt/lib/libgcrypt.20.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/readline/lib/libreadline.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/libassuan/lib/libassuan.9.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/npth/lib/libnpth.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/usr/lib/libiconv.2.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        }
+      ]
+    },
+    {
+      "depth": 1,
+      "inputs": [
+        "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+        "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+        "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+        "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+        "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+        "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib"
+      ],
+      "dependencies": [
+        {
+          "owner": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+          "dependency": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+          "dependency": "/usr/lib/libiconv.2.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+          "dependency": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+          "dependency": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+          "dependency": "/opt/homebrew/opt/libgcrypt/lib/libgcrypt.20.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+          "dependency": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+          "dependency": "/opt/homebrew/opt/libassuan/lib/libassuan.9.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+          "dependency": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+          "dependency": "/opt/homebrew/opt/npth/lib/libnpth.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+          "dependency": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+          "dependency": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+          "dependency": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+          "dependency": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+          "dependency": "/opt/homebrew/opt/readline/lib/libreadline.8.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+          "dependency": "/usr/lib/libncurses.5.4.dylib"
+        },
+        {
+          "owner": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+          "dependency": "/usr/lib/libSystem.B.dylib"
+        }
+      ]
+    }
+  ],
+  "systemDependencies": [
+    "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+    "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+    "/usr/lib/libSystem.B.dylib",
+    "/usr/lib/libbz2.1.0.dylib",
+    "/usr/lib/libiconv.2.dylib",
+    "/usr/lib/libncurses.5.4.dylib",
+    "/usr/lib/libsqlite3.dylib",
+    "/usr/lib/libz.1.dylib"
+  ],
+  "unresolved": [],
+  "starts": 3,
+  "allClosed": true,
+  "gpgExecutions": 0,
+  "systemCacheQualification": "STATIC_PLATFORM_IDENTIFIERS_WITH_PREPARED_DYLD_AND_OS_BINDINGS_NOT_SHARED_CACHE_IMAGE_HASHES"
+}

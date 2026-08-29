@@ -1,0 +1,27 @@
+{
+  "tool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  "argv": [
+    "-L",
+    "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+    "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+    "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+    "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+    "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+    "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib"
+  ],
+  "environment": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/empty",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/home"
+}

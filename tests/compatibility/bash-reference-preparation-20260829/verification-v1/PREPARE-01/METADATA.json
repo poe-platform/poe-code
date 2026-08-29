@@ -1,0 +1,68 @@
+[
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "role": "BINARY",
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  {
+    "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool",
+    "resolved": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool",
+    "role": "BINARY",
+    "bytes": 72672,
+    "mode": "755",
+    "sha256": "be184bb7054565eae25193e45e4235ea2d372c1eb6288ce900b2fad6d9dcc3f3"
+  },
+  {
+    "path": "/usr/bin/otool",
+    "resolved": "/usr/bin/otool",
+    "role": "BINARY",
+    "bytes": 118928,
+    "mode": "755",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  },
+  {
+    "path": "/usr/lib/dyld",
+    "resolved": "/usr/lib/dyld",
+    "role": "BINARY",
+    "bytes": 2357376,
+    "mode": "755",
+    "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7"
+  },
+  {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "role": "BINARY",
+    "bytes": 538432,
+    "mode": "555",
+    "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4"
+  },
+  {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+    "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+    "role": "BINARY",
+    "bytes": 1074432,
+    "mode": "555",
+    "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+  },
+  {
+    "path": "/System/Library/CoreServices/SystemVersion.plist",
+    "resolved": "/System/Library/CoreServices/SystemVersion.plist",
+    "role": "TEXT",
+    "bytes": 604,
+    "mode": "444",
+    "sha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+    "capture": "SystemVersion.plist.data"
+  },
+  {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/share/man/man1/gpgv.1",
+    "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/share/man/man1/gpgv.1",
+    "role": "TEXT",
+    "bytes": 5771,
+    "mode": "644",
+    "sha256": "fa83de0430d395e4098b1569fefad441d2f8b0b1cf3c37301a676e3fb4564689",
+    "capture": "gpgv.1.data"
+  }
+]

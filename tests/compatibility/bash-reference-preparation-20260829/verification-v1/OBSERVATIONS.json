@@ -1,0 +1,3496 @@
+{
+  "role": "PREPARATION_NOT_16_SIGNATURE_ACCEPTANCE",
+  "linkedPublisherKeySha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8",
+  "publicKeyFingerprints": [
+    "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+    "55F49F31DC1457FE6E012F9E2A7C3276F2C850E7"
+  ],
+  "publicMetadataRecords": [
+    [
+      "pub",
+      "-",
+      "1024",
+      "17",
+      "BB5869F064EA74AB",
+      "1091481708",
+      "",
+      "",
+      "-",
+      "",
+      "",
+      "scESC",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      ""
+    ],
+    [
+      "fpr",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+      ""
+    ],
+    [
+      "uid",
+      "-",
+      "",
+      "",
+      "",
+      "1138940561",
+      "",
+      "AA247B2E1E16152100C5408DD983583812C300DB",
+      "",
+      "Chet Ramey <chet@cwru.edu>",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      ""
+    ],
+    [
+      "uid",
+      "-",
+      "",
+      "",
+      "",
+      "1138939857",
+      "",
+      "489E3466306F4CEE4AB99D8282B46087B73CF5AA",
+      "",
+      "Chet Ramey (Case standard) <chet.ramey@case.edu>",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      ""
+    ],
+    [
+      "uid",
+      "-",
+      "",
+      "",
+      "",
+      "1138939823",
+      "",
+      "73BAED22F308DC7CC80CBA34C01CA8A4B5FDD535",
+      "",
+      "Chet Ramey (alternate) <chet@case.edu>",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      ""
+    ],
+    [
+      "uid",
+      "-",
+      "",
+      "",
+      "",
+      "1138940483",
+      "",
+      "2332D026DA5D20FDC8FFE199B2DA3D8C6D9CC280",
+      "",
+      "Chet Ramey <chet@po.cwru.edu>",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      ""
+    ],
+    [
+      "sub",
+      "-",
+      "1024",
+      "16",
+      "2A7C3276F2C850E7",
+      "1091481711",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "e",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    [
+      "fpr",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "55F49F31DC1457FE6E012F9E2A7C3276F2C850E7",
+      ""
+    ]
+  ],
+  "loadedImages": [
+    {
+      "uuid": "55F528EA-2A05-3B09-B532-F0B74A33D57E",
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "9EF58F71-571D-352E-BB98-6E9754D6B30B",
+      "path": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "FDAC8A4C-9198-38FA-B448-BCBE2B292B5A",
+      "path": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "AC73508B-038F-3D00-AB11-39103B8FC41E",
+      "path": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "F4CB39C0-9B84-3416-9546-A7FFF08C9393",
+      "path": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "66627704-114D-3AB0-B709-3CD9EB14249B",
+      "path": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "B4A03B31-BBBD-39C4-BF1F-51DD20FC6B74",
+      "path": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+      "classification": "PINNED_EXTERNAL_IMAGE"
+    },
+    {
+      "uuid": "25DC8186-B2D8-3839-9F10-D89BC289ECFF",
+      "path": "/usr/lib/libz.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E05F5341-06B7-365E-8014-E9CD64C352FE",
+      "path": "/usr/lib/libSystem.B.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D6833A3-C910-3A76-AA8A-303F698B36BF",
+      "path": "/usr/lib/system/libcache.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "710EC5FA-F77C-3646-A9E3-C037C42E1539",
+      "path": "/usr/lib/system/libcommonCrypto.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "65E29E6E-7042-3F73-A1D2-F2C4EBCD7524",
+      "path": "/usr/lib/system/libcompiler_rt.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0B7FF027-5579-3CBF-A12B-68A4FD36641C",
+      "path": "/usr/lib/system/libcopyfile.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D1EC203E-9B2E-391B-8DE3-7C58F0589437",
+      "path": "/usr/lib/system/libcorecrypto.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E17AA23F-DB2A-3302-B14C-F6B08C540FCF",
+      "path": "/usr/lib/system/libdispatch.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2C3C5F75-3686-39A1-9202-BD4D2133379D",
+      "path": "/usr/lib/system/libdyld.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DE8F8219-0072-35C2-8932-C065491ED15D",
+      "path": "/usr/lib/system/libkeymgr.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9729ECEA-0A08-32E3-8BDB-B42FC15FF258",
+      "path": "/usr/lib/system/libmacho.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "268FEB6E-A237-3050-BFFF-AE3A66B7EAD4",
+      "path": "/usr/lib/system/libquarantine.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BD89B1A3-0D06-3881-B5E1-EFC6CFBDFCC1",
+      "path": "/usr/lib/system/libremovefile.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6427D987-7938-3278-8C14-10FB9C06BBD5",
+      "path": "/usr/lib/system/libsystem_asl.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2EA73169-CF76-3DD1-9869-F23C8B338022",
+      "path": "/usr/lib/system/libsystem_blocks.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "66EBD321-6899-3863-BA24-5CFC3076A0CB",
+      "path": "/usr/lib/system/libsystem_c.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B81193DE-3BEC-3340-86D0-DB7F3683D135",
+      "path": "/usr/lib/system/libsystem_collections.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "634F597D-F8BD-3C00-B967-86047FC15D14",
+      "path": "/usr/lib/system/libsystem_configuration.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "14750F95-BB3A-3654-8610-A05A454643A8",
+      "path": "/usr/lib/system/libsystem_containermanager.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7129349D-04F9-3C3C-BF37-3082C1468654",
+      "path": "/usr/lib/system/libsystem_coreservices.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D5BA0CAB-F283-3620-AAA9-1EEB718E1BA8",
+      "path": "/usr/lib/system/libsystem_darwin.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CCAA2170-32DD-34BD-A927-32DF30893969",
+      "path": "/usr/lib/system/libsystem_darwindirectory.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DEC8BDD2-366C-3BF9-A123-35744DB06354",
+      "path": "/usr/lib/system/libsystem_dnssd.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2D19994A-87BB-34B8-A343-CB8DD47FF110",
+      "path": "/usr/lib/system/libsystem_eligibility.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0DE01F76-4B36-35A2-98F9-43DD147EDD95",
+      "path": "/usr/lib/system/libsystem_featureflags.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "201FD67C-3DF6-3788-B132-A69CAA2AA3D7",
+      "path": "/usr/lib/system/libsystem_info.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "83B173CD-7F32-3901-8E67-C0B2676BE015",
+      "path": "/usr/lib/system/libsystem_m.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2AD21BE3-FFDB-31D5-A3D7-2F7F672D6E92",
+      "path": "/usr/lib/system/libsystem_malloc.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "85169C7B-48DD-3542-AD38-F1B88EA2A95A",
+      "path": "/usr/lib/system/libsystem_networkextension.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9F46F30B-B7C0-3DD7-AC38-57B78C7971FF",
+      "path": "/usr/lib/system/libsystem_notify.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AF76231D-EADC-3399-9414-6AD90FB4EA89",
+      "path": "/usr/lib/system/libsystem_sandbox.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FCB93D2F-4437-3089-A43F-A19BC23DD65B",
+      "path": "/usr/lib/system/libsystem_sanitizers.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A6B77B36-195D-33F8-8058-FE0B5BFA9D37",
+      "path": "/usr/lib/system/libsystem_secinit.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "51565B39-F595-3E96-A217-FEF29815057A",
+      "path": "/usr/lib/system/libsystem_kernel.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D93EC420-F465-3A3A-916D-A04AF9B023EB",
+      "path": "/usr/lib/system/libsystem_platform.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E7A73008-0C09-31E3-9DD9-0C61652F0E85",
+      "path": "/usr/lib/system/libsystem_pthread.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "28B6E34E-9C7D-3437-A3F1-A3C979DE579A",
+      "path": "/usr/lib/system/libsystem_symptoms.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "08629650-54FC-3AA6-910E-EACA563804D0",
+      "path": "/usr/lib/system/libsystem_trace.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5BB81430-4E33-3160-94D2-1FFB2B614DB2",
+      "path": "/usr/lib/system/libsystem_trial.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FB0518B9-DF0F-3A03-A74B-AF1B21C26F8B",
+      "path": "/usr/lib/system/libunwind.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "618039C8-9965-3782-A7D2-90FD4C3DD66F",
+      "path": "/usr/lib/system/libxpc.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2E858E25-1FF6-3DA6-84F6-911630620512",
+      "path": "/usr/lib/libobjc.A.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9449CCCD-9EB1-372F-BC66-83B686FEE2B1",
+      "path": "/System/Library/PrivateFrameworks/XPCSupport.framework/Versions/A/XPCSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "04941709-2330-3BF8-9213-6D33964DB448",
+      "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FB6AD37D-0F92-3774-AB61-0323DB22C111",
+      "path": "/usr/lib/swift/libswiftCore.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E8D325ED-3B97-325E-B494-B1B0FF93D133",
+      "path": "/usr/lib/libc++abi.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2FC1EF06-04C4-35FC-8DC3-BEA1E9FBD63F",
+      "path": "/usr/lib/libRosetta.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1E9541EC-C564-38CB-BED6-46F708E8D863",
+      "path": "/usr/lib/libc++.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8E9A5C62-7E95-3047-81E7-735AE1AEE5F8",
+      "path": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1BF42593-32DC-301E-B8EC-BFDA5DE18F37",
+      "path": "/usr/lib/swift/libswiftObjectiveC.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A7F970BC-D107-3D9B-A49E-ACA772E588E6",
+      "path": "/usr/lib/libswiftPrespecialized.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E192312E-A963-3625-9E4E-5BAE21807384",
+      "path": "/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/SystemConfiguration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EF256F92-D3A3-3C65-97B9-DBAED3A57A8D",
+      "path": "/System/Library/PrivateFrameworks/CoreAutoLayout.framework/Versions/A/CoreAutoLayout",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E88904DA-C6A3-3AFF-9085-38A2BF75CADA",
+      "path": "/usr/lib/libcmark-gfm.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0DECB33A-FC26-3C73-8762-E9C8F15343AD",
+      "path": "/usr/lib/libfakelink.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0C99FEA2-9041-3226-9995-046879C3B9B1",
+      "path": "/usr/lib/libcompression.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3D8050B5-4263-3729-AD04-DF521A24CAC9",
+      "path": "/System/Library/Frameworks/CFNetwork.framework/Versions/A/CFNetwork",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CB2C8249-4DCA-34C5-97C0-368485718E68",
+      "path": "/System/Library/Frameworks/DiskArbitration.framework/Versions/A/DiskArbitration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9F7CC46A-CC71-3EF8-BFE9-ABE40819EA73",
+      "path": "/usr/lib/libarchive.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D5EBC67A-F9F1-3105-A4D0-F1AE518EA2A6",
+      "path": "/usr/lib/libDiagnosticMessagesClient.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BD826EC4-73D6-3F95-ABED-001F02B4A429",
+      "path": "/usr/lib/libicucore.A.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B627FBCA-2F68-3C56-B092-73F62A6FCC92",
+      "path": "/usr/lib/libxml2.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "95340769-0B35-37EA-9EAF-9A7E1D530910",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A5624740-6148-34D2-B600-FB6FD4FB8451",
+      "path": "/usr/lib/liblangid.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E4D05845-A890-377F-BB68-5972BF638119",
+      "path": "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "04059A33-C97D-3F63-A2C4-E56496D251DD",
+      "path": "/System/Library/Frameworks/Combine.framework/Versions/A/Combine",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1A480C96-2A0B-3BDC-BE26-7779B2F282DB",
+      "path": "/System/Library/PrivateFrameworks/CollectionsInternal.framework/Versions/A/CollectionsInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FBAA34DB-DCB6-36C6-94C7-DFB542C0A55B",
+      "path": "/System/Library/PrivateFrameworks/ReflectionInternal.framework/Versions/A/ReflectionInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0A0F41D4-3475-30F6-8682-3227EC3FE8A8",
+      "path": "/System/Library/PrivateFrameworks/RuntimeInternal.framework/Versions/A/RuntimeInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FACACD62-537D-3FF8-B1D4-B1685938C303",
+      "path": "/System/Library/PrivateFrameworks/SoftLinking.framework/Versions/A/SoftLinking",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8160F4BC-FCFC-3847-8912-7D784E814692",
+      "path": "/usr/lib/swift/libswiftCoreFoundation.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "319E1D29-E697-3ABC-BE2D-B897CD71F3F2",
+      "path": "/usr/lib/swift/libswiftDarwin.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CFCF86C6-4B2C-3D79-A3B2-93B725BCEF2C",
+      "path": "/usr/lib/swift/libswiftDispatch.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3609AE97-C1C9-3D5C-995D-1351BE19C532",
+      "path": "/usr/lib/swift/libswiftIOKit.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9808DC7D-BE41-300B-A7E2-BA827446EE0A",
+      "path": "/usr/lib/swift/libswiftSystem.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "60C33839-9A05-3397-A1FB-CC203B10AB2D",
+      "path": "/usr/lib/swift/libswiftXPC.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "86B92BEF-06E8-3E10-A155-E1AB40B3F854",
+      "path": "/usr/lib/swift/libswift_Builtin_float.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "02634765-CB69-3C2B-9CCE-10103CBEA22A",
+      "path": "/usr/lib/swift/libswift_Concurrency.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "251F0C0D-17E0-37BB-A903-BB04A6C99999",
+      "path": "/usr/lib/swift/libswift_DarwinFoundation1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DC0CDBD3-5AAF-3A71-880F-8E40074817E4",
+      "path": "/usr/lib/swift/libswift_StringProcessing.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B8E3586E-8FD3-37F9-A004-C0E369A4F650",
+      "path": "/usr/lib/swift/libswiftos.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A460D760-9940-3977-A0D7-900705491053",
+      "path": "/System/Library/PrivateFrameworks/CoreServicesInternal.framework/Versions/A/CoreServicesInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2FC1EF06-04C4-35FC-8DC3-BEA1E9FBD63F",
+      "path": "/usr/lib/liboah.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4CBBF5DD-B67C-3BE4-9B97-5F113FD01950",
+      "path": "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "867CC9BD-9CB2-33D8-9EF1-9458976A2B19",
+      "path": "/System/Library/PrivateFrameworks/GenerationalStorage.framework/Versions/A/GenerationalStorage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AAFC35E9-A49F-3995-A784-037A9EAAB2A7",
+      "path": "/System/Library/PrivateFrameworks/CacheDelete.framework/Versions/A/CacheDelete",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EBC97263-3FE7-3B5B-92E7-F796F78CFE48",
+      "path": "/System/Library/Frameworks/QuickLookThumbnailing.framework/Versions/A/QuickLookThumbnailing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "05043A62-C3DA-3181-BB4A-5A6083E2FBEF",
+      "path": "/System/Library/Frameworks/FileProvider.framework/Versions/A/FileProvider",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B870832E-8BB7-3E88-9B9D-A25AEB6FD2B0",
+      "path": "/System/Library/PrivateFrameworks/DiskImages.framework/Versions/A/DiskImages",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "96DF6DA3-4780-3138-8318-2D9292EA4775",
+      "path": "/System/Library/Frameworks/NetFS.framework/Versions/A/NetFS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A0CC636D-38DA-3F6C-A94B-A27FC588BF93",
+      "path": "/System/Library/PrivateFrameworks/DesktopServicesPriv.framework/Versions/A/DesktopServicesPriv",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EB26C31A-4C42-31CD-B48B-9BFCCFAA7A4B",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/FSEvents.framework/Versions/A/FSEvents",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9BDEEDD0-75AB-38E6-B9D8-E639A234893A",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/CarbonCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9A860898-453E-36F4-9830-6D754A8C7CDC",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Metadata",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AE3050F3-46C3-3A20-B1F2-DF7F9400A9F0",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/OSServices.framework/Versions/A/OSServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3E8F0ABC-A863-3A3E-8B0C-D01A44A98468",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/SearchKit.framework/Versions/A/SearchKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5376E565-7730-3F73-B948-B9D10D08A772",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/AE",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7E01ED2D-7B3A-34D5-87F0-AA2785A5605F",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/LaunchServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EFE68757-B99A-3768-8494-2E54E23C2172",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/DictionaryServices.framework/Versions/A/DictionaryServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5BCA48BA-0BDB-355B-9F0A-75E649EC3359",
+      "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/SharedFileList.framework/Versions/A/SharedFileList",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "33B20CAF-51C2-32E9-B20B-7F3B137BFFB9",
+      "path": "/usr/lib/libapple_nghttp2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "53ABC511-4939-38EE-9170-BE252A25B254",
+      "path": "/usr/lib/libsqlite3.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6EE0898E-75B7-3B03-B339-0593C023AA2F",
+      "path": "/System/Library/Frameworks/Accounts.framework/Versions/A/Accounts",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8B07D55F-2F60-3EFB-B5FF-513A470563E5",
+      "path": "/System/Library/PrivateFrameworks/AOSKit.framework/Versions/A/AOSKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "58E16BD5-DE6E-3CFE-8F0A-7ADDC9D966C9",
+      "path": "/System/Library/PrivateFrameworks/AppSSOCore.framework/Versions/A/AppSSOCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3DE9E998-0707-3635-B57B-1954D8712DFB",
+      "path": "/System/Library/PrivateFrameworks/AppSupport.framework/Versions/A/AppSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A91FBD2D-DE97-341C-8E45-058E8B968DFE",
+      "path": "/System/Library/Frameworks/AVFoundation.framework/Versions/A/AVFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0B77686F-0AC4-3785-9714-46D7BFCDB05D",
+      "path": "/System/Library/PrivateFrameworks/BackgroundSystemTasks.framework/Versions/A/BackgroundSystemTasks",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "ED4098AC-ECE3-3A22-92F1-A2292DFC13F2",
+      "path": "/System/Library/PrivateFrameworks/CoreAnalytics.framework/Versions/A/CoreAnalytics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B00B63EB-CE38-3544-9C9E-D5309957CE58",
+      "path": "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "86BDA6A2-DA5F-3E65-8FC7-2D40ACE3FD99",
+      "path": "/System/Library/PrivateFrameworks/DuetActivityScheduler.framework/Versions/A/DuetActivityScheduler",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D6FC47E-1A44-37C3-840E-8E63E95F74B9",
+      "path": "/System/Library/PrivateFrameworks/FTServices.framework/Versions/A/FTServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6DD8C0F7-306B-3FCF-AE30-A174E455F142",
+      "path": "/System/Library/Frameworks/GSS.framework/Versions/A/GSS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "526A16B3-FD9E-3265-8437-D98395B61A62",
+      "path": "/System/Library/PrivateFrameworks/InternationalSupport.framework/Versions/A/InternationalSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "403394FD-C447-3FAD-9C3D-F253382E0A4D",
+      "path": "/usr/lib/libMemoryResourceException.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "648E1C44-5CD5-388C-A170-3F9CEFD9DB69",
+      "path": "/System/Library/PrivateFrameworks/NetworkScore.framework/Versions/A/NetworkScore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "88DFDF5B-BDBF-365C-A7A9-F33D2F457D19",
+      "path": "/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/Versions/A/NetworkServiceProxy",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4937DF6A-027A-3661-A7CC-CCE0F1674A40",
+      "path": "/System/Library/PrivateFrameworks/RunningBoardServices.framework/Versions/A/RunningBoardServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D96E67F6-C2E7-3663-93C7-D1548D2551D8",
+      "path": "/System/Library/PrivateFrameworks/StreamingExtractor.framework/Versions/A/StreamingExtractor",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D3F2AFC-034D-30C7-88D1-B7B2DC521310",
+      "path": "/System/Library/PrivateFrameworks/StreamingZip.framework/Versions/A/StreamingZip",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D383DE91-30CC-3B68-A663-61C77C68B9AE",
+      "path": "/System/Library/PrivateFrameworks/SymptomReporter.framework/Versions/A/SymptomReporter",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "62B33A35-EA5F-3FCA-9FD4-79C4DFB82FC9",
+      "path": "/usr/lib/libenergytrace.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0A20FD69-AF19-3458-B64F-54BFD3A6DC95",
+      "path": "/usr/lib/libnetworkextension.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "66B895AF-CEE8-378F-ABD8-D4F9738476CA",
+      "path": "/System/Library/Frameworks/Network.framework/Versions/A/Network",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B2A2B623-537B-3853-A317-53DC4943A4D8",
+      "path": "/usr/lib/libbsm.0.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6808ADDF-053F-3215-916D-A375A3531661",
+      "path": "/usr/lib/system/libkxld.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "67B6D752-B0D2-34AC-9F6B-4368F0CCF674",
+      "path": "/System/Library/PrivateFrameworks/AppleKeyStore.framework/Versions/A/AppleKeyStore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "40E810FC-0D99-3C00-92D7-F0C66D6152FB",
+      "path": "/usr/lib/libCoreEntitlements.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A209D53C-DAD5-3A1F-A8C2-14B0C20A547A",
+      "path": "/System/Library/PrivateFrameworks/MessageSecurity.framework/Versions/A/MessageSecurity",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "66E64E0E-00B6-38DA-8A84-A90DA509B284",
+      "path": "/System/Library/PrivateFrameworks/ProtocolBuffer.framework/Versions/A/ProtocolBuffer",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "271C78CB-FB23-36E5-891E-6EC6E350C11D",
+      "path": "/System/Library/PrivateFrameworks/CloudServices.framework/Versions/A/CloudServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A1B05E3E-3DF9-33B6-BDB3-E4644931BB69",
+      "path": "/System/Library/PrivateFrameworks/SymptomDiagnosticReporter.framework/Versions/A/SymptomDiagnosticReporter",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1238D09C-0D64-377F-913D-2DD04FEE8AF2",
+      "path": "/System/Library/PrivateFrameworks/CrashReporterSupport.framework/Versions/A/CrashReporterSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "018D1CC6-9A6F-309C-92CF-A30594FB12A7",
+      "path": "/usr/lib/libMobileGestalt.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5E4BD0FD-F038-33D2-AF7E-5DEC574FF457",
+      "path": "/System/Library/PrivateFrameworks/AppleFSCompression.framework/Versions/A/AppleFSCompression",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2CB72424-441F-392D-8F30-40B6DEE19795",
+      "path": "/usr/lib/libcoretls.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "67086CB0-340C-3DFD-B1E0-2B4C7C77026A",
+      "path": "/usr/lib/libcoretls_cfhelpers.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CF7680E1-7AB2-39A5-B30C-E3AB30A5B0BB",
+      "path": "/usr/lib/libpam.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A3F96FD4-FBE8-3867-93EE-7FF4F9B3E867",
+      "path": "/usr/lib/libxar.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "86DD0616-A944-3596-8742-36F86E537A74",
+      "path": "/System/Library/PrivateFrameworks/APFS.framework/Versions/A/APFS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EDAC3CA1-D139-3B18-941A-86FC1B7E2143",
+      "path": "/System/Library/PrivateFrameworks/SwiftASN1Internal.framework/Versions/A/SwiftASN1Internal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4FE4BA84-8B65-343C-9A7C-A174849301F1",
+      "path": "/usr/lib/libutil.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "450E68B1-E42E-3448-8003-6E070946E9E7",
+      "path": "/System/Library/PrivateFrameworks/AppleSystemInfo.framework/Versions/A/AppleSystemInfo",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4E324CA4-23BF-3216-8749-717D5AD761B3",
+      "path": "/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/Versions/A/IOMobileFramebuffer",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6A59B8B3-E55E-315B-87BF-260C95008770",
+      "path": "/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "54180EFA-D1A0-3ECE-8975-0290F0C2B234",
+      "path": "/System/Library/PrivateFrameworks/CoreWiFi.framework/Versions/A/CoreWiFi",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F1F1C407-6F51-3081-B00F-EA13A5B3DED8",
+      "path": "/System/Library/PrivateFrameworks/LoggingSupport.framework/Versions/A/LoggingSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BDDD31D4-3841-302F-A4B8-697F85E50F8F",
+      "path": "/System/Library/PrivateFrameworks/MobileAsset.framework/Versions/A/MobileAsset",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "36E48134-17FF-3841-B765-79589A4CFCBA",
+      "path": "/System/Library/PrivateFrameworks/PowerLog.framework/Versions/A/PowerLog",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F135A4EF-AD5C-33AF-898C-327F9A9AD6DE",
+      "path": "/System/Library/PrivateFrameworks/Rapport.framework/Versions/A/Rapport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "35B80273-CE4A-3CF8-BD6C-7DC17BA20BFB",
+      "path": "/System/Library/Frameworks/SwiftData.framework/Versions/A/SwiftData",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2AB8318B-59C0-3CE2-851E-81D0030DEFCC",
+      "path": "/System/Library/PrivateFrameworks/Symptoms.framework/Versions/A/Frameworks/SymptomAnalytics.framework/Versions/A/SymptomAnalytics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "31BBE997-B323-3535-9ADB-FD7EF7382BAC",
+      "path": "/System/Library/Frameworks/UniformTypeIdentifiers.framework/Versions/A/UniformTypeIdentifiers",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0C8B7C6C-CCCD-3EAF-B5E5-D4B6F776123A",
+      "path": "/System/Library/PrivateFrameworks/UserManagement.framework/Versions/A/UserManagement",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "042D12D8-A8A0-3F41-ABA8-4F0C1BC7B777",
+      "path": "/usr/lib/libboringssl.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9FE5288D-2843-3617-B6E7-368407B508B0",
+      "path": "/usr/lib/libcupolicy.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8169DB95-C8DE-322C-99BF-D592F610013E",
+      "path": "/usr/lib/libdns_services.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "65146FDE-4846-34BA-A2F6-C21ABA3BE65B",
+      "path": "/System/Library/Frameworks/NetworkExtension.framework/Versions/A/NetworkExtension",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7393B9CF-5140-3A6B-8F4A-26B2388C9A84",
+      "path": "/usr/lib/libnwswifttls.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BDD0CE49-762D-3B48-9E8B-8D602389756C",
+      "path": "/usr/lib/libpcap.A.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D5CD3CB-3FDD-38B3-BB26-EBB2582A5AA1",
+      "path": "/usr/lib/libquic.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "923F2A55-C3F5-3D6A-A5FE-F508E9A61204",
+      "path": "/usr/lib/libusrtcp.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "407FE060-8C88-3194-A21B-8688FD8EC4E5",
+      "path": "/System/Library/PrivateFrameworks/AtomicsInternal.framework/Versions/A/AtomicsInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A510588F-6A70-3706-8E8F-AD186EE908A9",
+      "path": "/System/Library/PrivateFrameworks/InternalSwiftProtobuf.framework/Versions/A/InternalSwiftProtobuf",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B39D029A-D50B-3A5F-8ED3-CDB591E7D429",
+      "path": "/usr/lib/swift/libswiftDistributed.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8A5C9C34-6237-3DAF-B402-7CCBDA47E028",
+      "path": "/usr/lib/swift/libswiftObservation.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8D3DB366-76F8-3D99-8CC3-326AA513F7B4",
+      "path": "/usr/lib/swift/libswiftSynchronization.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1178C8EA-95DB-3BBA-A00F-E6D3A647940E",
+      "path": "/System/Library/PrivateFrameworks/AggregateDictionary.framework/Versions/A/AggregateDictionary",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "29B10062-4106-3C35-BE91-22FA3750DE29",
+      "path": "/System/Library/PrivateFrameworks/CoreDuetContext.framework/Versions/A/CoreDuetContext",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E7A86C30-C81B-3E2E-8C9D-AB0301998890",
+      "path": "/System/Library/PrivateFrameworks/BiomeLibrary.framework/Versions/A/BiomeLibrary",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D7889D1E-8AEF-3BEE-814C-03AEC1F7BB39",
+      "path": "/System/Library/PrivateFrameworks/CoreDuet.framework/Versions/A/CoreDuet",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "89BE0C47-C549-3DB1-AEEE-8A5DEBEE4688",
+      "path": "/System/Library/PrivateFrameworks/BiomeStreams.framework/Versions/A/BiomeStreams",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "87FC78C7-6A65-3209-9537-DEE615D84725",
+      "path": "/System/Library/PrivateFrameworks/BiomeFoundation.framework/Versions/A/BiomeFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1056981B-EFD4-37A2-8CA3-2691A18A34EF",
+      "path": "/System/Library/PrivateFrameworks/BiomePubSub.framework/Versions/A/BiomePubSub",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FC7B6078-A83A-39E4-B4CD-46E46FC71151",
+      "path": "/System/Library/Frameworks/CoreData.framework/Versions/A/CoreData",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F035491A-8388-3A51-B36A-C3B20C8A0FE8",
+      "path": "/System/Library/PrivateFrameworks/ProactiveSupport.framework/Versions/A/ProactiveSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3378EEF4-2479-3D27-A802-BABC01D2DD5F",
+      "path": "/System/Library/Frameworks/CoreLocation.framework/Versions/A/CoreLocation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2E11DE6A-539A-3223-8393-2EF288A306CD",
+      "path": "/System/Library/Frameworks/Intents.framework/Versions/A/Intents",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "84A21444-813B-3886-AEA4-C345149F4CD9",
+      "path": "/System/Library/Frameworks/_LocationEssentials.framework/Versions/A/_LocationEssentials",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7BC382B4-38A9-3054-8D3F-ED10CFBFF192",
+      "path": "/usr/lib/liblzma.5.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0A9F7A80-1DC3-369D-AE67-2D21EE9D7C50",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F8D5F6A0-E9FC-3CD4-ABDB-C1AE9347AB2B",
+      "path": "/System/Library/PrivateFrameworks/MobileKeyBag.framework/Versions/A/MobileKeyBag",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "33E50974-2591-31C3-9853-2096E37742F3",
+      "path": "/System/Library/PrivateFrameworks/InternationalTextSearch.framework/Versions/A/InternationalTextSearch",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "820532AC-6CC2-352E-95F0-CD31377DA3B4",
+      "path": "/System/Library/PrivateFrameworks/SoftwareUpdateCoreSupport.framework/Versions/A/SoftwareUpdateCoreSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1C3E0445-FC4C-3BA1-A555-7CBB653840F2",
+      "path": "/System/Library/PrivateFrameworks/SoftwareUpdateCoreConnect.framework/Versions/A/SoftwareUpdateCoreConnect",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F4BB09A4-E464-35B8-968E-8936A4298C48",
+      "path": "/System/Library/PrivateFrameworks/RemoteServiceDiscovery.framework/Versions/A/RemoteServiceDiscovery",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CBF1231F-9088-3855-83B8-9B5196641BBC",
+      "path": "/System/Library/PrivateFrameworks/MSUDataAccessor.framework/Versions/A/MSUDataAccessor",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "906CDC5E-FCE3-3DB4-AC97-46C9373D6C26",
+      "path": "/usr/lib/libbootpolicy.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "ED290C70-5627-3D78-98CF-FDDCC7E6176B",
+      "path": "/System/Library/PrivateFrameworks/RemoteXPC.framework/Versions/A/RemoteXPC",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "142B6C05-3B93-3A74-89BB-FC0719EDAFD0",
+      "path": "/usr/lib/libFDR.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0D37C527-DC1F-363A-B4D8-A0E95104DA36",
+      "path": "/usr/lib/libamsupport.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1EE2E566-2280-3B41-B13B-BF71517DC956",
+      "path": "/usr/lib/libReverseProxyDevice.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "280507E6-93B0-3DEE-842C-42912C1A394B",
+      "path": "/System/Library/PrivateFrameworks/AppleDeviceQuerySupport.framework/Versions/A/AppleDeviceQuerySupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "21D8FFBE-3A8A-3D01-B608-085D50238EE5",
+      "path": "/usr/lib/libpartition2_dynamic.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8468AF10-88F2-3DD8-9DD4-0BBFCA10B055",
+      "path": "/System/Library/PrivateFrameworks/AppleSauce.framework/Versions/A/AppleSauce",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F7C3CEC7-1F55-3617-B917-F221A2BCE7B6",
+      "path": "/usr/lib/libAppleArchive.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "95721BB3-328F-34A5-9567-4BB14DD45268",
+      "path": "/usr/lib/libbz2.1.0.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E718351A-2443-3919-8135-67ADB9312327",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vImage.framework/Versions/A/vImage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "273012BA-11EF-3A4E-A050-A3A488943FA3",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/vecLib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4E031DEB-7FC6-343A-8CCA-61617B5C6DF1",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libvMisc.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5CB5DA2B-8DBC-3C27-A28B-22BFB5A1B0A9",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vImage.framework/Versions/A/Libraries/libCGInterfaces.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "50CC2439-610D-3C06-B4FE-A23EB431A579",
+      "path": "/System/Library/PrivateFrameworks/AccelerateGPU.framework/Versions/A/AccelerateGPU",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4FC8C9A8-58C3-35DD-A4D8-F02D57F085ED",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "542873FE-897D-3929-A243-4FF3B6468C82",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "27CE0BA7-202B-34AC-BA6C-56891CCEC5F1",
+      "path": "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5467E64B-022C-3ABE-9D08-A7A433F9FC07",
+      "path": "/System/Library/Frameworks/ColorSync.framework/Versions/A/ColorSync",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A372F0BF-AC92-39F6-A41C-580158486082",
+      "path": "/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7FA508AE-1EC7-36B6-AE29-EDD453A34CAD",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B84BE70C-27E0-3910-9A9B-D5BA710E2A47",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/ATS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3AA36B9F-7D37-35FF-8034-A16DABFE5981",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/HIServices.framework/Versions/A/HIServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A3EBBAA4-FD6A-3841-B784-0242A5B581E6",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/PrintCore.framework/Versions/A/PrintCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4C584383-7D25-3207-BCAA-EDA21353B728",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/QD.framework/Versions/A/QD",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "333CBEEF-B92E-3132-8C87-C4F758D44C82",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ColorSyncLegacy.framework/Versions/A/ColorSyncLegacy",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D9A460A9-2C2A-3223-A26C-4CD12220E1FC",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/SpeechSynthesis.framework/Versions/A/SpeechSynthesis",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EF82BE18-450B-33FE-9C68-A2C88144F367",
+      "path": "/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/SkyLight",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8B98C347-62C7-38F2-92C8-244B6DFD3639",
+      "path": "/System/Library/PrivateFrameworks/FontServices.framework/libFontParser.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F3D9ECDD-A111-3EFA-913E-7E15E7BB5318",
+      "path": "/System/Library/PrivateFrameworks/BaseBoard.framework/Versions/A/BaseBoard",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "00CE20DD-828E-3ECD-92A3-FF88B0DA61CE",
+      "path": "/System/Library/PrivateFrameworks/BoardServices.framework/Versions/A/BoardServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1BFBA7A9-B789-3FCB-9C5D-987DE4D1DEE8",
+      "path": "/System/Library/PrivateFrameworks/BackBoardServices.framework/Versions/A/BackBoardServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BDDBB7D2-5979-3E4D-A110-D6484BE6B63D",
+      "path": "/System/Library/PrivateFrameworks/BackBoardHIDEventFoundation.framework/Versions/A/BackBoardHIDEventFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "193E4CF1-2F3E-3023-BC85-B995752B5290",
+      "path": "/System/Library/Frameworks/CoreDisplay.framework/Versions/A/CoreDisplay",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C266DA23-A7F3-3D85-81F6-8A9DCD783FD9",
+      "path": "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "59D13EAF-0DF5-3A93-9E12-7A1D22B52520",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/MetalPerformanceShaders",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "085F6583-4A26-3006-8C7A-853A09AD40E0",
+      "path": "/System/Library/PrivateFrameworks/ProDisplayLibrary.framework/Versions/A/ProDisplayLibrary",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "ED79EC5A-409D-39A9-9521-3043C39FE108",
+      "path": "/System/Library/PrivateFrameworks/IOSurfaceAccelerator.framework/Versions/A/IOSurfaceAccelerator",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4E1D8F53-729B-3232-A184-2E9CD18AAD43",
+      "path": "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D7DC2BD8-513C-3354-ACC0-C3140D9A0A86",
+      "path": "/System/Library/PrivateFrameworks/IOAccelerator.framework/Versions/A/IOAccelerator",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "09574F0D-9398-3C09-9DE8-F3834E693B68",
+      "path": "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BC682334-20A5-3374-9FC6-627EA7921E04",
+      "path": "/System/Library/PrivateFrameworks/TCC.framework/Versions/A/TCC",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "62C8465E-0729-3B6F-A298-6BB40D0BD3ED",
+      "path": "/System/Library/PrivateFrameworks/WatchdogClient.framework/Versions/A/WatchdogClient",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B1C40645-C68A-3850-BBC4-29F74E486DF9",
+      "path": "/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DBBEDD3D-E0C4-3520-9548-5DD8A346A941",
+      "path": "/System/Library/PrivateFrameworks/MultitouchSupport.framework/Versions/A/MultitouchSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "ADC97387-1D6A-3155-B732-3F5066BD6360",
+      "path": "/usr/lib/swift/libswiftAccelerate.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E048689E-9E66-3941-AA17-48B0A441ED26",
+      "path": "/usr/lib/swift/libswiftCoreAudio.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "450AA35C-B2E6-3327-827B-ACEB171F87D4",
+      "path": "/usr/lib/swift/libswiftCoreMedia.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D96EF332-F72B-3B75-82E3-5FBDD6882BC4",
+      "path": "/usr/lib/swift/libswiftMetal.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2B310D36-BAAA-346C-860E-2B9FA9EBFE2F",
+      "path": "/usr/lib/swift/libswiftOSLog.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CCB3028F-09BA-3887-947D-6F8FD47E2B09",
+      "path": "/usr/lib/swift/libswiftQuartzCore.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B08C16EF-8677-3331-B9A6-16294A1A6AA0",
+      "path": "/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3E76FAE6-CDCE-31A2-BC50-3907797972CF",
+      "path": "/usr/lib/swift/libswiftVideoToolbox.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BF085F71-EE8E-3791-B258-816A98B1E84B",
+      "path": "/usr/lib/swift/libswiftsimd.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "31E41201-08D1-338B-BDED-CC6A677D7487",
+      "path": "/System/Library/PrivateFrameworks/BiomeStorage.framework/Versions/A/BiomeStorage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FB23F4B0-47DB-3BB7-86EB-6B155DA406CF",
+      "path": "/System/Library/PrivateFrameworks/IntelligencePlatformLibrary.framework/Versions/A/IntelligencePlatformLibrary",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4992FDC0-2A39-37DD-926E-0E9F9CC9B381",
+      "path": "/System/Library/PrivateFrameworks/PoirotSchematizer.framework/Versions/A/PoirotSchematizer",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "102054CD-90EC-3295-9F9B-F98336CD69B3",
+      "path": "/System/Library/PrivateFrameworks/BiomeSync.framework/Versions/A/BiomeSync",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B81F347F-E6B4-3E12-84CA-F9B1B70FF675",
+      "path": "/System/Library/PrivateFrameworks/BiomeDSL.framework/Versions/A/BiomeDSL",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "320F2910-E9AD-3A26-A9E5-80709DE442C6",
+      "path": "/System/Library/PrivateFrameworks/FeatureFlags.framework/Versions/A/FeatureFlags",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A70FE2AE-430C-30E5-B105-B3DCC294DF37",
+      "path": "/System/Library/PrivateFrameworks/PoirotUDFs.framework/Versions/A/PoirotUDFs",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D22D6BC3-62DD-314C-8A8E-56CD69ABAB3C",
+      "path": "/usr/lib/swift/libswift_DarwinFoundation2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "02812A8B-CF65-3C0F-A795-C4A03E71D00E",
+      "path": "/usr/lib/swift/libswift_DarwinFoundation3.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6B69F2AE-681C-34FE-AF72-5932E6396B76",
+      "path": "/System/Library/PrivateFrameworks/CoreTime.framework/Versions/A/CoreTime",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E384E5FE-DFF5-36ED-88C8-0EEF2FBF89CE",
+      "path": "/usr/lib/libiconv.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "994633BA-AA7A-31BF-94C5-E31A08CA6243",
+      "path": "/usr/lib/libcharset.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B3D3E21E-698D-3C9E-B4DF-7DB6B7A31822",
+      "path": "/System/Library/PrivateFrameworks/PoirotSQLite.framework/Versions/A/PoirotSQLite",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4AFB7E54-4E3C-351E-A353-9B1C99CBDA36",
+      "path": "/usr/lib/swift/libswift_RegexParser.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6CED7B79-85C6-3ABA-A1D4-691B2031239D",
+      "path": "/System/Library/PrivateFrameworks/CascadeSets.framework/Versions/A/CascadeSets",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8E1BEC85-B822-3578-A145-720317FA3F1F",
+      "path": "/System/Library/PrivateFrameworks/CorePhoneNumbers.framework/Versions/A/CorePhoneNumbers",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A67D4167-3070-3F74-AAA3-D026E9B24C20",
+      "path": "/System/Library/PrivateFrameworks/AppleJPEG.framework/Versions/A/AppleJPEG",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "703912FD-D1AE-310C-BC05-7388D6CED6F5",
+      "path": "/usr/lib/libexpat.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "77ADBD9D-5B48-3588-AB0F-721187BED8EC",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libPng.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "88FF9BDE-4C76-3616-A764-9E8C89F7237B",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libTIFF.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2C78C162-3F2C-3159-84F4-8E3AE1DDB990",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libGIF.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "04679436-B3A9-3394-ACB5-74AE06684A27",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libJP2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "18973DAC-3297-3904-B329-A46242C87ABA",
+      "path": "/usr/lib/libate.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "77A9D581-5B49-3D6D-AF13-3CF5F6B3301E",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libJPEG.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9A06F7A0-3845-30D5-95F6-FD16510B8BA9",
+      "path": "/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/libRadiance.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5C724D09-588C-3E79-8D58-209B6147A7AD",
+      "path": "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/libllvm-flatbuffers.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "94C088E1-45CE-32F2-94E2-D92BE086B6F4",
+      "path": "/System/Library/PrivateFrameworks/FramePacing.framework/Versions/A/FramePacing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4AC2B004-453D-3053-8CE3-DB02BF78634B",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCoreFSCache.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CB93CEE8-91B3-31B0-9EF4-9A2261EE0DC1",
+      "path": "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/libGPUCompilerUtils.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C1833E07-4E3E-3604-9C04-CEF7FA7B55D9",
+      "path": "/System/Library/PrivateFrameworks/GraphicsServices.framework/Versions/A/GraphicsServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "46037BEA-D5A5-3E3F-BB30-1CAC01B5068F",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "535E6602-2A32-3E9B-9556-AD1D11D2C842",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLU.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7288278F-C62B-38D0-A3B9-5745AA80CE86",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C7B73037-CD52-3D9D-A485-91245CEFAD48",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D1122A05-2EBB-3AD2-8892-C24FF521D310",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLImage.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "484EB0B7-ED7C-312E-B3A6-B64CC93FAA93",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCVMSPluginSupport.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F3F2109F-8C42-3EF3-8E23-69CE9D6D21AC",
+      "path": "/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libCoreVMClient.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "87A30363-DC91-34AA-9E7F-34CE76339267",
+      "path": "/System/Library/PrivateFrameworks/GPUWrangler.framework/Versions/A/GPUWrangler",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "964E964E-0852-3F03-8B48-331B3102CFE9",
+      "path": "/System/Library/PrivateFrameworks/IOPresentment.framework/Versions/A/IOPresentment",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B9FC4FDF-0C94-3E77-AE41-B204D287F253",
+      "path": "/System/Library/PrivateFrameworks/DSExternalDisplay.framework/Versions/A/DSExternalDisplay",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C020E1A9-FA32-3DDE-A814-761CC904519C",
+      "path": "/System/Library/PrivateFrameworks/VideoToolboxParavirtualizationSupport.framework/Versions/A/VideoToolboxParavirtualizationSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "860D72AD-8149-3F4E-ACF4-EAED5CB1A85E",
+      "path": "/System/Library/PrivateFrameworks/AppleVA.framework/Versions/A/AppleVA",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8414CA2A-21EF-3B0B-A60B-789666C62990",
+      "path": "/System/Library/Frameworks/ExtensionFoundation.framework/Versions/A/ExtensionFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2DE5381F-785A-3983-BBC7-0753BB151F14",
+      "path": "/System/Library/PrivateFrameworks/CMCaptureCore.framework/Versions/A/CMCaptureCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7FD26E92-31BB-390A-A80B-29D8AAE9FAD8",
+      "path": "/usr/lib/libspindump.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "72080A9B-8C5B-3E6D-8DE7-0F86C3E698EC",
+      "path": "/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A88EE161-4724-302C-A026-D1B87AD54106",
+      "path": "/System/Library/PrivateFrameworks/AppServerSupport.framework/Versions/A/AppServerSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AED99EAC-C348-3326-98F1-97D0AE3CEBAD",
+      "path": "/System/Library/PrivateFrameworks/perfdata.framework/Versions/A/perfdata",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "68C6E8A5-BC2A-35B7-94F4-D03AECD46963",
+      "path": "/System/Library/PrivateFrameworks/AudioDSPGraph.framework/Versions/A/AudioDSPGraph",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E04892F4-3ED8-3993-8683-B8D7A40C3A2D",
+      "path": "/System/Library/PrivateFrameworks/AudioToolboxCore.framework/Versions/A/AudioToolboxCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2BDD6811-CE34-3098-9833-10D9F74B7FFC",
+      "path": "/System/Library/PrivateFrameworks/caulk.framework/Versions/A/caulk",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F2A3C791-1F5B-35C2-972B-69785C913B0C",
+      "path": "/usr/lib/libAudioStatistics.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8618CC84-FA89-362C-AD11-E70A0B62EFF8",
+      "path": "/System/Library/PrivateFrameworks/SystemPolicy.framework/Versions/A/SystemPolicy",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "22C15CB5-9AD6-3866-837A-8CBE8AF5BFC4",
+      "path": "/usr/lib/libSMC.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5E94EF55-3133-3ABB-9C73-E75138953F3D",
+      "path": "/usr/lib/swift/libswiftCoreMIDI.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "03707B1E-A19F-32D7-98A9-E3A7248B1209",
+      "path": "/System/Library/Frameworks/CoreMIDI.framework/Versions/A/CoreMIDI",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C2B4CF76-E4A5-32C0-A5F3-8127BDCA92EB",
+      "path": "/usr/lib/libAudioToolboxUtility.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "90EEF798-81FA-38B6-99AF-117D4AB01DE6",
+      "path": "/usr/lib/libperfcheck.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "836137A2-2EFE-35FF-B641-6042C5D72771",
+      "path": "/System/Library/PrivateFrameworks/AudioAnalytics.framework/Versions/A/AudioAnalytics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D1D8B4E1-367E-3ED0-AD02-37D720B6F1E7",
+      "path": "/System/Library/Frameworks/OSLog.framework/Versions/A/OSLog",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9D45879B-E72F-3EC2-B8BA-F17AF6993AB1",
+      "path": "/System/Library/PrivateFrameworks/OSEligibility.framework/Versions/A/OSEligibility",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B44E2BF9-0F0F-3CE1-8102-862AC2FC3215",
+      "path": "/System/Library/PrivateFrameworks/IconServices.framework/Versions/A/IconServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BC31094B-0028-31CE-A0A4-AAAD41DD9AA3",
+      "path": "/System/Library/Frameworks/LightweightCodeRequirements.framework/Versions/A/LightweightCodeRequirements",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FB09CB89-BB7F-3085-B035-2D99017521B0",
+      "path": "/System/Library/PrivateFrameworks/PlugInKit.framework/Versions/A/PlugInKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8BDF4215-2AE2-38A1-92D9-8D503B064790",
+      "path": "/System/Library/PrivateFrameworks/AssertionServices.framework/Versions/A/AssertionServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B3CD5CD7-92FB-3CBC-98CA-133548B63270",
+      "path": "/System/Library/PrivateFrameworks/IconFoundation.framework/Versions/A/IconFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "000CA489-058D-30C3-9C04-71EB21583A1D",
+      "path": "/System/Library/PrivateFrameworks/AssistantServices.framework/Versions/A/AssistantServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "51CD9ACA-CC48-3F76-9BDE-83BD926DBD88",
+      "path": "/System/Library/PrivateFrameworks/IconRendering.framework/Versions/A/IconRendering",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1B12A15C-6172-3FB5-AA64-B5C3F2473F6B",
+      "path": "/System/Library/PrivateFrameworks/CoreUI.framework/Versions/A/CoreUI",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8ED0F6C5-AFF1-3217-B13C-DC2FB7090F2D",
+      "path": "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "009CB06E-6F11-3411-98C4-18700A3F9371",
+      "path": "/System/Library/PrivateFrameworks/SFSymbols.framework/Versions/A/SFSymbols",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9DE70721-8E63-36A6-A8D1-7457EFDC4505",
+      "path": "/System/Library/Frameworks/DeveloperToolsSupport.framework/Versions/A/DeveloperToolsSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "392735CB-8F39-390C-A7DE-6DF080C008EB",
+      "path": "/System/Library/PrivateFrameworks/RenderBox.framework/Versions/A/RenderBox",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "30BC4F58-5464-3ABE-ADFB-03A980C6DFE1",
+      "path": "/System/Library/PrivateFrameworks/CoreSVG.framework/Versions/A/CoreSVG",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B81B7342-77B2-3DFE-ADE1-C52E21AB7386",
+      "path": "/System/Library/PrivateFrameworks/TextureIO.framework/Versions/A/TextureIO",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "40B43AC1-C3F9-320C-A4E3-622BF2EE9EF6",
+      "path": "/usr/lib/swift/libswiftCoreImage.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "967136C2-27D1-363D-BB62-7029C00A0FA2",
+      "path": "/System/Library/PrivateFrameworks/GraphVisualizer.framework/Versions/A/GraphVisualizer",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2D16E478-3384-3947-8A97-472C8265DEA3",
+      "path": "/System/Library/PrivateFrameworks/FontServices.framework/Versions/A/FontServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F032D306-361F-36D7-AB5C-10B81D4326E4",
+      "path": "/System/Library/PrivateFrameworks/OTSVG.framework/Versions/A/OTSVG",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "16C4640D-B9D6-35E1-9813-DD8480382152",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATS.framework/Versions/A/Resources/libFontRegistry.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FA8F5DCD-0A2B-30A9-8BD5-065DF59ED592",
+      "path": "/usr/lib/libhvf.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AA740584-BC9B-3F37-9A1A-EF0414380CE6",
+      "path": "/System/Library/PrivateFrameworks/ParsingInternal.framework/Versions/A/ParsingInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D3CA2DB8-9982-3978-BABC-92B5D3E4528C",
+      "path": "/System/Library/PrivateFrameworks/FontServices.framework/libXTFontStaticRegistryData.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8E8DEA53-FF92-3DA6-A47E-BA27226D8029",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSCore.framework/Versions/A/MPSCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CB3CEFB0-2E32-3E00-A252-81B8CE6E3DFE",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSImage.framework/Versions/A/MPSImage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "891172A3-75F1-325A-A3A9-7CF2E3F31D79",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSNeuralNetwork.framework/Versions/A/MPSNeuralNetwork",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3CAC578C-742A-360E-B6FE-703AB65552A3",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSMatrix.framework/Versions/A/MPSMatrix",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F10D9EF3-65A3-3DA6-8336-465E4A4C5076",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSRayIntersector.framework/Versions/A/MPSRayIntersector",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "93BA8B8F-DD36-370F-B6FF-F47614F314A7",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSNDArray.framework/Versions/A/MPSNDArray",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E72A458C-E7CA-3070-983D-DCF1A13856FB",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSFunctions.framework/Versions/A/MPSFunctions",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FE426DDE-CE08-3740-8439-2EF901E3576F",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSBenchmarkLoop.framework/Versions/A/MPSBenchmarkLoop",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EB2488F5-7C40-3E41-AF79-232149835176",
+      "path": "/System/Library/Frameworks/MetalPerformanceShaders.framework/Versions/A/Frameworks/MPSHost.framework/Versions/A/MPSHost",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "287AFB31-4869-3E39-BBD1-3BB410FEA798",
+      "path": "/System/Library/PrivateFrameworks/MetalTools.framework/Versions/A/MetalTools",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AEE0B693-229A-32BD-8CF6-B534B4FB73E1",
+      "path": "/System/Library/PrivateFrameworks/IOAccelMemoryInfo.framework/Versions/A/IOAccelMemoryInfo",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "56910FEC-A3D1-3DF4-9CD3-31C65D4B7B88",
+      "path": "/System/Library/PrivateFrameworks/kperf.framework/Versions/A/kperf",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5EB9C19F-7B49-31FC-A0F4-F8DDBD5B2859",
+      "path": "/System/Library/PrivateFrameworks/GPURawCounter.framework/Versions/A/GPURawCounter",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "830CFC7B-FEDE-3187-A209-B49966597433",
+      "path": "/System/Library/PrivateFrameworks/ASEProcessing.framework/Versions/A/ASEProcessing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D18DE969-073E-38CF-BA4F-466045A5818D",
+      "path": "/System/Library/PrivateFrameworks/Symbolication.framework/Versions/A/Symbolication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3931DECB-C3BB-39E7-BCBF-54CCE20032C7",
+      "path": "/System/Library/PrivateFrameworks/PhotosensitivityProcessing.framework/Versions/A/PhotosensitivityProcessing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A1A3D3E5-BB48-318C-A1A2-949DAE63B749",
+      "path": "/System/Library/PrivateFrameworks/SILManager.framework/Versions/A/SILManager",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FDAEC762-CC55-34D9-9951-85382E50F9F5",
+      "path": "/System/Library/PrivateFrameworks/CoreSymbolication.framework/Versions/A/CoreSymbolication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0A1A0710-C15E-3C5D-A67A-B582F40B23F4",
+      "path": "/System/Library/PrivateFrameworks/MallocStackLogging.framework/Versions/A/MallocStackLogging",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "28F7AD5A-D1F0-36D5-9658-BDE3910BEA55",
+      "path": "/System/Library/PrivateFrameworks/DebugSymbols.framework/Versions/A/DebugSymbols",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "69F29612-5092-3F2F-BA61-5510D4857FA2",
+      "path": "/System/Library/PrivateFrameworks/OSAnalytics.framework/Versions/A/OSAnalytics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4B0612CE-7637-3581-B9A1-7EBC923047FC",
+      "path": "/System/Library/PrivateFrameworks/DeviceRecovery.framework/Versions/A/DeviceRecovery",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AFDCDFFD-BD5E-3527-B924-8860400C0AD3",
+      "path": "/System/Library/PrivateFrameworks/Tightbeam.framework/Versions/A/Tightbeam",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E0C174A8-CE74-3FF0-81C3-E71693751F76",
+      "path": "/usr/lib/swift/libswiftCompression.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C25CEB23-5EF8-3E11-A260-EDA76C3A7105",
+      "path": "/System/Library/PrivateFrameworks/AFKUser.framework/Versions/A/AFKUser",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A415A327-EBE6-34A5-AED1-713B89F40A23",
+      "path": "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ATSUI.framework/Versions/A/ATSUI",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6EB2E9E9-9A9B-360C-A4E7-8FF79FB0E60F",
+      "path": "/System/Library/PrivateFrameworks/SAObjects.framework/Versions/A/SAObjects",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0D8B0DA8-C582-3CCA-B648-5EE242E876D8",
+      "path": "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "610F7BBD-722E-3C2A-9733-F9B214546031",
+      "path": "/System/Library/PrivateFrameworks/MediaRemote.framework/Versions/A/MediaRemote",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "32687746-BA09-3EB4-A67C-E7CDBDD97EB8",
+      "path": "/System/Library/Frameworks/UserNotifications.framework/Versions/A/UserNotifications",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B95E0E6A-6B00-340E-B95D-1BAA1208775C",
+      "path": "/System/Library/PrivateFrameworks/SiriInstrumentation.framework/Versions/A/SiriInstrumentation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4F77344D-2D2E-3747-B198-8046E6AA04FF",
+      "path": "/System/Library/PrivateFrameworks/SiriAnalytics.framework/Versions/A/SiriAnalytics",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "54DDA954-FD97-31D4-965D-5378098FAFA9",
+      "path": "/System/Library/PrivateFrameworks/SiriTTSService.framework/Versions/A/SiriTTSService",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0351A208-A73E-3AF0-AA7C-82BA4C0246F4",
+      "path": "/System/Library/PrivateFrameworks/SiriCrossDeviceArbitration.framework/Versions/A/SiriCrossDeviceArbitration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "270485CB-B53E-3B3E-AD0A-26EF7615320B",
+      "path": "/System/Library/PrivateFrameworks/FeedbackLogger.framework/Versions/A/FeedbackLogger",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8339A36D-4F5B-3B83-82CE-BF254B24E06E",
+      "path": "/System/Library/PrivateFrameworks/FaceTimeNameUtility.framework/Versions/A/FaceTimeNameUtility",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E641F6B4-F84C-3C99-A13E-A24F6DA92CC6",
+      "path": "/System/Library/PrivateFrameworks/AuthKit.framework/Versions/A/AuthKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "662EA638-38FD-36A2-8809-11E71268598D",
+      "path": "/System/Library/PrivateFrameworks/SiriCrossDeviceArbitrationFeedback.framework/Versions/A/SiriCrossDeviceArbitrationFeedback",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EF923246-F02B-370B-9883-49A95F925DCA",
+      "path": "/usr/lib/swift/libswiftCoreLocation.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CF222BF4-8FEE-30B8-90D9-52E2BE74466A",
+      "path": "/usr/lib/swift/libswiftAVFoundation.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "853EBA65-5AF5-3AAF-A21C-BDA6CA57D9E2",
+      "path": "/System/Library/PrivateFrameworks/UIKitServices.framework/Versions/A/UIKitServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C089150D-8EEA-309B-8A92-34522FBB3848",
+      "path": "/System/Library/PrivateFrameworks/UnifiedAssetFramework.framework/Versions/A/UnifiedAssetFramework",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2EB71B02-7180-3007-B6A9-BF5DD3A4F79D",
+      "path": "/System/Library/PrivateFrameworks/AudioSession.framework/Versions/A/AudioSession",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A9DA4BC3-09C2-3E8B-8345-5A53F0D33056",
+      "path": "/System/Library/PrivateFrameworks/MediaExperience.framework/Versions/A/MediaExperience",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5904C1CD-1487-3433-93DE-92DCCAA7CB84",
+      "path": "/System/Library/PrivateFrameworks/AudioSession.framework/libSessionUtility.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A1765B23-BB80-3D93-93E4-21FC969C06AE",
+      "path": "/System/Library/PrivateFrameworks/AudioAccessoryServices.framework/Versions/A/AudioAccessoryServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B3EE681B-1684-3117-93EF-EE56600BA17A",
+      "path": "/System/Library/Frameworks/CoreBluetooth.framework/Versions/A/CoreBluetooth",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B6ECB9CF-DC74-3D6E-AD7D-0441729179E9",
+      "path": "/System/Library/PrivateFrameworks/CoreUtils.framework/Versions/A/CoreUtils",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F7402197-24C0-392F-9137-8681EF9C6670",
+      "path": "/System/Library/PrivateFrameworks/HID.framework/Versions/A/HID",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "653FEE13-530C-3D94-BA04-8B86E4F8886A",
+      "path": "/System/Library/PrivateFrameworks/Sharing.framework/Versions/A/Sharing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C87E479E-42B5-3236-B16D-1A740034CABE",
+      "path": "/System/Library/PrivateFrameworks/CoreUtilsExtras.framework/Versions/A/CoreUtilsExtras",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "81F5021D-001D-3504-91C4-92AC993A4F47",
+      "path": "/System/Library/PrivateFrameworks/IO80211.framework/Versions/A/IO80211",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C4DD510A-AAC2-3AE7-8B95-79A07274830C",
+      "path": "/System/Library/PrivateFrameworks/IDSFoundation.framework/Versions/A/IDSFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C89E1EF6-2581-3A07-9E5C-A83D6B84B59F",
+      "path": "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Apple80211",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2B3F832E-3C2D-3A34-BAB2-E81FE810DE38",
+      "path": "/System/Library/Frameworks/CoreWLAN.framework/Versions/A/CoreWLAN",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "59C9AA53-58A9-3FC2-BFEA-9A7D16BAA9E0",
+      "path": "/System/Library/Frameworks/IOBluetooth.framework/Versions/A/IOBluetooth",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F73B9447-AD5E-39BD-8925-1C97EB0A2476",
+      "path": "/usr/lib/swift/libswiftRegexBuilder.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5005E1DE-E0BF-3D62-9CA6-AD6B7781E843",
+      "path": "/System/Library/PrivateFrameworks/IMFoundation.framework/Versions/A/IMFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8CC6B80F-4736-3F9F-8CBB-47B5A8F30989",
+      "path": "/System/Library/PrivateFrameworks/Marco.framework/Versions/A/Marco",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7896C363-A5A6-3BAB-A1B5-D7EFFF35200C",
+      "path": "/System/Library/PrivateFrameworks/CommonUtilities.framework/Versions/A/CommonUtilities",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4B2651FA-38AA-389C-96B4-BE8150C1D21C",
+      "path": "/System/Library/PrivateFrameworks/Engram.framework/Versions/A/Engram",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FA705B3E-A9D7-3380-B652-20DC5AA626F6",
+      "path": "/System/Library/PrivateFrameworks/XPCDistributed.framework/Versions/A/XPCDistributed",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A1C1E2B4-9FDF-3BBC-AECD-558CBD1F6DA1",
+      "path": "/usr/lib/libtidy.A.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8A9A8B9C-7037-37BD-9D65-A161FB1D364F",
+      "path": "/System/Library/PrivateFrameworks/Bom.framework/Versions/A/Bom",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DA8894AD-AD45-35C3-A801-3ADFA9DAD740",
+      "path": "/usr/lib/libParallelCompression.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "78134EA0-367B-3D1D-94A2-75BDB03E5C7E",
+      "path": "/usr/lib/libIOReport.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "57421E22-C817-3A6F-AE74-96942B45E286",
+      "path": "/System/Library/PrivateFrameworks/WiFiPeerToPeer.framework/Versions/A/WiFiPeerToPeer",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "46DCD2FA-35AA-3CE1-AF5A-CB7D207E4B95",
+      "path": "/System/Library/Frameworks/SecurityFoundation.framework/Versions/A/SecurityFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6CB1EB51-4330-3BEC-8720-73E9395DCCB8",
+      "path": "/System/Library/PrivateFrameworks/Centauri.framework/Versions/A/Centauri",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AE8E0828-1A0B-373D-8A02-1531D08590D7",
+      "path": "/System/Library/PrivateFrameworks/Lexicon.framework/Versions/A/Lexicon",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CC546CAC-2404-3061-A71A-DA8D16F9BEAC",
+      "path": "/usr/lib/libmrc.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D7883181-7B54-352E-B4C2-197C89BAFF20",
+      "path": "/System/Library/PrivateFrameworks/IPConfiguration.framework/Versions/A/IPConfiguration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C618A482-D842-3096-B090-AFD53AC31AA2",
+      "path": "/System/Library/PrivateFrameworks/Netrb.framework/Versions/A/Netrb",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E3110730-AF5C-37E8-ACA3-B74D7A7BDA4F",
+      "path": "/System/Library/PrivateFrameworks/FrontBoardServices.framework/Versions/A/FrontBoardServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F04FD03E-0352-3625-8E4C-BA96210FD966",
+      "path": "/usr/lib/libgermantok.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3273A361-CE08-3AED-91E9-55AB460015F3",
+      "path": "/System/Library/PrivateFrameworks/LinguisticData.framework/Versions/A/LinguisticData",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DE29C12B-51EC-3167-B2DB-F47104583033",
+      "path": "/System/Library/PrivateFrameworks/MultiverseSupport.framework/Versions/A/MultiverseSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2F5EA5A3-CBAB-3E28-A406-271D893A6FEB",
+      "path": "/System/Library/PrivateFrameworks/DiskManagement.framework/Versions/A/DiskManagement",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C2388227-F094-3AE1-A619-C9C10BB04070",
+      "path": "/System/Library/PrivateFrameworks/AppleIDAuthSupport.framework/Versions/A/AppleIDAuthSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "68412894-B510-37A5-971A-FE915B230A03",
+      "path": "/System/Library/PrivateFrameworks/AAAFoundation.framework/Versions/A/AAAFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "32150A87-FD01-3FF4-9909-8247EEBC649F",
+      "path": "/System/Library/PrivateFrameworks/KeychainCircle.framework/Versions/A/KeychainCircle",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "79E23800-38EA-3E9F-A71C-9C4BC67E8764",
+      "path": "/System/Library/PrivateFrameworks/URLFormatting.framework/Versions/A/URLFormatting",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "33B5698F-826B-3BF8-929B-97C574AA867C",
+      "path": "/usr/lib/libcsfde.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "22908978-F800-3C64-88F9-F02CCB9DCB72",
+      "path": "/usr/lib/libCoreStorage.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "784D6F29-2E0E-3AB2-8E3E-83009F82812F",
+      "path": "/System/Library/PrivateFrameworks/MediaKit.framework/Versions/A/MediaKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "79D5F6E9-7FA2-336E-9793-225B4A412D1C",
+      "path": "/System/Library/Frameworks/DiscRecording.framework/Versions/A/DiscRecording",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EA6EB69E-CE99-3708-887F-80995D297502",
+      "path": "/System/Library/PrivateFrameworks/ProtectedCloudStorage.framework/Versions/A/ProtectedCloudStorage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F03AFFC8-FADC-3B9A-A890-9EF6616E4F8D",
+      "path": "/System/Library/PrivateFrameworks/EFILogin.framework/Versions/A/EFILogin",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9DA69DFC-DDCE-3986-8997-B944EE0A9965",
+      "path": "/usr/lib/libheimdal-asn1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BC4C7D25-291A-371A-A030-476969DED14D",
+      "path": "/System/Library/PrivateFrameworks/OctagonTrust.framework/Versions/A/OctagonTrust",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "85863348-479E-3696-A780-FC739E0B979A",
+      "path": "/System/Library/Frameworks/AudioUnit.framework/Versions/A/AudioUnit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C0B8EA4A-22A3-3801-A66E-C42358AC0468",
+      "path": "/System/Library/Frameworks/OpenDirectory.framework/Versions/A/OpenDirectory",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3C2B9FAA-A99C-34B6-AA54-601FF113111D",
+      "path": "/System/Library/Frameworks/OpenDirectory.framework/Versions/A/Frameworks/CFOpenDirectory.framework/Versions/A/CFOpenDirectory",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "941EEC3D-2826-3394-A064-9A417CD19D1A",
+      "path": "/System/Library/PrivateFrameworks/GeoServices.framework/Versions/A/GeoServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4E28B985-0375-341D-AB18-532DF320FFA9",
+      "path": "/System/Library/PrivateFrameworks/LocationSupport.framework/Versions/A/LocationSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "335F3229-8668-38CE-AC37-2AC6EC15EA11",
+      "path": "/System/Library/PrivateFrameworks/GeoServicesCore.framework/Versions/A/GeoServicesCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EA60A0F6-0C9C-3FA4-BD81-AE210925F4E5",
+      "path": "/System/Library/PrivateFrameworks/PhoneNumbers.framework/Versions/A/PhoneNumbers",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "60014D5C-63B9-31EF-897B-9E1C4B7B0280",
+      "path": "/System/Library/PrivateFrameworks/LocationLogEncryption.framework/Versions/A/LocationLogEncryption",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8E4D44EE-1B59-3DC5-BAC8-FD96078883D4",
+      "path": "/System/Library/Frameworks/AVFAudio.framework/Versions/A/AVFAudio",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2DE37858-E589-37D2-BC44-DB6C706E2106",
+      "path": "/System/Library/Frameworks/AVRouting.framework/Versions/A/AVRouting",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "09AA52ED-5DA3-382A-B25E-D7859E2DC832",
+      "path": "/usr/lib/libAccessibility.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EC1965D3-48D5-3BC7-BD18-0913C24EAA02",
+      "path": "/System/Library/PrivateFrameworks/MediaServices.framework/Versions/A/MediaServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "61A225C0-D972-3473-9A85-4F75DA65E149",
+      "path": "/System/Library/PrivateFrameworks/IDS.framework/Versions/A/IDS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "179E9B66-26D4-35A0-822B-56904562A165",
+      "path": "/System/Library/PrivateFrameworks/IsolatedCoreAudioClient.framework/Versions/A/IsolatedCoreAudioClient",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B6F95607-CE64-317E-B4CE-3DB1D29DE089",
+      "path": "/System/Library/PrivateFrameworks/CoreAudioOrchestration.framework/Versions/A/CoreAudioOrchestration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1EE9EC7B-F475-3D3A-AF35-3B3970A85E56",
+      "path": "/System/Library/Frameworks/MediaToolbox.framework/Versions/A/MediaToolbox",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C9F9BF8E-73E0-3FC6-9442-12A031AE3514",
+      "path": "/System/Library/PrivateFrameworks/CoreAVCHD.framework/Versions/A/CoreAVCHD",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A2FBFD9E-30EC-3617-9D3A-05A8625ED12C",
+      "path": "/System/Library/Frameworks/MediaAccessibility.framework/Versions/A/MediaAccessibility",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0A77F849-B195-3432-B2BF-B0C902AD0408",
+      "path": "/System/Library/PrivateFrameworks/Mangrove.framework/Versions/A/Mangrove",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BEA93ABC-917B-34D3-89EF-67DF320E73ED",
+      "path": "/System/Library/PrivateFrameworks/CMPhoto.framework/Versions/A/CMPhoto",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "69DAAAC7-AEA3-3BD0-9BC0-34ABF9CD259A",
+      "path": "/System/Library/Frameworks/CoreTelephony.framework/Versions/A/CoreTelephony",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A77A7D29-C5D1-31FB-B078-7D43E7CC28EF",
+      "path": "/System/Library/PrivateFrameworks/CoreAUC.framework/Versions/A/CoreAUC",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0EB5DD9C-5074-32F0-98A8-9969C14481E7",
+      "path": "/System/Library/PrivateFrameworks/AppleJPEGXL.framework/Versions/A/AppleJPEGXL",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5ABD80F2-0F5C-36B3-B759-32DC018F1809",
+      "path": "/usr/lib/libTelephonyUtilDynamic.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D7C5C0C1-0448-347B-8295-48E58DA1E588",
+      "path": "/System/Library/Frameworks/CryptoKit.framework/Versions/A/CryptoKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D0F2916D-4EEA-3A82-82A7-D2704D32E7A5",
+      "path": "/System/Library/PrivateFrameworks/CryptoKitCBridging.framework/Versions/A/CryptoKitCBridging",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F83B4058-AFFB-39D0-82D3-A2AA8D1D3243",
+      "path": "/System/Library/Frameworks/CryptoTokenKit.framework/Versions/A/CryptoTokenKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9AA51AF9-13CA-3739-AC3F-BA836E772A7D",
+      "path": "/System/Library/Frameworks/LocalAuthentication.framework/Versions/A/LocalAuthentication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "88DEC637-4F1A-32D0-8558-F245ADD3AD0C",
+      "path": "/System/Library/PrivateFrameworks/LocalAuthenticationCore.framework/Versions/A/LocalAuthenticationCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "345D99D9-7304-3D72-A7F7-8351CDFAC29E",
+      "path": "/System/Library/PrivateFrameworks/LocalAuthenticationCredentialServices.framework/Versions/A/LocalAuthenticationCredentialServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "55EF96CB-F144-3F00-B240-4A2620075064",
+      "path": "/System/Library/Frameworks/LocalAuthentication.framework/Support/SharedUtils.framework/Versions/A/SharedUtils",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "719C974F-B189-3D59-B7B2-2459080B0A21",
+      "path": "/System/Library/PrivateFrameworks/PersistentConnection.framework/Versions/A/PersistentConnection",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3D153FB6-7240-3ADE-BACA-DA248DD885BA",
+      "path": "/System/Library/PrivateFrameworks/SonicFoundation.framework/Versions/A/SonicFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F02298FB-4E9C-3274-8C7B-7563FE8D0CD9",
+      "path": "/System/Library/PrivateFrameworks/AsyncAlgorithmsInternal.framework/Versions/A/AsyncAlgorithmsInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0B1474FB-733C-3102-A144-E31455DAAB9E",
+      "path": "/System/Library/PrivateFrameworks/FTAWD.framework/Versions/A/FTAWD",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "84E14030-811C-32CA-9F3C-F59C0C7257F5",
+      "path": "/System/Library/PrivateFrameworks/Dendrite.framework/Versions/A/Dendrite",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "33BA7822-C770-3BF0-82FE-2459CE9599F3",
+      "path": "/usr/lib/libtailspin.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D6A0A154-F02F-3188-8030-3767264171F1",
+      "path": "/System/Library/PrivateFrameworks/Osprey.framework/Versions/A/Osprey",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5471276B-8687-3A97-9D0D-D1CCB2BA52A3",
+      "path": "/System/Library/PrivateFrameworks/SiriTTS.framework/Versions/A/SiriTTS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "768F35AE-2817-3116-AFFB-9A0721FAA2C4",
+      "path": "/System/Library/Frameworks/NaturalLanguage.framework/Versions/A/NaturalLanguage",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D49B3220-0E00-3AD9-A4B0-498B09263B40",
+      "path": "/System/Library/PrivateFrameworks/GenerativeModels.framework/Versions/A/GenerativeModels",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "614A1579-4D6B-39FB-9829-AE8C32CE3C1A",
+      "path": "/System/Library/PrivateFrameworks/SiriPowerInstrumentation.framework/Versions/A/SiriPowerInstrumentation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7F45AD44-826C-35FB-B6C4-C1670389699E",
+      "path": "/usr/lib/swift/libswiftNaturalLanguage.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "653BDEED-01AE-30E5-8E74-3E64EEEADDB2",
+      "path": "/System/Library/PrivateFrameworks/TailspinSymbolication.framework/Versions/A/TailspinSymbolication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "86DA2A1C-8F98-3E5A-B155-E9CC3CFB9A84",
+      "path": "/System/Library/PrivateFrameworks/Darwinup.framework/Versions/A/Darwinup",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3F44D498-3579-3D60-BC83-6E53086FC232",
+      "path": "/System/Library/PrivateFrameworks/SignpostSupport.framework/Versions/A/SignpostSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2062360E-74B5-3441-BBED-2E0F865399F6",
+      "path": "/System/Library/PrivateFrameworks/FeatureFlagsSupport.framework/Versions/A/FeatureFlagsSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B8413199-DD12-300B-90D8-04F1B9F00340",
+      "path": "/System/Library/PrivateFrameworks/ktrace.framework/Versions/A/ktrace",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FA5054DB-F9A2-3D52-AAE5-24624BDD8165",
+      "path": "/System/Library/PrivateFrameworks/SampleAnalysis.framework/Versions/A/SampleAnalysis",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5052EA6B-DBEE-3630-BE02-D59062D8FDA7",
+      "path": "/System/Library/PrivateFrameworks/kperfdata.framework/Versions/A/kperfdata",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7851C0F7-0D1E-3742-8119-E4D4B3CFD193",
+      "path": "/usr/lib/libdscsym.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8EB88354-07F6-3225-A92E-F7CE8595573B",
+      "path": "/System/Library/PrivateFrameworks/AppleMobileFileIntegrity.framework/Versions/A/AppleMobileFileIntegrity",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D434D9C5-F3B6-357E-A8B5-E2793E8A45E8",
+      "path": "/System/Library/PrivateFrameworks/BulkSymbolication.framework/Versions/A/BulkSymbolication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "876EA47E-51E0-39FB-9D49-E6654AD58464",
+      "path": "/usr/lib/libTLE.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6709C629-CDF4-3590-94C3-720428D172F5",
+      "path": "/usr/lib/libmis.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CC0C5D1A-B8D4-31A2-89E1-0EFAC52DCB20",
+      "path": "/System/Library/PrivateFrameworks/ConfigProfileHelper.framework/Versions/A/ConfigProfileHelper",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FBFB25C9-2D45-3A79-8178-9A29D8B51D13",
+      "path": "/System/Library/PrivateFrameworks/Espresso.framework/Versions/A/Espresso",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1B0B67DA-8096-3CDD-969F-B38DF46FACC8",
+      "path": "/System/Library/Frameworks/CoreML.framework/Versions/A/CoreML",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B52B7A66-3106-3250-829C-A68EC8D0925B",
+      "path": "/usr/lib/libedit.3.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "27B2AFC5-42C2-35A0-8DC0-2B06592B4F15",
+      "path": "/System/Library/PrivateFrameworks/ANECompiler.framework/Versions/A/ANECompiler",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "342FCCB6-AE2A-3DBA-91A1-44B2D3E5A82D",
+      "path": "/System/Library/PrivateFrameworks/AppleNeuralEngine.framework/Versions/A/AppleNeuralEngine",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AE9BCA7C-3F03-3EEE-9687-F02E8CD6110C",
+      "path": "/System/Library/PrivateFrameworks/MIL.framework/Versions/A/MIL",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7A190F03-A6E4-316C-B574-DD383E59751C",
+      "path": "/System/Library/Frameworks/MetalPerformanceShadersGraph.framework/Versions/A/MetalPerformanceShadersGraph",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B1680062-A436-3598-B9B8-0A28EA6DDDA1",
+      "path": "/System/Library/PrivateFrameworks/MLCompilerServices.framework/Versions/A/MLCompilerServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "76555323-AE24-3804-8064-60846E7511C4",
+      "path": "/System/Library/PrivateFrameworks/ANEServices.framework/Versions/A/ANEServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "071B3987-EFA6-3936-B470-B7ECDCD000FB",
+      "path": "/usr/lib/libncurses.5.4.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "371D12AD-6696-38A6-8BD0-AEC5F095D65F",
+      "path": "/usr/lib/libsandbox.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9C90F41C-F7B9-356C-A2E6-61A6362F7943",
+      "path": "/usr/lib/libMatch.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "815E9513-4279-3E15-820A-ACB6134C60EB",
+      "path": "/System/Library/PrivateFrameworks/ODIE.framework/Versions/A/ODIE",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B532BC19-9B2F-3F0B-9945-E9A7014757A3",
+      "path": "/System/Library/PrivateFrameworks/MLModelAsset.framework/Versions/A/MLModelAsset",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EB556DF4-F092-3B64-A383-7114408B15F6",
+      "path": "/System/Library/PrivateFrameworks/MLCompilerRuntime.framework/Versions/A/MLCompilerRuntime",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5189B965-70C0-3362-96D8-AD587217F5ED",
+      "path": "/System/Library/Frameworks/MLCompute.framework/Versions/A/MLCompute",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7B4EFA32-1233-34AA-B422-D17B89A504F3",
+      "path": "/System/Library/PrivateFrameworks/MLAssetIO.framework/Versions/A/MLAssetIO",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F385924A-1D49-3B87-8783-DC2C9E667D00",
+      "path": "/usr/lib/swift/libswiftMLCompute.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "37D9A2FB-87BB-356F-B543-4E00C1844176",
+      "path": "/System/Library/PrivateFrameworks/AVFCore.framework/Versions/A/AVFCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "384B6DB9-A738-3199-8298-49A3B970AD5D",
+      "path": "/System/Library/PrivateFrameworks/AVFCapture.framework/Versions/A/AVFCapture",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "862E849D-75A7-30F0-9EB4-F0B41676338B",
+      "path": "/System/Library/PrivateFrameworks/CMImaging.framework/Versions/A/CMImaging",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A39F98F2-3E99-3150-96EF-0C62B827909D",
+      "path": "/System/Library/PrivateFrameworks/Quagga.framework/Versions/A/Quagga",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "51D4272C-4794-3536-9D9E-86D9B53BBD08",
+      "path": "/System/Library/PrivateFrameworks/CMCapture.framework/Versions/A/CMCapture",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "347D8925-13E9-3553-8CDC-57BDF91DB9A2",
+      "path": "/System/Library/Frameworks/CoreMediaIO.framework/Versions/A/CoreMediaIO",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C69E6385-2B54-340C-9F83-42015FF456EF",
+      "path": "/System/Library/PrivateFrameworks/CMCaptureDevice.framework/Versions/A/CMCaptureDevice",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C2271915-D67F-3895-A911-58EF8907C63D",
+      "path": "/System/Library/PrivateFrameworks/CoreBrightness.framework/Versions/A/CoreBrightness",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7F3F6586-D7B0-37EF-A91A-38ED74633322",
+      "path": "/System/Library/PrivateFrameworks/CinematicFraming.framework/Versions/A/CinematicFraming",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "52F929FB-9403-3F7E-8693-5CB50BC8FEC7",
+      "path": "/System/Library/PrivateFrameworks/ModelManagerServices.framework/Versions/A/ModelManagerServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1F55B0F5-DC93-3C50-B544-1A509820746D",
+      "path": "/System/Library/PrivateFrameworks/CPMS.framework/Versions/A/CPMS",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5B741C0F-12D3-3234-8EDE-400725731F58",
+      "path": "/System/Library/PrivateFrameworks/SystemStatus.framework/Versions/A/SystemStatus",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9B758E78-0B5C-341E-838E-36FEF5DB83FC",
+      "path": "/System/Library/Frameworks/CoreMotion.framework/Versions/A/CoreMotion",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FE022DCF-5424-3ADA-8E7B-D3AD1A50B2CD",
+      "path": "/System/Library/PrivateFrameworks/TimeSync.framework/Versions/A/TimeSync",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2CAB6666-310E-35C3-AC04-DC6145EBE3E7",
+      "path": "/System/Library/PrivateFrameworks/DistributedSensing.framework/Versions/A/DistributedSensing",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AC6F8C2C-8C3E-3EB7-B64C-62696ADB2BED",
+      "path": "/System/Library/PrivateFrameworks/MobileBluetooth.framework/Versions/A/MobileBluetooth",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0686A098-1D27-377C-962F-7961E9FD1B36",
+      "path": "/System/Library/PrivateFrameworks/IOKitten.framework/Versions/A/IOKitten",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E8DFD4BF-09F5-3E26-9CBB-85A3CCCD53D0",
+      "path": "/System/Library/PrivateFrameworks/AppleIntelligenceReporting.framework/Versions/A/AppleIntelligenceReporting",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "65E5FCDB-BD0C-3023-8B50-75CDC213937D",
+      "path": "/System/Library/PrivateFrameworks/CoreEmoji.framework/Versions/A/CoreEmoji",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "33BBBA2B-3BC6-31BB-81A5-03565AF927B3",
+      "path": "/usr/lib/libCRFSuite.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D10E108F-C0FB-3790-A1A8-BCFCC93E6899",
+      "path": "/System/Library/PrivateFrameworks/LanguageModeling.framework/Versions/A/LanguageModeling",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1B118152-B1A9-315A-8B44-BDAC6FB589B5",
+      "path": "/System/Library/PrivateFrameworks/CoreNLP.framework/Versions/A/CoreNLP",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C091E6B6-4D00-3B6F-8AFB-03CAE8AEB715",
+      "path": "/System/Library/PrivateFrameworks/Montreal.framework/Versions/A/Montreal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "269122C5-B3B8-3881-8C9B-6BFF0812B183",
+      "path": "/usr/lib/libcmph.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "AFC99DD8-D62A-3790-B5AA-537CAF849CDA",
+      "path": "/usr/lib/libmecab.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C2DE957F-29A8-324D-AB0F-1EADC7BB4E89",
+      "path": "/usr/lib/libThaiTokenizer.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "528AB060-F0CB-31AC-B7FA-8D2CF1959F74",
+      "path": "/System/Library/PrivateFrameworks/GenerativeModelsFoundation.framework/Versions/A/GenerativeModelsFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D1BEE003-62F2-347A-9A6A-4DA190F8C7C9",
+      "path": "/System/Library/PrivateFrameworks/TokenGeneration.framework/Versions/A/TokenGeneration",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E149A9D6-6411-3725-AC29-39B7C07398AC",
+      "path": "/System/Library/PrivateFrameworks/GenerativeFunctions.framework/Versions/A/GenerativeFunctions",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6A703D76-0BA5-3548-9354-CC1C34BE061D",
+      "path": "/System/Library/PrivateFrameworks/GenerativeFunctionsFoundation.framework/Versions/A/GenerativeFunctionsFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "941B7C09-EE1C-3449-B0A9-9D65DDC0F689",
+      "path": "/System/Library/PrivateFrameworks/ModelCatalog.framework/Versions/A/ModelCatalog",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "61D5764F-2201-3003-869E-4F4F4F4EF11C",
+      "path": "/System/Library/PrivateFrameworks/SensitiveContentAnalysisML.framework/Versions/A/SensitiveContentAnalysisML",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B6E3AA95-1B4D-34B3-A1B1-844EAA18C8F0",
+      "path": "/System/Library/PrivateFrameworks/GenerativeFunctionsInstrumentation.framework/Versions/A/GenerativeFunctionsInstrumentation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "26BE1B9A-1C68-3EB1-B920-95448FB2A97A",
+      "path": "/System/Library/PrivateFrameworks/PromptKit.framework/Versions/A/PromptKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "86A8ECBF-55A5-3334-A2ED-FECA2B42CD00",
+      "path": "/System/Library/PrivateFrameworks/ProactiveDaemonSupport.framework/Versions/A/ProactiveDaemonSupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CE47732C-F9F3-3DB2-894A-E82A155C2434",
+      "path": "/System/Library/PrivateFrameworks/TokenGenerationCore.framework/Versions/A/TokenGenerationCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5CA59866-367F-30D5-B0AA-7EE72B82B80C",
+      "path": "/System/Library/PrivateFrameworks/Trial.framework/Versions/A/Trial",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D42C380B-5169-3720-914F-C99F27CB45B7",
+      "path": "/System/Library/PrivateFrameworks/TrialProto.framework/Versions/A/TrialProto",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A676BCC9-5301-330A-ACF2-E5A82B9CC3B9",
+      "path": "/System/Library/PrivateFrameworks/AppleFlatBuffers.framework/Versions/A/AppleFlatBuffers",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1BE59A5F-4EC7-3077-BE96-E04E2D3EB910",
+      "path": "/System/Library/PrivateFrameworks/SentencePieceInternal.framework/Versions/A/SentencePieceInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F5F8E563-83DF-34D4-A50D-6B19D70EFF35",
+      "path": "/System/Library/Frameworks/Vision.framework/Versions/A/Vision",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "EEA014DF-1461-3445-9B98-02406D693C69",
+      "path": "/System/Library/PrivateFrameworks/CoreSceneUnderstanding.framework/Versions/A/CoreSceneUnderstanding",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0F37FF69-F191-3018-A42D-FE24D59B7E57",
+      "path": "/System/Library/PrivateFrameworks/VisionCore.framework/Versions/A/VisionCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C3EB8FCD-83FD-33EF-8E47-205D49127063",
+      "path": "/System/Library/PrivateFrameworks/DataDetectorsCore.framework/Versions/A/DataDetectorsCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "6038AE24-75A6-311E-AC3F-854034BDED2E",
+      "path": "/System/Library/Frameworks/Vision.framework/libfaceCore.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9F8F0EED-5668-3C7F-AC08-AA4C1B14572D",
+      "path": "/System/Library/PrivateFrameworks/Futhark.framework/Versions/A/Futhark",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "61D434C4-AE11-3800-8510-C03EABC6836C",
+      "path": "/System/Library/PrivateFrameworks/InertiaCam.framework/Versions/A/InertiaCam",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "F235AA1F-A750-33A7-8697-5A9C1074D9CD",
+      "path": "/System/Library/PrivateFrameworks/TextRecognition.framework/Versions/A/TextRecognition",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "68878A04-565C-3EB1-95D6-1BAA74EF98BF",
+      "path": "/System/Library/Frameworks/DataDetection.framework/Versions/A/DataDetection",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "35AA800B-620D-30C5-AC16-AFCC51D29EB7",
+      "path": "/System/Library/PrivateFrameworks/TextInput.framework/Versions/A/TextInput",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CD3D3C09-E9C8-3AF6-B2A0-A61DA0886AA1",
+      "path": "/System/Library/PrivateFrameworks/CVNLP.framework/Versions/A/CVNLP",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "08FC6D5F-35E8-36B1-8299-B21E983009E8",
+      "path": "/System/Library/PrivateFrameworks/IntentsFoundation.framework/Versions/A/IntentsFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B2053120-9D29-3678-8566-7388E0B5DC33",
+      "path": "/System/Library/PrivateFrameworks/HIDDisplay.framework/Versions/A/HIDDisplay",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7AF22069-C3A2-3263-81D6-2BE4DB4FECCA",
+      "path": "/usr/lib/libcups.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E44B7A34-FE5B-3390-AC49-00907B159390",
+      "path": "/System/Library/Frameworks/Kerberos.framework/Versions/A/Kerberos",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1F96EC72-E8BA-32DD-84AA-13C44654C1FA",
+      "path": "/usr/lib/libresolv.9.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "26F4315D-6DD3-34D6-B479-B1032834C093",
+      "path": "/System/Library/PrivateFrameworks/Heimdal.framework/Versions/A/Heimdal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4E34BA0D-4F2D-3A97-8A03-0F961CF5A58A",
+      "path": "/System/Library/Frameworks/Kerberos.framework/Versions/A/Libraries/libHeimdalProxy.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A5F22FD9-D680-3B7C-B7F9-8BE2C58F7DFF",
+      "path": "/System/Library/PrivateFrameworks/CommonAuth.framework/Versions/A/CommonAuth",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "820A456D-11CD-320F-BB0C-25B9E5F69472",
+      "path": "/System/Library/PrivateFrameworks/AXCoreUtilities.framework/Versions/A/AXCoreUtilities",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C9289991-F749-3DF3-AEFA-788884864080",
+      "path": "/System/Library/PrivateFrameworks/AttributeGraph.framework/Versions/A/AttributeGraph",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3998A41F-D32A-3E02-B658-76FCCB87FCFD",
+      "path": "/usr/lib/libAXSafeCategoryBundle.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BFF6B68B-3B93-3BDE-9C96-3859450D9166",
+      "path": "/System/Library/Frameworks/TabularData.framework/Versions/A/TabularData",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "45F74F2A-9F13-3C0F-B930-24D348C92B93",
+      "path": "/System/Library/PrivateFrameworks/ArgumentParserInternal.framework/Versions/A/ArgumentParserInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7F1C88BC-7C8D-3D5C-B38C-43082CD9C468",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libvDSP.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9170F5E5-6D1E-3667-BDCF-E74CC880EB06",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLAPACK.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "CD0AE837-ED86-307A-BAB6-69E9B55E809F",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLinearAlgebra.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1BC4EAAD-4363-31DF-8C91-022B24AD87CD",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libSparseBLAS.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B6674817-731D-3178-A928-7963E5EED61C",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libQuadrature.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "BEA265F4-3EBD-39BD-89B3-39F251359D46",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBNNS.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C7D1864B-A800-3452-B01F-CDBBC9EB70CD",
+      "path": "/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libSparse.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "28533D92-A694-306B-8B0C-CCD42F708FF7",
+      "path": "/System/Library/PrivateFrameworks/ApplePushService.framework/Versions/A/ApplePushService",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7F3E2670-BFA4-3FF0-8D84-18E1BF9B20A1",
+      "path": "/System/Library/Frameworks/CloudKit.framework/Versions/A/CloudKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E038C049-C531-3188-9817-6B720F03E72A",
+      "path": "/System/Library/PrivateFrameworks/CoreDuetDaemonProtocol.framework/Versions/A/CoreDuetDaemonProtocol",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "61CFE0D9-60AC-32A1-9ADE-E10F1CFF6B6B",
+      "path": "/System/Library/PrivateFrameworks/DeviceIdentity.framework/Versions/A/DeviceIdentity",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "11AFD7B7-AA1B-3B93-91B3-D9F46CED524F",
+      "path": "/System/Library/Frameworks/SharedWithYouCore.framework/Versions/A/SharedWithYouCore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "68F65A8A-0EEE-3A15-A7DA-4C0D719A198F",
+      "path": "/System/Library/PrivateFrameworks/CloudTelemetry.framework/Versions/A/CloudTelemetry",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DBA8716A-4E67-3D97-896E-BA39393B8DA0",
+      "path": "/System/Library/PrivateFrameworks/AppleAccount.framework/Versions/A/AppleAccount",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "3C49F41C-F5FD-30C7-A87A-2E064E886CF8",
+      "path": "/System/Library/PrivateFrameworks/C2.framework/Versions/A/C2",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "9594A714-A623-3B12-899D-1D48078C4132",
+      "path": "/System/Library/PrivateFrameworks/CloudCoreInternal.framework/Versions/A/CloudCoreInternal",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1F7E749E-2D6A-3A00-A2F2-0143EBF8B52A",
+      "path": "/System/Library/PrivateFrameworks/CloudAsset.framework/Versions/A/CloudAsset",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "8C0F3691-78B5-3AD4-B387-16F531596E96",
+      "path": "/System/Library/Frameworks/PushKit.framework/Versions/A/PushKit",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "40E313C1-EA8E-3768-9692-D4AD6AD87166",
+      "path": "/System/Library/Frameworks/CoreTransferable.framework/Versions/A/CoreTransferable",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "C9B294F3-C37B-3729-9493-10DCBE2362A6",
+      "path": "/System/Library/PrivateFrameworks/NetAuth.framework/Versions/A/NetAuth",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D27E83AC-E64D-3180-ACB3-9FDAC47541DD",
+      "path": "/System/Library/PrivateFrameworks/login.framework/Versions/A/Frameworks/loginsupport.framework/Versions/A/loginsupport",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "73E65576-3894-3D16-8BEF-95785EFE163F",
+      "path": "/System/Library/PrivateFrameworks/CloudTelemetryTools.framework/Versions/A/CloudTelemetryTools",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "5AED394E-0F92-3F37-B24A-264B00D4AABF",
+      "path": "/System/Library/PrivateFrameworks/CloudTelemetryShared.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D8260D6-D209-333C-9588-F2E4FD77DCAD",
+      "path": "/System/Library/PrivateFrameworks/RTCReporting.framework/Versions/A/RTCReporting",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "1CECDEBF-5FA3-3EE8-AF47-AA2EBD97D3E9",
+      "path": "/System/Library/PrivateFrameworks/AAAFoundationSwift.framework/Versions/A/AAAFoundationSwift",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B4345026-845E-3C87-80DE-8A64E72F5CD8",
+      "path": "/System/Library/PrivateFrameworks/AppleIDSSOAuthentication.framework/Versions/A/AppleIDSSOAuthentication",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D75D6411-8FC8-321A-9CAD-DF4C5D811D84",
+      "path": "/System/Library/PrivateFrameworks/UIFoundation.framework/Versions/A/UIFoundation",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "23A0A20D-4AE0-3BC8-8955-4FBE35438983",
+      "path": "/System/Library/PrivateFrameworks/CaptiveNetwork.framework/Versions/A/CaptiveNetwork",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FDAEFB9F-874B-3EEA-BE5E-038162869119",
+      "path": "/System/Library/PrivateFrameworks/EAP8021X.framework/Versions/A/EAP8021X",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "13040EED-0ADB-385C-910C-5C01A7BC4EAB",
+      "path": "/System/Library/PrivateFrameworks/CryptoKitPrivate.framework/Versions/A/CryptoKitPrivate",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7ECC33D8-B38D-39AC-BDE9-6B89F01D74C7",
+      "path": "/System/Library/PrivateFrameworks/FindMyDevice.framework/Versions/A/FindMyDevice",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E7964B0A-4AC9-3E47-897C-8F2F5B0E5F7F",
+      "path": "/System/Library/PrivateFrameworks/FMCoreLite.framework/Versions/A/FMCoreLite",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D55C5967-6513-3E2A-860C-1F1A62F01243",
+      "path": "/System/Library/Frameworks/ServiceManagement.framework/Versions/A/ServiceManagement",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "01812E54-6AFA-31D0-9ED8-9780885AA285",
+      "path": "/usr/lib/libCheckFix.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "0DFEA3CB-1A37-390A-956D-D956B8688AC6",
+      "path": "/System/Library/PrivateFrameworks/MetadataUtilities.framework/Versions/A/MetadataUtilities",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B509C80B-393D-34B8-969F-F6C7F3332041",
+      "path": "/System/Library/PrivateFrameworks/InstalledContentLibrary.framework/Versions/A/InstalledContentLibrary",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D703C5EE-2AC4-3EB8-9258-08501E1BD733",
+      "path": "/System/Library/PrivateFrameworks/CoreServicesStore.framework/Versions/A/CoreServicesStore",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DBB6338E-E92E-364B-8714-9578C3E53B7E",
+      "path": "/usr/lib/libapp_launch_measurement.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "61161103-8CB4-34CC-8AD6-43F587D2D25B",
+      "path": "/System/Library/PrivateFrameworks/MobileSystemServices.framework/Versions/A/MobileSystemServices",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "D88D4FE7-8B33-3553-9CC8-8C5888B8BAA9",
+      "path": "/usr/lib/libxslt.1.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "92EFE219-3F5F-31DE-BF8F-A48374CC3A11",
+      "path": "/System/Library/PrivateFrameworks/BackgroundTaskManagement.framework/Versions/A/BackgroundTaskManagement",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "E0A4E7B3-7592-39E5-B8B9-D1DB72C95041",
+      "path": "/usr/lib/libcurl.4.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "DAA12A78-F0F0-30B8-92F4-C9257843E858",
+      "path": "/usr/lib/libcrypto.46.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "7BD6E551-5BBF-3AEB-B1A7-BD698770A40E",
+      "path": "/usr/lib/libssl.48.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "2FEFD34B-DFD5-36E0-9CEE-7EFE6FDA7FD9",
+      "path": "/System/Library/Frameworks/LDAP.framework/Versions/A/LDAP",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "16ED4F40-C1B7-3F95-8FDD-CDE8DD7FA1A7",
+      "path": "/System/Library/PrivateFrameworks/TrustEvaluationAgent.framework/Versions/A/TrustEvaluationAgent",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "A12DC471-B201-359D-9F0D-C8F48BDF5870",
+      "path": "/usr/lib/libsasl2.2.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "B5C0D802-3EDF-3667-B9A5-2DEAD883D359",
+      "path": "/usr/lib/i18n/libiconv_std.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "82C33DAB-5D06-3111-83D6-B6E0ADD8DD02",
+      "path": "/usr/lib/i18n/libUTF8.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "FAEC17F4-B723-3EF9-B8F9-CC939F512FC2",
+      "path": "/usr/lib/i18n/libmapper_parallel.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "4D225D8E-B1C3-346D-A47E-7C4B77EC4FF3",
+      "path": "/usr/lib/i18n/libmapper_646.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    },
+    {
+      "uuid": "16229750-F512-3F6C-9920-8F9261C80DAA",
+      "path": "/usr/lib/i18n/libmapper_std.dylib",
+      "classification": "PLATFORM_IMAGE_STATIC_CACHE_SET_BOUND_NOT_INDEPENDENT_IMAGE_EXTRACTION"
+    }
+  ],
+  "otherDiagnostics": [
+    "dyld[21410]: move loaded to delayed: XPCSupport",
+    "dyld[21410]: move loaded to delayed: libcmark-gfm.dylib",
+    "dyld[21410]: move loaded to delayed: GenerationalStorage",
+    "dyld[21410]: move loaded to delayed: CacheDelete",
+    "dyld[21410]: move loaded to delayed: QuickLookThumbnailing",
+    "dyld[21410]: move loaded to delayed: FileProvider",
+    "dyld[21410]: move loaded to delayed: DesktopServicesPriv",
+    "dyld[21410]: move loaded to delayed: Accounts",
+    "dyld[21410]: move loaded to delayed: AOSKit",
+    "dyld[21410]: move loaded to delayed: AppSSOCore",
+    "dyld[21410]: move loaded to delayed: AVFoundation",
+    "dyld[21410]: move loaded to delayed: BackgroundSystemTasks",
+    "dyld[21410]: move loaded to delayed: DuetActivityScheduler",
+    "dyld[21410]: move loaded to delayed: FTServices",
+    "dyld[21410]: move loaded to delayed: InternationalSupport",
+    "dyld[21410]: move loaded to delayed: libMemoryResourceException.dylib",
+    "dyld[21410]: move loaded to delayed: NetworkScore",
+    "dyld[21410]: move loaded to delayed: NetworkServiceProxy",
+    "dyld[21410]: move loaded to delayed: StreamingExtractor",
+    "dyld[21410]: move loaded to delayed: SymptomReporter",
+    "dyld[21410]: move loaded to delayed: libnetworkextension.dylib",
+    "dyld[21410]: move loaded to delayed: CloudServices",
+    "dyld[21410]: move loaded to delayed: CoreWiFi",
+    "dyld[21410]: move loaded to delayed: Rapport",
+    "dyld[21410]: move loaded to delayed: SymptomAnalytics",
+    "dyld[21410]: move loaded to delayed: libcupolicy.dylib",
+    "dyld[21410]: move loaded to delayed: NetworkExtension",
+    "dyld[21410]: move loaded to delayed: libnwswifttls.dylib",
+    "dyld[21410]: move loaded to delayed: libpcap.A.dylib",
+    "dyld[21410]: move loaded to delayed: CoreDuetContext",
+    "dyld[21410]: move loaded to delayed: CoreDuet",
+    "dyld[21410]: move loaded to delayed: CoreLocation",
+    "dyld[21410]: move loaded to delayed: Intents",
+    "dyld[21410]: move loaded to delayed: _LocationEssentials",
+    "dyld[21410]: move loaded to delayed: libCGInterfaces.dylib",
+    "dyld[21410]: move loaded to delayed: AccelerateGPU",
+    "dyld[21410]: move loaded to delayed: ApplicationServices",
+    "dyld[21410]: move loaded to delayed: ATS",
+    "dyld[21410]: move loaded to delayed: HIServices",
+    "dyld[21410]: move loaded to delayed: PrintCore",
+    "dyld[21410]: move loaded to delayed: QD",
+    "dyld[21410]: move loaded to delayed: ColorSyncLegacy",
+    "dyld[21410]: move loaded to delayed: SpeechSynthesis",
+    "dyld[21410]: move loaded to delayed: AudioDSPGraph",
+    "dyld[21410]: move loaded to delayed: IconServices",
+    "dyld[21410]: move loaded to delayed: IconFoundation",
+    "dyld[21410]: move loaded to delayed: AssistantServices",
+    "dyld[21410]: move loaded to delayed: IconRendering",
+    "dyld[21410]: move loaded to delayed: CoreUI",
+    "dyld[21410]: move loaded to delayed: SFSymbols",
+    "dyld[21410]: move loaded to delayed: DeveloperToolsSupport",
+    "dyld[21410]: move loaded to delayed: RenderBox",
+    "dyld[21410]: move loaded to delayed: CoreSVG",
+    "dyld[21410]: move loaded to delayed: TextureIO",
+    "dyld[21410]: move loaded to delayed: libswiftCoreImage.dylib",
+    "dyld[21410]: move loaded to delayed: ATSUI",
+    "dyld[21410]: move loaded to delayed: SAObjects",
+    "dyld[21410]: move loaded to delayed: MediaRemote",
+    "dyld[21410]: move loaded to delayed: UserNotifications",
+    "dyld[21410]: move loaded to delayed: SiriInstrumentation",
+    "dyld[21410]: move loaded to delayed: SiriAnalytics",
+    "dyld[21410]: move loaded to delayed: SiriTTSService",
+    "dyld[21410]: move loaded to delayed: SiriCrossDeviceArbitration",
+    "dyld[21410]: move loaded to delayed: FeedbackLogger",
+    "dyld[21410]: move loaded to delayed: FaceTimeNameUtility",
+    "dyld[21410]: move loaded to delayed: AuthKit",
+    "dyld[21410]: move loaded to delayed: SiriCrossDeviceArbitrationFeedback",
+    "dyld[21410]: move loaded to delayed: libswiftCoreLocation.dylib",
+    "dyld[21410]: move loaded to delayed: libswiftAVFoundation.dylib",
+    "dyld[21410]: move loaded to delayed: UIKitServices",
+    "dyld[21410]: move loaded to delayed: UnifiedAssetFramework",
+    "dyld[21410]: move loaded to delayed: AudioAccessoryServices",
+    "dyld[21410]: move loaded to delayed: CoreBluetooth",
+    "dyld[21410]: move loaded to delayed: CoreUtils",
+    "dyld[21410]: move loaded to delayed: Sharing",
+    "dyld[21410]: move loaded to delayed: CoreUtilsExtras",
+    "dyld[21410]: move loaded to delayed: IO80211",
+    "dyld[21410]: move loaded to delayed: IDSFoundation",
+    "dyld[21410]: move loaded to delayed: Apple80211",
+    "dyld[21410]: move loaded to delayed: CoreWLAN",
+    "dyld[21410]: move loaded to delayed: IOBluetooth",
+    "dyld[21410]: move loaded to delayed: libswiftRegexBuilder.dylib",
+    "dyld[21410]: move loaded to delayed: IMFoundation",
+    "dyld[21410]: move loaded to delayed: Marco",
+    "dyld[21410]: move loaded to delayed: CommonUtilities",
+    "dyld[21410]: move loaded to delayed: Engram",
+    "dyld[21410]: move loaded to delayed: XPCDistributed",
+    "dyld[21410]: move loaded to delayed: libtidy.A.dylib",
+    "dyld[21410]: move loaded to delayed: Bom",
+    "dyld[21410]: move loaded to delayed: libParallelCompression.dylib",
+    "dyld[21410]: move loaded to delayed: libIOReport.dylib",
+    "dyld[21410]: move loaded to delayed: WiFiPeerToPeer",
+    "dyld[21410]: move loaded to delayed: Centauri",
+    "dyld[21410]: move loaded to delayed: libmrc.dylib",
+    "dyld[21410]: move loaded to delayed: IPConfiguration",
+    "dyld[21410]: move loaded to delayed: Netrb",
+    "dyld[21410]: move loaded to delayed: FrontBoardServices",
+    "dyld[21410]: move loaded to delayed: MultiverseSupport",
+    "dyld[21410]: move loaded to delayed: DiskManagement",
+    "dyld[21410]: move loaded to delayed: AppleIDAuthSupport",
+    "dyld[21410]: move loaded to delayed: AAAFoundation",
+    "dyld[21410]: move loaded to delayed: KeychainCircle",
+    "dyld[21410]: move loaded to delayed: URLFormatting",
+    "dyld[21410]: move loaded to delayed: libcsfde.dylib",
+    "dyld[21410]: move loaded to delayed: libCoreStorage.dylib",
+    "dyld[21410]: move loaded to delayed: ProtectedCloudStorage",
+    "dyld[21410]: move loaded to delayed: EFILogin",
+    "dyld[21410]: move loaded to delayed: OctagonTrust",
+    "dyld[21410]: move loaded to delayed: AudioUnit",
+    "dyld[21410]: move loaded to delayed: GeoServices",
+    "dyld[21410]: move loaded to delayed: LocationSupport",
+    "dyld[21410]: move loaded to delayed: GeoServicesCore",
+    "dyld[21410]: move loaded to delayed: PhoneNumbers",
+    "dyld[21410]: move loaded to delayed: LocationLogEncryption",
+    "dyld[21410]: move loaded to delayed: AVFAudio",
+    "dyld[21410]: move loaded to delayed: AVRouting",
+    "dyld[21410]: move loaded to delayed: libAccessibility.dylib",
+    "dyld[21410]: move loaded to delayed: MediaServices",
+    "dyld[21410]: move loaded to delayed: IDS",
+    "dyld[21410]: move loaded to delayed: IsolatedCoreAudioClient",
+    "dyld[21410]: move loaded to delayed: CoreAudioOrchestration",
+    "dyld[21410]: move loaded to delayed: MediaToolbox",
+    "dyld[21410]: move loaded to delayed: CoreAVCHD",
+    "dyld[21410]: move loaded to delayed: MediaAccessibility",
+    "dyld[21410]: move loaded to delayed: Mangrove",
+    "dyld[21410]: move loaded to delayed: CMPhoto",
+    "dyld[21410]: move loaded to delayed: CoreTelephony",
+    "dyld[21410]: move loaded to delayed: CoreAUC",
+    "dyld[21410]: move loaded to delayed: AppleJPEGXL",
+    "dyld[21410]: move loaded to delayed: libTelephonyUtilDynamic.dylib",
+    "dyld[21410]: move loaded to delayed: CryptoKit",
+    "dyld[21410]: move loaded to delayed: CryptoKitCBridging",
+    "dyld[21410]: move loaded to delayed: CryptoTokenKit",
+    "dyld[21410]: move loaded to delayed: LocalAuthentication",
+    "dyld[21410]: move loaded to delayed: LocalAuthenticationCore",
+    "dyld[21410]: move loaded to delayed: LocalAuthenticationCredentialServices",
+    "dyld[21410]: move loaded to delayed: SharedUtils",
+    "dyld[21410]: move loaded to delayed: PersistentConnection",
+    "dyld[21410]: move loaded to delayed: SonicFoundation",
+    "dyld[21410]: move loaded to delayed: AsyncAlgorithmsInternal",
+    "dyld[21410]: move loaded to delayed: FTAWD",
+    "dyld[21410]: move loaded to delayed: Dendrite",
+    "dyld[21410]: move loaded to delayed: libtailspin.dylib",
+    "dyld[21410]: move loaded to delayed: Osprey",
+    "dyld[21410]: move loaded to delayed: SiriTTS",
+    "dyld[21410]: move loaded to delayed: NaturalLanguage",
+    "dyld[21410]: move loaded to delayed: GenerativeModels",
+    "dyld[21410]: move loaded to delayed: SiriPowerInstrumentation",
+    "dyld[21410]: move loaded to delayed: libswiftNaturalLanguage.dylib",
+    "dyld[21410]: move loaded to delayed: TailspinSymbolication",
+    "dyld[21410]: move loaded to delayed: Darwinup",
+    "dyld[21410]: move loaded to delayed: SignpostSupport",
+    "dyld[21410]: move loaded to delayed: FeatureFlagsSupport",
+    "dyld[21410]: move loaded to delayed: ktrace",
+    "dyld[21410]: move loaded to delayed: SampleAnalysis",
+    "dyld[21410]: move loaded to delayed: kperfdata",
+    "dyld[21410]: move loaded to delayed: libdscsym.dylib",
+    "dyld[21410]: move loaded to delayed: BulkSymbolication",
+    "dyld[21410]: move loaded to delayed: Espresso",
+    "dyld[21410]: move loaded to delayed: CoreML",
+    "dyld[21410]: move loaded to delayed: libedit.3.dylib",
+    "dyld[21410]: move loaded to delayed: ANECompiler",
+    "dyld[21410]: move loaded to delayed: AppleNeuralEngine",
+    "dyld[21410]: move loaded to delayed: MetalPerformanceShadersGraph",
+    "dyld[21410]: move loaded to delayed: MLCompilerServices",
+    "dyld[21410]: move loaded to delayed: ANEServices",
+    "dyld[21410]: move loaded to delayed: libsandbox.1.dylib",
+    "dyld[21410]: move loaded to delayed: libMatch.1.dylib",
+    "dyld[21410]: move loaded to delayed: ODIE",
+    "dyld[21410]: move loaded to delayed: MLModelAsset",
+    "dyld[21410]: move loaded to delayed: MLCompilerRuntime",
+    "dyld[21410]: move loaded to delayed: MLCompute",
+    "dyld[21410]: move loaded to delayed: MLAssetIO",
+    "dyld[21410]: move loaded to delayed: libswiftMLCompute.dylib",
+    "dyld[21410]: move loaded to delayed: AVFCore",
+    "dyld[21410]: move loaded to delayed: AVFCapture",
+    "dyld[21410]: move loaded to delayed: CMImaging",
+    "dyld[21410]: move loaded to delayed: Quagga",
+    "dyld[21410]: move loaded to delayed: CMCapture",
+    "dyld[21410]: move loaded to delayed: CoreMediaIO",
+    "dyld[21410]: move loaded to delayed: CMCaptureDevice",
+    "dyld[21410]: move loaded to delayed: CoreBrightness",
+    "dyld[21410]: move loaded to delayed: CinematicFraming",
+    "dyld[21410]: move loaded to delayed: ModelManagerServices",
+    "dyld[21410]: move loaded to delayed: CPMS",
+    "dyld[21410]: move loaded to delayed: SystemStatus",
+    "dyld[21410]: move loaded to delayed: CoreMotion",
+    "dyld[21410]: move loaded to delayed: TimeSync",
+    "dyld[21410]: move loaded to delayed: DistributedSensing",
+    "dyld[21410]: move loaded to delayed: MobileBluetooth",
+    "dyld[21410]: move loaded to delayed: IOKitten",
+    "dyld[21410]: move loaded to delayed: AppleIntelligenceReporting",
+    "dyld[21410]: move loaded to delayed: CoreEmoji",
+    "dyld[21410]: move loaded to delayed: LanguageModeling",
+    "dyld[21410]: move loaded to delayed: Montreal",
+    "dyld[21410]: move loaded to delayed: libcmph.dylib",
+    "dyld[21410]: move loaded to delayed: GenerativeModelsFoundation",
+    "dyld[21410]: move loaded to delayed: TokenGeneration",
+    "dyld[21410]: move loaded to delayed: GenerativeFunctions",
+    "dyld[21410]: move loaded to delayed: GenerativeFunctionsFoundation",
+    "dyld[21410]: move loaded to delayed: ModelCatalog",
+    "dyld[21410]: move loaded to delayed: SensitiveContentAnalysisML",
+    "dyld[21410]: move loaded to delayed: GenerativeFunctionsInstrumentation",
+    "dyld[21410]: move loaded to delayed: PromptKit",
+    "dyld[21410]: move loaded to delayed: ProactiveDaemonSupport",
+    "dyld[21410]: move loaded to delayed: TokenGenerationCore",
+    "dyld[21410]: move loaded to delayed: Trial",
+    "dyld[21410]: move loaded to delayed: TrialProto",
+    "dyld[21410]: move loaded to delayed: AppleFlatBuffers",
+    "dyld[21410]: move loaded to delayed: SentencePieceInternal",
+    "dyld[21410]: move loaded to delayed: Vision",
+    "dyld[21410]: move loaded to delayed: CoreSceneUnderstanding",
+    "dyld[21410]: move loaded to delayed: VisionCore",
+    "dyld[21410]: move loaded to delayed: DataDetectorsCore",
+    "dyld[21410]: move loaded to delayed: libfaceCore.dylib",
+    "dyld[21410]: move loaded to delayed: Futhark",
+    "dyld[21410]: move loaded to delayed: InertiaCam",
+    "dyld[21410]: move loaded to delayed: TextRecognition",
+    "dyld[21410]: move loaded to delayed: DataDetection",
+    "dyld[21410]: move loaded to delayed: TextInput",
+    "dyld[21410]: move loaded to delayed: CVNLP",
+    "dyld[21410]: move loaded to delayed: IntentsFoundation",
+    "dyld[21410]: move loaded to delayed: libcups.2.dylib",
+    "dyld[21410]: move loaded to delayed: AXCoreUtilities",
+    "dyld[21410]: move loaded to delayed: AttributeGraph",
+    "dyld[21410]: move loaded to delayed: libAXSafeCategoryBundle.dylib",
+    "dyld[21410]: move loaded to delayed: TabularData",
+    "dyld[21410]: move loaded to delayed: ArgumentParserInternal",
+    "dyld[21410]: move loaded to delayed: ApplePushService",
+    "dyld[21410]: move loaded to delayed: CloudKit",
+    "dyld[21410]: move loaded to delayed: CoreDuetDaemonProtocol",
+    "dyld[21410]: move loaded to delayed: DeviceIdentity",
+    "dyld[21410]: move loaded to delayed: SharedWithYouCore",
+    "dyld[21410]: move loaded to delayed: CloudTelemetry",
+    "dyld[21410]: move loaded to delayed: AppleAccount",
+    "dyld[21410]: move loaded to delayed: C2",
+    "dyld[21410]: move loaded to delayed: CloudCoreInternal",
+    "dyld[21410]: move loaded to delayed: CloudAsset",
+    "dyld[21410]: move loaded to delayed: PushKit",
+    "dyld[21410]: move loaded to delayed: CoreTransferable",
+    "dyld[21410]: move loaded to delayed: CloudTelemetryTools",
+    "dyld[21410]: move loaded to delayed: CloudTelemetryShared.dylib",
+    "dyld[21410]: move loaded to delayed: RTCReporting",
+    "dyld[21410]: move loaded to delayed: AAAFoundationSwift",
+    "dyld[21410]: move loaded to delayed: AppleIDSSOAuthentication",
+    "dyld[21410]: move loaded to delayed: UIFoundation",
+    "dyld[21410]: move loaded to delayed: CaptiveNetwork",
+    "dyld[21410]: move loaded to delayed: EAP8021X",
+    "dyld[21410]: move loaded to delayed: CryptoKitPrivate",
+    "dyld[21410]: move loaded to delayed: FindMyDevice",
+    "dyld[21410]: move loaded to delayed: FMCoreLite",
+    "dyld[21410]: move loaded to delayed: ServiceManagement",
+    "gpg: /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/gnupg/trustdb.gpg: trustdb created"
+  ],
+  "loadedImageObservationAvailable": true,
+  "unresolvedImages": [],
+  "emptyOwnedKeyHome": false,
+  "keyHomeEntries": [
+    "trustdb.gpg"
+  ],
+  "metadataChildren": 4,
+  "allMetadataChildrenClosed": true,
+  "gpgvVerifications": 0,
+  "pairsUnrun": 16,
+  "remainingReason": "ALL_PROCESS_RESERVATION_CANNOT_FIT_16_PLUS_PREPARATION_AND_PUBLICATION",
+  "authorityQualification": "OFFICIAL_PROJECT_ADMIN_LINK_TO_PERSONAL_PUBLIC_KEY_NOT_PROJECT_RELEASE_KEY_REGISTRY_OR_ALL_PATCH_SIGNER_COVERAGE"
+}

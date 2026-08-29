@@ -1,0 +1,114 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import { SourceTextModule } from 'node:vm';
+import { pathToFileURL } from 'node:url';
+
+const root = fs.realpathSync(path.dirname(process.argv[1]));
+const phase = JSON.parse(fs.readFileSync(path.join(root, 'START.json'), 'utf8'));
+if (!root.startsWith('/private/tmp/') || !Number.isSafeInteger(phase.deadlineMs) || Date.now() >= phase.deadlineMs) throw new Error('phase admission');
+const collector = process.env.CORE70_COLLECTOR;
+if (collector !== root + '/controller') throw new Error('external collector identity');
+for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) {
+  const actual = fs.fstatSync(descriptor);
+  const declared = fs.lstatSync(collector + suffix);
+  if (!actual.isFile() || !declared.isFile() || declared.isSymbolicLink() || actual.dev !== declared.dev || actual.ino !== declared.ino) throw new Error('external collector is not actually connected');
+}
+const read = (name, cap = 131072) => {
+  const file = path.join(root, name), stat = fs.lstatSync(file);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > cap) throw new Error(`file shape ${name}`);
+  const bytes = fs.readFileSync(file);
+  if (bytes.length !== stat.size) throw new Error('file changed during read');
+  return bytes;
+};
+const inventory = read('SHA256SUMS').toString('utf8').trimEnd().split('\n').map(line => {
+  const match = /^([a-f0-9]{64})  ([a-zA-Z0-9.-]+)$/.exec(line);
+  if (!match) throw new Error('seal record');
+  return { name: match[2], sha256: match[1] };
+});
+assert.deepEqual(inventory.map(row => row.name), ['owner.mjs', 'harmless.mjs', 'controls.mjs', 'PRESEAL.md', 'START.json']);
+for (const row of inventory) assert.equal(createHash('sha256').update(read(row.name)).digest('hex'), row.sha256);
+const binary = fs.lstatSync(process.execPath);
+assert.equal(process.execPath, '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node');
+assert.equal(binary.size, 112989184);
+assert.ok(binary.isFile() && !binary.isSymbolicLink());
+const hash = createHash('sha256');
+for await (const chunk of fs.createReadStream(process.execPath, { highWaterMark: 65536 })) hash.update(chunk);
+assert.equal(hash.digest('hex'), '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011');
+const rows = [];
+for (const file of ['owner.mjs', 'harmless.mjs', 'controls.mjs']) {
+  try { new SourceTextModule(read(file).toString('utf8'), { identifier: path.join(root, file) }); rows.push({ id: `syntax/${file}`, status: 'PASS', diagnostic: null }); }
+  catch (error) { rows.push({ id: `syntax/${file}`, status: 'FAIL', diagnostic: String(error) }); }
+}
+if (rows.some(row => row.status === 'FAIL')) throw new Error('syntax admission');
+const { ownProcess, validateOwner } = await import(pathToFileURL(path.join(root, 'owner.mjs')));
+const deadline = Math.min(phase.deadlineMs, Date.now() + 60000);
+const state = () => ({ starts: 0, maximumStarts: 1, capture: 0, maximumCapture: 65536, owned: [], secondary: [], deadline });
+const spec = id => ({ id, stdout: root + '/' + id + '.stdout', stderr: root + '/' + id + '.stderr', cwd: root, executable: process.execPath, argv: [root + '/harmless.mjs'], env: { HOME: root, TMPDIR: root, LC_ALL: 'C', TZ: 'UTC' }, caseMs: 2000, retireMs: 500, childCapture: 32768 });
+const control = async (id, body) => {
+  try { await body(); rows.push({ id, status: 'PASS' }); }
+  catch (error) { rows.push({ id, status: 'FAIL', reason: String(error) }); }
+};
+const rejection = async (promise, expected) => {
+  let rejected = false, reason;
+  try { await promise; } catch (error) { rejected = true; reason = error; }
+  assert.ok(rejected); assert.strictEqual(reason, expected);
+};
+function fake(options = {}) {
+  let nextFd = 0;
+  const closed = [], writes = [], timers = [];
+  const child = new EventEmitter();
+  child.pid = 999;
+  child.stdout = new EventEmitter(); child.stderr = new EventEmitter();
+  let closedChild = false;
+  const close = () => { if (!closedChild && !options.noClose) { closedChild = true; child.emit('close', 0, null); } };
+  child.kill = () => { queueMicrotask(close); return true; };
+  const dependencies = {
+    open() { if (options.partial && nextFd === 1) throw options.reason; return ++nextFd; },
+    close(descriptor) { closed.push(descriptor); },
+    write(descriptor, bytes, offset, length) { const amount = options.zeroWrite ? 0 : Math.min(2, length); writes.push(bytes.subarray(offset, offset + amount).toString('hex')); return amount; },
+    spawn() {
+      if (options.spawnError) throw options.reason;
+      queueMicrotask(() => { if (options.bytes) child.stdout.emit('data', Buffer.from(options.bytes)); close(); });
+      return child;
+    },
+    now: options.now ?? (() => deadline - 10000),
+    later(callback) { timers.push(callback); if (options.noClose && timers.length === 2) queueMicrotask(callback); return callback; },
+    cancel() {},
+  };
+  return { dependencies, closed, writes, child };
+}
+await control('clock/NaN-before-acquisition', () => assert.throws(() => validateOwner(spec('nan'), { ...state(), deadline: NaN }, Date.now()), /finite/));
+await control('clock/infinite-case-before-acquisition', () => assert.throws(() => validateOwner({ ...spec('inf'), caseMs: Infinity }, state(), Date.now()), /finite/));
+await control('fd/partial-open-closes-first', async () => { const reason = Object.freeze({ fd: true }), model = fake({ partial: true, reason }), observed = state(); await rejection(ownProcess(spec('partial'), observed, () => {}, model.dependencies), reason); assert.deepEqual(model.closed, [1]); assert.equal(observed.starts, 0); });
+for (const [index, reason] of [false, 0, '', null].entries()) await control(`publication/falsy-${index}-after-enrollment`, async () => {
+  const model = fake(), observed = state();
+  await rejection(ownProcess(spec('falsy' + index), observed, event => { if (event.event === 'owned') { assert.equal(observed.owned.length, 1); throw reason; } }, model.dependencies), reason);
+  assert.equal(observed.owned[0].retired, true); assert.deepEqual(model.closed, [1, 2]);
+});
+await control('capture/short-write-exact-bytes', async () => { const model = fake({ bytes: '12345' }), observed = state(); await ownProcess(spec('short'), observed, () => {}, model.dependencies); assert.equal(model.writes.join(''), Buffer.from('12345').toString('hex')); assert.equal(observed.capture, 5); });
+await control('capture/zero-write-rejects-after-reap', async () => { const model = fake({ bytes: 'x', zeroWrite: true }), observed = state(); await assert.rejects(ownProcess(spec('zero'), observed, () => {}, model.dependencies), /short-write/); assert.equal(observed.owned[0].retired, true); });
+await control('capture/cap-before-write', async () => { const model = fake({ bytes: '123' }), observed = state(); await assert.rejects(ownProcess({ ...spec('cap'), childCapture: 2 }, observed, () => {}, model.dependencies), /capture cap/); assert.equal(model.writes.length, 0); assert.equal(observed.owned[0].retired, true); });
+await control('deadline/publication-inside-total', async () => { let now = deadline - 10000; const model = fake({ now: () => now }); await assert.rejects(ownProcess(spec('tail'), state(), event => { if (event.event === 'settled') now = deadline; }, model.dependencies), /includes publication/); });
+await control('spawn/no-fabricated-retirement', async () => { const reason = Object.freeze({ spawn: true }), model = fake({ spawnError: true, reason }), observed = state(); await rejection(ownProcess(spec('spawn'), observed, () => {}, model.dependencies), reason); assert.deepEqual(observed.owned, []); assert.deepEqual(model.closed, [1, 2]); });
+await control('retirement/missing-close-is-unknown', async () => { const model = fake({ noClose: true }), observed = state(); await assert.rejects(ownProcess(spec('unknown'), observed, () => {}, model.dependencies), /unknown retirement/); assert.equal(observed.unknownRetirement, true); assert.equal(observed.owned[0].retired, false); });
+const actual = [];
+for (const [id, argv, expectedCode] of [['actual-zero', [], 0], ['actual-nonzero', ['nonzero'], 7]]) {
+  if (rows.some(row => row.status === 'FAIL')) break;
+  const observed = state();
+  await control(id, async () => {
+    const receipt = await ownProcess({ ...spec(id), argv: [root + '/harmless.mjs', ...argv] }, observed, event => fs.appendFileSync(root + '/children.jsonl', JSON.stringify(event) + '\n', { mode: 0o600 }));
+    assert.equal(receipt.code, expectedCode); assert.equal(receipt.signal, null); assert.equal(receipt.retired, true);
+    assert.equal(read(id + '.stdout').toString(), 'OUT\n'); assert.equal(read(id + '.stderr').toString(), 'ERR\n');
+  });
+  actual.push(...observed.owned);
+  if (observed.unknownRetirement || observed.owned.some(row => !row.retired)) throw new Error('actual unknown retirement STOP');
+}
+for (const row of inventory) assert.equal(createHash('sha256').update(read(row.name)).digest('hex'), row.sha256);
+const result = { phase: 'PURE_SYNTHETIC_AND_TWO_HARMLESS_CHILDREN_ONLY', productExecutions: 0, workers: 0, rows, actual, sourceSeal: inventory, finishedMs: Date.now(), deadline, actualKnownStarts: 1 + actual.length, status: rows.every(row => row.status === 'PASS') ? 'PASS' : 'HOLD' };
+assert.ok(result.finishedMs < deadline);
+fs.writeFileSync(root + '/RESULT.json', JSON.stringify(result, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+console.log(JSON.stringify({ status: result.status, rows: rows.length, actualChildren: actual.length, retired: actual.filter(row => row.retired).length }));
+process.exitCode = result.status === 'PASS' ? 0 : 1;

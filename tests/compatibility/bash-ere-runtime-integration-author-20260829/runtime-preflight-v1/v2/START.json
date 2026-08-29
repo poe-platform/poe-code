@@ -1,0 +1,10 @@
+{
+  "role": "A01",
+  "pid": 83152,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "startMs": 1788009067362,
+  "deadlineMs": 1788010267362,
+  "stdout": "/private/tmp/safe-bash-core70-v2-20260829-start.stdout",
+  "stderr": "/private/tmp/safe-bash-core70-v2-20260829-start.stderr",
+  "scope": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v2"
+}

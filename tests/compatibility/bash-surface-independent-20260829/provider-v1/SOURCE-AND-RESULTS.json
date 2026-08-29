@@ -1,0 +1,143 @@
+{
+  "schema": "provider-author-checkpoint-v1",
+  "sourceCommit": "ab99f154cd379dcbd6d5dfff02ba594770776642",
+  "preexecutionSealSha256": "48aa4690e4f0b2fcf835d8407fec00b3efcd40385999f415eeaa8e82868cb17b",
+  "candidateFiles": [
+    {
+      "path": "CONTROLS.json",
+      "bytes": 4443,
+      "sha256": "37dfd2093cd97aa922103661967fcb06b22230efca57b248ca861292665fc157"
+    },
+    {
+      "path": "DESIGN.md",
+      "bytes": 4397,
+      "sha256": "3562a2f970ee7b7464fc99939e8f947f96090963e43b4d7ff44f7aa48666bfc2"
+    },
+    {
+      "path": "PREEXECUTION-SEAL.json",
+      "bytes": 126103,
+      "sha256": "48aa4690e4f0b2fcf835d8407fec00b3efcd40385999f415eeaa8e82868cb17b"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 4956,
+      "sha256": "a830e56bad179a77bbe06edc4479d5a79845a1f248accf3625ec05180d091956"
+    },
+    {
+      "path": "admin.mjs",
+      "bytes": 4250,
+      "sha256": "181e5fe79b81815d9398bb4a34111436333c245741151e5d5e671ee89611494a"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 11412,
+      "sha256": "fc53c71aaf23103d8cfbd1d4fc32fab947f7f6160449160a5a4650b28982f55f"
+    },
+    {
+      "path": "fixture.mjs",
+      "bytes": 4118,
+      "sha256": "0c7c680d63eb1dbe5a12c59bf4169814bdaac22bec29919541fe37c5b8b26865"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 9865,
+      "sha256": "4922f58acb0970307f923df3e1bf7a5bda4a66b050af0eb078a8d5e969596e8e"
+    },
+    {
+      "path": "profile.mjs",
+      "bytes": 4315,
+      "sha256": "ae8485e2d3f0447aab93bc6ab113db17c2ee7fad755a9b07d6b780777395ddd3"
+    },
+    {
+      "path": "provider.mjs",
+      "bytes": 3066,
+      "sha256": "bafc959c445f3dbc2a1662e1f55152e8930891d28d6d8c2f68abcafafb5ce2c4"
+    }
+  ],
+  "classification": "PLATFORM_STARTUP_STOP_UNQUALIFIED_PROVIDER",
+  "data": {
+    "cases": 20,
+    "pass": 20,
+    "fail": 0,
+    "role": "DATA_NOT_FENCE_OR_NATIVE_PROOF"
+  },
+  "actual": {
+    "attempted": 1,
+    "successfulFixtureStartup": 0,
+    "fixtureFailures": 1,
+    "unrun": 15,
+    "directTargetPid": 73818,
+    "signal": "SIGABRT",
+    "status": null,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "eventBytes": 0,
+    "observedRootSpawn": true,
+    "knownExit": true,
+    "knownClose": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "eventEOF": true,
+    "groupPresent": false,
+    "captureDescriptorsClosed": true,
+    "imageIdentity": "sandbox-exec initial launch path pinned; no fixture-ready/loaded Node image proof",
+    "cause": "UNATTRIBUTED; no kernel denial log or loaded-image event captured",
+    "noRetry": true
+  },
+  "prohibited": {
+    "bash": 0,
+    "versionProbe": 0,
+    "native9": 0,
+    "semantic40": 0,
+    "product": 0,
+    "compiler": 0,
+    "install": 0,
+    "workerRole": 0,
+    "networkConnectOrListener": 0
+  },
+  "phase": {
+    "start": 1787977264482,
+    "deadline": 1787979964482,
+    "observedAt": 1787978197173,
+    "limits": {
+      "allProcesses": 96,
+      "peakProcesses": 4,
+      "fixtureChildren": 24,
+      "captureBytes": 134217728,
+      "workBytes": 536870912
+    },
+    "registeredAdministrativeAndControllerLaunches": 21,
+    "registeredNestedWrapperLaunches": 1,
+    "knownTotalLaunches": 22,
+    "knownPeakIncludingOuterController": 3,
+    "fixtureReservationsConsumed": 1,
+    "fixtureReservationsUnused": 18,
+    "unusedNotReusableWithoutNewAuthorization": true,
+    "allKnownChildrenRetired": true,
+    "administrativeCaptureBytes": 4873,
+    "targetProviderCaptureBytes": 2027,
+    "captureQualification": "Raw outer and nested captures are separate accounting domains; duplicate receipt publication remains in disk archive.",
+    "allDescendantQualification": "NO kernel-wide census; unknown tool-internal descendants are not proved absent. The direct root and source-reported fixture children are the only observed scope.",
+    "logicalWorkFileBytes": 238785,
+    "memoryQualification": "Point-in-time owned regular-file bytes, not RSS or all transient allocations.",
+    "publicationBoundary": "Raw archive/accounting through direct child21; later evidence publication remains in retained outer capture. No target dispatch after child16."
+  },
+  "originalPacket": {
+    "sealSha256": "2f90668d232565ee5280f7dad9e0da8aea3d90c4db72d6ed2d90e73962597ac0",
+    "authenticatedSealedFiles": 24,
+    "unchanged": true,
+    "original40": "UNRUN",
+    "original9": "UNRUN",
+    "original22": "UNCHANGED_NOT_ADDED_TO_NEW20"
+  },
+  "archive": {
+    "path": "RAW-CAPTURE.json.gz.base64",
+    "encodedBytes": 67505,
+    "encodedSha256": "f9dff3e850054ad562991c5401da513a95415f4fe9632ba7967a0b4e961c8932",
+    "gzipBytes": 50626,
+    "gzipSha256": "c8fc822bad60caf6261d07a110f51a52909b8827f2feac3a454658f419142c71",
+    "decodedBytes": 333841,
+    "decodedSha256": "ccace07cd650d7a3fb867c590e222d611c03e720966bc6c5b0d19bfd8c186a2e"
+  },
+  "nextPermission": "Different source/OS-dependency review and explicit fresh ROOT qualification decision required; no profile broadening, retry, Bash or semantic grant inferred."
+}

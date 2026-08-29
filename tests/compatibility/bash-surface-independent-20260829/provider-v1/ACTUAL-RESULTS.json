@@ -1,0 +1,176 @@
+{
+  "mode": "--actual",
+  "data": [
+    {
+      "id": "changed-case",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "changed-argv",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "changed-env",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "unexpected-exec",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "injected-profile-string",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "path-traversal",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "readonly-capture",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "missing-exit",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "missing-stdout-eof",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "missing-stderr-eof",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "missing-close",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "unknown-descendant",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "group-still-present",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "duplicate-child-identity",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "zero-reason",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "false-reason",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "empty-reason",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "cleanup-singleflight",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "cleanup-failure-identity",
+      "pass": true,
+      "role": "DATA_ONLY"
+    },
+    {
+      "id": "network-default-deny-source",
+      "pass": true,
+      "role": "DATA_ONLY"
+    }
+  ],
+  "observations": [
+    {
+      "id": "F01",
+      "pass": false,
+      "assertion": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ Buffer(0) [Uint8Array] []\n- Buffer(4) [Uint8Array] [\n-   65,\n-   0,\n-   66,\n-   10\n- ]\n",
+      "receipt": {
+        "id": "F01",
+        "role": "harmless-node-fixture",
+        "requestSha256": "ed28b34136b4db4dbde30a5aa3d6bf0ba95fbf8016dffed8906ba37c0104906e",
+        "started": 1787978069351,
+        "pid": 73818,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "eventsEOF": true,
+        "status": null,
+        "signal": "SIGABRT",
+        "children": [],
+        "events": [],
+        "errors": [],
+        "groupPresent": false,
+        "unknownDescendants": false,
+        "captureFailure": false,
+        "cancellation": null,
+        "escalation": [],
+        "observedRootSpawn": true,
+        "finished": 1787978069492,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "bytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "events": 0
+        },
+        "retirement": "DIRECT_AND_REPORTED_CHILDREN_RETIRED",
+        "captureDescriptorsClosed": true
+      }
+    }
+  ],
+  "failure": "Error: PLATFORM_STARTUP_HOLD_NO_FENCE_QUALIFICATION",
+  "native": 0,
+  "product": 0,
+  "workers": 0,
+  "network": "SOURCE_ONLY_NO_CONNECT_OR_LISTENER",
+  "unrun": [
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15",
+    "F16"
+  ],
+  "budget": {
+    "reserved": 1,
+    "maxChildren": 19,
+    "active": false,
+    "captureBytes": 2027,
+    "maxCapture": 16777216,
+    "halted": false,
+    "deadline": 1787978219349
+  }
+}

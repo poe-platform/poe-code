@@ -1,0 +1,518 @@
+{
+  "author": [
+    {
+      "id": "S01-undefined-false",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "undefined"
+      },
+      "lifecycle": [
+        {
+          "id": "S01-undefined-false",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": false,
+            "failurePresent": true,
+            "failure": {
+              "kind": "boolean",
+              "value": false
+            }
+          },
+          "knownOutstanding": 1,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "undefined"
+          },
+          "secondaryPresent": true,
+          "secondary": [
+            {
+              "kind": "boolean",
+              "value": false
+            }
+          ],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S01-undefined-false.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S01-undefined-false.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S02-null-zero",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "null"
+      },
+      "lifecycle": [
+        {
+          "id": "S02-null-zero",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": false,
+            "failurePresent": true,
+            "failure": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          "knownOutstanding": 1,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "null"
+          },
+          "secondaryPresent": true,
+          "secondary": [
+            {
+              "kind": "number",
+              "value": 0
+            }
+          ],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S02-null-zero.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S02-null-zero.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S03-false-undefined",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "boolean",
+        "value": false
+      },
+      "lifecycle": [
+        {
+          "id": "S03-false-undefined",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": false,
+            "failurePresent": true,
+            "failure": {
+              "kind": "undefined"
+            }
+          },
+          "knownOutstanding": 1,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "boolean",
+            "value": false
+          },
+          "secondaryPresent": true,
+          "secondary": [
+            {
+              "kind": "undefined"
+            }
+          ],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S03-false-undefined.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S03-false-undefined.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S04-zero-null",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "number",
+        "value": 0
+      },
+      "lifecycle": [
+        {
+          "id": "S04-zero-null",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": false,
+            "failurePresent": true,
+            "failure": {
+              "kind": "null"
+            }
+          },
+          "knownOutstanding": 1,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "number",
+            "value": 0
+          },
+          "secondaryPresent": true,
+          "secondary": [
+            {
+              "kind": "null"
+            }
+          ],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S04-zero-null.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S04-zero-null.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S05-object-pair",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "object",
+        "name": "Error",
+        "message": "fixed open failure",
+        "code": "EOPEN"
+      },
+      "lifecycle": [
+        {
+          "id": "S05-object-pair",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": false,
+            "failurePresent": true,
+            "failure": {
+              "kind": "object",
+              "name": "Error",
+              "message": "fixed close failure",
+              "code": "ECLOSE"
+            }
+          },
+          "knownOutstanding": 1,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "object",
+            "name": "Error",
+            "message": "fixed open failure",
+            "code": "EOPEN"
+          },
+          "secondaryPresent": true,
+          "secondary": [
+            {
+              "kind": "object",
+              "name": "Error",
+              "message": "fixed close failure",
+              "code": "ECLOSE"
+            }
+          ],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S05-object-pair.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S05-object-pair.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S06-close-success",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "object",
+        "name": "Error",
+        "message": "fixed open failure",
+        "code": "EOPEN"
+      },
+      "lifecycle": [
+        {
+          "id": "S06-close-success",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": true,
+            "closeAttempted": true,
+            "closed": true,
+            "failurePresent": false
+          },
+          "knownOutstanding": 0,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "object",
+            "name": "Error",
+            "message": "fixed open failure",
+            "code": "EOPEN"
+          },
+          "secondaryPresent": false,
+          "secondary": [],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S06-close-success.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S06-close-success.stderr",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "close",
+          "descriptor": 0
+        }
+      ]
+    },
+    {
+      "id": "S07-first-open",
+      "pass": true,
+      "caught": true,
+      "selectedPrimary": {
+        "kind": "number",
+        "value": 0
+      },
+      "lifecycle": [
+        {
+          "id": "S07-first-open",
+          "childStarted": false,
+          "captureOpenFailure": true,
+          "captureCleanup": {
+            "acquired": false,
+            "closeAttempted": false,
+            "closed": false,
+            "failurePresent": false
+          },
+          "knownOutstanding": 0,
+          "qualified": false,
+          "primaryPresent": true,
+          "primary": {
+            "kind": "number",
+            "value": 0
+          },
+          "secondaryPresent": false,
+          "secondary": [],
+          "finished": 1788011615614
+        }
+      ],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S07-first-open.stdout",
+          "flags": "wx+",
+          "mode": 384
+        }
+      ]
+    },
+    {
+      "id": "S08-success",
+      "pass": true,
+      "caught": false,
+      "lifecycle": [],
+      "calls": [
+        {
+          "operation": "open",
+          "filename": "/DATA/S08-success.stdout",
+          "flags": "wx+",
+          "mode": 384
+        },
+        {
+          "operation": "open",
+          "filename": "/DATA/S08-success.stderr",
+          "flags": "wx+",
+          "mode": 384
+        }
+      ]
+    }
+  ],
+  "novel": [
+    {
+      "id": "N01-first-undefined",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [],
+      "knownOutstanding": 0,
+      "closeAttempts": 0,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N02-first-null",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [],
+      "knownOutstanding": 0,
+      "closeAttempts": 0,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N03-first-false",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [],
+      "knownOutstanding": 0,
+      "closeAttempts": 0,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N04-first-zero",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [],
+      "knownOutstanding": 0,
+      "closeAttempts": 0,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N05-empty-string-double",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [
+        {
+          "kind": "string",
+          "value": ""
+        }
+      ],
+      "knownOutstanding": 1,
+      "closeAttempts": 1,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N06-negative-zero-double",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [
+        {
+          "kind": "number",
+          "value": 0
+        }
+      ],
+      "knownOutstanding": 1,
+      "closeAttempts": 1,
+      "recordPublication": "normal"
+    },
+    {
+      "id": "N07-row-publication-throws",
+      "pass": true,
+      "reasonIdentityRetained": true,
+      "primaryPresent": true,
+      "secondary": [
+        {
+          "kind": "boolean",
+          "value": false
+        }
+      ],
+      "knownOutstanding": 1,
+      "closeAttempts": 1,
+      "recordPublication": "refused-primary-retained"
+    },
+    {
+      "id": "N08-success-flags-fd-zero",
+      "pass": true,
+      "reasonIdentityRetained": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "knownOutstanding": 0,
+      "closeAttempts": 0,
+      "recordPublication": "normal"
+    }
+  ],
+  "counts": {
+    "authorPassed": 8,
+    "authorTotal": 8,
+    "novelPassed": 8,
+    "novelTotal": 8
+  },
+  "profile": "PURE injected operation callbacks; no actual native open/close fault, readiness, product or child dispatch",
+  "pid": 84759
+}

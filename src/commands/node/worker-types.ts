@@ -21,5 +21,5 @@ export interface NodeWorkerEvent {
 export interface NodeWorkerProviderOptions {
   readonly entry: string;
   readonly identity: string;
-  readonly observe?: (event: NodeWorkerEvent) => void;
+  readonly observe?: (event: NodeWorkerEvent) => void | PromiseLike<void>;
 }

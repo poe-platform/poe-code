@@ -86,6 +86,7 @@ export class NodeOwner implements HostOwner {
     try { value = await this.job(start); }
     catch (error) { this.failure(error, "execution"); throw error; }
     this.#completion = completion(value);
+    if (this.#completion.kind === "profileFailure") this.failure(new NodeProfileError("provider-selected profile stop"), "profile");
     if (this.#retired?.acquisition === "none" && this.#completion.kind !== "profileFailure") throw new TypeError("node provider completion without acquired Worker");
     return this.#completion;
   }

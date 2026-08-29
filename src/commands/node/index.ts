@@ -87,6 +87,13 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
             catch (error) { owner.failure(error, "profile"); throw error; }
           },
           cutoff: () => { sessionHost(); owner.cutoff(); },
+          job: owner.job,
+          stopProfile: reason => {
+            sessionHost();
+            const failure = record(reason, ["present", "value"]);
+            if (failure.present !== true) throw new TypeError("provider profile failure presence");
+            owner.failure(failure.value, "profile");
+          },
           fail: reason => {
             sessionHost();
             const failure = record(reason, ["present", "value"]);

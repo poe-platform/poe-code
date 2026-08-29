@@ -40,10 +40,13 @@ class WorkerSession {
   #frame = 0;
   #entries = 0;
   #attempts = 0;
-  constructor(readonly request: NodeSourceRequest, readonly services: NodeHostServices, readonly entry: string, readonly identity: string, readonly observer: ((event: NodeWorkerEvent) => void) | undefined) {}
-  #event(kind: NodeWorkerEvent["kind"], sequence: number | null = null, exitCode: number | null = null): void {
-    try { this.observer?.(Object.freeze({ kind, sequence, exitCode })); }
-    catch (error) { this.#failure(error); throw error; }
+  constructor(readonly request: NodeSourceRequest, readonly services: NodeHostServices, readonly entry: string, readonly identity: string, readonly observer: NodeWorkerProviderOptions["observe"]) {}
+  #event(kind: NodeWorkerEvent["kind"], sequence: number | null = null, exitCode: number | null = null): Promise<void> {
+    if (!this.observer) return Promise.resolve();
+    const event = Object.freeze({ kind, sequence, exitCode });
+    const job = this.services.job(() => this.observer!(event));
+    void job.catch(error => { this.#failure(error); });
+    return job;
   }
   #failure = (reason: unknown): void => {
     this.#escaping ??= { present: true, value: reason };
@@ -51,7 +54,7 @@ class WorkerSession {
     this.services.fail(this.#escaping);
     this.cancel(this.#escaping);
   };
-  #protocolFailure = (reason: unknown): void => { this.#resolve?.({ kind: "profileFailure", observation: observeNodeFailure(reason) }); this.cancel({ present: true, value: reason }); };
+  #protocolFailure = (reason: unknown): void => { this.#resolve?.({ kind: "profileFailure", observation: observeNodeFailure(reason) }); this.services.stopProfile({ present: true, value: reason }); this.cancel({ present: true, value: reason }); };
   #abort = (): void => this.cancel({ present: true, value: this.services.signal.reason });
   #drain(stream: NonNullable<Worker["stdout"]>): void {
     let finish!: () => void;
@@ -158,7 +161,9 @@ class WorkerSession {
       if (Object.keys(item).length !== 2 || this.#terminal) throw new NodeProfileError("duplicate terminal");
       const result = completion(item.completion);
       if (result.kind === "entryReturned" && (this.#entries !== 1 || this.#incoming || this.#result || this.#sequence !== this.#delivered)) throw new NodeProfileError("terminal contradicts pending work/entry");
-      this.#terminal = result; this.services.cutoff(); this.#closed = true; this.#event("terminal"); this.#finish(result); return;
+      this.#terminal = result; this.services.cutoff(); this.#closed = true; this.#event("terminal");
+      if (result.kind === "profileFailure") this.services.stopProfile({ present: true, value: new NodeProfileError("Worker-selected profile stop") });
+      this.#finish(result); return;
     }
     throw new NodeProfileError("unrecognized Worker message");
   }
@@ -180,8 +185,10 @@ class WorkerSession {
       this.#worker.on("message", value => { this.#chain = this.#chain.then(() => this.#message(value)).catch(error => { this.#protocolFailure(error); }); });
       this.#drain(this.#worker.stdout); this.#drain(this.#worker.stderr);
       this.services.signal.addEventListener("abort", this.#abort, { once: true });
-      this.#event("workerCreated"); this.services.signal.throwIfAborted();
-      this.#worker.postMessage({ kind: "start" });
+      void this.#event("workerCreated").then(() => {
+        try { this.services.signal.throwIfAborted(); if (!this.#closed) this.#worker!.postMessage({ kind: "start" }); }
+        catch (error) { this.#protocolFailure(error); }
+      }, () => {});
     } catch (error) { this.#protocolFailure(error); }
     return result;
   };
@@ -214,7 +221,7 @@ class WorkerSession {
       this.#nativeJobs = [];
       for (const release of this.#credits.splice(0)) release(); this.#baseRelease?.(); this.#baseRelease = undefined;
       const retirement: NodeRetirement = this.#exitCode === undefined ? { acquisition: "none", exitCode: null } : { acquisition: "exited", exitCode: this.#exitCode };
-      this.#event("retired", null, retirement.exitCode);
+      await this.#event("retired", null, retirement.exitCode);
       return retirement;
     });
     return this.#retiring;
@@ -224,6 +231,6 @@ export function createNodeWorkerProvider(options: NodeWorkerProviderOptions): No
   const fields = record(options, ["entry", "identity"], ["observe"]);
   const entry = text(fields.entry, nodeLimits.metadataBytes, "trusted adapter URL"); const identity = text(fields.identity, nodeLimits.metadataBytes, "trusted adapter identity");
   const parsed = new URL(entry); if (parsed.protocol !== "file:" || parsed.search || parsed.hash || parsed.href !== entry || identity.length === 0 || Object.hasOwn(fields, "observe") && typeof fields.observe !== "function") throw new TypeError("explicit trusted engine adapter");
-  const observe = fields.observe as ((event: NodeWorkerEvent) => void) | undefined;
+  const observe = fields.observe as NodeWorkerProviderOptions["observe"];
   return Object.freeze({ profile: NODE_PROFILE, identity, prepare: (request: NodeSourceRequest, services: NodeHostServices): NodeSession => { const owner = new WorkerSession(request, services, entry, identity, observe); return Object.freeze({ start: owner.start, cancel: owner.cancel, retire: owner.retire }); } });
 }

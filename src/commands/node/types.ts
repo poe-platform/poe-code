@@ -74,6 +74,8 @@ export interface NodeHostServices {
   readonly reserve: (label: string, bytes: number) => () => void;
   readonly cutoff: () => void;
   readonly fail: (reason: NodeReason) => void;
+  readonly stopProfile: (reason: NodeReason) => void;
+  readonly job: <Value>(start: () => Value | PromiseLike<Value>) => Promise<Value>;
 }
 export interface NodeSession {
   readonly start: () => Promise<NodeCompletion>;

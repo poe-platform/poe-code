@@ -1,0 +1,23 @@
+{
+  "schema": "root-producer-go-record-with-explicit-review-waiver-v1",
+  "action": "PRODUCE-CORE-TWO-SOURCE-OVERLAY",
+  "authorizedArtifactCommit": "c5a45fec840135ed38ac5533b8a15f1b64dafb2c",
+  "presealSha256": "02c98960983bfeffabf43ba11d5a594c498623c2befe3a06136c12d99d2dfd17",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/future-producer-v1",
+  "transportSourceReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "producerPreexecReview": "EXPLICITLY_WAIVED_BY_ROOT_CURRENT_GO",
+  "independentActualProducerBindingAudit": "REQUIRED_AFTERWARD",
+  "limits": {
+    "millisecondsIncludingPublication": 1200000,
+    "knownOsMaximum": 48,
+    "knownOsPeak": 3,
+    "captureBytes": 100663296,
+    "logicalWorkBytes": 536870912,
+    "perDataFileMaximumBytes": 16777216,
+    "cleanCompilerBuilds": 1,
+    "offlineIgnoreScriptsPackageProducers": 1
+  },
+  "archiveAndProducerReceiptMustBeCommittedBeforeFirstDecode": true,
+  "actualCoreAuthority": false
+}

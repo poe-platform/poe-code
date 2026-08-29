@@ -1,0 +1,92 @@
+{
+  "schema": "sealed-producer-launch-contract-stop-v1",
+  "disposition": "STOP_BEFORE_PRODUCER_COMMAND",
+  "at": "2026-08-29T15:39:57.534Z",
+  "started": "2026-08-29T15:38:28Z",
+  "publicationDeadline": "2026-08-29T15:58:28Z",
+  "presealSha256": "02c98960983bfeffabf43ba11d5a594c498623c2befe3a06136c12d99d2dfd17",
+  "authorizedArtifactCommit": "c5a45fec840135ed38ac5533b8a15f1b64dafb2c",
+  "derivedComposition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "authenticatedSealedFiles": [
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json",
+      "bytes": 678053,
+      "sha256": "f8004c83c2316ce33e5e93719961b56847c87b6c47b79566b2810c92e8ef72f9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/BASELINE-DATA.json",
+      "bytes": 521625,
+      "sha256": "0de74e74a7ffa198e331b9ee816b23308dec4263f450b5488ed953672340138b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/recipe.mjs",
+      "bytes": 2957,
+      "sha256": "82c2453b227073470fbaaff9b328c060744563c183e9b24ac40e0d324ed163a3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/core-guard-v8.mjs",
+      "bytes": 2897,
+      "sha256": "189e080d6566cf9884e9d72c13f173e8d48373d1353495c3c9ecb49e1e041957"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/producer.mjs",
+      "bytes": 12589,
+      "sha256": "5ac14d21fe89d2142da78527cb22f55600bb095b82020815237348aecfcd5b3f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/controls.mjs",
+      "bytes": 8316,
+      "sha256": "3fdae2623edc4ab0da4cf1007f5f65556500c29ece5330b9b8829dd995c27943"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/CONTROL-RESULT.json",
+      "bytes": 689,
+      "sha256": "ede4b8634438c849c1bb990ffdcddcf664e34b11342ccd3939cd506aaba0c3a7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/LAYOUT-RECIPE.json",
+      "bytes": 9649,
+      "sha256": "8436a1ad34501eb3c0910680eac7362937a5977c03b944a15a896747932fbc63"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rootGoRecord": {
+    "path": "tests/compatibility/bash-ere-core-transport-rebind-20260829/producer-go-attempt-v1/ROOT-GO-RECORD.json",
+    "bytes": 1077,
+    "sha256": "a82858657c62b370dccd901983faacc08e5775b6881d6b4a38d12b7ff99c866d"
+  },
+  "missingField": "grant.independentProducerReview",
+  "enforcingPath": "tests/compatibility/bash-ere-core-transport-rebind-20260829/producer.mjs",
+  "enforcingLine": 38,
+  "enforcingSource": "  assert(/^[a-f0-9]{40}$/.test(grant.independentProducerReview) && /^[a-f0-9]{40}$/.test(grant.transportSourceReview));",
+  "reason": "The immutable authorized executable requires a 40-hex independent producer-review receipt, while current ROOT GO expressly waives a new preexecution review. No waiver-capable grant branch exists in this executable. Do not fabricate a review receipt or silently amend the preseal.",
+  "requiredResolution": "Bind an explicitly authorized, versioned waiver-aware launch contract; this STOP is not a demand for a new preexecution review contrary to ROOT authorization.",
+  "fullyAuthenticatedBeforeStop": "preseal and all its listed DATA/code files only",
+  "selectedGitInputsAndLiveToolOriginsReauthentication": "NOT_REACHED; must complete before any future compiler command",
+  "producerInvocations": 0,
+  "compilerInvocations": 0,
+  "packageProducerInvocations": 0,
+  "decodeInvocations": 0,
+  "layoutMaterializations": 0,
+  "productInvocations": 0,
+  "Workers": 0,
+  "selectedOutputRootAlreadyExists": false,
+  "archiveCreated": false,
+  "producerArchiveCommit": null,
+  "finalBindingCommit": null,
+  "approvedCompilerOrPackAttemptConsumed": false,
+  "oldProducerAndResultsModified": false,
+  "sourceOverlayModified": false,
+  "noGrantReceiptInvented": true,
+  "producerCodeImportedOrExecuted": false,
+  "admissionHelperInvocations": 1
+}

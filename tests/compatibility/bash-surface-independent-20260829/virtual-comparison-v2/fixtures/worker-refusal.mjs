@@ -1,0 +1,1 @@
+import {Worker} from 'node:worker_threads';try{new Worker('not-an-authorized-entry');throw Error('UNEXPECTED');}catch(error){if(error.message!=='REGEX_WORKER_REFUSED')throw error;process.stdout.write(error.message+'\n');}

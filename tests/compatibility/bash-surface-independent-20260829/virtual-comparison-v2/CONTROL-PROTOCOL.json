@@ -1,0 +1,75 @@
+{
+  "schema": "virtual-comparison-v2-control-preseal",
+  "authority": "ROOT preexecution implementation/control only; no product/build/compiler/native execution",
+  "phase": {
+    "started": 1787994108406,
+    "deadline": 1787996208406,
+    "knownOSMaximum": 72,
+    "knownPeak": 3,
+    "captureBytes": 134217728,
+    "workBytes": 536870912,
+    "harmlessFixtureOSMaximum": 16,
+    "loaderAdmissionsMaximum": 12
+  },
+  "sourceReuse": {
+    "commit": "aede1639",
+    "gateSha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6",
+    "parserSha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61",
+    "original12": "New version bindings and fresh synthetic-only run; no original campaign rescore"
+  },
+  "early": [
+    "C01 tampered hash",
+    "C02 short size",
+    "C03 oversized",
+    "C04 wrong expected hash",
+    "C05 directory",
+    "C06 symlink",
+    "C07 replaced path identity",
+    "C08 source mutation",
+    "C09 truncate after read",
+    "C10 concurrent logical reservation",
+    "C11 deliberately premature decoder SPY mutant",
+    "C12 restored gate zero decoder"
+  ],
+  "mechanisms": [
+    "M01 same admitted Buffer/no pathname reread after hash",
+    "M02 synthetic 954-member regular tar validation only",
+    "M03 actual harmless admitted loader/file",
+    "M04 wrong loaded-file SHA refusal",
+    "M05 unlisted module refusal before body",
+    "M06 Worker constructor refusal before acquisition",
+    "M07 natural exit/close/EOF/group absence",
+    "M08 TERM handled with natural retirement",
+    "M09 TERM ignored then KILL2s+1s observation",
+    "M10 synthetic fsync failure zero completion",
+    "M11 synthetic close failure zero completion",
+    "M12 expired final/late final no publication credit",
+    "M13 expired body/live final reserved tail",
+    "M14 exact false/0/undefined primary identity",
+    "M15 DATA present/absent/unknown observer error details",
+    "M16 listener/capture/publication ordering"
+  ],
+  "planned": {
+    "controlRunnerOS": 1,
+    "harmlessFixturesOS": 7,
+    "loaderRegistrations": 4,
+    "regexWorkers": 0,
+    "actualPackageArchiveReads": 0,
+    "actualSourceCapsuleInflations": 0,
+    "productImports": 0,
+    "caseAdapterCalls": 0
+  },
+  "controlExecution": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/controls.mjs",
+      "/tmp/bash-surface-virtual-comparison-v2-prep-xo85Rn/controls"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "outerCapture": "/tmp/bash-surface-virtual-comparison-v2-prep-xo85Rn",
+    "sourceSyntaxChecks": "Pinned Node --check each own .mjs, no target imports/evaluation",
+    "freshEnv": "HOME=owned capture, LC_ALL=C LANG=C TZ=UTC, no NODE_OPTIONS/NODE_PATH",
+    "totalControlRunnerTimeoutMs": 30000
+  },
+  "stop": "Capture/integrity/unknown-retirement/cap/deadline STOP; do not retry. Ordinary fully captured retired helper failures may version-correct within remaining phase limits."
+}

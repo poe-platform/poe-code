@@ -1,0 +1,46 @@
+{
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "rootCandidateAcceptance": "ROOT scoped Unit4/N14 acceptance after be7d4b98 and aede1639; original ordering not rescored",
+  "nativePublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+  "nativeAudit": "3afa86d9d43d47a6dbc755feb86f3916d91c935a",
+  "nativeScope": "37 Bash3.2.57 observations, not passes/5.3 goldens; 3 withheld unchanged",
+  "v1Source": "bff9022a479ba4683dce7fb1830b4e3c6f2be03e",
+  "v1Evidence": "f7475a1848e9e5705f99b9894e7d3d538528863c",
+  "archiveGateReference": {
+    "commit": "aede1639",
+    "files": {
+      "package-admission.mjs": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "parse-manifest.mjs": {
+        "bytes": 2860,
+        "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+      },
+      "controls.mjs": {
+        "bytes": 5856,
+        "sha256": "13b1861559e642c110e4f471faddabd786bce360d5e1dabe23d864640ab6b37f"
+      },
+      "ordering-mutant.mjs": {
+        "bytes": 3965,
+        "sha256": "f5f190d236024ffcf20e89e7eabbf7675dacffc80972c2ed29bfefd7acb0f97b"
+      },
+      "restored-admission.mjs": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "PRESEAL.json": {
+        "bytes": 2623,
+        "sha256": "c0378c0d2a7325096f69643445fa3bdeaa92876a74da78dffd91de4aa75f0a80"
+      }
+    }
+  },
+  "preexistingV1DataControls": "8/8 historical, not rerun",
+  "preparationErrors": [
+    {
+      "kind": "REPL_HELPER_IMPORT",
+      "message": "Absolute file path with query suffix was not resolved by preparer import mechanism. No child launched. Preserved original helper and added separately named helper before any controls."
+    }
+  ]
+}

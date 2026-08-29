@@ -1,0 +1,116 @@
+{
+  "schema": "virtual-comparison-v2-preexecution-stop",
+  "at": "2026-08-29T09:19:57.046Z",
+  "controlSealSha256": "51fabb2a01ff9dc9bf2c5ed5f259e916f9d3fba8e90366f394d0c2169c01b923",
+  "resultSha256": "e2eefbea49ece2f37f2e888ef3dff35f62c6df5041d0d45e1083e9f4d532dfc1",
+  "resultBytes": 29122,
+  "disposition": "STOP_UNKNOWN_GROUP_RETIREMENT_GRANT_CONSUMED",
+  "earlyAdmission": {
+    "passed": 12,
+    "failed": 0,
+    "qualification": "Fresh synthetic controls; original campaign not rescored. C11 intentionally detects premature SPY decoding."
+  },
+  "mechanisms": {
+    "passed": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "M07"
+    ],
+    "stopped": "M08",
+    "unrun": [
+      "M09",
+      "M10",
+      "M11",
+      "M12",
+      "M13",
+      "M14",
+      "M15",
+      "M16"
+    ]
+  },
+  "stoppedRow": {
+    "label": "M08",
+    "started": 1787995070526,
+    "listeners": true,
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "status": 0,
+    "signal": null,
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": 1787995071329
+      }
+    ],
+    "errors": [],
+    "events": [
+      "capture-opened",
+      "listeners-enrolled",
+      "stderr-end",
+      "stdout-end",
+      "exit",
+      "close",
+      "capture-finalization"
+    ],
+    "captures": [
+      {
+        "name": "stdout",
+        "bytes": 6,
+        "sha256": "3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5",
+        "base64": "UkVBRFkK",
+        "flushed": true,
+        "closed": true
+      },
+      {
+        "name": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": "",
+        "flushed": true,
+        "closed": true
+      }
+    ],
+    "qualified": false,
+    "pid": 59697,
+    "group": {
+      "state": "unknown",
+      "error": {
+        "name": "Error",
+        "code": "EPERM",
+        "errno": -1,
+        "syscall": "kill"
+      }
+    },
+    "escalationAttempted": true,
+    "finished": 1787995071389,
+    "primaryPresent": true,
+    "primary": {
+      "kind": "object",
+      "name": "Error",
+      "message": "CHILD_DEADLINE"
+    },
+    "fixtureTimeoutQualified": false
+  },
+  "knownFixtureOsStarts": 6,
+  "controlOwnerOsStarts": 1,
+  "loaderRegistrationRequests": 4,
+  "loaderInitializations": 4,
+  "independentLoaderExitWitnesses": 0,
+  "regexWorkerStarts": 0,
+  "productionCalls": 0,
+  "productionBuilds": 0,
+  "nativeExecutions": 0,
+  "productionArchiveReads": 0,
+  "productionArchiveInflations": 0,
+  "activeDirectChildHandlesReported": 0,
+  "groupRetirement": "M03–M07 observed ESRCH; M08 EPERM/unknown. Child exit/close/EOF is not group absence.",
+  "cause": "Unknown. No historical group recheck, signal, log query, target retry, source repair or permission change after STOP.",
+  "packetCompleteness": "NOT executable-readiness accepted. Supervisor/loader/setup/adapter source exists, but final execution seal/grant template/command and all qualification controls are not completed. No GO created.",
+  "publication": "Independent durable preservation only; no dependent admission."
+}

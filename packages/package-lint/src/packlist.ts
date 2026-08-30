@@ -1,4 +1,5 @@
 import path from "node:path";
+import { collectPackageFiles } from "./bundle-policy.js";
 import type { LintFs, WorkspaceModel } from "./model.js";
 
 export type PackagingSurface = "published-package" | "root-files" | "bundled-dependency";
@@ -85,7 +86,10 @@ async function listFallbackPackFiles(fs: LintFs, packageRoot: string): Promise<S
 
   const files = new Set<string>();
   for (const entry of allowlist) {
-    for (const listed of await listFilesEntry(fs, packageRoot, entry)) files.add(listed);
+    const listedFiles = entry.endsWith("/**/*.d.ts")
+      ? await collectPackageFiles(packageRoot, [entry], fs)
+      : await listFilesEntry(fs, packageRoot, entry);
+    for (const listed of listedFiles) files.add(listed);
   }
   return files;
 }

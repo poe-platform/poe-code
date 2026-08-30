@@ -17,7 +17,7 @@ import {
   type RecordedCase,
   type RecordedTruth,
   readRecordedOutcome
-} from "../packages/safejs/src/modules/fs.conformance-cases.js";
+} from "../packages/safe-js/src/modules/fs.conformance-cases.js";
 
 // Records what real node:fs/promises answers for every case in the shared conformance table, so
 // the suite is grounded in node's truth rather than in memfs's approximation of it. This is a
@@ -41,7 +41,7 @@ import {
 // it out.
 
 const FIXTURE_PATH = fileURLToPath(
-  new URL("../packages/safejs/src/modules/fs.node-truth.json", import.meta.url)
+  new URL("../packages/safe-js/src/modules/fs.node-truth.json", import.meta.url)
 );
 
 // A case names every path it touches under CASE_ROOT, which does not exist on the real

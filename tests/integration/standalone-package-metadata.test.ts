@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { minVersion, satisfies } from "semver";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -36,6 +37,25 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
+  it.each(["package.json", "packages/poe-agent/package.json"])(
+    "%s requires a patched shell-quote consumer floor",
+    (relativePath) => {
+      const range = readPackageJson(relativePath).dependencies?.["shell-quote"];
+      expect(range).toBeDefined();
+      expect(satisfies(minVersion(range!)!, ">=1.9.0 <2")).toBe(true);
+    }
+  );
+
+  it("ships gray-matter with its locked patched YAML parser", () => {
+    const pkg = readPackageJson("package.json");
+    expect(pkg.dependencies?.["gray-matter"]).toBeDefined();
+    expect(pkg.bundleDependencies).toContain("gray-matter");
+    const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
+    const yaml = lock.packages["node_modules/gray-matter/node_modules/js-yaml"];
+    expect(satisfies(yaml.version, ">=3.15.1 <4")).toBe(true);
+    expect(yaml.inBundle).toBe(true);
+  });
+
   it("does not pin poe-code to one 0.0.x Toolcraft release", () => {
     const dependencies = readPackageJson("package.json").dependencies;
     expect(dependencies?.toolcraft).toBe(">=0.0.51 <0.1.0");
@@ -193,6 +213,12 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/fs/s3",
       "./safe-bash/fs/s3/http",
       "./safe-bash/fs/webdav",
+      "./safe-fs",
+      "./safe-fs/core",
+      "./safe-fs/node",
+      "./safe-js",
+      "./safe-js/cli",
+      "./safe-js/core",
       "./safejs",
       "./safejs/cli",
       "./safejs/core",
@@ -214,6 +240,7 @@ describe("standalone package publish metadata", () => {
       "poe",
       "poe-agent",
       "poe-code",
+      "poe-safe-js",
       "poe-safejs",
       "poe-superintendent-mcp"
     ]);
@@ -236,27 +263,32 @@ describe("standalone package publish metadata", () => {
 
   it("brands the sandboxed JavaScript package as SafeJS", () => {
     const rootPackage = readPackageJson("package.json");
-    const safejsPackage = readPackageJson("packages/safejs/package.json");
+    const safejsPackage = readPackageJson("packages/safe-js/package.json");
 
-    expect(rootPackage.devDependencies?.["@poe-code/safejs"]).toBe("*");
+    expect(rootPackage.devDependencies?.["@poe-code/safe-js"]).toBe("*");
     expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
-    expect(rootPackage.files).toContain("packages/safejs/dist");
+    expect(rootPackage.files).toContain("packages/safe-js/dist");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
-    expect(rootPackage.bin?.["poe-safejs"]).toBe("packages/safejs/dist/cli.js");
+    expect(rootPackage.bin?.["poe-safejs"]).toBe("packages/safe-js/dist/cli.js");
     for (const [subpath, entrypoint] of [
       ["./safejs", "index"],
       ["./safejs/core", "core"],
       ["./safejs/cli", "cli"]
     ]) {
       expect(rootPackage.exports?.[subpath]).toEqual({
-        types: `./packages/safejs/dist/${entrypoint}.d.ts`,
-        import: `./packages/safejs/dist/${entrypoint}.js`
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: `./packages/safe-js/dist/${entrypoint}.d.ts`
+        },
+        browser: null,
+        import: `./packages/safe-js/dist/${entrypoint}.js`
       });
     }
     expect(safejsPackage).toMatchObject({
-      name: "@poe-code/safejs",
+      name: "@poe-code/safe-js",
       bin: {
-        "poe-safejs": "dist/cli.js"
+        "poe-safejs": "dist/cli.js",
+        "poe-safe-js": "dist/cli.js"
       }
     });
   });
@@ -272,5 +304,30 @@ describe("standalone package publish metadata", () => {
     expect(maestroPackage).toMatchObject({
       name: "@poe-code/maestro"
     });
+  });
+
+  it("keeps canonical and legacy SafeJS routes identical and Node-only", () => {
+    const rootPackage = readPackageJson("package.json");
+    for (const [suffix, entrypoint] of [
+      ["", "index"],
+      ["/core", "core"],
+      ["/cli", "cli"]
+    ]) {
+      expect(rootPackage.exports?.[`./safe-js${suffix}`]).toEqual({
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: `./packages/safe-js/dist/${entrypoint}.d.ts`
+        },
+        browser: null,
+        import: `./packages/safe-js/dist/${entrypoint}.js`
+      });
+      expect(rootPackage.exports?.[`./safejs${suffix}`]).toEqual(
+        rootPackage.exports?.[`./safe-js${suffix}`]
+      );
+    }
+    expect(rootPackage.bin?.["poe-safe-js"]).toBe("packages/safe-js/dist/cli.js");
+    expect(rootPackage.bin?.["poe-safejs"]).toBe(rootPackage.bin?.["poe-safe-js"]);
+    expect(rootPackage.files).not.toContain("packages/safejs/dist");
+    expect(rootPackage.devDependencies?.["@poe-code/safejs"]).toBeUndefined();
   });
 });

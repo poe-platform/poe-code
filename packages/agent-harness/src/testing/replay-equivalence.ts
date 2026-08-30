@@ -3,7 +3,7 @@ import os from "node:os";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
-import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
+import type { Snapshot, SnapshotBackend } from "@poe-code/safe-js";
 
 import { hasOwnErrorCode } from "../error-codes.js";
 import { runHarnessPair, type RunHarnessPairOptions, type RunResult } from "../loader/run.js";

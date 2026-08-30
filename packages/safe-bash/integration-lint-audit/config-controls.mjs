@@ -645,12 +645,42 @@ const exactFileControls = [
     "expected": [
       "no-empty"
     ]
+  },
+  {
+    "name": "canonical SafeJS arguments owner retains exact exception",
+    "file": "packages/safe-js/src/interp/arguments.ts",
+    "code": "export function capture() { return arguments[0]; }",
+    "expected": []
+  },
+  {
+    "name": "legacy SafeJS path does not retain canonical exception",
+    "file": "packages/safejs/src/interp/arguments.ts",
+    "code": "export function capture() { return arguments[0]; }",
+    "expected": [
+      "prefer-rest-params"
+    ]
+  },
+  {
+    "name": "canonical SafeJS neighbor retains rest-parameter diagnostic",
+    "file": "packages/safe-js/src/interp/arguments-neighbor.ts",
+    "code": "export function capture() { return arguments[0]; }",
+    "expected": [
+      "prefer-rest-params"
+    ]
+  },
+  {
+    "name": "canonical SafeJS arguments owner retains unsafe-finally diagnostic",
+    "file": "packages/safe-js/src/interp/arguments.ts",
+    "code": "export function capture() { try { return arguments[0]; } finally { return 1; } }",
+    "expected": [
+      "no-unsafe-finally"
+    ]
   }
 ];
 const eslint = createLintSelection(repositoryRoot, [...compatibilityModule.default, { processor: { supportsAutofix: true, preprocess: text => [text], postprocess: messages => messages.flat() } }]).eslint;
 const results = [];
 assert.equal(controls.length, 55);
-assert.equal(exactFileControls.length, 25);
+assert.equal(exactFileControls.length, 29);
 for (const control of [...controls, ...exactFileControls]) {
   const [result] = await eslint.lintText(control.code, { filePath: control.file });
   const rules = result.messages.map(message => message.ruleId ?? 'parse').sort();
@@ -658,7 +688,7 @@ for (const control of [...controls, ...exactFileControls]) {
   if (exactFileControls.includes(control)) assert.ok(result.messages.every(message => message.severity === 2), control.name);
   results.push({ name: control.name, file: control.file, expected: control.expected, actual: rules, passed: true });
 }
-assert.equal(results.length, 80);
+assert.equal(results.length, 84);
 const frozenPolicyFixtures = [
   {
     "path": "tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",

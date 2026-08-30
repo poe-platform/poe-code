@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
-import { dump, makeAgentModule, restore } from "@poe-code/safejs";
+import { dump, makeAgentModule, restore } from "@poe-code/safe-js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");

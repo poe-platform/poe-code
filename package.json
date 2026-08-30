@@ -16,16 +16,28 @@
       "import": "./packages/memory/dist/index.js"
     },
     "./safejs": {
-      "types": "./packages/safejs/dist/index.d.ts",
-      "import": "./packages/safejs/dist/index.js"
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/index.js"
     },
     "./safejs/core": {
-      "types": "./packages/safejs/dist/core.d.ts",
-      "import": "./packages/safejs/dist/core.js"
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/core.js"
     },
     "./safejs/cli": {
-      "types": "./packages/safejs/dist/cli.d.ts",
-      "import": "./packages/safejs/dist/cli.js"
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/cli.js"
     },
     "./agent": {
       "types": "./dist/agent.d.ts",
@@ -162,6 +174,54 @@
     "./safe-bash/fs/overlay": {
       "types": "./packages/safe-bash/dist/fs/overlay/index.d.ts",
       "import": "./packages/safe-bash/dist/fs/overlay/index.js"
+    },
+    "./safe-fs": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/index.d.ts"
+      },
+      "browser": "./packages/safe-js/dist/browser/safe-fs.js",
+      "import": "./packages/safe-js/dist/safe-fs.js"
+    },
+    "./safe-fs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/core.d.ts"
+      },
+      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js",
+      "import": "./packages/safe-js/dist/safe-fs-core.js"
+    },
+    "./safe-fs/node": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node-host.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/safe-fs-node.js"
+    },
+    "./safe-js": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/index.js"
+    },
+    "./safe-js/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/core.js"
+    },
+    "./safe-js/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/cli.js"
     }
   },
   "workspaces": [
@@ -240,7 +300,8 @@
     "poe-code": "dist/bin.cjs",
     "poe-agent": "dist/bin/poe-agent.js",
     "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
-    "poe-safejs": "packages/safejs/dist/cli.js"
+    "poe-safejs": "packages/safe-js/dist/cli.js",
+    "poe-safe-js": "packages/safe-js/dist/cli.js"
   },
   "files": [
     "LICENSE",
@@ -267,7 +328,7 @@
     "packages/agent-human-in-loop/dist",
     "packages/maestro/dist",
     "packages/safe-bash/dist",
-    "packages/safejs/dist",
+    "packages/safe-js/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",
     "packages/braintrust/dist",
@@ -311,7 +372,8 @@
     "packages/toolcraft-openapi/dist",
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
-    "packages/worktree/dist"
+    "packages/worktree/dist",
+    "packages/safe-fs/dist/**/*.d.ts"
   ],
   "engines": {
     "node": ">=18.18"
@@ -334,7 +396,7 @@
     "openai": "^6.34.0",
     "parse-duration": "^2.1.5",
     "semver": "^7.7.4",
-    "shell-quote": "^1.8.4",
+    "shell-quote": "^1.9.0",
     "simple-git": "^3.36.0",
     "smol-toml": "^1.6.0",
     "tiktoken": "^1.0.22",
@@ -387,7 +449,7 @@
     "@poe-code/providers": "*",
     "@poe-code/py-poe-spawn": "*",
     "@poe-code/ralph": "*",
-    "@poe-code/safejs": "*",
+    "@poe-code/safe-fs": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
     "@poe-code/user-error": "*",
@@ -437,6 +499,7 @@
     "typescript-eslint": "8.55.0",
     "vite": "6.4.3",
     "vitest": "^3.2.6",
+    "@poe-code/safe-js": "*",
     "virtual-bash": "*"
   },
   "repository": {
@@ -450,5 +513,17 @@
     "ini": "5.0.0",
     "toml": "3.0.0",
     "vite": "6.4.3"
-  }
+  },
+  "imports": {
+    "#safe-fs-platform": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
+        "default": "./packages/safe-fs/dist/platform/node.d.ts"
+      },
+      "default": null
+    }
+  },
+  "bundleDependencies": [
+    "gray-matter"
+  ]
 }

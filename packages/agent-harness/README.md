@@ -4,7 +4,7 @@ Shared harness loader, template, schema, and runtime orchestration APIs for `.md
 
 ## Public API
 
-- `runHarnessPair(mdPath, options)` resolves the matching `.ajs` file, validates frontmatter against any exported `schema`, lints the script, and runs it through `@poe-code/safejs`.
+- `runHarnessPair(mdPath, options)` resolves the matching `.ajs` file, validates frontmatter against any exported `schema`, lints the script, and runs it through `@poe-code/safe-js`.
 - `listBuiltinTemplates()` returns bundled template pairs: `ralph-demo`, `coverage-demo`, `experiment-demo`, `pipeline-demo`, and `superintendent-demo`.
 - `extractSchema(source, filename)` reads a harness script's exported schema for frontmatter validation.
 - `resolvePair(mdPath)` resolves the Markdown/script pair for a harness document.
@@ -37,4 +37,4 @@ This package does not read any environment variables.
 
 ## Configuration
 
-This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. The CLI exposes `--max-steps` and `--data-size`; see [SafeJS recovery](../safejs/RECOVERY.md).
+This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. The CLI exposes `--max-steps` and `--data-size`; see [SafeJS recovery](../safe-js/RECOVERY.md).

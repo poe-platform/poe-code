@@ -1,0 +1,2401 @@
+{
+  "source": "export default function cameraWorkflow(fixture) {\n  const trace = [];\n  function allocate(size) {\n    return new Float32Array(size);\n  }\n  function store(out, index, value, stage) {\n    out[index] = value;\n    trace.push({event:\"store\", stage, index, input:value, stored:out[index]});\n  }\n  function identity(out, stage) {\n    store(out, 0, 1, stage);\n    store(out, 1, 0, stage);\n    store(out, 2, 0, stage);\n    store(out, 3, 0, stage);\n    store(out, 4, 0, stage);\n    store(out, 5, 1, stage);\n    store(out, 6, 0, stage);\n    store(out, 7, 0, stage);\n    store(out, 8, 0, stage);\n    store(out, 9, 0, stage);\n    store(out, 10, 1, stage);\n    store(out, 11, 0, stage);\n    store(out, 12, 0, stage);\n    store(out, 13, 0, stage);\n    store(out, 14, 0, stage);\n    store(out, 15, 1, stage);\n    return out;\n  }\n  \n  function lookAt(out, eye, center, up, stage) {\n    let x0, x1, x2, y0, y1, y2, z0, z1, z2, lengthValue;\n    let eyex = eye[0];\n    let eyey = eye[1];\n    let eyez = eye[2];\n    let upx = up[0];\n    let upy = up[1];\n    let upz = up[2];\n    let centerx = center[0];\n    let centery = center[1];\n    let centerz = center[2];\n  \n    if (\n      Math.abs(eyex - centerx) < 0.000001 &&\n      Math.abs(eyey - centery) < 0.000001 &&\n      Math.abs(eyez - centerz) < 0.000001\n    ) {\n      trace.push({event:\"lookAt:identity\"});\n      return identity(out, stage);\n    }\n  \n    trace.push({event:\"lookAt:ordinary\"});\n    z0 = eyex - centerx;\n    z1 = eyey - centery;\n    z2 = eyez - centerz;\n  \n    lengthValue = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);\n    z0 *= lengthValue;\n    z1 *= lengthValue;\n    z2 *= lengthValue;\n  \n    x0 = upy * z2 - upz * z1;\n    x1 = upz * z0 - upx * z2;\n    x2 = upx * z1 - upy * z0;\n    lengthValue = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);\n    trace.push({event:lengthValue ? \"lookAt:right-normalized\" : \"lookAt:right-zero\"});\n    if (!lengthValue) {\n      x0 = 0;\n      x1 = 0;\n      x2 = 0;\n    } else {\n      lengthValue = 1 / lengthValue;\n      x0 *= lengthValue;\n      x1 *= lengthValue;\n      x2 *= lengthValue;\n    }\n  \n    y0 = z1 * x2 - z2 * x1;\n    y1 = z2 * x0 - z0 * x2;\n    y2 = z0 * x1 - z1 * x0;\n  \n    lengthValue = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);\n    trace.push({event:lengthValue ? \"lookAt:up-normalized\" : \"lookAt:up-zero\"});\n    if (!lengthValue) {\n      y0 = 0;\n      y1 = 0;\n      y2 = 0;\n    } else {\n      lengthValue = 1 / lengthValue;\n      y0 *= lengthValue;\n      y1 *= lengthValue;\n      y2 *= lengthValue;\n    }\n  \n    store(out, 0, x0, stage);\n    store(out, 1, y0, stage);\n    store(out, 2, z0, stage);\n    store(out, 3, 0, stage);\n    store(out, 4, x1, stage);\n    store(out, 5, y1, stage);\n    store(out, 6, z1, stage);\n    store(out, 7, 0, stage);\n    store(out, 8, x2, stage);\n    store(out, 9, y2, stage);\n    store(out, 10, z2, stage);\n    store(out, 11, 0, stage);\n    store(out, 12, -(x0 * eyex + x1 * eyey + x2 * eyez), stage);\n    store(out, 13, -(y0 * eyex + y1 * eyey + y2 * eyez), stage);\n    store(out, 14, -(z0 * eyex + z1 * eyey + z2 * eyez), stage);\n    store(out, 15, 1, stage);\n  \n    return out;\n  }\n  \n  function perspectiveNO(out, fovy, aspect, near, far, stage) {\n    const focalScale = 1.0 / Math.tan(fovy / 2);\n    store(out, 0, focalScale / aspect, stage);\n    store(out, 1, 0, stage);\n    store(out, 2, 0, stage);\n    store(out, 3, 0, stage);\n    store(out, 4, 0, stage);\n    store(out, 5, focalScale, stage);\n    store(out, 6, 0, stage);\n    store(out, 7, 0, stage);\n    store(out, 8, 0, stage);\n    store(out, 9, 0, stage);\n    store(out, 11, -1, stage);\n    store(out, 12, 0, stage);\n    store(out, 13, 0, stage);\n    store(out, 15, 0, stage);\n    if (far != null && far !== Infinity) {\n      trace.push({event:\"perspective:finite-far\"});\n      const inverseDepthRange = 1 / (near - far);\n      store(out, 10, (far + near) * inverseDepthRange, stage);\n      store(out, 14, 2 * far * near * inverseDepthRange, stage);\n    } else {\n      store(out, 10, -1, stage);\n      store(out, 14, -2 * near, stage);\n    }\n    return out;\n  }\n  \n  function fromValues(coordX, coordY, coordZ, stage) {\n    let out = allocate(3);\n    store(out, 0, coordX, stage);\n    store(out, 1, coordY, stage);\n    store(out, 2, coordZ, stage);\n    return out;\n  }\n  \n  function transformMat4(out, vector, matrix, stage) {\n    let coordX = vector[0],\n      coordY = vector[1],\n      coordZ = vector[2];\n    let homogeneousW = matrix[3] * coordX + matrix[7] * coordY + matrix[11] * coordZ + matrix[15];\n    trace.push({event:homogeneousW ? \"transform:nonzero-w\" : \"transform:zero-w-fallback\",stage,homogeneousW});\n    homogeneousW = homogeneousW || 1.0;\n    store(out, 0, (matrix[0] * coordX + matrix[4] * coordY + matrix[8] * coordZ + matrix[12]) / homogeneousW, stage);\n    store(out, 1, (matrix[1] * coordX + matrix[5] * coordY + matrix[9] * coordZ + matrix[13]) / homogeneousW, stage);\n    store(out, 2, (matrix[2] * coordX + matrix[6] * coordY + matrix[10] * coordZ + matrix[14]) / homogeneousW, stage);\n    return out;\n  }\n\n  function floatWord(value) {\n    if (value === 0) return Object.is(value, -0) ? 2147483648 : 0;\n    const signBit = value < 0 ? 2147483648 : 0;\n    const magnitude = Math.abs(value);\n    const exponent = Math.floor(Math.log2(magnitude));\n    const fraction = Math.round((magnitude / Math.pow(2, exponent) - 1) * 8388608);\n    return signBit + (exponent + 127) * 8388608 + fraction;\n  }\n  function pack(buffer) {\n    const values = [];\n    const words = [];\n    for (let index = 0; index < buffer.length; index++) {\n      values.push(buffer[index]);\n      words.push(floatWord(buffer[index]));\n    }\n    return {values, words};\n  }\n  const samples = [];\n  try {\n    const eye = fromValues(fixture.eye[0], fixture.eye[1], fixture.eye[2], \"eye\");\n    const center = fromValues(fixture.center[0], fixture.center[1], fixture.center[2], \"center\");\n    const up = fromValues(fixture.up[0], fixture.up[1], fixture.up[2], \"up\");\n    const view = lookAt(allocate(16), eye, center, up, \"view\");\n    const projection = perspectiveNO(allocate(16), fixture.fovDegrees * Math.PI / 180, fixture.aspect, fixture.near, fixture.far, \"projection\");\n    for (let index = 0; index < fixture.points.length; index++) {\n      const input = fixture.points[index];\n      const point = fromValues(input[0], input[1], input[2], \"point:\" + index);\n      const camera = transformMat4(allocate(3), point, view, \"camera:\" + index);\n      const ndc = transformMat4(allocate(3), camera, projection, \"ndc:\" + index);\n      const screen = [(ndc[0] + 1) * 0.5 * fixture.viewport[0], (1 - ndc[1]) * 0.5 * fixture.viewport[1], (ndc[2] + 1) * 0.5];\n      samples.push({point:pack(point), camera:pack(camera), ndc:pack(ndc), screen});\n    }\n    return {ok:true, semantic:{eye:pack(eye), center:pack(center), up:pack(up), view:pack(view), projection:pack(projection), samples}, trace};\n  } catch (error) {\n    return {ok:false, error:{name:error.name, message:error.message}, partial:{samples}, trace};\n  }\n};\n",
+  "cases": [
+    {
+      "caseId": "inverse-coordinate-transforms:camera-axis-frustum-typed",
+      "fixture": {
+        "id": "camera-axis-frustum",
+        "workflow": "camera",
+        "eye": [0, 0, 5],
+        "center": [0, 0, 0],
+        "up": [0, 1, 0],
+        "fovDegrees": 90,
+        "aspect": 1,
+        "near": 1,
+        "far": 9,
+        "viewport": [800, 600],
+        "points": [
+          [0, 0, 0],
+          [1, 0, 0],
+          [-1, 0, 0],
+          [0, 1, 0],
+          [0, 0, 4],
+          [0, 0, -4]
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "semantic": {
+          "eye": {
+            "values": [0, 0, 5],
+            "words": [0, 0, 1084227584]
+          },
+          "center": {
+            "values": [0, 0, 0],
+            "words": [0, 0, 0]
+          },
+          "up": {
+            "values": [0, 1, 0],
+            "words": [0, 1065353216, 0]
+          },
+          "view": {
+            "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -5, 1],
+            "words": [
+              1065353216, 0, 0, 0, 0, 1065353216, 0, 0, 0, 0, 1065353216, 0, 2147483648, 2147483648,
+              3231711232, 1065353216
+            ]
+          },
+          "projection": {
+            "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.25, -1, 0, 0, -2.25, 0],
+            "words": [
+              1065353216, 0, 0, 0, 0, 1065353216, 0, 0, 0, 0, 3214934016, 3212836864, 0, 0,
+              3222274048, 0
+            ]
+          },
+          "samples": [
+            {
+              "point": {
+                "values": [0, 0, 0],
+                "words": [0, 0, 0]
+              },
+              "camera": {
+                "values": [0, 0, -5],
+                "words": [0, 0, 3231711232]
+              },
+              "ndc": {
+                "values": [0, 0, 0.800000011920929],
+                "words": [0, 0, 1061997773]
+              },
+              "screen": [400, 300, 0.9000000059604645]
+            },
+            {
+              "point": {
+                "values": [1, 0, 0],
+                "words": [1065353216, 0, 0]
+              },
+              "camera": {
+                "values": [1, 0, -5],
+                "words": [1065353216, 0, 3231711232]
+              },
+              "ndc": {
+                "values": [0.20000000298023224, 0, 0.800000011920929],
+                "words": [1045220557, 0, 1061997773]
+              },
+              "screen": [480.0000011920929, 300, 0.9000000059604645]
+            },
+            {
+              "point": {
+                "values": [-1, 0, 0],
+                "words": [3212836864, 0, 0]
+              },
+              "camera": {
+                "values": [-1, 0, -5],
+                "words": [3212836864, 0, 3231711232]
+              },
+              "ndc": {
+                "values": [-0.20000000298023224, 0, 0.800000011920929],
+                "words": [3192704205, 0, 1061997773]
+              },
+              "screen": [319.9999988079071, 300, 0.9000000059604645]
+            },
+            {
+              "point": {
+                "values": [0, 1, 0],
+                "words": [0, 1065353216, 0]
+              },
+              "camera": {
+                "values": [0, 1, -5],
+                "words": [0, 1065353216, 3231711232]
+              },
+              "ndc": {
+                "values": [0, 0.20000000298023224, 0.800000011920929],
+                "words": [0, 1045220557, 1061997773]
+              },
+              "screen": [400, 239.99999910593033, 0.9000000059604645]
+            },
+            {
+              "point": {
+                "values": [0, 0, 4],
+                "words": [0, 0, 1082130432]
+              },
+              "camera": {
+                "values": [0, 0, -1],
+                "words": [0, 0, 3212836864]
+              },
+              "ndc": {
+                "values": [0, 0, -1],
+                "words": [0, 0, 3212836864]
+              },
+              "screen": [400, 300, 0]
+            },
+            {
+              "point": {
+                "values": [0, 0, -4],
+                "words": [0, 0, 3229614080]
+              },
+              "camera": {
+                "values": [0, 0, -9],
+                "words": [0, 0, 3239051264]
+              },
+              "ndc": {
+                "values": [0, 0, 1],
+                "words": [0, 0, 1065353216]
+              },
+              "screen": [400, 300, 1]
+            }
+          ]
+        },
+        "trace": [
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 2,
+            "input": 5,
+            "stored": 5
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "lookAt:ordinary"
+          },
+          {
+            "event": "lookAt:right-normalized"
+          },
+          {
+            "event": "lookAt:up-normalized"
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 0,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 4,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 5,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 6,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 9,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 10,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 11,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 12,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 13,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 14,
+            "input": -5,
+            "stored": -5
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 15,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 0,
+            "input": 1.0000000000000002,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 4,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 5,
+            "input": 1.0000000000000002,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 6,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 9,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 11,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 12,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 13,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 15,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "perspective:finite-far"
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 10,
+            "input": -1.25,
+            "stored": -1.25
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 14,
+            "input": -2.25,
+            "stored": -2.25
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:0",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 2,
+            "input": -5,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:0",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 2,
+            "input": 0.8,
+            "stored": 0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 0,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:1",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 0,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 2,
+            "input": -5,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:1",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 0,
+            "input": 0.2,
+            "stored": 0.20000000298023224
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 2,
+            "input": 0.8,
+            "stored": 0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 0,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:2",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 0,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 2,
+            "input": -5,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:2",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 0,
+            "input": -0.2,
+            "stored": -0.20000000298023224
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 2,
+            "input": 0.8,
+            "stored": 0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:3",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 2,
+            "input": -5,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:3",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 1,
+            "input": 0.2,
+            "stored": 0.20000000298023224
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 2,
+            "input": 0.8,
+            "stored": 0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 2,
+            "input": 4,
+            "stored": 4
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:4",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 2,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:4",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 2,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "point:5",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:5",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:5",
+            "index": 2,
+            "input": -4,
+            "stored": -4
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:5",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:5",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:5",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:5",
+            "index": 2,
+            "input": -9,
+            "stored": -9
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:5",
+            "homogeneousW": 9
+          },
+          {
+            "event": "store",
+            "stage": "ndc:5",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:5",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:5",
+            "index": 2,
+            "input": 1,
+            "stored": 1
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "inverse-coordinate-transforms:camera-oblique-frame-typed",
+      "fixture": {
+        "id": "camera-oblique-frame",
+        "workflow": "camera",
+        "eye": [0, 0, 0],
+        "center": [-3, -4, 0],
+        "up": [0, 0, 1],
+        "fovDegrees": 90,
+        "aspect": 2,
+        "near": 1,
+        "far": 11,
+        "viewport": [640, 480],
+        "points": [
+          [-3, -4, 0],
+          [-3, 0, 0],
+          [0, -4, 0],
+          [-3, -4, 1],
+          [-1.1, -2.2, 0.3]
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "semantic": {
+          "eye": {
+            "values": [0, 0, 0],
+            "words": [0, 0, 0]
+          },
+          "center": {
+            "values": [-3, -4, 0],
+            "words": [3225419776, 3229614080, 0]
+          },
+          "up": {
+            "values": [0, 0, 1],
+            "words": [0, 0, 1065353216]
+          },
+          "view": {
+            "values": [
+              -0.800000011920929, 0, 0.6000000238418579, 0, 0.6000000238418579, 0,
+              0.800000011920929, 0, 0, 1, 0, 0, 0, 0, 0, 1
+            ],
+            "words": [
+              3209481421, 0, 1058642330, 0, 1058642330, 2147483648, 1061997773, 0, 0, 1065353216, 0,
+              0, 2147483648, 2147483648, 2147483648, 1065353216
+            ]
+          },
+          "projection": {
+            "values": [
+              0.5, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.2000000476837158, -1, 0, 0, -2.200000047683716, 0
+            ],
+            "words": [
+              1056964608, 0, 0, 0, 0, 1065353216, 0, 0, 0, 0, 3214514586, 3212836864, 0, 0,
+              3222064333, 0
+            ]
+          },
+          "samples": [
+            {
+              "point": {
+                "values": [-3, -4, 0],
+                "words": [3225419776, 3229614080, 0]
+              },
+              "camera": {
+                "values": [-5.960464477539063e-8, 0, -5],
+                "words": [3011510272, 0, 3231711232]
+              },
+              "ndc": {
+                "values": [-5.9604645663569045e-9, 0, 0.7600000500679016],
+                "words": [2982989005, 0, 1061326685]
+              },
+              "screen": [319.99999809265137, 240, 0.8800000250339508]
+            },
+            {
+              "point": {
+                "values": [-3, 0, 0],
+                "words": [3225419776, 0, 0]
+              },
+              "camera": {
+                "values": [2.4000000953674316, 0, -1.8000000715255737],
+                "words": [1075419546, 0, 3219547751]
+              },
+              "ndc": {
+                "values": [0.6666666865348816, 0, -0.02222215197980404],
+                "words": [1059760811, 0, 3166047035]
+              },
+              "screen": [533.3333396911621, 240, 0.488888924010098]
+            },
+            {
+              "point": {
+                "values": [0, -4, 0],
+                "words": [0, 3229614080, 0]
+              },
+              "camera": {
+                "values": [-2.4000000953674316, 0, -3.200000047683716],
+                "words": [3222903194, 0, 3226258637]
+              },
+              "ndc": {
+                "values": [-0.375, 0, 0.5125000476837158],
+                "words": [3200253952, 0, 1057174324]
+              },
+              "screen": [200, 240, 0.7562500238418579]
+            },
+            {
+              "point": {
+                "values": [-3, -4, 1],
+                "words": [3225419776, 3229614080, 1065353216]
+              },
+              "camera": {
+                "values": [-5.960464477539063e-8, 1, -5],
+                "words": [3011510272, 1065353216, 3231711232]
+              },
+              "ndc": {
+                "values": [-5.9604645663569045e-9, 0.20000000298023224, 0.7600000500679016],
+                "words": [2982989005, 1045220557, 1061326685]
+              },
+              "screen": [319.99999809265137, 191.99999928474426, 0.8800000250339508]
+            },
+            {
+              "point": {
+                "values": [-1.100000023841858, -2.200000047683716, 0.30000001192092896],
+                "words": [3213675725, 3222064333, 1050253722]
+              },
+              "camera": {
+                "values": [-0.440000057220459, 0.30000001192092896, -2.4200000762939453],
+                "words": [3202434992, 1050253722, 3222987080]
+              },
+              "ndc": {
+                "values": [-0.09090910106897354, 0.12396693974733353, 0.29090914130210876],
+                "words": [3183095437, 1040048737, 1049948683]
+              },
+              "screen": [290.90908765792847, 210.24793446063995, 0.6454545706510544]
+            }
+          ]
+        },
+        "trace": [
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 0,
+            "input": -3,
+            "stored": -3
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 1,
+            "input": -4,
+            "stored": -4
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 2,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "lookAt:ordinary"
+          },
+          {
+            "event": "lookAt:right-normalized"
+          },
+          {
+            "event": "lookAt:up-normalized"
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 0,
+            "input": -0.8,
+            "stored": -0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 2,
+            "input": 0.6000000000000001,
+            "stored": 0.6000000238418579
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 4,
+            "input": 0.6000000000000001,
+            "stored": 0.6000000238418579
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 5,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 6,
+            "input": 0.8,
+            "stored": 0.800000011920929
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 9,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 10,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 11,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 12,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 13,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 14,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 15,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 0,
+            "input": 0.5000000000000001,
+            "stored": 0.5
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 4,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 5,
+            "input": 1.0000000000000002,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 6,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 9,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 11,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 12,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 13,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 15,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "perspective:finite-far"
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 10,
+            "input": -1.2000000000000002,
+            "stored": -1.2000000476837158
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 14,
+            "input": -2.2,
+            "stored": -2.200000047683716
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 0,
+            "input": -3,
+            "stored": -3
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 1,
+            "input": -4,
+            "stored": -4
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:0",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 0,
+            "input": -5.960464477539063e-8,
+            "stored": -5.960464477539063e-8
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 2,
+            "input": -5.0000001192092896,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:0",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 0,
+            "input": -5.960464477539063e-9,
+            "stored": -5.9604645663569045e-9
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 2,
+            "input": 0.7600000381469727,
+            "stored": 0.7600000500679016
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 0,
+            "input": -3,
+            "stored": -3
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:1",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 0,
+            "input": 2.400000035762787,
+            "stored": 2.4000000953674316
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 2,
+            "input": -1.8000000715255737,
+            "stored": -1.8000000715255737
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:1",
+            "homogeneousW": 1.8000000715255737
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 0,
+            "input": 0.6666666666666666,
+            "stored": 0.6666666865348816
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 2,
+            "input": -0.02222215246271292,
+            "stored": -0.02222215197980404
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 1,
+            "input": -4,
+            "stored": -4
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:2",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 0,
+            "input": -2.4000000953674316,
+            "stored": -2.4000000953674316
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 2,
+            "input": -3.200000047683716,
+            "stored": -3.200000047683716
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:2",
+            "homogeneousW": 3.200000047683716
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 0,
+            "input": -0.37500000931322564,
+            "stored": -0.375
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 2,
+            "input": 0.5125000430271031,
+            "stored": 0.5125000476837158
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 0,
+            "input": -3,
+            "stored": -3
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 1,
+            "input": -4,
+            "stored": -4
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 2,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:3",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 0,
+            "input": -5.960464477539063e-8,
+            "stored": -5.960464477539063e-8
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 2,
+            "input": -5.0000001192092896,
+            "stored": -5
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:3",
+            "homogeneousW": 5
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 0,
+            "input": -5.960464477539063e-9,
+            "stored": -5.9604645663569045e-9
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 1,
+            "input": 0.2,
+            "stored": 0.20000000298023224
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 2,
+            "input": 0.7600000381469727,
+            "stored": 0.7600000500679016
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 0,
+            "input": -1.1,
+            "stored": -1.100000023841858
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 1,
+            "input": -2.2,
+            "stored": -2.200000047683716
+          },
+          {
+            "event": "store",
+            "stage": "point:4",
+            "index": 2,
+            "input": 0.3,
+            "stored": 0.30000001192092896
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:4",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 0,
+            "input": -0.44000004887580957,
+            "stored": -0.440000057220459
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 1,
+            "input": 0.30000001192092896,
+            "stored": 0.30000001192092896
+          },
+          {
+            "event": "store",
+            "stage": "camera:4",
+            "index": 2,
+            "input": -2.420000104904176,
+            "stored": -2.4200000762939453
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:4",
+            "homogeneousW": 2.4200000762939453
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 0,
+            "input": -0.09090909986546099,
+            "stored": -0.09090910106897354
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 1,
+            "input": 0.12396694316652966,
+            "stored": 0.12396693974733353
+          },
+          {
+            "event": "store",
+            "stage": "ndc:4",
+            "index": 2,
+            "input": 0.2909091475491768,
+            "stored": 0.29090914130210876
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "inverse-coordinate-transforms:camera-offset-handoff-typed",
+      "fixture": {
+        "id": "camera-offset-handoff",
+        "workflow": "camera",
+        "eye": [1.25, -2.5, 8],
+        "center": [1.25, -2.5, 0],
+        "up": [0, 1, 0],
+        "fovDegrees": 60,
+        "aspect": 1.3333333333333333,
+        "near": 0.5,
+        "far": 20,
+        "viewport": [960, 720],
+        "points": [
+          [1.25, -2.5, 0],
+          [2.2500001192092896, -2.5, 1],
+          [1.2500000596046448, -1.5, 0],
+          [-0.1, 0.2, 2]
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "semantic": {
+          "eye": {
+            "values": [1.25, -2.5, 8],
+            "words": [1067450368, 3223322624, 1090519040]
+          },
+          "center": {
+            "values": [1.25, -2.5, 0],
+            "words": [1067450368, 3223322624, 0]
+          },
+          "up": {
+            "values": [0, 1, 0],
+            "words": [0, 1065353216, 0]
+          },
+          "view": {
+            "values": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -1.25, 2.5, -8, 1],
+            "words": [
+              1065353216, 0, 0, 0, 0, 1065353216, 0, 0, 0, 0, 1065353216, 0, 3214934016, 1075838976,
+              3238002688, 1065353216
+            ]
+          },
+          "projection": {
+            "values": [
+              1.299038052558899, 0, 0, 0, 0, 1.7320507764816284, 0, 0, 0, 0, -1.0512820482254028,
+              -1, 0, 0, -1.0256410837173462, 0
+            ],
+            "words": [
+              1067861729, 0, 0, 0, 0, 1071494103, 0, 0, 0, 0, 3213267049, 3212836864, 0, 0,
+              3213051957, 0
+            ]
+          },
+          "samples": [
+            {
+              "point": {
+                "values": [1.25, -2.5, 0],
+                "words": [1067450368, 3223322624, 0]
+              },
+              "camera": {
+                "values": [0, 0, -8],
+                "words": [0, 0, 3238002688]
+              },
+              "ndc": {
+                "values": [0, 0, 0.9230769276618958],
+                "words": [0, 0, 1064062661]
+              },
+              "screen": [480, 360, 0.9615384638309479]
+            },
+            {
+              "point": {
+                "values": [2.25, -2.5, 1],
+                "words": [1074790400, 3223322624, 1065353216]
+              },
+              "camera": {
+                "values": [1, 0, -7],
+                "words": [1065353216, 0, 3235905536]
+              },
+              "ndc": {
+                "values": [0.18557687103748322, 0, 0.9047619104385376],
+                "words": [1044252637, 0, 1063755386]
+              },
+              "screen": [569.076898097992, 360, 0.9523809552192688]
+            },
+            {
+              "point": {
+                "values": [1.25, -1.5, 0],
+                "words": [1067450368, 3217031168, 0]
+              },
+              "camera": {
+                "values": [0, 1, -8],
+                "words": [0, 1065353216, 3238002688]
+              },
+              "ndc": {
+                "values": [0, 0.21650634706020355, 0.9230769276618958],
+                "words": [0, 1046328279, 1064062661]
+              },
+              "screen": [480, 282.0577150583267, 0.9615384638309479]
+            },
+            {
+              "point": {
+                "values": [-0.10000000149011612, 0.20000000298023224, 2],
+                "words": [3184315597, 1045220557, 1073741824]
+              },
+              "camera": {
+                "values": [-1.350000023841858, 2.700000047683716, -6],
+                "words": [3215772877, 1076677837, 3233808384]
+              },
+              "ndc": {
+                "values": [-0.2922835648059845, 0.7794228792190552, 0.8803418874740601],
+                "words": [3197478449, 1061652546, 1063345686]
+              },
+              "screen": [339.70388889312744, 79.40776348114014, 0.94017094373703]
+            }
+          ]
+        },
+        "trace": [
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 0,
+            "input": 1.25,
+            "stored": 1.25
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 1,
+            "input": -2.5,
+            "stored": -2.5
+          },
+          {
+            "event": "store",
+            "stage": "eye",
+            "index": 2,
+            "input": 8,
+            "stored": 8
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 0,
+            "input": 1.25,
+            "stored": 1.25
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 1,
+            "input": -2.5,
+            "stored": -2.5
+          },
+          {
+            "event": "store",
+            "stage": "center",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "up",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "lookAt:ordinary"
+          },
+          {
+            "event": "lookAt:right-normalized"
+          },
+          {
+            "event": "lookAt:up-normalized"
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 0,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 4,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 5,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 6,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 9,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 10,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 11,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 12,
+            "input": -1.25,
+            "stored": -1.25
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 13,
+            "input": 2.5,
+            "stored": 2.5
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 14,
+            "input": -8,
+            "stored": -8
+          },
+          {
+            "event": "store",
+            "stage": "view",
+            "index": 15,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 0,
+            "input": 1.2990381056766582,
+            "stored": 1.299038052558899
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 3,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 4,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 5,
+            "input": 1.7320508075688774,
+            "stored": 1.7320507764816284
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 6,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 7,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 8,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 9,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 11,
+            "input": -1,
+            "stored": -1
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 12,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 13,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 15,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "perspective:finite-far"
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 10,
+            "input": -1.0512820512820513,
+            "stored": -1.0512820482254028
+          },
+          {
+            "event": "store",
+            "stage": "projection",
+            "index": 14,
+            "input": -1.0256410256410255,
+            "stored": -1.0256410837173462
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 0,
+            "input": 1.25,
+            "stored": 1.25
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 1,
+            "input": -2.5,
+            "stored": -2.5
+          },
+          {
+            "event": "store",
+            "stage": "point:0",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:0",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:0",
+            "index": 2,
+            "input": -8,
+            "stored": -8
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:0",
+            "homogeneousW": 8
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:0",
+            "index": 2,
+            "input": 0.9230769127607346,
+            "stored": 0.9230769276618958
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 0,
+            "input": 2.2500001192092896,
+            "stored": 2.25
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 1,
+            "input": -2.5,
+            "stored": -2.5
+          },
+          {
+            "event": "store",
+            "stage": "point:1",
+            "index": 2,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:1",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 0,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:1",
+            "index": 2,
+            "input": -7,
+            "stored": -7
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:1",
+            "homogeneousW": 7
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 0,
+            "input": 0.18557686465127127,
+            "stored": 0.18557687103748322
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 1,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:1",
+            "index": 2,
+            "input": 0.9047618934086391,
+            "stored": 0.9047619104385376
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 0,
+            "input": 1.2500000596046448,
+            "stored": 1.25
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 1,
+            "input": -1.5,
+            "stored": -1.5
+          },
+          {
+            "event": "store",
+            "stage": "point:2",
+            "index": 2,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:2",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 1,
+            "input": 1,
+            "stored": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:2",
+            "index": 2,
+            "input": -8,
+            "stored": -8
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:2",
+            "homogeneousW": 8
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 0,
+            "input": 0,
+            "stored": 0
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 1,
+            "input": 0.21650634706020355,
+            "stored": 0.21650634706020355
+          },
+          {
+            "event": "store",
+            "stage": "ndc:2",
+            "index": 2,
+            "input": 0.9230769127607346,
+            "stored": 0.9230769276618958
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 0,
+            "input": -0.1,
+            "stored": -0.10000000149011612
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 1,
+            "input": 0.2,
+            "stored": 0.20000000298023224
+          },
+          {
+            "event": "store",
+            "stage": "point:3",
+            "index": 2,
+            "input": 2,
+            "stored": 2
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "camera:3",
+            "homogeneousW": 1
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 0,
+            "input": -1.3500000014901161,
+            "stored": -1.350000023841858
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 1,
+            "input": 2.7000000029802322,
+            "stored": 2.700000047683716
+          },
+          {
+            "event": "store",
+            "stage": "camera:3",
+            "index": 2,
+            "input": -6,
+            "stored": -6
+          },
+          {
+            "event": "transform:nonzero-w",
+            "stage": "ndc:3",
+            "homogeneousW": 6
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 0,
+            "input": -0.2922835669876657,
+            "stored": -0.2922835648059845
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 1,
+            "input": 0.7794228631818356,
+            "stored": 0.7794228792190552
+          },
+          {
+            "event": "store",
+            "stage": "ndc:3",
+            "index": 2,
+            "input": 0.8803418676058451,
+            "stored": 0.8803418874740601
+          }
+        ]
+      }
+    }
+  ]
+}

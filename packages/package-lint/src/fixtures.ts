@@ -141,12 +141,176 @@ export function runtimeAssetRef(fields: {
     runtimeRelPath: fields.runtimeRelPath,
     expression: fields.expression ?? fields.runtimeRelPath,
     inferred: true,
+    isTest: false,
     externalPackageRelPath: fields.externalPackageRelPath
   };
 }
 
 export function pkgJson(fields: Record<string, unknown>): string {
   return JSON.stringify(fields, null, 2);
+}
+
+export function canonicalBundleFixture() {
+  const source = "packages/safe-fs/src/index.ts";
+  const entry = "packages/safe-js/dist/safe-fs.js";
+  const chunk = "packages/safe-js/dist/chunks/fs.js";
+  const types = "packages/safe-fs/dist/index.d.ts";
+  const manifest = {
+    name: "poe-code",
+    exports: {
+      "./safe-js": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/index.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/index.js"
+      },
+      "./safe-js/core": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/core.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/core.js"
+      },
+      "./safe-js/cli": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/cli.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/cli.js"
+      },
+      "./safejs": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/index.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/index.js"
+      },
+      "./safejs/core": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/core.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/core.js"
+      },
+      "./safejs/cli": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/cli.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/cli.js"
+      },
+      "./safe-fs": {
+        types: { browser: "./packages/safe-fs/dist/core.d.ts", default: `./${types}` },
+        browser: "./packages/safe-js/dist/browser/safe-fs.js",
+        import: `./${entry}`
+      },
+      "./safe-fs/core": {
+        types: {
+          browser: "./packages/safe-fs/dist/core.d.ts",
+          default: "./packages/safe-fs/dist/core.d.ts"
+        },
+        browser: "./packages/safe-js/dist/browser/safe-fs-core.js",
+        import: "./packages/safe-js/dist/safe-fs-core.js"
+      },
+      "./safe-fs/node": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-fs/dist/node-host.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/safe-fs-node.js"
+      }
+    },
+    imports: {
+      "#safe-fs-platform": {
+        types: {
+          browser: "./packages/safe-fs/dist/platform/browser.d.ts",
+          default: "./packages/safe-fs/dist/platform/node.d.ts"
+        },
+        default: null
+      }
+    },
+    files: ["dist", "packages/safe-js/dist", "packages/safe-fs/dist/**/*.d.ts"],
+    dependencies: { jose: "*" },
+    optionalDependencies: { braintrust: "*" }
+  };
+  function graph(profile: "node" | "browser") {
+    const directory = profile === "node" ? "packages/safe-js/dist" : "packages/safe-js/dist/browser";
+    const sources =
+      profile === "node"
+        ? {
+            "safe-fs": source,
+            "safe-fs-core": "packages/safe-fs/src/core.ts",
+            "safe-fs-node": "packages/safe-fs/src/node-host.ts"
+          }
+        : {
+            "safe-fs": "packages/safe-fs/src/core.ts",
+            "safe-fs-core": "packages/safe-fs/src/core.ts"
+          };
+    const policy = `packages/safe-fs/src/platform/${profile}.ts`;
+    const shared = `${directory}/chunks/fs.js`;
+    const outputs: Record<
+      string,
+      {
+        entryPoint?: string;
+        imports: { path: string; external?: boolean }[];
+        inputs: Record<string, unknown>;
+      }
+    > = {};
+    for (const [name, input] of Object.entries(sources)) {
+      outputs[`${directory}/${name}.js`] = {
+        entryPoint: input,
+        imports: [{ path: shared }],
+        inputs: {}
+      };
+      outputs[`${directory}/${name}.js.map`] = { imports: [], inputs: {} };
+    }
+    outputs[shared] = {
+      imports: profile === "node" ? [{ path: "node:fs", external: true }] : [],
+      inputs: { [policy]: {} }
+    };
+    outputs[`${shared}.map`] = { imports: [], inputs: {} };
+    return {
+      entryPoints: Object.values(sources),
+      metafile: {
+        inputs: Object.fromEntries([...Object.values(sources), policy].map((input) => [input, {}])),
+        outputs
+      }
+    };
+  }
+  const metafile = {
+    inputs: { "src/index.ts": {} } as Record<string, unknown>,
+    outputs: {
+      "dist/index.js": {
+        imports: [{ path: "poe-code/safe-fs", external: true, kind: "import-statement" }]
+      }
+    },
+    canonicalBundle: graph("node"),
+    browserCanonicalBundle: graph("browser"),
+    canonicalEmptyTypes: ["packages/safe-fs/dist/node-unavailable.d.ts"],
+    canonicalTypes: {
+      [types]: ["./core.js"],
+      "packages/safe-fs/dist/core.d.ts": ["./contracts/errors.js"],
+      "packages/safe-fs/dist/node-host.d.ts": ["./index.js"],
+      "packages/safe-fs/dist/node-unavailable.d.ts": [],
+      "packages/safe-fs/dist/contracts/errors.d.ts": ["#safe-fs-platform"],
+      "packages/safe-fs/dist/platform/node.d.ts": ["node:util"],
+      "packages/safe-fs/dist/platform/browser.d.ts": []
+    } as Record<string, string[]>
+  };
+  const packed = new Set([
+    ...Object.keys(metafile.canonicalBundle.metafile.outputs),
+    ...Object.keys(metafile.browserCanonicalBundle.metafile.outputs),
+    ...Object.keys(metafile.canonicalTypes)
+  ]);
+  return { manifest, metafile, packed, source, entry, chunk, types };
 }
 
 /** Build a {@link WorkspaceModel} from an in-memory file map rooted at /repo. */

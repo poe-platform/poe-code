@@ -1,3 +1,3 @@
 # Preserve the byte-exact historical PPR2 snapshot oracles.
-/packages/safejs/test/fixtures/ppr2-integration-history/ordered-original-red.json
-/packages/safejs/test/fixtures/ppr2-integration-history/ordered-v6-generations.json
+/packages/safe-js/test/fixtures/ppr2-integration-history/ordered-original-red.json
+/packages/safe-js/test/fixtures/ppr2-integration-history/ordered-v6-generations.json

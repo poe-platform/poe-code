@@ -1,4 +1,5 @@
 import path from "node:path";
+import { collectCanonicalDeclarations, type BundleMetafile } from "./bundle-policy.js";
 import { parse as parseYaml } from "yaml";
 import {
   createNpmPacklistProvider,
@@ -12,7 +13,7 @@ import {
   type RuntimeFileAssetView
 } from "./runtime-files.js";
 import { scanImportFiles, scanSourceImports, type SourceImportView } from "./source-imports.js";
-import { parseSourceExclude } from "./source-files.js";
+import { createSourceAdmission, parseSourceExclude } from "./source-files.js";
 
 /**
  * Minimal filesystem surface the analyzer needs. Injected so the CLI can pass
@@ -59,6 +60,7 @@ export interface PackageInfo {
   ecosystem: Ecosystem;
   main: string | undefined;
   exports: unknown;
+  imports?: unknown;
   bin: Record<string, string>;
   files: string[];
   scripts: Record<string, string>;
@@ -124,6 +126,8 @@ export interface BuildView {
   inlinedDirs: Set<string>;
   /** Bare specifiers left external by the bundle, reduced to package names. */
   externals: Set<string>;
+  externalImports: Set<string>;
+  metafile: BundleMetafile;
 }
 
 export interface Violation {
@@ -268,6 +272,7 @@ async function loadPackage(
     ecosystem,
     main: typeof pkg.main === "string" ? pkg.main : undefined,
     exports: pkg.exports,
+    imports: pkg.imports,
     bin: toBinRecord(pkg.bin, typeof pkg.name === "string" ? pkg.name : relDir),
     files: Array.isArray(pkg.files)
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
@@ -613,10 +618,7 @@ function toPackageName(specifier: string): string | undefined {
   return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
 }
 
-export function parseMetafile(meta: {
-  inputs?: Record<string, unknown>;
-  outputs?: Record<string, { imports?: { path?: string; external?: boolean; kind?: string }[] }>;
-}): BuildView {
+export function parseMetafile(meta: BundleMetafile): BuildView {
   const inlinedDirs = new Set<string>();
   for (const input of Object.keys(meta.inputs ?? {})) {
     const at = input.indexOf("packages/");
@@ -625,15 +627,17 @@ export function parseMetafile(meta: {
     if (dir) inlinedDirs.add(dir);
   }
   const externals = new Set<string>();
+  const externalImports = new Set<string>();
   for (const output of Object.values(meta.outputs ?? {})) {
     for (const imp of output.imports ?? []) {
-      if (imp.external && imp.kind !== "dynamic-import" && typeof imp.path === "string") {
+      if (imp.external && typeof imp.path === "string") {
+        externalImports.add(imp.path);
         const name = toPackageName(imp.path);
         if (name) externals.add(name);
       }
     }
   }
-  return { inlinedDirs, externals };
+  return { inlinedDirs, externals, externalImports, metafile: meta };
 }
 
 export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildView | undefined> {
@@ -643,11 +647,62 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   } catch {
     return undefined;
   }
+  let metafile: BundleMetafile;
   try {
-    return parseMetafile(JSON.parse(raw));
+    metafile = JSON.parse(raw) as BundleMetafile;
   } catch {
     return undefined;
   }
+  if (metafile.canonicalBundle || metafile.browserCanonicalBundle) {
+    const packageDir = "packages/safe-fs";
+    let admission = await createSourceAdmission(fs, rootDir, packageDir, []);
+    const declarationFs = {
+      async readdir(file: string) {
+        const inspected = await admission.inspect(file);
+        if (!inspected) return [];
+        if (inspected.excluded || !inspected.entries.at(-1)!.stat.isDirectory()) {
+          throw new Error(`Unsupported canonical declaration directory: ${file}`);
+        }
+        const entries = await fs.readdir(file);
+        for (const entry of entries) {
+          const childPath = path.join(file, entry.name);
+          const child = await admission.inspect(childPath);
+          if (
+            !child ||
+            child.excluded ||
+            child.entries.at(-1)!.stat.isDirectory() !== entry.isDirectory()
+          ) {
+            throw new Error(`Unsupported canonical declaration entry: ${childPath}`);
+          }
+        }
+        return entries;
+      },
+      async readFile(file: string) {
+        const inspected = await admission.inspect(file);
+        if (!inspected || inspected.excluded || !inspected.entries.at(-1)!.stat.isFile()) {
+          throw new Error(`Unsupported canonical declaration file: ${file}`);
+        }
+        return fs.readFile(file);
+      }
+    };
+    const manifestFile = path.join(admission.packageRoot, "package.json");
+    if (await admission.inspect(manifestFile)) {
+      const manifest = JSON.parse(await declarationFs.readFile(manifestFile)) as Record<
+        string,
+        unknown
+      >;
+      const poeCode =
+        manifest.poeCode && typeof manifest.poeCode === "object" && !Array.isArray(manifest.poeCode)
+          ? (manifest.poeCode as Record<string, unknown>)
+          : undefined;
+      const sourceExclude = parseSourceExclude(poeCode?.packageLint, packageDir);
+      if (sourceExclude.length > 0) {
+        admission = await createSourceAdmission(fs, rootDir, packageDir, sourceExclude);
+      }
+    }
+    Object.assign(metafile, await collectCanonicalDeclarations(rootDir, declarationFs));
+  }
+  return parseMetafile(metafile);
 }
 
 /** All workspace packages plus the root package. */

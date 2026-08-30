@@ -21,8 +21,8 @@
   ],
   "dependencies": {
     "@poe-code/agent-harness-tools": "*",
-    "@poe-code/safejs": "*",
     "@poe-code/user-error": "*",
-    "toolcraft-schema": "*"
+    "toolcraft-schema": "*",
+    "@poe-code/safe-js": "*"
   }
 }

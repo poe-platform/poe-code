@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { Command } from "commander";
+import ts from "typescript";
 
 // ── Smoke test commands ──────────────────────────────────────
 // Each entry is a command that must exit 0.
@@ -12,6 +13,7 @@ const COMMANDS = [
   "poe-code --version",
   "poe-code --help",
   "poe-safejs --help",
+  "poe-safe-js --help",
   "poe-code configure --help",
   "poe-code spawn --help",
   "poe-code models --help",
@@ -118,6 +120,13 @@ function runSdkImportSmoke(sdkProjectDir: string): boolean {
     scriptPath,
     [
       'import { getPoeApiKey, spawn } from "poe-code";',
+      'import * as canonical from "poe-code/safe-js";',
+      'import * as legacy from "poe-code/safejs";',
+      'import * as canonicalCore from "poe-code/safe-js/core";',
+      'import * as legacyCore from "poe-code/safejs/core";',
+      'import * as canonicalCli from "poe-code/safe-js/cli";',
+      'import * as legacyCli from "poe-code/safejs/cli";',
+      'if (canonical !== legacy || canonicalCore !== legacyCore || canonicalCli !== legacyCli) throw new Error("SafeJS compatibility routes must resolve to identical module namespaces.");',
       'import { run, dump, Budget, makeAgentModule, makeMcpModule, makeEnvModule, parseEnvConfig, EnvAccessError, inspectSnapshotMigration, migrateSnapshot } from "poe-code/safejs";',
       'import { run as runCore } from "poe-code/safejs/core";',
       'import { runCli } from "poe-code/safejs/cli";',
@@ -223,6 +232,99 @@ function runSdkImportSmoke(sdkProjectDir: string): boolean {
   return passed;
 }
 
+function runSafeFsImportSmoke(sdkProjectDir: string): boolean {
+  writeFileSync(
+    path.join(sdkProjectDir, "safe-fs-peer.mjs"),
+    'export * from "poe-code/safe-fs";\n',
+    "utf8"
+  );
+  const scriptPath = path.join(sdkProjectDir, "safe-fs-smoke.mjs");
+  writeFileSync(
+    scriptPath,
+    [
+      'import assert from "node:assert/strict";',
+      'import { readFileSync, readdirSync } from "node:fs";',
+      'import * as fs from "poe-code/safe-fs";',
+      'import * as peer from "./safe-fs-peer.mjs";',
+      'import { run } from "poe-code/safejs";',
+      'import { run as runCore } from "poe-code/safejs/core";',
+      'import { findBundleIssues } from "./node_modules/poe-code/packages/package-lint/dist/bundle-policy.js";',
+      "assert.equal(run, runCore);",
+      'assert.equal((await run("return 1;")).returnValue, 1);',
+      "assert.equal(fs.FsError, peer.FsError);",
+      'assert.ok(new peer.FsError("ENOENT") instanceof fs.FsError);',
+      "const memory = new fs.MemoryFileSystem();",
+      'await memory.writeFile("/local", new Uint8Array([1]));',
+      'const remote = new peer.S3FileSystem({ bucket: "proof", transport: new peer.MockS3Client({ buckets: ["proof"] }) });',
+      'await remote.writeFile("/remote", new Uint8Array([2]));',
+      'assert.equal(await memory.compareEntry("/local", remote, "/remote"), "distinct");',
+      'assert.equal(await memory.compareEntry("/local", new peer.ReadOnlyFileSystem(remote), "/remote"), "distinct");',
+      'await assert.rejects(memory.readFile("/missing"), error => fs.isFsError(error, "ENOENT") && error instanceof peer.FsError);',
+      'const root = new URL("./node_modules/poe-code/", import.meta.url);',
+      'const manifest = JSON.parse(readFileSync(new URL("package.json", root), "utf8"));',
+      'const metafile = JSON.parse(readFileSync(new URL("dist/metafile.json", root), "utf8"));',
+      "const packed = new Set();",
+      'function visit(directory, prefix = "") { for (const entry of readdirSync(directory, { withFileTypes: true })) {',
+      '  if (entry.name === "node_modules") continue;',
+      "  const filename = prefix + entry.name;",
+      '  if (entry.isDirectory()) visit(new URL(entry.name + "/", directory), filename + "/");',
+      "  else if (entry.isFile()) packed.add(filename);",
+      "} }",
+      "visit(root);",
+      'assert.deepEqual(findBundleIssues(manifest, new Set(["@poe-code/safe-fs"]), metafile, packed), []);',
+      ""
+    ].join("\n"),
+    "utf8"
+  );
+  const runtime = spawnSync(process.execPath, [scriptPath], {
+    cwd: sdkProjectDir,
+    encoding: "utf8",
+    timeout: 30_000
+  });
+  if (runtime.status !== 0) {
+    console.log(`  ✗ canonical safe-fs runtime: ${runtime.stdout ?? ""}${runtime.stderr ?? ""}`);
+    return false;
+  }
+  const consumerPath = path.join(sdkProjectDir, "safe-fs-types.mts");
+  writeFileSync(
+    consumerPath,
+    [
+      'import { FsError, MemoryFileSystem, createNodeFsBridge, type FileSystem } from "poe-code/safe-fs";',
+      'import { makeFsModule } from "poe-code/safejs";',
+      "const filesystem: FileSystem = new MemoryFileSystem();",
+      "const bridge = createNodeFsBridge(filesystem);",
+      'const error: FsError = new FsError("ENOENT");',
+      "void [bridge, error, makeFsModule];",
+      ""
+    ].join("\n"),
+    "utf8"
+  );
+  for (const resolution of [ts.ModuleResolutionKind.NodeNext, ts.ModuleResolutionKind.Bundler]) {
+    const program = ts.createProgram([consumerPath], {
+      moduleResolution: resolution,
+      module:
+        resolution === ts.ModuleResolutionKind.NodeNext
+          ? ts.ModuleKind.NodeNext
+          : ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022,
+      strict: true,
+      skipLibCheck: false,
+      noEmit: true,
+      types: ["node"],
+      typeRoots: [path.resolve("node_modules/@types")]
+    });
+    const diagnostics = ts.getPreEmitDiagnostics(program);
+    if (diagnostics.length) {
+      console.log(
+        `  ✗ canonical safe-fs declarations: ${diagnostics.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")).join("\n")}`
+      );
+      return false;
+    }
+  }
+  console.log("  ✓ canonical safe-fs public identity and portable declarations");
+  return true;
+}
+
 function runCredentialsImportSmoke(sdkProjectDir: string): boolean {
   const scriptPath = path.join(sdkProjectDir, "credentials-smoke.mjs");
   writeFileSync(
@@ -308,6 +410,7 @@ try {
   const ok =
     run() &&
     runSdkImportSmoke(installContext.sdkProjectDir) &&
+    runSafeFsImportSmoke(installContext.sdkProjectDir) &&
     runCredentialsImportSmoke(installContext.sdkProjectDir) &&
     runConfigImportSmoke(installContext.sdkProjectDir);
   if (ok) {

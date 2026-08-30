@@ -1,0 +1,428 @@
+{
+  "sourceRepository": "safe-bash (package: virtual-bash)",
+  "sourceHead": "697ad092de111642aa376f74560da9927a0c9512",
+  "sourceState": "All selected source bytes matched source HEAD during extraction",
+  "status": "Transitional extraction; source copies remain until verified consumer integration and canonical distribution",
+  "files": [
+    {
+      "source": "src/fs/memory/index.ts",
+      "destination": "src/fs/memory/index.ts",
+      "sourceSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "extractedSha256": "59ab0e63a3da83a8852191b3c1bcb2eb1f6dd7e8be831b9c50bf990f02d56478",
+      "transformation": "Transformed extraction: Import the trusted S3 observation registry without Node invocation contexts; gate custom comparison callbacks before invocation under browser policy"
+    },
+    {
+      "source": "src/fs/mount/comparison.ts",
+      "destination": "src/fs/mount/comparison.ts",
+      "sourceSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "extractedSha256": "763339c91e60eef305b564901197d6a8d0df72a382ecb7f597d206b414d1435b",
+      "transformation": "Transformed extraction: Replace direct comparison ALS access with statically selected context operations; Node retains ALS, browser uses branded operation-owned options with lifetime cleanup; reject unsupported browser callback authorities before invocation; preserve private resolver and authority registries"
+    },
+    {
+      "source": "src/fs/mount/identity.ts",
+      "destination": "src/fs/mount/identity.ts",
+      "sourceSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "extractedSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/mount/index.ts",
+      "destination": "src/fs/mount/index.ts",
+      "sourceSha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6",
+      "extractedSha256": "1ed672c4fc6596f22538aab56241bbe36c922f15fc6bd1721a43a4f457da9d62",
+      "transformation": "Transformed extraction: Factor streaming-copy finalization into finishCleanup; retain writer failure precedence and propagate cleanup rejection only after writer success; Import virtual normalization and validation from the portable leaf; retain release cleanup precedence and generator semantics"
+    },
+    {
+      "source": "src/fs/overlay/index.ts",
+      "destination": "src/fs/overlay/index.ts",
+      "sourceSha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17",
+      "extractedSha256": "bc962f389a77772ab18d5978d57d35f7d4281d10ac36ca606f411360dd0ea7d4",
+      "transformation": "Transformed extraction: Factor streaming-write finalization into finishCleanup; retain writer failure precedence and propagate cleanup rejection only after writer success; Use selected secure UUID policy and narrow portable contract imports; retain Node secure crypto behavior, staging prefix, metadata, whiteouts and release cleanup precedence"
+    },
+    {
+      "source": "src/fs/readonly/index.ts",
+      "destination": "src/fs/readonly/index.ts",
+      "sourceSha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "extractedSha256": "d1ac9b16eebcd5a9f6829fd70d49c16f73ab4db87ff860c13bf0f4ea6c4a7f56",
+      "transformation": "Transformed extraction: Replace runtime and type barrel imports with portable contract leaves; preserve authority unwrapping and read-only semantics"
+    },
+    {
+      "source": "src/fs/real/allocation.ts",
+      "destination": "src/fs/real/allocation.ts",
+      "sourceSha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "extractedSha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/real/index.ts",
+      "destination": "src/fs/real/index.ts",
+      "sourceSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "extractedSha256": "d102bfed7975588906179d20609b8731e246ae7818c1788929e495ce3d63ceec",
+      "transformation": "Transformed extraction: Use finishCleanup for read-stream handle closure; retain existing native error conversion and successful-return close failures; fix close failure masking of an already-propagating read error, consumer throw, or cancellation reason"
+    },
+    {
+      "source": "src/fs/s3/authority.ts",
+      "destination": "src/fs/s3/authority.ts",
+      "sourceSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "extractedSha256": "604766d0989c1cb109e9caf7c958dbfe0d37b6ae2a7876d49a716129517449c8",
+      "transformation": "Transformed extraction: Retain Node ALS invocation proof queries and response-proof consumption; move owned observation maps and comparison logic into internal registry.ts, re-exporting former internal names; only record trusted observations after accepted query proof consumption"
+    },
+    {
+      "source": "src/fs/s3/filesystem.ts",
+      "destination": "src/fs/s3/filesystem.ts",
+      "sourceSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "extractedSha256": "aa5ae492bba05ce66d082b1fa98c890c3c35db6fe964d84fabe612ec9ef6e5ea",
+      "transformation": "Import the portable internal signal-composition helper; replace three AbortSignal.any calls; dispose composed input subscriptions after internal-controller cancellation on completion, failure and iterator return; preserve authority and metadata protocols; Remove redundant regex slash escape; explicitly discard caught disposal errors without altering disposal order; bind the existing upload generator receiver with call(this) instead of aliasing this"
+    },
+    {
+      "source": "src/fs/s3/http/index.ts",
+      "destination": "src/fs/s3/http/index.ts",
+      "sourceSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "extractedSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/request.ts",
+      "destination": "src/fs/s3/http/request.ts",
+      "sourceSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "extractedSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/signature.ts",
+      "destination": "src/fs/s3/http/signature.ts",
+      "sourceSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "extractedSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/transport.ts",
+      "destination": "src/fs/s3/http/transport.ts",
+      "sourceSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+      "extractedSha256": "f6b652b418d456c839556b8ba212651f763daef2b8f0248f0fc7fe7c310c9a54",
+      "transformation": "Transformed extraction: Explicitly discard caught error-XML parsing failures; retain the same fallback and any already-parsed service error fields"
+    },
+    {
+      "source": "src/fs/s3/http/types.ts",
+      "destination": "src/fs/s3/http/types.ts",
+      "sourceSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "extractedSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/xml.ts",
+      "destination": "src/fs/s3/http/xml.ts",
+      "sourceSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "extractedSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/index.ts",
+      "destination": "src/fs/s3/index.ts",
+      "sourceSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "extractedSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/mock.ts",
+      "destination": "src/fs/s3/mock.ts",
+      "sourceSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "extractedSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/transport.ts",
+      "destination": "src/fs/s3/transport.ts",
+      "sourceSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "extractedSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/webdav/index.ts",
+      "destination": "src/fs/webdav/index.ts",
+      "sourceSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "extractedSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/webdav/resource-id.ts",
+      "destination": "src/fs/webdav/resource-id.ts",
+      "sourceSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "extractedSha256": "15caf0c0da1b4dc4b79a08904b349baa6d96d41e691ac36000baafb31f391ea9",
+      "transformation": "Transformed extraction: Gate custom comparison callbacks before invocation under browser policy; retain response/stat/filesystem/path proof binding and built-in protocol authority"
+    },
+    {
+      "source": "src/fs/webdav/webdav.ts",
+      "destination": "src/fs/webdav/webdav.ts",
+      "sourceSha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "extractedSha256": "af3b70738993509b1e8458c74731ac3130dfcad5c2507e47869388a1965c5aef",
+      "transformation": "Import portable scoped signal composition and replace three AbortSignal.any calls; validate request headers before acquiring subscriptions; dispose on every operation exit including upload stream-construction failure; preserve error mappings; retain duplex half via a local RequestInit intersection without global DOM augmentation; Explicitly discard late-response validation failures while preserving body-cancellation finally behavior; bind the existing read generator receiver instead of aliasing this; Gate configured custom comparison authority at construction; select its option type through private PlatformComparisonCallback policy; retain existing protocol metadata and cancellation/cleanup/DOM request transformations"
+    },
+    {
+      "source": "src/fs/webdav/xml.ts",
+      "destination": "src/fs/webdav/xml.ts",
+      "sourceSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "extractedSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/filesystem.ts",
+      "destination": "src/contracts/filesystem.ts",
+      "sourceSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "extractedSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/errors.ts",
+      "destination": "src/contracts/errors.ts",
+      "sourceSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "extractedSha256": "e32b234cc8da7e3ccd072c5fed12edeef0adffdbe8d1113e4098cfe0d7f4b9e6",
+      "transformation": "Transformed extraction: Select immutable platform policy through #safe-fs-platform; retain one FsError constructor and import PlatformErrno in the common declaration; preserve Node native errno lookup and alias semantics, while browser errno is explicitly undefined"
+    },
+    {
+      "source": "src/contracts/path.ts",
+      "destination": "src/contracts/path.ts",
+      "sourceSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "extractedSha256": "f660c579fdd0dcfe35f01a1a422dcf12992e5ef28470050478b6bd0b0210db6e",
+      "transformation": "Transformed extraction: Retain native Node POSIX utility exports; re-export explicit-root virtual resolution, validation and confinement helpers from the shared portable leaf"
+    },
+    {
+      "source": "src/contracts/filesystem.md",
+      "destination": "src/contracts/filesystem.md",
+      "sourceSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "extractedSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/io.ts",
+      "destination": "src/contracts/io.ts",
+      "sourceSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "extractedSha256": "0b74152072523e3a918b7612d834c9fbfac3aabb21972300b2d56bd904a21e50",
+      "transformation": "Select ByteSource, CollectOptions, toByteSource, collectBytes, abortable, readBytes verbatim; retain FsError import; omit ByteSink/BytePipe and shell pipeline helpers; Factor the existing primary-failure-aware cleanup into the package-owned finishCleanup helper; preserve iterator return values, cleanup rejection after normal return, and nonblocking cleanup after cancellation"
+    },
+    {
+      "source": "src/integrations/safejs/filesystem.ts",
+      "destination": "src/node/filesystem.ts",
+      "sourceSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "extractedSha256": "a1358a121ac3c4a24db22f3b49e1edace4114db5741e2a2ff701f7a733a2c537",
+      "transformation": "Remove makeSafeJsFsModule; rename SafeJsFsImplementation to NodeFsImplementation; adjust contracts import path; replace signal composition with operation-scoped portable composition in #call, including validation and finally disposal; preserve existing bridge error mappings; Further transformed: retain the native public interfaces and Node fs/promises return type; factor all 21 operation algorithms into src/bridge/filesystem.ts; select native Buffer codec/owned copies, POSIX paths, URL/Buffer paths and crypto suffix primitives at this Node boundary; do not move interpreter or host-call policy logic"
+    },
+    {
+      "source": "src/integrations/safejs/stats.ts",
+      "destination": "src/node/stats.ts",
+      "sourceSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "extractedSha256": "b73292794687af0559195898f3d026b51e7e06022db700a912c64ea010d140a5",
+      "transformation": "Adjust contracts import path; add erased Dirent<Name> assertion to retain legacy path field with workspace Node declarations; runtime object unchanged; Further transformed: re-export the single projection from src/bridge/stats.ts; structural portable types replace Node-only types and the earlier assertion while retaining legacy dirent path and all stat values"
+    },
+    {
+      "source": "src/integrations/safejs/values.ts",
+      "destination": "src/node/values.ts",
+      "sourceSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "extractedSha256": "167eccff7c5cd31854427c7eba9729f889072525c6ee7959909b0fdb6afcea66",
+      "transformation": "Remove unused stringValue; preserve filesystem option validation and cancellation helpers; Further transformed: re-export the selected helpers from src/bridge/values.ts; relocated implementation bytes remain identical to the frozen 75-file Node bridge helper"
+    }
+  ],
+  "compatibilityAdditions": [
+    {
+      "destination": "src/contracts/abort.ts",
+      "sha256": "c2d16ad3a2b431ca03ad762ba29d2b8d9ffa42642cd2869839f74ad89c262d64",
+      "provenance": "New package-owned implementation, not copied from safe-bash",
+      "purpose": "Browser-portable operation-scoped AbortController composition with ordered reasons and deterministic listener disposal; no runtime imports or global patches"
+    },
+    {
+      "destination": "src/contracts/cleanup.ts",
+      "sha256": "8e4f3a4b35549c1591278692872b68e9d8914543a407a9ba881203e1f249029a",
+      "provenance": "New package-owned implementation, not copied from safe-bash",
+      "purpose": "Await cleanup while preserving an existing primary failure; propagate cleanup failures after otherwise-successful completion or iterator return"
+    }
+  ],
+  "releaseLintTestChanges": [
+    {
+      "destination": "tests/cleanup-semantics.test.ts",
+      "sha256": "30804155b527eb35eee41dcdc6defd2340f425896005bc4bee1b39742d28c556",
+      "provenance": "New package-owned regression tests using memfs and in-memory byte iterators",
+      "purpose": "Cover cleanup rejection, generator return and throw, primary error precedence, and cancellation; baseline exposes three RealFS masking failures"
+    },
+    {
+      "destination": "tests/network-adapters.test.ts",
+      "sha256": "b57915f065878dcd76a76755817d73220e869b11f5eb6da2b8b0c959b6695549",
+      "provenance": "Existing package-owned test fixture, not extracted from safe-bash",
+      "transformation": "Remove two unnecessary double-quote escapes from the single-quoted XML fixture; runtime fixture bytes unchanged"
+    }
+  ],
+  "portabilityAdditions": [
+    {
+      "destination": "src/core.ts",
+      "sha256": "9f414d559e7f5bb5e4585cd9bce6ed716d99cf6c24a2e2112d234906b8df04be",
+      "provenance": "New package-owned facade",
+      "purpose": "Portable contracts, virtual paths, memory, wrappers and WebDAV; no separate class or registry; add the required-codec portable bridge and the existing canonical compareEntries operation, without exposing authority registry writers"
+    },
+    {
+      "destination": "src/node-host.ts",
+      "sha256": "97e1818573679b5d3d697406abd3e5f1e9cd00da1f2783ab236912180462f5be",
+      "provenance": "New package-owned facade",
+      "purpose": "Re-export unchanged Node root and keep host-only adapters/bridge in the same selected graph"
+    },
+    {
+      "destination": "src/node-unavailable.ts",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "provenance": "New package-owned declaration target",
+      "purpose": "Empty browser node-host declaration for later public conditional export routing"
+    },
+    {
+      "destination": "src/platform/node.ts",
+      "sha256": "863110c0e679ca3cc883725f8e74a430b57c02e6b6d0e1009f6fbbe96ffb44d6",
+      "provenance": "Selected policy factored from original contracts/errors.ts and fs/mount/comparison.ts; secure randomUUID retains the original overlay Node crypto boundary",
+      "purpose": "Private native errno lookup and actual ALS context; immutable operations, no exposed Maps",
+      "derivedFrom": [
+        {
+          "source": "src/contracts/errors.ts",
+          "sourceSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+        },
+        {
+          "source": "src/fs/mount/comparison.ts",
+          "sourceSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+        },
+        {
+          "source": "src/fs/overlay/index.ts",
+          "sourceSha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"
+        }
+      ]
+    },
+    {
+      "destination": "src/platform/browser.ts",
+      "sha256": "dedd44fb7a3d07c269e1c273442b2ee61503ba70a2cca8c51a9c76eb1631fccf",
+      "provenance": "New package-owned implementation",
+      "purpose": "Explicit undefined errno, fail-closed secure entropy, immutable operations and privately branded operation-scoped comparison context"
+    },
+    {
+      "destination": "src/contracts/virtual-path.ts",
+      "sha256": "14c9bc0e9c2803eca5cad7e757fa17fcd9b9b762733e6ee91b483389cef1a910",
+      "provenance": "New lexical POSIX resolver and dirname implementation with original validation/confinement contract adapted from contracts/path.ts",
+      "purpose": "No implicit host cwd; differential path and confinement checks preserve semantics",
+      "derivedFrom": [
+        {
+          "source": "src/contracts/path.ts",
+          "sourceSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+        }
+      ]
+    },
+    {
+      "destination": "src/fs/s3/registry.ts",
+      "sha256": "7fbd0507cbd0ea03e48a4f41aff738c67b8fbbd393a55fb9cb3339d2ce009069",
+      "provenance": "Factored from original src/fs/s3/authority.ts at recorded sourceHead",
+      "purpose": "Internal trusted observation WeakMaps and comparison logic separated from Node invocation proof; browser callback capability gate",
+      "derivedFrom": [
+        {
+          "source": "src/fs/s3/authority.ts",
+          "sourceSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344"
+        }
+      ]
+    }
+  ],
+  "portabilityPolicy": {
+    "sourceImport": "#safe-fs-platform",
+    "nodeErrno": "number; native platform lookup with original alias behavior",
+    "browserErrno": "number | undefined; own property explicitly undefined",
+    "constructor": "One shared FsError implementation and emitted declaration per selected graph",
+    "context": "Node ALS retained; browser operation-owned branded options, no mutable global invocation context",
+    "distribution": "Source increment only; canonical public root conditional exports, declaration imports mapping and shared packed graphs remain separately coordinated"
+  },
+  "bridgeAdditions": [
+    {
+      "destination": "src/bridge/filesystem.ts",
+      "sha256": "6b80837efa9e29b42bdc206ebbcfd3f3b50d8f57b88dc1ac56c727e574b032f7",
+      "provenance": "Transformed continuation of the recorded safe-bash extraction, not a new backend or duplicated bridge",
+      "derivedFrom": [
+        {
+          "source": "src/integrations/safejs/filesystem.ts",
+          "sourceSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+          "previousDestination": "src/node/filesystem.ts",
+          "previousSha256": "f2efa94f2d1b8e5c5e1139a16196ef39890c1386cb87c0d90cf48b89af35a4e4"
+        }
+      ],
+      "transformation": "Factor the existing 21 bridge algorithms into one generic implementation; inject codec, owned-byte, path and secure-suffix primitives; preserve cancellation mapping, ordering and backend error identity; preflight injected codec capability before adapter effects"
+    },
+    {
+      "destination": "src/bridge/stats.ts",
+      "sha256": "ab78c5ec60a5d7d8ce2147234d8186668e82e89f97eaea60409abd456ca30fd1",
+      "provenance": "Transformed continuation of the recorded safe-bash extraction, not a new backend or duplicated bridge",
+      "derivedFrom": [
+        {
+          "source": "src/integrations/safejs/stats.ts",
+          "sourceSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+          "previousDestination": "src/node/stats.ts",
+          "previousSha256": "a9f0f139793d81febe0f2914f1ae02c5a424ac4af4e014c15b233e28b341d01d"
+        }
+      ],
+      "transformation": "Retain the exact projection algorithm with portable structural stats/dirent types and no assertion"
+    },
+    {
+      "destination": "src/bridge/values.ts",
+      "sha256": "4c7486829b4b44b9c65a92677267f97d3fdada72b90efc3ed1ead4e8921018d4",
+      "provenance": "Transformed continuation of the recorded safe-bash extraction, not a new backend or duplicated bridge",
+      "derivedFrom": [
+        {
+          "source": "src/integrations/safejs/values.ts",
+          "sourceSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+          "previousDestination": "src/node/values.ts",
+          "previousSha256": "4c7486829b4b44b9c65a92677267f97d3fdada72b90efc3ed1ead4e8921018d4"
+        }
+      ],
+      "transformation": "Relocate the selected helpers byte-identically from the frozen 75-file source; native entry re-exports these same functions"
+    },
+    {
+      "destination": "src/bridge/types.ts",
+      "sha256": "55f3d4592248ea7590ff365bb28349b0161ad8f8d18d1f304b9a9a89fba42771",
+      "provenance": "New package-owned portable boundary, not copied from safe-bash",
+      "purpose": "Portable codec, bridge options, structural stats/dirent and internal primitive-provider contracts; no Node ambient types"
+    },
+    {
+      "destination": "src/bridge/index.ts",
+      "sha256": "e5014590a98732fb3e7b74605b003af3c6b8f9a9d3df4c0f341ac7cb2c6581dd",
+      "provenance": "New package-owned portable boundary, not copied from safe-bash",
+      "purpose": "Construct the portable bridge with a required caller-owned codec, genuine owned Uint8Array results, explicit virtual paths and selected secure entropy; no ambient codec or host access"
+    }
+  ],
+  "bridgeTests": [
+    {
+      "destination": "tests/portable-bridge.test.ts",
+      "sha256": "7690a277cefb060254b5bbe78a71ca9eeedfccb6b95d7b592ec58aedb171bfa8",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    },
+    {
+      "destination": "tests/browser-bridge.test.ts",
+      "sha256": "59cdfe53a95e0dddf9c465ffadcaa41f8d2e66b76729ea4ff549c5c1c7475c96",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    },
+    {
+      "destination": "tests/helpers/bridge-scenarios.ts",
+      "sha256": "5201f1c754216d49e888b63262a20cfc44e04d6674c424d634f9f6c826f69465",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    },
+    {
+      "destination": "tests/helpers/browser-bridge-checks.ts",
+      "sha256": "0ff4210de9d9e6fcfcf247ad21f29a20b643b7a575b5b7dba9f0b9e31bd61223",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    },
+    {
+      "destination": "tests/types/portable-bridge.mts",
+      "sha256": "fe74e9bc81edc5797ca4f6a954c32843079f876dfac723b02a29a143b7079eef",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    },
+    {
+      "destination": "tests/types/node-bridge.ts",
+      "sha256": "be397a968ad66a25d0d1af380b165f482872a338d96cbae5614f7b49b63d14b7",
+      "provenance": "New package-owned focused regression, not extracted from safe-bash"
+    }
+  ],
+  "bridgeContract": {
+    "portableFactory": "createFsBridge(filesystem, { codec, cwd?, signal? }); exported from core, codec is required and trusted",
+    "nativeFactory": "createNodeFsBridge(filesystem, { cwd?, signal? }); original native API, public interfaces and genuine Buffer results retained",
+    "codec": "isEncoding(string): boolean; encode(string, string): Uint8Array; decode(Uint8Array, string): string. Receiver preserved; capability refusal before adapter calls, including UTF8 name conversion",
+    "ownership": "Binary reads and input ArrayBuffer views are copied; codec-encoded write bytes are captured before asynchronous adapter effects",
+    "errors": "Backend errors propagate by identity; bridge cancellation remains AbortError/ABORT_ERR, whereas canonical comparison keeps its original reason",
+    "confinement": "cwd resolves virtual paths and is not confinement; preserve backend mount/read-only/overlay guards; compareEntries negotiates canonical authority for later browser facade confinement",
+    "distribution": "Unreleased source increment only; root index, manifests, private platform policy and existing README/PORTABILITY documents unchanged; later canonical public graph must share constructors and registries across entries"
+  }
+}

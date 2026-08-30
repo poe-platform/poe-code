@@ -1,4 +1,4 @@
-import { Budget, lint, run, type Diagnostic } from "@poe-code/safejs/core";
+import { Budget, lint, run, type Diagnostic } from "@poe-code/safe-js/core";
 import { defineCommand, type Group, type Scope, UserError } from "toolcraft";
 import { S } from "toolcraft-schema";
 

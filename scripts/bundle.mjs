@@ -1,13 +1,21 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
-import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
+import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
+import {
+  canonicalFs,
+  collectCanonicalDeclarations,
+  collectPackageFiles,
+  findBundleIssues
+} from "../packages/package-lint/dist/bundle-policy.js";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { setBinExecutable } from "./set-bin-executable.mjs";
+import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -24,10 +32,17 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   packageJsons.push({ dir: dir.name, pkg });
 }
 
-const { alias: workspaceAliases, external: externalDeps } = await resolveBundleGraph(
-  rootDir,
-  packageJsons
-);
+const {
+  alias: workspaceAliases,
+  external: externalDeps,
+  workspacePackageNames
+} = await resolveBundleGraph(rootDir, packageJsons);
+const consumerBuildOptions = {
+  ...resolveConsumerGraph({ alias: workspaceAliases, external: externalDeps }, canonicalFs),
+  absWorkingDir: rootDir,
+  metafile: true
+};
+const consumerBuilds = [];
 
 // Root package.json is reused below to verify external imports are declared.
 const packageJson = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf8"));
@@ -85,8 +100,7 @@ const mainBuild = await esbuild.build({
   target: "node18",
   format: "esm",
   outfile: path.join(rootDir, "dist/index.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
+  ...consumerBuildOptions,
   banner: undefined,
   sourcemap: true,
   plugins: [stripShebangPlugin],
@@ -94,145 +108,144 @@ const mainBuild = await esbuild.build({
   metafile: true
 });
 
-// Persist the metafile the main build already produces, so @poe-code/package-lint's
-// build-aware rule can verify the bundle inlined every workspace package.
-await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(mainBuild.metafile));
+consumerBuilds.push(mainBuild);
 
-await esbuild.build({
-  entryPoints: [path.join(rootDir, "src/agent.ts")],
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outfile: path.join(rootDir, "dist/agent.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin],
-  loader: { ".md": "text", ".mustache": "text", ".log": "text" }
-});
-
-await esbuild.build({
-  entryPoints: [path.join(rootDir, "src/credentials.ts")],
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outfile: path.join(rootDir, "dist/credentials.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin]
-});
-
-for (const entryPoint of ["config", "config-testing"]) {
+consumerBuilds.push(
   await esbuild.build({
-    entryPoints: [path.join(rootDir, `src/${entryPoint}.ts`)],
+    entryPoints: [path.join(rootDir, "src/agent.ts")],
     bundle: true,
     platform: "node",
     target: "node18",
     format: "esm",
-    outfile: path.join(rootDir, `dist/${entryPoint}.js`),
-    external: externalDeps,
-    alias: workspaceAliases,
-    sourcemap: true,
-    plugins: [stripShebangPlugin]
-  });
-}
-
-await esbuild.build({
-  entryPoints: [path.join(rootDir, "src/skills.ts")],
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outfile: path.join(rootDir, "dist/skills.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin],
-  loader: { ".md": "text", ".mustache": "text", ".log": "text" }
-});
-
-const providerEntryPoints = await getProviderEntryPoints(rootDir);
-if (providerEntryPoints.length > 0) {
-  await esbuild.build({
-    entryPoints: providerEntryPoints,
-    bundle: true,
-    platform: "node",
-    target: "node18",
-    format: "esm",
-    outdir: path.join(rootDir, "dist", "providers"),
-    entryNames: "[name]",
-    external: externalDeps,
-    alias: workspaceAliases,
-    banner: undefined,
+    outfile: path.join(rootDir, "dist/agent.js"),
+    ...consumerBuildOptions,
     sourcemap: true,
     plugins: [stripShebangPlugin],
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
-  });
+  })
+);
+
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "src/credentials.ts")],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, "dist/credentials.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin]
+  })
+);
+
+for (const entryPoint of ["config", "config-testing"]) {
+  consumerBuilds.push(
+    await esbuild.build({
+      entryPoints: [path.join(rootDir, `src/${entryPoint}.ts`)],
+      bundle: true,
+      platform: "node",
+      target: "node18",
+      format: "esm",
+      outfile: path.join(rootDir, `dist/${entryPoint}.js`),
+      ...consumerBuildOptions,
+      sourcemap: true,
+      plugins: [stripShebangPlugin]
+    })
+  );
 }
 
-await assertSafeOutputDirectory(path.join(rootDir, "packages/safejs"));
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "src/skills.ts")],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, "dist/skills.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin],
+    loader: { ".md": "text", ".mustache": "text", ".log": "text" }
+  })
+);
+
+const providerEntryPoints = await getProviderEntryPoints(rootDir);
+if (providerEntryPoints.length > 0) {
+  consumerBuilds.push(
+    await esbuild.build({
+      entryPoints: providerEntryPoints,
+      bundle: true,
+      platform: "node",
+      target: "node18",
+      format: "esm",
+      outdir: path.join(rootDir, "dist", "providers"),
+      entryNames: "[name]",
+      ...consumerBuildOptions,
+      banner: undefined,
+      sourcemap: true,
+      plugins: [stripShebangPlugin],
+      loader: { ".md": "text", ".mustache": "text", ".log": "text" }
+    })
+  );
+}
+
+await assertSafeOutputDirectory(path.join(rootDir, "packages/safe-js"));
 const safejsEntryPoints = {
-  index: path.join(rootDir, "packages/safejs/src/index.ts"),
-  core: path.join(rootDir, "packages/safejs/src/core.ts"),
-  cli: path.join(rootDir, "packages/safejs/src/cli.ts")
+  index: path.join(rootDir, "packages/safe-js/src/index.ts"),
+  core: path.join(rootDir, "packages/safe-js/src/core.ts"),
+  cli: path.join(rootDir, "packages/safe-js/src/cli.ts")
 };
-const safejsBuild = await esbuild.build({
-  absWorkingDir: rootDir,
-  entryPoints: safejsEntryPoints,
-  bundle: true,
-  splitting: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outdir: path.join(rootDir, "packages/safejs/dist"),
-  chunkNames: "chunks/[name]-[hash]",
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  metafile: true,
-  write: false
-});
-await publishBundleOutputs(safejsBuild, {
-  outdir: path.join(rootDir, "packages/safejs/dist"),
-  entryPoints: Object.values(safejsEntryPoints),
-  workingDirectory: rootDir
-});
-await setBinExecutable(path.join(rootDir, "packages/safejs"));
+const fsBuildOptions = resolveCanonicalFsBuilds(
+  rootDir,
+  { alias: workspaceAliases, external: externalDeps },
+  safejsEntryPoints
+);
+const fsBuilds = {};
+for (const [profile, options] of Object.entries(fsBuildOptions)) {
+  const result = await esbuild.build(options);
+  await publishBundleOutputs(result, {
+    outdir: options.outdir,
+    entryPoints: Object.values(options.entryPoints),
+    workingDirectory: rootDir
+  });
+  fsBuilds[profile] = result;
+}
+await setBinExecutable(path.join(rootDir, "packages/safe-js"));
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.
-await esbuild.build({
-  entryPoints: [path.join(rootDir, "packages/memory/src/index.ts")],
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outfile: path.join(rootDir, "packages/memory/dist/index.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin]
-});
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "packages/memory/src/index.ts")],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, "packages/memory/dist/index.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin]
+  })
+);
 
 // The superintendent MCP entry is shipped as a root bin, so inline its
 // private workspace dependencies instead of requiring them from the install.
-await esbuild.build({
-  entryPoints: [path.join(rootDir, "packages/superintendent/src/mcp.ts")],
-  bundle: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outfile: path.join(rootDir, "packages/superintendent/dist/mcp.js"),
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  plugins: [stripShebangPlugin],
-  loader: { ".md": "text", ".mustache": "text", ".log": "text" },
-  banner: { js: "#!/usr/bin/env node" }
-});
+consumerBuilds.push(
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, "packages/superintendent/src/mcp.ts")],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, "packages/superintendent/dist/mcp.js"),
+    ...consumerBuildOptions,
+    sourcemap: true,
+    plugins: [stripShebangPlugin],
+    loader: { ".md": "text", ".mustache": "text", ".log": "text" },
+    banner: { js: "#!/usr/bin/env node" }
+  })
+);
 
 for (const { entryPoint, outfile } of [
   {
@@ -244,20 +257,21 @@ for (const { entryPoint, outfile } of [
     outfile: "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   }
 ]) {
-  await esbuild.build({
-    entryPoints: [path.join(rootDir, entryPoint)],
-    bundle: true,
-    platform: "node",
-    target: "node18",
-    format: "esm",
-    outfile: path.join(rootDir, outfile),
-    external: externalDeps,
-    alias: workspaceAliases,
-    sourcemap: false,
-    plugins: [stripShebangPlugin],
-    loader: { ".json": "json" },
-    banner: { js: "#!/usr/bin/env node" }
-  });
+  consumerBuilds.push(
+    await esbuild.build({
+      entryPoints: [path.join(rootDir, entryPoint)],
+      bundle: true,
+      platform: "node",
+      target: "node18",
+      format: "esm",
+      outfile: path.join(rootDir, outfile),
+      ...consumerBuildOptions,
+      sourcemap: false,
+      plugins: [stripShebangPlugin],
+      loader: { ".json": "json" },
+      banner: { js: "#!/usr/bin/env node" }
+    })
+  );
 }
 
 // Rewrite workspace specifiers in shipped .d.ts files so the published
@@ -301,50 +315,12 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
-await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons);
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node" });
 for (const { dir } of packageJsons) {
-  await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons);
-}
-
-async function rewriteWorkspaceDts(dir, workspaces) {
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  await Promise.all(
-    entries.map(async (entry) => {
-      const abs = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        await rewriteWorkspaceDts(abs, workspaces);
-        return;
-      }
-      if (!entry.name.endsWith(".d.ts")) return;
-
-      let content = await readFile(abs, "utf8");
-      let changed = false;
-      for (const { dir: workspaceDir, pkg } of workspaces) {
-        const escapedName = pkg.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const pattern = new RegExp(`(["'])${escapedName}(?:/([^"']+))?\\1`, "g");
-        content = content.replace(pattern, (_match, quote, subpath) => {
-          changed = true;
-          const exportKey = subpath ? `./${subpath}` : ".";
-          const exportedTypes = pkg.exports?.[exportKey]?.types?.replace(/\.d\.ts$/, ".js");
-          const target = exportedTypes
-            ? path.join(rootDir, "packages", workspaceDir, exportedTypes)
-            : path.join(
-                rootDir,
-                "packages",
-                workspaceDir,
-                "dist",
-                subpath ? `${subpath}.js` : "index.js"
-              );
-          let relative = path.relative(path.dirname(abs), target).split(path.sep).join("/");
-          if (!relative.startsWith(".")) relative = `./${relative}`;
-          return `${quote}${relative}${quote}`;
-        });
-      }
-      if (changed) {
-        await writeFile(abs, content);
-      }
-    })
-  );
+  await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons, {
+    rootDir,
+    profile: "node"
+  });
 }
 
 // tokenfill is inlined into memory's bundle and resolves its corpus via
@@ -414,59 +390,39 @@ await Promise.all(
   })
 );
 
-// Verify every external import in dist/index.js is declared in root
-// dependencies / optionalDependencies (or is a Node built-in). Missing deps
-// would only surface as ERR_MODULE_NOT_FOUND when the published package is
-// installed.
-const externalImports = new Set();
-for (const meta of Object.values(mainBuild.metafile.outputs)) {
-  for (const imp of meta.imports ?? []) {
-    if (imp.external) {
-      externalImports.add(imp.path);
-    }
-  }
-}
-const rootDepNames = new Set([
-  ...Object.keys(packageJson.dependencies || {}),
-  ...Object.keys(packageJson.optionalDependencies || {})
-]);
-const nodeBuiltins = new Set([
-  "assert",
-  "buffer",
-  "child_process",
-  "crypto",
-  "events",
-  "fs",
-  "http",
-  "https",
-  "net",
-  "os",
-  "path",
-  "process",
-  "readline",
-  "stream",
-  "string_decoder",
-  "timers",
-  "tls",
-  "tty",
-  "url",
-  "util",
-  "vm",
-  "zlib"
-]);
-function toPackageName(specifier) {
-  if (specifier.startsWith("node:")) return null;
-  const parts = specifier.split("/");
-  return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
-}
-const undeclared = [...externalImports]
-  .map(toPackageName)
-  .filter((dep) => dep && !rootDepNames.has(dep) && !nodeBuiltins.has(dep));
-if (undeclared.length > 0) {
-  console.error(
-    `\nBundle imports packages not declared in root dependencies or optionalDependencies:\n  ${undeclared.join("\n  ")}\n\nAdd them to package.json so end users get them on install.`
+const metafile = {
+  inputs: Object.assign({}, ...consumerBuilds.map((result) => result.metafile.inputs)),
+  outputs: Object.assign(
+    {},
+    ...consumerBuilds.map((result) => result.metafile.outputs),
+    ...Object.values(fsBuilds).map((result) => result.metafile.outputs)
+  ),
+  canonicalBundle: {
+    entryPoints: Object.values(fsBuildOptions.node.entryPoints).map((entry) =>
+      path.relative(rootDir, entry).split(path.sep).join("/")
+    ),
+    metafile: fsBuilds.node.metafile
+  },
+  browserCanonicalBundle: {
+    entryPoints: Object.values(fsBuildOptions.browser.entryPoints).map((entry) =>
+      path.relative(rootDir, entry).split(path.sep).join("/")
+    ),
+    metafile: fsBuilds.browser.metafile
+  },
+  ...(await collectCanonicalDeclarations(rootDir, {
+    readdir: (directory) => readdir(directory, { withFileTypes: true }),
+    readFile: (filename) => readFile(filename, "utf8")
+  }))
+};
+const packedFiles = await collectPackageFiles(rootDir, packageJson.files, {
+  readdir: (directory) => readdir(directory, { withFileTypes: true }),
+  stat
+});
+const issues = findBundleIssues(packageJson, workspacePackageNames, metafile, packedFiles);
+if (issues.length)
+  throw new Error(
+    `Bundle publication policy failed:\n${issues.map((issue) => `${issue.external}: ${issue.reason}`).join("\n")}`
   );
-  process.exit(1);
-}
+await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(metafile));
 
 console.log("Bundle complete: dist/index.js + dist/bin.cjs");

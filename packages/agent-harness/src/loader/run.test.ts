@@ -13,8 +13,8 @@ import {
   makeAgentModule,
   migrateSnapshot,
   run
-} from "@poe-code/safejs";
-import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
+} from "@poe-code/safe-js";
+import type { Snapshot, SnapshotBackend } from "@poe-code/safe-js";
 
 const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,

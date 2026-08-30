@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { lint, makeAgentModule, run, splitFrontmatter } from "@poe-code/safejs";
+import { lint, makeAgentModule, run, splitFrontmatter } from "@poe-code/safe-js";
 import { describe, expect, it, vi } from "vitest";
 
 import * as api from "../index.js";

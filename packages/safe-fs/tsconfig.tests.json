@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "noEmit": true,
+    "types": ["node", "vitest/globals"],
+    "paths": {
+      "@poe-code/safe-fs": ["src/index.ts"],
+      "@poe-code/safe-fs/*": ["src/*.ts", "src/*/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
+  "exclude": []
+}

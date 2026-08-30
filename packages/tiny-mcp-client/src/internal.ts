@@ -2335,7 +2335,7 @@ export type HttpTransportFetch = (
 
 export interface HttpTransportOptions {
   url: string;
-  headers?: HeadersInit;
+  headers?: RequestInit["headers"];
   fetch?: HttpTransportFetch;
   oauth?: OAuthClientProviderOptions;
   oauthDiscoveryCache?: OAuthDiscoveryCache;

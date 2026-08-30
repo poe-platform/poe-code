@@ -54,6 +54,32 @@ describe("loadPackageFileView", () => {
 });
 
 describe("createNpmPacklistProvider", () => {
+  it("expands real declaration globs without packaging runtime or source-map files", async () => {
+    const fs = memLintFs({
+      "/repo/package.json": JSON.stringify({ files: ["dist", "packages/safe-fs/dist/**/*.d.ts"] }),
+      "/repo/dist/index.js": "export {};",
+      "/repo/packages/safe-fs/dist/index.d.ts": 'export * from "./contracts/filesystem.js";',
+      "/repo/packages/safe-fs/dist/contracts/filesystem.d.ts": "export interface FileSystem {}",
+      "/repo/packages/safe-fs/dist/index.js": "throw new Error('duplicate runtime');",
+      "/repo/packages/safe-fs/dist/index.d.ts.map": "{}",
+      "/repo/packages/safe-fs/dist/contracts/filesystem.js": "export {};"
+    });
+    expect(await createNpmPacklistProvider(fs).listPackageFiles("/repo", ".")).toEqual(
+      new Set([
+        "dist/index.js",
+        "packages/safe-fs/dist/index.d.ts",
+        "packages/safe-fs/dist/contracts/filesystem.d.ts"
+      ])
+    );
+  });
+
+  it("does not invent an entry for a declaration glob whose directory is missing", async () => {
+    const fs = memLintFs({
+      "/repo/package.json": JSON.stringify({ files: ["packages/safe-fs/dist/**/*.d.ts"] })
+    });
+    expect(await createNpmPacklistProvider(fs).listPackageFiles("/repo", ".")).toEqual(new Set());
+  });
+
   it("lists package files from package.json files entries through the provided filesystem", async () => {
     const fs = memLintFs({
       "/repo/packages/agent/package.json": JSON.stringify({ files: ["dist", "README.md"] }),
@@ -63,15 +89,8 @@ describe("createNpmPacklistProvider", () => {
       "/repo/packages/agent/src/index.ts": "export {};\n"
     });
 
-    const files = await createNpmPacklistProvider(fs).listPackageFiles(
-      "/repo",
-      "packages/agent"
-    );
+    const files = await createNpmPacklistProvider(fs).listPackageFiles("/repo", "packages/agent");
 
-    expect([...files].sort()).toEqual([
-      "README.md",
-      "dist/index.js",
-      "dist/templates/x.md"
-    ]);
+    expect([...files].sort()).toEqual(["README.md", "dist/index.js", "dist/templates/x.md"]);
   });
 });

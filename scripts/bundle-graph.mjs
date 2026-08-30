@@ -1,6 +1,20 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 
+export function resolveConsumerGraph(graph, canonical) {
+  return {
+    alias: Object.fromEntries(
+      Object.entries(graph.alias).map(([specifier, source]) => [
+        specifier,
+        specifier === canonical.workspace || specifier.startsWith(`${canonical.workspace}/`)
+          ? canonical.specifier
+          : source
+      ])
+    ),
+    external: [...new Set([...graph.external, canonical.specifier])]
+  };
+}
+
 export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirectory) {
   const unmatchedEntries = new Set(
     entryPoints.map((entry) => path.resolve(workingDirectory, entry))

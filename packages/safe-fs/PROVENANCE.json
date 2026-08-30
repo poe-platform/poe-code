@@ -1,0 +1,253 @@
+{
+  "sourceRepository": "safe-bash (package: virtual-bash)",
+  "sourceHead": "697ad092de111642aa376f74560da9927a0c9512",
+  "sourceState": "All selected source bytes matched source HEAD during extraction",
+  "status": "Transitional extraction; source copies remain until verified consumer integration and canonical distribution",
+  "files": [
+    {
+      "source": "src/fs/memory/index.ts",
+      "destination": "src/fs/memory/index.ts",
+      "sourceSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "extractedSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/mount/comparison.ts",
+      "destination": "src/fs/mount/comparison.ts",
+      "sourceSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "extractedSha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/mount/identity.ts",
+      "destination": "src/fs/mount/identity.ts",
+      "sourceSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "extractedSha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/mount/index.ts",
+      "destination": "src/fs/mount/index.ts",
+      "sourceSha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6",
+      "extractedSha256": "210fd1a8ee14b9d39b08450b79553d4bd59ff43fc6be23cc0f8234fe71bd2de1",
+      "transformation": "Transformed extraction: Factor streaming-copy finalization into finishCleanup; retain writer failure precedence and propagate cleanup rejection only after writer success"
+    },
+    {
+      "source": "src/fs/overlay/index.ts",
+      "destination": "src/fs/overlay/index.ts",
+      "sourceSha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17",
+      "extractedSha256": "2c56deebbbcfdcc786aacfa6d427ab54a3c40617d4544d0acd72b32deec0c798",
+      "transformation": "Transformed extraction: Factor streaming-write finalization into finishCleanup; retain writer failure precedence and propagate cleanup rejection only after writer success"
+    },
+    {
+      "source": "src/fs/readonly/index.ts",
+      "destination": "src/fs/readonly/index.ts",
+      "sourceSha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "extractedSha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/real/allocation.ts",
+      "destination": "src/fs/real/allocation.ts",
+      "sourceSha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "extractedSha256": "8394428e33a97402159ccb0c67add8d375a2e013c5ddef5fa68875dddbed70ef",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/real/index.ts",
+      "destination": "src/fs/real/index.ts",
+      "sourceSha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "extractedSha256": "d102bfed7975588906179d20609b8731e246ae7818c1788929e495ce3d63ceec",
+      "transformation": "Transformed extraction: Use finishCleanup for read-stream handle closure; retain existing native error conversion and successful-return close failures; fix close failure masking of an already-propagating read error, consumer throw, or cancellation reason"
+    },
+    {
+      "source": "src/fs/s3/authority.ts",
+      "destination": "src/fs/s3/authority.ts",
+      "sourceSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "extractedSha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/filesystem.ts",
+      "destination": "src/fs/s3/filesystem.ts",
+      "sourceSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "extractedSha256": "aa5ae492bba05ce66d082b1fa98c890c3c35db6fe964d84fabe612ec9ef6e5ea",
+      "transformation": "Import the portable internal signal-composition helper; replace three AbortSignal.any calls; dispose composed input subscriptions after internal-controller cancellation on completion, failure and iterator return; preserve authority and metadata protocols; Remove redundant regex slash escape; explicitly discard caught disposal errors without altering disposal order; bind the existing upload generator receiver with call(this) instead of aliasing this"
+    },
+    {
+      "source": "src/fs/s3/http/index.ts",
+      "destination": "src/fs/s3/http/index.ts",
+      "sourceSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "extractedSha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/request.ts",
+      "destination": "src/fs/s3/http/request.ts",
+      "sourceSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "extractedSha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/signature.ts",
+      "destination": "src/fs/s3/http/signature.ts",
+      "sourceSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "extractedSha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/transport.ts",
+      "destination": "src/fs/s3/http/transport.ts",
+      "sourceSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+      "extractedSha256": "f6b652b418d456c839556b8ba212651f763daef2b8f0248f0fc7fe7c310c9a54",
+      "transformation": "Transformed extraction: Explicitly discard caught error-XML parsing failures; retain the same fallback and any already-parsed service error fields"
+    },
+    {
+      "source": "src/fs/s3/http/types.ts",
+      "destination": "src/fs/s3/http/types.ts",
+      "sourceSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "extractedSha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/http/xml.ts",
+      "destination": "src/fs/s3/http/xml.ts",
+      "sourceSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "extractedSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/index.ts",
+      "destination": "src/fs/s3/index.ts",
+      "sourceSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "extractedSha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/mock.ts",
+      "destination": "src/fs/s3/mock.ts",
+      "sourceSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "extractedSha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/s3/transport.ts",
+      "destination": "src/fs/s3/transport.ts",
+      "sourceSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "extractedSha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/webdav/index.ts",
+      "destination": "src/fs/webdav/index.ts",
+      "sourceSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "extractedSha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/webdav/resource-id.ts",
+      "destination": "src/fs/webdav/resource-id.ts",
+      "sourceSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "extractedSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/fs/webdav/webdav.ts",
+      "destination": "src/fs/webdav/webdav.ts",
+      "sourceSha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "extractedSha256": "c6e5127c626173be92d5f2db48eebd1ea342b42e827e433187c01491f1c5a527",
+      "transformation": "Import portable scoped signal composition and replace three AbortSignal.any calls; validate request headers before acquiring subscriptions; dispose on every operation exit including upload stream-construction failure; preserve error mappings; retain duplex half via a local RequestInit intersection without global DOM augmentation; Explicitly discard late-response validation failures while preserving body-cancellation finally behavior; bind the existing read generator receiver instead of aliasing this"
+    },
+    {
+      "source": "src/fs/webdav/xml.ts",
+      "destination": "src/fs/webdav/xml.ts",
+      "sourceSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "extractedSha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/filesystem.ts",
+      "destination": "src/contracts/filesystem.ts",
+      "sourceSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "extractedSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/errors.ts",
+      "destination": "src/contracts/errors.ts",
+      "sourceSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "extractedSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/path.ts",
+      "destination": "src/contracts/path.ts",
+      "sourceSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "extractedSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/filesystem.md",
+      "destination": "src/contracts/filesystem.md",
+      "sourceSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "extractedSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "transformation": "Byte-identical extraction"
+    },
+    {
+      "source": "src/contracts/io.ts",
+      "destination": "src/contracts/io.ts",
+      "sourceSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "extractedSha256": "0b74152072523e3a918b7612d834c9fbfac3aabb21972300b2d56bd904a21e50",
+      "transformation": "Select ByteSource, CollectOptions, toByteSource, collectBytes, abortable, readBytes verbatim; retain FsError import; omit ByteSink/BytePipe and shell pipeline helpers; Factor the existing primary-failure-aware cleanup into the package-owned finishCleanup helper; preserve iterator return values, cleanup rejection after normal return, and nonblocking cleanup after cancellation"
+    },
+    {
+      "source": "src/integrations/safejs/filesystem.ts",
+      "destination": "src/node/filesystem.ts",
+      "sourceSha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "extractedSha256": "f2efa94f2d1b8e5c5e1139a16196ef39890c1386cb87c0d90cf48b89af35a4e4",
+      "transformation": "Remove makeSafeJsFsModule; rename SafeJsFsImplementation to NodeFsImplementation; adjust contracts import path; replace signal composition with operation-scoped portable composition in #call, including validation and finally disposal; preserve existing bridge error mappings"
+    },
+    {
+      "source": "src/integrations/safejs/stats.ts",
+      "destination": "src/node/stats.ts",
+      "sourceSha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "extractedSha256": "a9f0f139793d81febe0f2914f1ae02c5a424ac4af4e014c15b233e28b341d01d",
+      "transformation": "Adjust contracts import path; add erased Dirent<Name> assertion to retain legacy path field with workspace Node declarations; runtime object unchanged"
+    },
+    {
+      "source": "src/integrations/safejs/values.ts",
+      "destination": "src/node/values.ts",
+      "sourceSha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "extractedSha256": "4c7486829b4b44b9c65a92677267f97d3fdada72b90efc3ed1ead4e8921018d4",
+      "transformation": "Remove unused stringValue; preserve filesystem option validation and cancellation helpers"
+    }
+  ],
+  "compatibilityAdditions": [
+    {
+      "destination": "src/contracts/abort.ts",
+      "sha256": "c2d16ad3a2b431ca03ad762ba29d2b8d9ffa42642cd2869839f74ad89c262d64",
+      "provenance": "New package-owned implementation, not copied from safe-bash",
+      "purpose": "Browser-portable operation-scoped AbortController composition with ordered reasons and deterministic listener disposal; no runtime imports or global patches"
+    },
+    {
+      "destination": "src/contracts/cleanup.ts",
+      "sha256": "8e4f3a4b35549c1591278692872b68e9d8914543a407a9ba881203e1f249029a",
+      "provenance": "New package-owned implementation, not copied from safe-bash",
+      "purpose": "Await cleanup while preserving an existing primary failure; propagate cleanup failures after otherwise-successful completion or iterator return"
+    }
+  ],
+  "releaseLintTestChanges": [
+    {
+      "destination": "tests/cleanup-semantics.test.ts",
+      "sha256": "30804155b527eb35eee41dcdc6defd2340f425896005bc4bee1b39742d28c556",
+      "provenance": "New package-owned regression tests using memfs and in-memory byte iterators",
+      "purpose": "Cover cleanup rejection, generator return and throw, primary error precedence, and cancellation; baseline exposes three RealFS masking failures"
+    },
+    {
+      "destination": "tests/network-adapters.test.ts",
+      "sha256": "b57915f065878dcd76a76755817d73220e869b11f5eb6da2b8b0c959b6695549",
+      "provenance": "Existing package-owned test fixture, not extracted from safe-bash",
+      "transformation": "Remove two unnecessary double-quote escapes from the single-quoted XML fixture; runtime fixture bytes unchanged"
+    }
+  ]
+}

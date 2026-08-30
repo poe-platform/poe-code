@@ -1,4 +1,4 @@
-import { isBuiltin } from "node:module";
+import { findBundleIssues } from "../bundle-policy.js";
 import type { Rule, Violation, WorkspaceModel } from "../model.js";
 
 const id = "bundle-self-contained";
@@ -21,30 +21,21 @@ export const bundleSelfContained: Rule = {
     if (!build) return [];
     const violations: Violation[] = [];
     const workspace = workspaceNames(model);
-    const rootDeps = new Set(Object.keys(model.root.dependencies));
-
-    for (const external of [...build.externals].sort()) {
-      if (workspace.has(external)) {
-        violations.push({
-          rule: id,
-          package: external,
-          severity: "error",
-          via: "bundle",
-          detail: { external, reason: "workspace-not-inlined" },
-          message: `workspace package ${external} is externalized by the bundle instead of inlined; it is unpublished and will not resolve at runtime`,
-          fix: `Add a source alias for ${external} so the bundle inlines it.`
-        });
-      } else if (!rootDeps.has(external) && !isBuiltin(external)) {
-        violations.push({
-          rule: id,
-          package: model.root.name,
-          severity: "error",
-          via: "bundle",
-          detail: { external, reason: "undeclared-dependency" },
-          message: `bundle externalizes ${external}, which is not declared in root dependencies`,
-          fix: `Add ${external} to root "dependencies".`
-        });
-      }
+    for (const issue of findBundleIssues(
+      model.root,
+      workspace,
+      build.metafile,
+      model.packageFiles.get(".")?.files ?? new Set()
+    )) {
+      violations.push({
+        rule: id,
+        package: workspace.has(issue.external) ? issue.external : model.root.name,
+        severity: "error",
+        via: "bundle",
+        detail: { ...issue },
+        message: `bundle import ${issue.external} violates publication policy: ${issue.reason}`,
+        fix: "Inline private workspace code or supply the exact declared and packed canonical artifact; declare ordinary runtime dependencies."
+      });
     }
     return violations;
   }

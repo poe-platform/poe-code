@@ -1,7 +1,11 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
-import { findUnreachableBundleOutputs, resolveBundleGraph } from "./bundle-graph.mjs";
+import {
+  findUnreachableBundleOutputs,
+  resolveBundleGraph,
+  resolveConsumerGraph
+} from "./bundle-graph.mjs";
 
 function createFileSystem(rootPackageJson: object) {
   const volume = Volume.fromJSON({
@@ -162,6 +166,26 @@ describe("findUnreachableBundleOutputs", () => {
 });
 
 describe("resolveBundleGraph", () => {
+  it("routes every private FS subpath to the one public entry only in consumer graphs", () => {
+    const graph = {
+      alias: {
+        "@poe-code/safe-fs": "/repo/packages/safe-fs/src/index.ts",
+        "@poe-code/safe-fs/node": "/repo/packages/safe-fs/src/node/index.ts",
+        "@poe-code/safe-fs/fs/memory": "/repo/packages/safe-fs/src/fs/memory/index.ts",
+        "@poe-code/safe-fs-extra": "/repo/packages/other/src/index.ts"
+      },
+      external: ["node:*"]
+    };
+    const consumer = resolveConsumerGraph(graph, {
+      workspace: "@poe-code/safe-fs",
+      specifier: "poe-code/safe-fs"
+    });
+    expect(consumer.alias["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs");
+    expect(consumer.alias["@poe-code/safe-fs/fs/memory"]).toBe("poe-code/safe-fs");
+    expect(consumer.alias["@poe-code/safe-fs-extra"]).toBe(graph.alias["@poe-code/safe-fs-extra"]);
+    expect(consumer.external).toEqual(["node:*", "poe-code/safe-fs"]);
+    expect(graph.alias["@poe-code/safe-fs"]).toBe("/repo/packages/safe-fs/src/index.ts");
+  });
   it("aliases sub-path exports to the source behind the import target", async () => {
     const { alias } = await resolveBundleGraph(
       "/repo",

@@ -164,6 +164,7 @@ describe("standalone package publish metadata", () => {
       "./config/testing",
       "./credentials",
       "./memory",
+      "./safe-fs",
       "./safejs",
       "./safejs/cli",
       "./safejs/core",

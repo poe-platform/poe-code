@@ -46,6 +46,10 @@
     "./skills": {
       "types": "./dist/skills.d.ts",
       "import": "./dist/skills.js"
+    },
+    "./safe-fs": {
+      "types": "./packages/safe-fs/dist/index.d.ts",
+      "import": "./packages/safejs/dist/safe-fs.js"
     }
   },
   "workspaces": [
@@ -194,7 +198,8 @@
     "packages/toolcraft-openapi/dist",
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
-    "packages/worktree/dist"
+    "packages/worktree/dist",
+    "packages/safe-fs/dist/**/*.d.ts"
   ],
   "engines": {
     "node": ">=18.18"
@@ -270,6 +275,7 @@
     "@poe-code/providers": "*",
     "@poe-code/py-poe-spawn": "*",
     "@poe-code/ralph": "*",
+    "@poe-code/safe-fs": "*",
     "@poe-code/safejs": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",

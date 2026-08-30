@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.browser.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  },
+  "include": ["src/contracts/abort.ts"]
+}

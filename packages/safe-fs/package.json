@@ -1,0 +1,31 @@
+{
+  "name": "@poe-code/safe-fs",
+  "version": "0.0.0-dev",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./contracts": { "types": "./dist/contracts/index.d.ts", "import": "./dist/contracts/index.js" },
+    "./node": { "types": "./dist/node/index.d.ts", "import": "./dist/node/index.js" },
+    "./fs/memory": { "types": "./dist/fs/memory/index.d.ts", "import": "./dist/fs/memory/index.js" },
+    "./fs/real": { "types": "./dist/fs/real/index.d.ts", "import": "./dist/fs/real/index.js" },
+    "./fs/s3/http": { "types": "./dist/fs/s3/http/index.d.ts", "import": "./dist/fs/s3/http/index.js" },
+    "./fs/s3": { "types": "./dist/fs/s3/index.d.ts", "import": "./dist/fs/s3/index.js" },
+    "./fs/webdav": { "types": "./dist/fs/webdav/index.d.ts", "import": "./dist/fs/webdav/index.js" },
+    "./fs/readonly": { "types": "./dist/fs/readonly/index.d.ts", "import": "./dist/fs/readonly/index.js" },
+    "./fs/mount": { "types": "./dist/fs/mount/index.d.ts", "import": "./dist/fs/mount/index.js" },
+    "./fs/overlay": { "types": "./dist/fs/overlay/index.d.ts", "import": "./dist/fs/overlay/index.js" }
+  },
+  "files": ["dist", "README.md", "PROVENANCE.json"],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/safe-fs"
+  }
+}

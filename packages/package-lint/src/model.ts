@@ -1,4 +1,5 @@
 import path from "node:path";
+import type { BundleMetafile } from "./bundle-policy.js";
 import { parse as parseYaml } from "yaml";
 import {
   createNpmPacklistProvider,
@@ -112,6 +113,8 @@ export interface BuildView {
   inlinedDirs: Set<string>;
   /** Bare specifiers left external by the bundle, reduced to package names. */
   externals: Set<string>;
+  externalImports: Set<string>;
+  metafile: BundleMetafile;
 }
 
 export interface Violation {
@@ -595,10 +598,7 @@ function toPackageName(specifier: string): string | undefined {
   return specifier.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
 }
 
-export function parseMetafile(meta: {
-  inputs?: Record<string, unknown>;
-  outputs?: Record<string, { imports?: { path?: string; external?: boolean; kind?: string }[] }>;
-}): BuildView {
+export function parseMetafile(meta: BundleMetafile): BuildView {
   const inlinedDirs = new Set<string>();
   for (const input of Object.keys(meta.inputs ?? {})) {
     const at = input.indexOf("packages/");
@@ -607,15 +607,17 @@ export function parseMetafile(meta: {
     if (dir) inlinedDirs.add(dir);
   }
   const externals = new Set<string>();
+  const externalImports = new Set<string>();
   for (const output of Object.values(meta.outputs ?? {})) {
     for (const imp of output.imports ?? []) {
-      if (imp.external && imp.kind !== "dynamic-import" && typeof imp.path === "string") {
+      if (imp.external && typeof imp.path === "string") {
+        externalImports.add(imp.path);
         const name = toPackageName(imp.path);
         if (name) externals.add(name);
       }
     }
   }
-  return { inlinedDirs, externals };
+  return { inlinedDirs, externals, externalImports, metafile: meta };
 }
 
 export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildView | undefined> {

@@ -21,7 +21,7 @@ import {
   type ReplayableRandom,
   type SnapshotBackend,
   type SpawnUsageTotal
-} from "@poe-code/safejs";
+} from "@poe-code/safe-js";
 import type { AnySchema } from "toolcraft-schema";
 
 import { hasOwnErrorCode } from "../error-codes.js";

@@ -136,9 +136,9 @@ describe("extractSchema", () => {
 
   it("does not infer outer const diagnostics from inherited error fields", async () => {
     const actualSafeJS =
-      await vi.importActual<typeof import("@poe-code/safejs")>("@poe-code/safejs");
+      await vi.importActual<typeof import("@poe-code/safe-js")>("@poe-code/safe-js");
     vi.resetModules();
-    vi.doMock("@poe-code/safejs", () => ({
+    vi.doMock("@poe-code/safe-js", () => ({
       ...actualSafeJS,
       run: vi.fn(async () => ({
         ok: false,
@@ -166,7 +166,7 @@ describe("extractSchema", () => {
         }
       );
     } finally {
-      vi.doUnmock("@poe-code/safejs");
+      vi.doUnmock("@poe-code/safe-js");
       vi.resetModules();
     }
   });

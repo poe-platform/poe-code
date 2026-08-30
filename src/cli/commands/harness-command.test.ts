@@ -64,7 +64,7 @@ vi.mock("../../providers/index.js", () => ({
 }));
 
 const { registerHarnessCommand } = await import("./harness.js");
-const { run: runSafeJS } = await import("@poe-code/safejs");
+const { run: runSafeJS } = await import("@poe-code/safe-js");
 
 // The registry the command hands runSafeJS, taken from runSafeJS's own signature so a
 // change to what a module may export reaches these tests as a type error.
@@ -160,7 +160,7 @@ async function snapshotForSource(source: string): Promise<string> {
 
 describe("harness command", () => {
   it("uses the snapshot migration SDK for inspection, dry run, and exclusive output", async () => {
-    const { dump } = await import("@poe-code/safejs");
+    const { dump } = await import("@poe-code/safe-js");
     const execution = runSafeJS("return 1;");
     await execution;
     vol.fromJSON({
@@ -559,7 +559,7 @@ describe("harness command", () => {
           { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
         );
         const spawn = modules.agent.get("spawn") as ReturnType<
-          typeof import("@poe-code/safejs").makeAgentModule
+          typeof import("@poe-code/safe-js").makeAgentModule
         >["spawn"];
         const result = parallel
           ? (await spawn.parallel([["codex", { prompt: "Build it" }]]))[0]

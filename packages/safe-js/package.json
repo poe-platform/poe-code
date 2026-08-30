@@ -1,0 +1,46 @@
+{
+  "name": "@poe-code/safe-js",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "poe-safejs": "dist/cli.js",
+    "poe-safe-js": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/frontmatter": "*",
+    "@poe-code/safe-fs": "*",
+    "tiny-mcp-client": "*"
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && node ../../scripts/set-bin-executable.mjs",
+    "example:experiment": "tsx src/cli.ts examples/experiment.md",
+    "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
+    "example:superintendent": "tsx src/cli.ts examples/superintendent.md",
+    "test": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
+    "test:unit": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
+    "test:adversarial": "cd ../.. && vitest run packages/safe-js/test/adversarial",
+    "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts"
+  },
+  "files": [
+    "dist",
+    "examples"
+  ]
+}

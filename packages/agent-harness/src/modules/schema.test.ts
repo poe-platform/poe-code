@@ -1,4 +1,4 @@
-import { lint, run } from "@poe-code/safejs";
+import { lint, run } from "@poe-code/safe-js";
 import { describe, expect, it } from "vitest";
 import { S } from "toolcraft-schema";
 

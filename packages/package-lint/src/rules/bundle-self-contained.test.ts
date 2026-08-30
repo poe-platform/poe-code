@@ -167,7 +167,7 @@ describe("bundle-self-contained", () => {
     if (defect === "unpacked-types") model.packageFiles.get(".")!.files.delete(types);
     if (defect === "duplicate-runtime") metafile.inputs[source] = {};
     if (defect === "foreign-canonical-input")
-      metafile.canonicalBundle.metafile.outputs[chunk].inputs["packages/safejs/src/run.ts"] = {};
+      metafile.canonicalBundle.metafile.outputs[chunk].inputs["packages/safe-js/src/run.ts"] = {};
     if (defect === "external-canonical-path")
       metafile.canonicalBundle.metafile.outputs[chunk].imports = [
         { path: "file:///tmp/other.js", external: true }
@@ -182,7 +182,7 @@ describe("bundle-self-contained", () => {
     if (defect === "absolute-canonical-edge")
       metafile.canonicalBundle.metafile.outputs[entry].imports = [{ path: "/tmp/fs.js" }];
     if (defect === "missing-other-declared-root")
-      metafile.canonicalBundle.entryPoints.push("packages/safejs/src/index.ts");
+      metafile.canonicalBundle.entryPoints.push("packages/safe-js/src/index.ts");
     expect(bundleSelfContained.run(model, parseMetafile(metafile)).length).toBeGreaterThan(0);
   });
 

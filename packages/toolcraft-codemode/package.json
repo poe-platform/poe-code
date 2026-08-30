@@ -23,7 +23,7 @@
   "dependencies": {
     "toolcraft": "*",
     "toolcraft-schema": "*",
-    "@poe-code/safejs": "*"
+    "@poe-code/safe-js": "*"
   },
   "engines": {
     "node": ">=18.18"

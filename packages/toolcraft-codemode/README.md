@@ -9,7 +9,7 @@ Code-mode addresses two scaling problems in large toolcraft trees:
 - Catalog context bloat: expose three stable meta-tools instead of dumping every command schema into the model context.
 - Intermediate-token waste: let the model generate one script that searches, fetches schemas, and calls commands in-process instead of spending a model turn per tool call.
 
-The sandbox is `@poe-code/safejs`, not a custom runtime.
+The sandbox is `@poe-code/safe-js`, not a custom runtime.
 
 ## Install + Hello World
 
@@ -61,7 +61,7 @@ On success, the model's script return value is returned by the `execute` tool as
 
 ## SafeJS Subset
 
-The model must emit source accepted by [`@poe-code/safejs`](../safejs/README.md). This package does not define a second grammar.
+The model must emit source accepted by [`@poe-code/safe-js`](../safe-js/README.md). This package does not define a second grammar.
 
 ## Configuration Options
 

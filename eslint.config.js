@@ -54,7 +54,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/safejs/src/interp/arguments.ts'],
+    files: ['packages/safe-js/src/interp/arguments.ts'],
     rules: {
       'prefer-rest-params': 'off',
     },

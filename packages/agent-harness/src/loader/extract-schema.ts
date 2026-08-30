@@ -4,7 +4,7 @@ import {
   findExportedConstInitializer,
   parseModule,
   run
-} from "@poe-code/safejs";
+} from "@poe-code/safe-js";
 import type { AnySchema as SchemaDescriptor } from "toolcraft-schema";
 
 import { makeSchemaModule } from "../modules/schema.js";

@@ -39,7 +39,7 @@ it("keeps Node SafeJS and all Node FS roots in one publisher-managed split build
   const builds = resolveCanonicalFsBuilds(
     "/repo",
     { alias: {}, external: ["node:*"] },
-    { index: "/repo/packages/safejs/src/index.ts" }
+    { index: "/repo/packages/safe-js/src/index.ts" }
   );
   expect(builds.node).toMatchObject({
     write: false,
@@ -47,7 +47,7 @@ it("keeps Node SafeJS and all Node FS roots in one publisher-managed split build
     conditions: ["node"],
     target: "node18.18",
     entryPoints: {
-      index: "/repo/packages/safejs/src/index.ts",
+      index: "/repo/packages/safe-js/src/index.ts",
       "safe-fs": "/repo/packages/safe-fs/src/index.ts",
       "safe-fs-core": "/repo/packages/safe-fs/src/core.ts",
       "safe-fs-node": "/repo/packages/safe-fs/src/node-host.ts"
@@ -59,7 +59,7 @@ it("keeps Node SafeJS and all Node FS roots in one publisher-managed split build
     conditions: ["browser"],
     platform: "browser",
     external: [],
-    outdir: "/repo/packages/safejs/dist/browser"
+    outdir: "/repo/packages/safe-js/dist/browser"
   });
   expect(builds.browser.entryPoints).toEqual({
     "safe-fs": "/repo/packages/safe-fs/src/core.ts",

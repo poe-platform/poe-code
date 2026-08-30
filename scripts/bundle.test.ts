@@ -34,7 +34,7 @@ it.each([false, true])(
       ),
       [path.join(root, "src/providers/proof.ts")]: "export {};"
     });
-    for (const name of ["safe-fs", "safejs", "memory", "agent-mcp-config", "agent-skill-config"]) {
+    for (const name of ["safe-fs", "safe-js", "memory", "agent-mcp-config", "agent-skill-config"]) {
       volume.mkdirSync(path.join(root, "packages", name, "dist"), { recursive: true });
       volume.writeFileSync(
         path.join(root, "packages", name, "package.json"),
@@ -111,7 +111,7 @@ it.each([false, true])(
       expect(evidence.outputs["packages/superintendent/dist/mcp.js"].imports[0].path).toBe(
         "poe-code/safe-fs"
       );
-      expect(volume.existsSync(path.join(root, "packages/safejs/dist/safe-fs.js"))).toBe(true);
+      expect(volume.existsSync(path.join(root, "packages/safe-js/dist/safe-fs.js"))).toBe(true);
     }
     for (const [options] of build.mock.calls) {
       if (options.splitting) continue;
@@ -123,21 +123,21 @@ it.each([false, true])(
 
 it("preserves the previous SafeJS bundle when compilation fails", async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const previousChunk = path.join(root, "packages/safejs/dist/chunks/chunk-OLD.js");
+  const previousChunk = path.join(root, "packages/safe-js/dist/chunks/chunk-OLD.js");
   const volume = Volume.fromJSON({
     [path.join(root, "package.json")]: "{}",
-    [path.join(root, "packages/safejs/package.json")]: '{"name":"@poe-code/safejs"}',
+    [path.join(root, "packages/safe-js/package.json")]: '{"name":"@poe-code/safe-js"}',
     [path.join(root, "packages/safe-fs/package.json")]:
       '{"name":"@poe-code/safe-fs","exports":{"./node":{"import":"./dist/node/index.js"}}}',
     [path.join(root, "packages/memory/package.json")]: '{"name":"@poe-code/memory"}',
-    [path.join(root, "packages/safejs/dist/index.js")]: 'export * from "./chunks/chunk-OLD.js";',
+    [path.join(root, "packages/safe-js/dist/index.js")]: 'export * from "./chunks/chunk-OLD.js";',
     [previousChunk]: "export const previous = true;",
     [path.join(root, "dist/metafile.json")]: "{}"
   });
   volume.mkdirSync(path.join(root, "src/providers"), { recursive: true });
   const failure = new Error("SafeJS compilation failed");
   const build = vi.fn(async (options: BuildOptions) => {
-    if (options.outdir === path.join(root, "packages/safejs/dist")) throw failure;
+    if (options.outdir === path.join(root, "packages/safe-js/dist")) throw failure;
     return { metafile: { outputs: {} } };
   });
   vi.doMock("node:fs/promises", () => createFsFromVolume(volume).promises);
@@ -171,7 +171,7 @@ it("shares frozen FS constructors and authority registries across producer entri
   const esbuild = await vi.importActual<typeof import("esbuild")>("esbuild");
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const require = createRequire(import.meta.url);
-  const outdir = "/isolated/packages/safejs/dist";
+  const outdir = "/isolated/packages/safe-js/dist";
   const common: BuildOptions = {
     absWorkingDir: root,
     bundle: true,

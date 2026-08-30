@@ -190,11 +190,11 @@ if (providerEntryPoints.length > 0) {
   );
 }
 
-await assertSafeOutputDirectory(path.join(rootDir, "packages/safejs"));
+await assertSafeOutputDirectory(path.join(rootDir, "packages/safe-js"));
 const safejsEntryPoints = {
-  index: path.join(rootDir, "packages/safejs/src/index.ts"),
-  core: path.join(rootDir, "packages/safejs/src/core.ts"),
-  cli: path.join(rootDir, "packages/safejs/src/cli.ts")
+  index: path.join(rootDir, "packages/safe-js/src/index.ts"),
+  core: path.join(rootDir, "packages/safe-js/src/core.ts"),
+  cli: path.join(rootDir, "packages/safe-js/src/cli.ts")
 };
 const fsBuildOptions = resolveCanonicalFsBuilds(
   rootDir,
@@ -211,7 +211,7 @@ for (const [profile, options] of Object.entries(fsBuildOptions)) {
   });
   fsBuilds[profile] = result;
 }
-await setBinExecutable(path.join(rootDir, "packages/safejs"));
+await setBinExecutable(path.join(rootDir, "packages/safe-js"));
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

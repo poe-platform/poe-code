@@ -16,9 +16,9 @@ jobs:
           node-version: 22
       - run: npm clean-install
       - run: npm run record:fs-conformance
-      - run: npx vitest run packages/safejs/src/modules/fs.conformance.test.ts
+      - run: npx vitest run packages/safe-js/src/modules/fs.conformance.test.ts
       - uses: actions/upload-artifact@v4
         with:
           name: fs-node-truth-linux
-          path: packages/safejs/src/modules/fs.node-truth.json
+          path: packages/safe-js/src/modules/fs.node-truth.json
           if-no-files-found: error

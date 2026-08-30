@@ -33,7 +33,7 @@ import {
   type EnvModuleOptions,
   type FsModuleOptions,
   type McpModuleOptions
-} from "@poe-code/safejs";
+} from "@poe-code/safe-js";
 import {
   cancel,
   getTheme,

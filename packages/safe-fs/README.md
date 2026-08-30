@@ -12,10 +12,14 @@ publishes the **filesystem-only browser profile** described below while retainin
 the Node API. Its full candidate, normal hooks, release workflow and fresh
 published-artifact gates passed. Installed public runtime, types and both CLIs
 were verified on Node 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0; all 51 FS
-declarations match the verified candidate. Chromium 149.0.7827.55 passed 17
-supported public filesystem checks. Firefox and WebKit verification remains
-pending. Browser SafeJS/safe-bash execution, safe-bash runtime migration, removal
-of old copies and the `safe-js` rename remain pending.
+declarations match the verified candidate. The integrity-verified C artifact
+passed 17 public FS checks in both pages and module workers on Chromium
+149.0.7827.55, Firefox 150.0.2 and Playwright WebKit 26.4 (102 checks), plus
+11 negative browser-graph cases and 20 strict browser type profiles. This is
+not Safari certification or coverage of unreleased guest codecs/confinement.
+Browser SafeJS/safe-bash execution, safe-bash runtime migration and removal of
+old copies remain pending. Current source uses canonical `safe-js` names with
+legacy public aliases; those names were not part of the earlier C publication.
 
 The package contains the existing implementations, not alternative backends.
 In particular, `RealFileSystem({ root })` is the existing machine-directory
@@ -29,9 +33,12 @@ dispatcher, or implicit filesystem selection.
 | `poe-code/safe-fs` | Existing full Node API, including host adapters and configuration | Portable core |
 | `poe-code/safe-fs/core` | Portable surface with Node platform policy | Portable core, same implementation as browser root |
 | `poe-code/safe-fs/node` | Full Node host API, same implementation as Node root | Runtime denied; empty declarations |
-| `poe-code/safejs` | Existing Node SDK, unchanged | Runtime denied; empty declarations |
-| `poe-code/safejs/core` | Existing Node core, unchanged | Runtime denied; empty declarations |
-| `poe-code/safejs/cli` | Existing Node CLI entry, unchanged | Runtime denied; empty declarations |
+| `poe-code/safe-js` | Existing Node SDK, unchanged | Runtime denied; empty declarations |
+| `poe-code/safe-js/core` | Existing Node core, unchanged | Runtime denied; empty declarations |
+| `poe-code/safe-js/cli` | Existing Node CLI entry, unchanged | Runtime denied; empty declarations |
+
+The three legacy `poe-code/safejs` routes alias the corresponding canonical
+`safe-js` targets and retain exactly the same conditions.
 
 Denial is limited to these named routes: it is not a wildcard removal of other
 poe-code exports. An unsupported SDK/browser-FS mixture must fail import
@@ -154,7 +161,7 @@ backends remain directly constructible; they are not implicit JSON adapters.
 Configuration rejects unknown fields and accessors. It loads no credentials,
 executable modules or environment variables implicitly.
 
-SafeJS exports `parseFsConfig` and `resolveFsConfig` from `poe-code/safejs`.
+SafeJS exports `parseFsConfig` and `resolveFsConfig` from `poe-code/safe-js`.
 Both CLIs accept this JSON through `--fs-config <path>`:
 
 ```json

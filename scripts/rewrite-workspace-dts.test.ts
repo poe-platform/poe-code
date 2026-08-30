@@ -9,7 +9,7 @@ describe("profile-specific emitted workspace declarations", () => {
   it.each(["node", "browser"])(
     "routes actual declaration edges for %s without changing literal data",
     async (profile) => {
-      const filename = "/repo/packages/safejs/dist/modules/fs.d.ts";
+      const filename = "/repo/packages/safe-js/dist/modules/fs.d.ts";
       const volume = Volume.fromJSON({
         [filename]: [
           'import type { FsError } from "@poe-code/safe-fs";',
@@ -21,7 +21,7 @@ describe("profile-specific emitted workspace declarations", () => {
       });
       const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
       await rewriteWorkspaceDts(
-        "/repo/packages/safejs/dist",
+        "/repo/packages/safe-js/dist",
         [{ dir: "safe-fs", pkg: { name: "@poe-code/safe-fs" } }],
         { rootDir: "/repo", profile, files: createFsFromVolume(volume).promises }
       );

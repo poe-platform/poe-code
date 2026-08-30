@@ -20,11 +20,11 @@ vi.mock("node:fs/promises", async () => {
   return { ...fs.promises, default: fs.promises };
 });
 
-vi.mock("../../../packages/safejs/src/modules/fs.js", () => ({
+vi.mock("../../../packages/safe-js/src/modules/fs.js", () => ({
   makeFsModule: sdk.makeFsModule
 }));
 
-vi.mock("../../../packages/safejs/src/modules/fs-config.js", () => ({
+vi.mock("../../../packages/safe-js/src/modules/fs-config.js", () => ({
   parseFsConfig: sdk.parseFsConfig,
   resolveFsConfig: sdk.resolveFsConfig
 }));
@@ -33,8 +33,8 @@ vi.mock("@poe-code/safe-fs", () => {
   throw new Error("CLI configuration tests must not load mutable filesystem adapters.");
 });
 
-vi.mock("@poe-code/safejs", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@poe-code/safejs")>()),
+vi.mock("@poe-code/safe-js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@poe-code/safe-js")>()),
   makeLogModule: () => ({})
 }));
 

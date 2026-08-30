@@ -18,26 +18,26 @@
     "./safejs": {
       "types": {
         "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safejs/dist/index.d.ts"
+        "default": "./packages/safe-js/dist/index.d.ts"
       },
       "browser": null,
-      "import": "./packages/safejs/dist/index.js"
+      "import": "./packages/safe-js/dist/index.js"
     },
     "./safejs/core": {
       "types": {
         "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safejs/dist/core.d.ts"
+        "default": "./packages/safe-js/dist/core.d.ts"
       },
       "browser": null,
-      "import": "./packages/safejs/dist/core.js"
+      "import": "./packages/safe-js/dist/core.js"
     },
     "./safejs/cli": {
       "types": {
         "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
-        "default": "./packages/safejs/dist/cli.d.ts"
+        "default": "./packages/safe-js/dist/cli.d.ts"
       },
       "browser": null,
-      "import": "./packages/safejs/dist/cli.js"
+      "import": "./packages/safe-js/dist/cli.js"
     },
     "./agent": {
       "types": "./dist/agent.d.ts",
@@ -64,16 +64,16 @@
         "browser": "./packages/safe-fs/dist/core.d.ts",
         "default": "./packages/safe-fs/dist/index.d.ts"
       },
-      "browser": "./packages/safejs/dist/browser/safe-fs.js",
-      "import": "./packages/safejs/dist/safe-fs.js"
+      "browser": "./packages/safe-js/dist/browser/safe-fs.js",
+      "import": "./packages/safe-js/dist/safe-fs.js"
     },
     "./safe-fs/core": {
       "types": {
         "browser": "./packages/safe-fs/dist/core.d.ts",
         "default": "./packages/safe-fs/dist/core.d.ts"
       },
-      "browser": "./packages/safejs/dist/browser/safe-fs-core.js",
-      "import": "./packages/safejs/dist/safe-fs-core.js"
+      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js",
+      "import": "./packages/safe-js/dist/safe-fs-core.js"
     },
     "./safe-fs/node": {
       "types": {
@@ -81,7 +81,31 @@
         "default": "./packages/safe-fs/dist/node-host.d.ts"
       },
       "browser": null,
-      "import": "./packages/safejs/dist/safe-fs-node.js"
+      "import": "./packages/safe-js/dist/safe-fs-node.js"
+    },
+    "./safe-js": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/index.js"
+    },
+    "./safe-js/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/core.js"
+    },
+    "./safe-js/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/cli.js"
     }
   },
   "workspaces": [
@@ -160,7 +184,8 @@
     "poe-code": "dist/bin.cjs",
     "poe-agent": "dist/bin/poe-agent.js",
     "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
-    "poe-safejs": "packages/safejs/dist/cli.js"
+    "poe-safejs": "packages/safe-js/dist/cli.js",
+    "poe-safe-js": "packages/safe-js/dist/cli.js"
   },
   "files": [
     "LICENSE",
@@ -186,7 +211,7 @@
     "packages/agent-hook-config/dist",
     "packages/agent-human-in-loop/dist",
     "packages/maestro/dist",
-    "packages/safejs/dist",
+    "packages/safe-js/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",
     "packages/braintrust/dist",
@@ -308,7 +333,6 @@
     "@poe-code/py-poe-spawn": "*",
     "@poe-code/ralph": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-code/safejs": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
     "@poe-code/user-error": "*",
@@ -357,7 +381,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "8.55.0",
     "vite": "6.4.3",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.6",
+    "@poe-code/safe-js": "*"
   },
   "repository": {
     "type": "git",

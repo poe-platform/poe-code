@@ -280,13 +280,17 @@ const filesystem = new MemoryFileSystem();
 await filesystem.writeFile("/note", new TextEncoder().encode("hello"));
 ```
 
-SafeJS accepts these adapters through `makeFsModule({ adapter, root?, cwd?, signal? })`
-from `poe-code/safejs`. Both `poe-safejs` and `poe-code harness run` accept
+The current source uses canonical SafeJS names; the versioned C verification
+above predates that rename. SafeJS accepts these adapters through
+`makeFsModule({ adapter, root?, cwd?, signal? })`
+from `poe-code/safe-js`. The legacy `poe-code/safejs` routes and `poe-safejs` binary
+remain aliases to the identical canonical artifacts. Both `poe-safe-js` and `poe-code harness run` accept
 `--fs-config <path>` for explicit memory or host-directory configuration; the
 legacy `--fs` and `--fs-root` options retain their Node-backed behavior.
 
-The default public entries target Node.js. Full browser runtime support, safe-bash runtime migration,
-removal of legacy adapter copies and the `safe-js` rename remain pending.
+The default public entries target Node.js. Full browser runtime support,
+safe-bash runtime migration and removal of legacy adapter copies remain pending. Canonical and legacy
+SafeJS names share artifacts; publication is tracked in the rename plan.
 The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.
@@ -303,14 +307,17 @@ Memory, read-only, mount, overlay and WebDAV adapters are portable; real host
 storage, S3/transports and Node configuration helpers remain Node-only.
 
 The Node host entry `poe-code/safe-fs/node` and the still-Node-only
-`poe-code/safejs`, `poe-code/safejs/core` and `poe-code/safejs/cli` are deliberately
+`poe-code/safe-js`, `poe-code/safe-js/core` and `poe-code/safe-js/cli` are deliberately
 unavailable at runtime under the browser condition and expose empty browser
 declarations. Their Node exports remain available. This is an exact route
-boundary, not removal of the SDK or its Node capabilities.
+boundary, not removal of the SDK or its Node capabilities. All three legacy
+`poe-code/safejs` aliases retain the same conditions.
 
-The published artifact passed 17 public filesystem checks in Chromium
-149.0.7827.55. Firefox and WebKit verification remains pending; these checks do
-not establish full browser SafeJS support.
+The integrity-verified published C artifact passed 17 public filesystem checks
+in both pages and module workers on Chromium 149.0.7827.55, Firefox 150.0.2 and
+Playwright WebKit 26.4: 102 checks total, plus 11 negative browser-graph cases
+and 20 strict browser type profiles. This is FS-only coverage, not Safari
+certification, browser SafeJS execution or coverage of unreleased guest codecs.
 
 Full browser SafeJS SDK/runtime support remains pending. Guest codec integration,
 portable SDK declaration closure and shared host-call policy/replay metadata

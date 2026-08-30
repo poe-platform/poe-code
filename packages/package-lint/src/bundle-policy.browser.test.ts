@@ -3,7 +3,10 @@ import { findBundleIssues } from "./bundle-policy.js";
 import { canonicalBundleFixture } from "./fixtures.js";
 
 describe("Node-only SafeJS browser boundary", () => {
-  const routes = ["./safejs", "./safejs/core", "./safejs/cli"] as const;
+  const routes = [
+    "./safe-js", "./safe-js/core", "./safe-js/cli",
+    "./safejs", "./safejs/core", "./safejs/cli"
+  ] as const;
   it.each(routes)("rejects unsafe export conditions for %s", (route) => {
     const { manifest, metafile, packed } = canonicalBundleFixture();
     expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
@@ -66,7 +69,7 @@ describe("conditional canonical FS publication", () => {
   );
   it("accepts a reachable dynamic chunk, not an undeclared public root", () => {
     const { manifest, metafile, packed } = canonicalBundleFixture();
-    const output = "packages/safejs/dist/chunks/lazy.js";
+    const output = "packages/safe-js/dist/chunks/lazy.js";
     const canonical = metafile.canonicalBundle.metafile;
     canonical.outputs[output] = {
       entryPoint: "packages/safe-fs/src/lazy.ts",
@@ -74,11 +77,11 @@ describe("conditional canonical FS publication", () => {
       inputs: {}
     };
     canonical.outputs[`${output}.map`] = { imports: [], inputs: {} };
-    canonical.outputs["packages/safejs/dist/chunks/fs.js"].imports.push({ path: output });
+    canonical.outputs["packages/safe-js/dist/chunks/fs.js"].imports.push({ path: output });
     packed.add(output);
     packed.add(`${output}.map`);
     expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
-    canonical.outputs["packages/safejs/dist/chunks/fs.js"].imports.pop();
+    canonical.outputs["packages/safe-js/dist/chunks/fs.js"].imports.pop();
     expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({
       external: "poe-code/safe-fs",
       reason: "undeclared-canonical-root"
@@ -124,7 +127,7 @@ describe("conditional canonical FS publication", () => {
   ])("rejects %s without a broad self-import exemption", (defect) => {
     const { manifest, metafile, packed } = canonicalBundleFixture();
     const browser = metafile.browserCanonicalBundle.metafile;
-    const shared = "packages/safejs/dist/browser/chunks/fs.js";
+    const shared = "packages/safe-js/dist/browser/chunks/fs.js";
     if (defect === "nested-package-scope") packed.add("packages/safe-fs/package.json");
     if (defect === "nonempty-node-types") metafile.canonicalEmptyTypes = [];
     if (defect === "extra-route")
@@ -142,9 +145,9 @@ describe("conditional canonical FS publication", () => {
     if (defect === "browser-private-external")
       browser.outputs[shared].imports = [{ path: "#safe-fs-platform", external: true }];
     if (defect === "cross-profile-edge")
-      browser.outputs[shared].imports = [{ path: "packages/safejs/dist/chunks/fs.js" }];
+      browser.outputs[shared].imports = [{ path: "packages/safe-js/dist/chunks/fs.js" }];
     if (defect === "missing-core-root")
-      delete metafile.canonicalBundle.metafile.outputs["packages/safejs/dist/safe-fs-core.js"];
+      delete metafile.canonicalBundle.metafile.outputs["packages/safe-js/dist/safe-fs-core.js"];
     if (defect === "missing-browser-map") delete browser.outputs[`${shared}.map`];
     if (defect === "unpacked-browser-chunk") packed.delete(shared);
     if (defect === "missing-transitive-types")
@@ -162,7 +165,7 @@ describe("conditional canonical FS publication", () => {
       Object.assign(manifest.imports["#safe-fs-platform"], { import: "./policy.js" });
     if (defect === "node-route-browser-fallback")
       Object.assign(manifest.exports["./safe-fs/node"], {
-        browser: "./packages/safejs/dist/safe-fs-node.js"
+        browser: "./packages/safe-js/dist/safe-fs-node.js"
       });
     if (defect === "types-condition-order")
       Object.assign(manifest.exports, {

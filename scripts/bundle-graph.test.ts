@@ -166,6 +166,31 @@ describe("findUnreachableBundleOutputs", () => {
 });
 
 describe("resolveBundleGraph", () => {
+  it("discovers the canonical SafeJS workspace and subpaths without a private legacy alias", async () => {
+    const { alias, external } = await resolveBundleGraph(
+      "/repo",
+      [
+        {
+          dir: "safe-js",
+          pkg: {
+            name: "@poe-code/safe-js",
+            exports: {
+              ".": "./dist/index.js",
+              "./core": "./dist/core.js",
+              "./cli": "./dist/cli.js"
+            }
+          }
+        }
+      ],
+      createFileSystem({ dependencies: {} })
+    );
+    expect(alias["@poe-code/safe-js"]).toBe("/repo/packages/safe-js/src/index.ts");
+    expect(alias["@poe-code/safe-js/core"]).toBe("/repo/packages/safe-js/src/core.ts");
+    expect(alias["@poe-code/safe-js/cli"]).toBe("/repo/packages/safe-js/src/cli.ts");
+    expect(alias).not.toHaveProperty("@poe-code/safejs");
+    expect(external).not.toContain("@poe-code/safe-js");
+  });
+
   it("routes every private FS subpath to the one public entry only in consumer graphs", () => {
     const graph = {
       alias: {

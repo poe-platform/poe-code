@@ -3,10 +3,11 @@
 Status: The Node foundation (A, `poe-code@12.0.3`) and explicit SafeJS Node SDK/CLI
 integration (B, `poe-code@12.0.5`) and filesystem-only browser profile
 (C, `poe-code@12.0.7`) are published and verified. C passed full candidate and
-fresh published-artifact gates. Cross-repository migration, the safe-js rename
-and full browser SafeJS/safe-bash execution remain incomplete. Firefox and
-WebKit filesystem verification remains pending; the recorded C browser proof
-uses Chromium only.
+fresh published-artifact gates. Cross-repository migration and full browser
+SafeJS/safe-bash execution remain incomplete. The canonical rename is implemented
+in an isolated candidate; its release gates and publication are tracked in
+`safe-js-rename.md`. Published C now also has bounded Chromium, Firefox and
+Playwright WebKit filesystem verification; it does not establish browser SDK support.
 
 ## Incremental release record — A (August 30, 2026)
 
@@ -94,6 +95,22 @@ uses Chromium only.
 - Original HEAD/index, four terminal fonts and the CLAUDE.md symlink were
   preserved. Authoritative receipt:
   `/tmp/release-c-published.lZsBvR/artifacts/final-receipt.json`.
+
+## Supplemental published C cross-browser record — August 30, 2026
+
+After the C docs commit `49eea61131a83e2713c5b7ca3b198631bef7be4c` was frozen,
+the same integrity-verified `12.0.7` registry artifact passed 17 public FS checks
+per page and module worker on Chromium 149.0.7827.55, Firefox 150.0.2 and
+Playwright WebKit 26.4: 102 checks, 11 negative browser-graph cases and 20 strict
+browser type profiles. This supplements the earlier Chromium-only record; it
+is not Safari certification or a renamed-artifact verification. Evidence:
+`/tmp/published-c-crossbrowser.jzgMlR/REPORT.md` and `final-audit.json`.
+
+The separate frozen, unreleased guest-codec/confinement probes do not establish
+published SDK coverage and are excluded from those counts. Full browser
+SafeJS/runtime integration remains pending. The registration-only host-policy
+contract issue is genuine and assigned to a separate follow-up; its unfinished
+fix is not included in this rename.
 
 ## C milestone — portable filesystem only
 

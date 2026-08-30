@@ -138,39 +138,63 @@ export function pkgJson(fields: Record<string, unknown>): string {
 
 export function canonicalBundleFixture() {
   const source = "packages/safe-fs/src/index.ts";
-  const entry = "packages/safejs/dist/safe-fs.js";
-  const chunk = "packages/safejs/dist/chunks/fs.js";
+  const entry = "packages/safe-js/dist/safe-fs.js";
+  const chunk = "packages/safe-js/dist/chunks/fs.js";
   const types = "packages/safe-fs/dist/index.d.ts";
   const manifest = {
     name: "poe-code",
     exports: {
+      "./safe-js": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/index.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/index.js"
+      },
+      "./safe-js/core": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/core.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/core.js"
+      },
+      "./safe-js/cli": {
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: "./packages/safe-js/dist/cli.d.ts"
+        },
+        browser: null,
+        import: "./packages/safe-js/dist/cli.js"
+      },
       "./safejs": {
         types: {
           browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safejs/dist/index.d.ts"
+          default: "./packages/safe-js/dist/index.d.ts"
         },
         browser: null,
-        import: "./packages/safejs/dist/index.js"
+        import: "./packages/safe-js/dist/index.js"
       },
       "./safejs/core": {
         types: {
           browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safejs/dist/core.d.ts"
+          default: "./packages/safe-js/dist/core.d.ts"
         },
         browser: null,
-        import: "./packages/safejs/dist/core.js"
+        import: "./packages/safe-js/dist/core.js"
       },
       "./safejs/cli": {
         types: {
           browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
-          default: "./packages/safejs/dist/cli.d.ts"
+          default: "./packages/safe-js/dist/cli.d.ts"
         },
         browser: null,
-        import: "./packages/safejs/dist/cli.js"
+        import: "./packages/safe-js/dist/cli.js"
       },
       "./safe-fs": {
         types: { browser: "./packages/safe-fs/dist/core.d.ts", default: `./${types}` },
-        browser: "./packages/safejs/dist/browser/safe-fs.js",
+        browser: "./packages/safe-js/dist/browser/safe-fs.js",
         import: `./${entry}`
       },
       "./safe-fs/core": {
@@ -178,8 +202,8 @@ export function canonicalBundleFixture() {
           browser: "./packages/safe-fs/dist/core.d.ts",
           default: "./packages/safe-fs/dist/core.d.ts"
         },
-        browser: "./packages/safejs/dist/browser/safe-fs-core.js",
-        import: "./packages/safejs/dist/safe-fs-core.js"
+        browser: "./packages/safe-js/dist/browser/safe-fs-core.js",
+        import: "./packages/safe-js/dist/safe-fs-core.js"
       },
       "./safe-fs/node": {
         types: {
@@ -187,7 +211,7 @@ export function canonicalBundleFixture() {
           default: "./packages/safe-fs/dist/node-host.d.ts"
         },
         browser: null,
-        import: "./packages/safejs/dist/safe-fs-node.js"
+        import: "./packages/safe-js/dist/safe-fs-node.js"
       }
     },
     imports: {
@@ -199,12 +223,12 @@ export function canonicalBundleFixture() {
         default: null
       }
     },
-    files: ["dist", "packages/safejs/dist", "packages/safe-fs/dist/**/*.d.ts"],
+    files: ["dist", "packages/safe-js/dist", "packages/safe-fs/dist/**/*.d.ts"],
     dependencies: { jose: "*" },
     optionalDependencies: { braintrust: "*" }
   };
   function graph(profile: "node" | "browser") {
-    const directory = profile === "node" ? "packages/safejs/dist" : "packages/safejs/dist/browser";
+    const directory = profile === "node" ? "packages/safe-js/dist" : "packages/safe-js/dist/browser";
     const sources =
       profile === "node"
         ? {

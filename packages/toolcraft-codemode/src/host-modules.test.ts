@@ -1,4 +1,4 @@
-import { lint, run } from "@poe-code/safejs/core";
+import { lint, run } from "@poe-code/safe-js/core";
 import { createHumanInLoop, type HumanInLoopProvider } from "toolcraft/human-in-loop";
 import { createSDK } from "toolcraft/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";

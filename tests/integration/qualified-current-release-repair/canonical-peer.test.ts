@@ -82,7 +82,7 @@ test("current stream transformation preserves the sealed input and all 18 regist
   const profileModule = new URL("../../plugins/stream-five-public/current-profile.mjs", import.meta.url).href;
   const { currentProfile, historicalHarnessSha256 } = await import(profileModule);
   const original = readFileSync(new URL("../../commands/stream-next-stress/independent.review.ts", import.meta.url));
-  const before = original.slice();
+  const before = Buffer.from(original);
   assert.equal(digest(original), "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae");
   assert.equal(historicalHarnessSha256, digest(original));
   const profile = currentProfile(original);
@@ -100,6 +100,8 @@ test("current stream transformation preserves the sealed input and all 18 regist
   assert.equal(replayed, profile.source);
   assert.deepEqual(original, before);
   assert.throws(() => currentProfile(Buffer.concat([original, Buffer.from("\n")])), /historical harness must remain byte-exact/u);
+  original.fill(0);
+  assert.equal(digest(before), historicalHarnessSha256, "the beforeimage must not alias mutable input bytes");
 });
 
 for (const scenario of ["leaf", "root", "empty", "unknown", "tampered", "foreign", "source", "symlink"] as const) {

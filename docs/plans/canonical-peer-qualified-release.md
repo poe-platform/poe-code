@@ -184,3 +184,20 @@ Only this plan and the owned README receive the measured-outcome follow-up.
 The final documentation commit must independently rerun the real wrapper and
 scoped checks before its own final receipt is frozen. No product implementation,
 dependency, assertion input or qualification exclusion changes in that follow-up.
+
+## Independent beforeimage control
+
+The two-document follow-up `2907785cf550807aa111541d1c6f829f28ceb295`
+also passes its own full wrapper and the same scoped/installed checks under
+`/tmp/safe-bash-catalog-repair.2014Ee/final`; the four protected historical FS
+failures and 33 source diagnostics remain unchanged.
+
+Final test review found that the new in-memory input-preservation check used
+`Buffer.slice()`, which shares bytes rather than preserving an independent
+beforeimage. A mutation after profile evaluation now demonstrates that aliasing:
+79 controls pass and that one control fails. Using `Buffer.from(original)` makes
+the beforeimage independent and all 80 controls pass. Mutation touches only the
+test's in-memory read buffer, never the sealed file. The generator and all
+production/qualification algorithms are unchanged. This test/plan-only normal
+follow-up receives fresh commit-bound qualification and scoped acceptance in
+the successor receipt; earlier successful receipts are not overwritten.

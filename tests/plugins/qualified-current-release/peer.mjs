@@ -218,3 +218,15 @@ export function assertPeerDeclarationFiles(binding, files, consumer) {
   }
   assertPeerArtifact(binding, consumer);
 }
+
+export function assertConsumerDeclarationFiles(files, installed, binding, io = filesystem) {
+  installed = io.realpathSync(installed);
+  const selected = files.filter(path => contained(installed, path) || path.includes("/node_modules/virtual-bash/"));
+  assert.ok(selected.length > 0, "Consumer must include authenticated candidate declarations");
+  for (const path of selected) {
+    assert.ok(contained(join(installed, "dist"), path), `Candidate declaration used foreign/source fallback: ${path}`);
+    const expected = binding.declarations.get(relative(installed, path));
+    assert.equal(typeof expected, "string", `Candidate declaration is outside the bound closure: ${path}`);
+    assert.equal(digest(regularBytes(io, path)), expected, `Candidate declaration bytes changed: ${path}`);
+  }
+}

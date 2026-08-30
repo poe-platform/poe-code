@@ -76,3 +76,29 @@ The unrelated broad 136 failures, 25 cancellations, 33 type diagnostics and four
 protected historical FS expectations remain explicit out-of-scope gates. Their
 fixtures, old red/green receipts, 845 ownership and 573 original canonical
 assertion maps stay unchanged. No cleanup deletion, branch or push is authorized.
+
+## First actual-commit result and owned follow-up
+
+The normal ten-path commit is `410fe17d40129696c2bca7f44abd9327b256b7cc`.
+Its actual qualified wrapper admits the peer, compiles all 25 current consumer
+groups, and passes the unchanged native archive 11/11 and metadata 318/318 with
+all 22 native rows. The snapshot is retained under
+`qualified-current-consumers-SP05BV` in the system temporary directory.
+
+One current consumer imports only the public timeout leaf. An existing file-list
+guard incorrectly required `dist/index.d.ts` even though the exact public leaf
+resolved and compiled. Eight new memfs cases reproduce that admission mismatch
+and reject empty, foreign, source, unknown, changed and symlinked declarations.
+The follow-up uses the existing exact declaration binding for every listed
+candidate declaration and retains per-import public export checks. It does not
+permit arbitrary declarations or discard the positive candidate-resolution guard.
+The shared guard is used by both consumer paths. All 49 new units plus 24
+adjacent coverage controls pass; the source diagnostics remain unchanged.
+
+The first full wrapper still fails two of its 18 generated current stream cases:
+the generator expects 70 commands, while the independently reviewed maintained
+catalog is 80. The original frozen input remains byte-identical. The generator
+`tests/plugins/stream-five-public/current-profile.mjs` is outside the ten-path
+scope; its exact SHA-256 and a one-path approval request are recorded in the
+evidence stage. No generator, historical fixture or count is silently changed.
+This result is not a qualified release pass.

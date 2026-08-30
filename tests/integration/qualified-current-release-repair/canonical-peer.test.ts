@@ -10,6 +10,27 @@ const digest = (bytes: string | Uint8Array) => createHash("sha256").update(bytes
 const runtimePath = "packages/safe-fs/dist/index.js";
 const declarationPath = "packages/safe-fs/dist/index.d.ts";
 
+for (const scenario of ["leaf", "root", "empty", "unknown", "tampered", "foreign", "source", "symlink"] as const) {
+  test(`candidate declaration listing authenticates ${scenario} without requiring an unused root import`, async () => {
+    const { assertConsumerDeclarationFiles } = await import(peerModule);
+    assert.equal(typeof assertConsumerDeclarationFiles, "function");
+    const installed = "/consumer/node_modules/virtual-bash";
+    const leaf = `${installed}/dist/commands/timeout/index.d.ts`, root = `${installed}/dist/index.d.ts`;
+    const volume = Volume.fromJSON({ [leaf]: "export declare const timeout: number;", [root]: "export declare const root: number;" });
+    const io = createFsFromVolume(volume);
+    const binding = { declarations: new Map([["dist/commands/timeout/index.d.ts", digest(io.readFileSync(leaf) as Buffer)], ["dist/index.d.ts", digest(io.readFileSync(root) as Buffer)]]) };
+    let files = [scenario === "root" ? root : leaf];
+    if (scenario === "empty") files = [];
+    if (scenario === "unknown") { files = [`${installed}/dist/private.d.ts`]; io.writeFileSync(files[0]!, "export {};"); }
+    if (scenario === "tampered") io.writeFileSync(leaf, "changed");
+    if (scenario === "foreign") files = ["/other/node_modules/virtual-bash/dist/index.d.ts"];
+    if (scenario === "source") files = [`${installed}/src/index.ts`];
+    if (scenario === "symlink") { io.renameSync(leaf, "/outside.d.ts"); io.symlinkSync("/outside.d.ts", leaf); }
+    if (scenario === "root" || scenario === "leaf") assertConsumerDeclarationFiles(files, installed, binding, io);
+    else assert.throws(() => assertConsumerDeclarationFiles(files, installed, binding, io));
+  });
+}
+
 function archive(files: Record<string, string>, type = "0") {
   const chunks: Buffer[] = [];
   for (const [path, text] of Object.entries(files)) {

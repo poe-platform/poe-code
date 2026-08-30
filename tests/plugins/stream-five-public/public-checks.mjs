@@ -3,7 +3,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, renameSync, 
 import { join } from "node:path";
 import { environment, json, manifest, run, step } from "./harness.mjs";
 import { sha256 } from "./current-profile.mjs";
-import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles } from "../qualified-current-release/peer.mjs";
+import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles, assertConsumerDeclarationFiles } from "../qualified-current-release/peer.mjs";
 import { createBuiltPackageBinding, assertBuiltConsumerResolution } from "../../../scripts/typecheck-consumers.mjs";
 
 export function publicChecks(report, { peerArtifact } = {}) {
@@ -67,6 +67,7 @@ export function publicChecks(report, { peerArtifact } = {}) {
   const positive = step(report, "public-types-positive", process.execPath, [compiler, "-p", join(moved, "tsconfig.positive.json"), "--traceResolution"], moved);
   assertBuiltConsumerResolution(positive.stdout, moved, root, declarationBinding);
   const listing = step(report, "public-types-resolution", process.execPath, [compiler, "-p", join(moved, "tsconfig.positive.json"), "--listFilesOnly"], moved);
+  assertConsumerDeclarationFiles(listing.stdout.trim().split("\n"), join(moved, "node_modules/virtual-bash"), declarationBinding);
   assertPeerDeclarationFiles(peer, listing.stdout.trim().split("\n"), moved);
   const negative = stepNegative(report, compiler, moved);
   assert.equal((negative.stdout.match(/error TS\d+:/gu) ?? []).length, 7, "all seven invalid public configurations must fail");

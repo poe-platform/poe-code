@@ -7,7 +7,7 @@ import { sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs"
 import { consumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage, validateRuntimeResults } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { finish, snapshot, unchangedTests } from "../tests/plugins/qualified-current-release/snapshot.mjs";
-import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles } from "../tests/plugins/qualified-current-release/peer.mjs";
+import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles, assertConsumerDeclarationFiles } from "../tests/plugins/qualified-current-release/peer.mjs";
 import { createBuiltPackageBinding, assertBuiltConsumerResolution } from "./typecheck-consumers.mjs";
 
 export function probeConsumerPermission(report, executable = process.execPath) {
@@ -118,7 +118,7 @@ export function currentConsumers(report, { peerArtifact } = {}) {
       result.compile = "pass";
       const listing = step(report, `consumer-${group.name}-resolution`, process.execPath, [compiler, "-p", join(workspace, "tsconfig.json"), "--listFilesOnly"], consumer);
       const compilerFiles = listing.stdout.trim().split("\n");
-      assert.ok(compilerFiles.includes(join(groupInstalled, "dist/index.d.ts")));
+      assertConsumerDeclarationFiles(compilerFiles, groupInstalled, declarationBinding);
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
       assertPeerDeclarationFiles(peer, compilerFiles, consumer);
       for (const runtime of group.runtime) {

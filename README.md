@@ -323,6 +323,27 @@ Full browser SafeJS SDK/runtime support remains pending. Guest codec integration
 portable SDK declaration closure and shared host-call policy/replay metadata
 require separate integration; a browser filesystem build does not prove them.
 
+#### Host-operation recovery policy
+
+The Node SafeJS SDK selects recovery policy when a host call is issued:
+`declareHostOperation(function, policy)` takes precedence, otherwise the exact
+journaled module/operation pair registered with `registerPendingHostCallPolicy`
+supplies the default, otherwise the call is `re-issue`. Named registration is not
+limited to legacy snapshot reconciliation. Caller bindings use module ID
+`<bindings>`. Registration affects subsequent calls, not previously captured
+history; a changed policy on replay fails closed rather than downgrading a
+captured side effect.
+
+Recorded outcomes are reused. A pending `read-side-effect` call requires a
+matching external reconciliation proof and is not blindly invoked again;
+`re-issue` permits another invocation. Neither registration nor checkpointing
+makes arbitrary external effects exactly-once. Shared function aliases retain
+their existing canonical journal identity, so declare the function itself when
+its aliases must share an effect policy. See the
+[host-policy contract](packages/safe-js/CHECKPOINT_REPLAY.md#host-operation-policy-selection)
+for registration lifetime, naming and reconciliation requirements. This changes
+no CLI flags and adds no browser SafeJS runtime support.
+
 ## Building from Source
 
 Run `npm run build` to compile the workspace and generate the published bundles.

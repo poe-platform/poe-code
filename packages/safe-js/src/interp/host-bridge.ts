@@ -10,7 +10,10 @@ import {
 } from "./float32.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
-import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
+import {
+  readRegisteredPendingHostCallPolicy,
+  type PendingHostCallPolicyMode
+} from "../snapshot/policy.js";
 import {
   digestHostCallArguments,
   HostCallResumabilityError,
@@ -167,10 +170,13 @@ function wrapCallerInjectedFunction(
             wrapSandboxClosureForHost(closure, stackFrames, options.budget, callbacks)
         }) as unknown[];
 
-        const policy = readHostOperationPolicy(value) ?? "re-issue";
         const hostCalls = options.hostCalls;
         const operation = options.operation ?? bindingName;
         const moduleId = options.moduleId ?? "<bindings>";
+        const policy =
+          readHostOperationPolicy(value) ??
+          readRegisteredPendingHostCallPolicy(moduleId, operation) ??
+          "re-issue";
         if (hostCalls === undefined) {
           return copyHostResultToSandbox(
             invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),

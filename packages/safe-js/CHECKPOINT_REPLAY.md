@@ -5,8 +5,58 @@ callback arguments, and an execution-order trace. Restoring a checkpoint rebuild
 script state from the source and replays that history. Completed host-operation
 outcomes are reused instead of invoking those operations again. This does not
 exclude reconstruction of recorded source callbacks or a configured `onReplay`
-hook. A still-pending operation follows its declared recovery policy: re-issue
+hook. A still-pending operation follows its captured recovery policy: re-issue
 or external reconciliation.
+
+## Host-operation policy selection
+
+The public Node SDK exports both `declareHostOperation` and
+`registerPendingHostCallPolicy`. At host-call issue time the bridge selects:
+
+1. The policy explicitly attached to that function by `declareHostOperation`.
+2. Otherwise, the existing named registry's policy for the exact journaled
+   `moduleId` and `operation` pair.
+3. Otherwise, `"re-issue"`.
+
+Named registration supplies a live default, not just legacy pending-snapshot
+reconciliation. It can be installed after a wrapper is created but must precede
+the call being issued. The registry is local to the loaded SDK implementation;
+there is no per-run registry option. The last registration for a pair replaces
+its default. Module normalization also registers explicitly declared exports.
+Function declarations still win if the named default later conflicts.
+
+Registration trims required nonblank names and keeps them case-sensitive.
+Supply the exact resulting journal names: ordinary caller bindings use
+`"<bindings>"`, imported capabilities use their module ID, and nested operations
+use their property path. Do not assume lexical aliases are separate operations:
+the same native function reuses its first wrapped capability identity. A named
+function exported as `default` uses its function name as the operation; anonymous
+default exports use `default`. Declare a shared function directly when all of
+its aliases must carry the same effect policy. No new alias identity or
+registry-copy mechanism is introduced by named defaults.
+
+The chosen policy is part of the captured call identity alongside the module,
+operation and argument digest. Later registration cannot alter an already
+captured call, even on repeated dumps. Restore validates that identity. Changing
+the live selection between capture and replay fails closed; it does not
+downgrade a captured `read-side-effect` call, execute a replacement, or bypass
+reconciliation by accepting a provider for a different invocation.
+
+Recorded outcomes replay without invoking the host operation or reconciliation
+provider. An unrecorded pending `re-issue` call can invoke the replacement again.
+An unrecorded pending `read-side-effect` call instead requires a
+`hostCallResumeProvider` proof matching the request's `callId`, `sourceHash`,
+`moduleId`, `operation` and `argumentDigest`, plus the recovered outcome. Missing
+or mismatched proof rejects with `HostCallResumabilityError` and action
+`"external-reconciliation"`. A provider is responsible for genuine recovery of
+the external effect; neither policy API makes arbitrary effects exactly-once.
+
+One error-shape limitation remains: a synchronous restored-invocation identity
+mismatch can emerge from the public run boundary as plain `Error`, with the
+reset-required message but without the underlying `HostCallResumabilityError`
+class or `action: "reset"`. The mismatch still rejects before host/provider
+invocation. That typed-error contract is not fixed by the policy lookup change.
+Legacy snapshot policy validation and immutable side-effect tags are unchanged.
 
 ## External checkpoints during host waits
 

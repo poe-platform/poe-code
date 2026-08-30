@@ -37,6 +37,34 @@ Full browser SDK/runtime support, safe-bash migration and removal of its legacy
 adapter copies remain pending. Canonical rename publication is recorded in
 `docs/plans/safe-js-rename.md`, not attributed to the earlier C release.
 
+## Host-operation recovery policies
+
+From the public Node SDK `poe-code/safe-js`, use
+`declareHostOperation(callback, "read-side-effect")` to attach a policy to that
+function, or `registerPendingHostCallPolicy({ moduleId, operation, policy })` to
+set the default for its exact journaled name. At each call, an explicit function
+declaration wins, then the named registry, then `"re-issue"`. Ordinary caller
+bindings use `moduleId: "<bindings>"`. Named registration must happen before the
+call is issued; it is not merely a restore-time setting.
+
+The existing registry is process-local to the loaded SDK implementation. Names
+are case-sensitive, registration trims its required nonblank names, and later
+registration of the same pair replaces its default. Module normalization also
+registers explicitly declared exports. Shared function aliases keep their first
+wrapper's journal identity; a named default export uses the function's name when
+available. Prefer a direct declaration for a shared function rather than
+conflicting alias registrations.
+
+Captured policies do not change when the registry changes. Replay validates the
+original call identity, including policy, and fails closed on a mismatch before
+calling a replacement or reconciliation provider. Recorded outcomes are reused;
+pending `read-side-effect` calls require genuine external reconciliation, while
+pending `re-issue` calls may execute again. This is not an exactly-once guarantee
+for external effects. See [checkpoint replay](CHECKPOINT_REPLAY.md#host-operation-policy-selection)
+for proof requirements and the remaining mismatch error-shape limitation.
+There are no new configuration fields, environment variables or CLI flags; CLI
+and SDK hosts use the same bridge and declared built-in module policies.
+
 ## Why use it
 
 - **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — run as a JavaScript subset. No DSL, no JSON state machine, no per-step LLM round trip.

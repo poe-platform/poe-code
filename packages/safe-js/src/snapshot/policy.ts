@@ -91,6 +91,13 @@ export function registerPendingHostCallPolicy(
   MODULE_PENDING_HOST_CALL_POLICIES[moduleId][operation] = policy;
 }
 
+export function readRegisteredPendingHostCallPolicy(
+  moduleId: string,
+  operation: string
+): PendingHostCallPolicyMode | undefined {
+  return MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation];
+}
+
 export function resolvePendingHostCallIssuePolicy(
   call: PendingHostCallDescriptor
 ): PendingHostCallIssuePolicy {
@@ -197,7 +204,7 @@ function readPendingHostCallPolicyMode(call: PendingHostCallDescriptor): Pending
     return DEFAULT_PENDING_HOST_CALL_POLICY;
   }
 
-  const policy = MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation];
+  const policy = readRegisteredPendingHostCallPolicy(moduleId, operation);
 
   if (policy === undefined) {
     throw new HostOperationResumePolicyError(moduleId, operation);

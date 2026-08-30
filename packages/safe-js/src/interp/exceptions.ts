@@ -179,6 +179,10 @@ export function coerceThrownValue(
   span?: ErrorSourceSpan,
   sandbox = false
 ): SandboxValue {
+  if (reason instanceof HostCallResumabilityError) {
+    throw reason;
+  }
+
   if (isSubsetErrorValue(reason)) {
     attachErrorSpan(reason, readErrorSpan(reason) ?? span);
     return reason;

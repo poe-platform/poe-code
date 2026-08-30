@@ -410,6 +410,10 @@ function executeHostCall(
   try {
     result = invoke();
   } catch (error) {
+    if (error instanceof HostCallResumabilityError) {
+      throw error;
+    }
+
     const reason = createHostErrorValue(error, stackFrames, options.budget, span);
     hostCalls.settle(record, { status: "rejected", reason });
     throw error;

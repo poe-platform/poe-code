@@ -51,12 +51,29 @@ or mismatched proof rejects with `HostCallResumabilityError` and action
 `"external-reconciliation"`. A provider is responsible for genuine recovery of
 the external effect; neither policy API makes arbitrary effects exactly-once.
 
-One error-shape limitation remains: a synchronous restored-invocation identity
-mismatch can emerge from the public run boundary as plain `Error`, with the
-reset-required message but without the underlying `HostCallResumabilityError`
-class or `action: "reset"`. The mismatch still rejects before host/provider
-invocation. That typed-error contract is not fixed by the policy lookup change.
-Legacy snapshot policy validation and immutable side-effect tags are unchanged.
+A restored-invocation identity mismatch rejects at the public run boundary with
+the actual `HostCallResumabilityError` class and `action: "reset"`, before invoking
+a replacement or provider. This includes conflicts between an explicit function
+policy and the captured named-policy default. `restore()` still validates the
+snapshot and source before `run()` validates restored invocation identity;
+snapshot/source validation errors are not reclassified as host-call errors.
+
+Genuine native engine errors preserve their object identity, action, call ID and
+lifecycle through synchronous throws, promise rejections and exception coercion.
+They bypass guest catch/finally recovery, including Promise reactions, rather
+than allowing a guest to suppress an inconsistent replay. Recognition requires
+the canonical native constructor's private instance brand as well as normal
+prototype identity. Names, `action` fields, constructor properties, copied
+descriptors, prototype impostors and proxies of real errors do not carry that
+brand. Ordinary host and guest errors remain catchable; cancellation retains
+its existing catch/finally ordering and blocked host-capability admission.
+
+A synchronous fatal host throw is not recorded as an ordinary rejected outcome,
+matching the asynchronous path. If its failed-run checkpoint retains an issued
+pending effect, restoring it follows the captured policy and requires external
+reconciliation rather than replaying a downgraded guest error. Native error
+identity is not serialized or reconstructed from untrusted checkpoint fields.
+Legacy snapshot validation, immutable side-effect tags and schema are unchanged.
 
 ## External checkpoints during host waits
 

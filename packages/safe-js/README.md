@@ -61,7 +61,14 @@ calling a replacement or reconciliation provider. Recorded outcomes are reused;
 pending `read-side-effect` calls require genuine external reconciliation, while
 pending `re-issue` calls may execute again. This is not an exactly-once guarantee
 for external effects. See [checkpoint replay](CHECKPOINT_REPLAY.md#host-operation-policy-selection)
-for proof requirements and the remaining mismatch error-shape limitation.
+for proof requirements and the native error-identity trust boundary.
+Restored invocation mismatches reject with `HostCallResumabilityError` and
+`action: "reset"`; pending effects without valid recovery proof reject with
+`action: "external-reconciliation"`. Genuine native engine errors retain their
+class and identity, while engine-shaped guest objects, copied properties and
+prototype impostors remain ordinary errors. Guest catch/finally handlers cannot
+convert a genuine engine failure into successful recovery. Fatal host failures
+are not recorded as ordinary rejected outcomes for later guest replay.
 There are no new configuration fields, environment variables or CLI flags; CLI
 and SDK hosts use the same bridge and declared built-in module policies.
 

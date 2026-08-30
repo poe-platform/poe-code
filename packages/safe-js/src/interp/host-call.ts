@@ -75,9 +75,19 @@ export type HostCallResumeProvider = (
 ) => HostCallResumeProof | Promise<HostCallResumeProof>;
 
 export class HostCallResumabilityError extends Error {
+  readonly #nativeInstance = true;
   readonly action: "reset" | "external-reconciliation";
   readonly callId: string;
   readonly lifecycle: HostCallLifecycle;
+
+  static [Symbol.hasInstance](value: unknown): boolean {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      #nativeInstance in value &&
+      Function.prototype[Symbol.hasInstance].call(this, value)
+    );
+  }
 
   constructor(
     record: HostCallRecord,

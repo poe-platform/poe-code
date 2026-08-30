@@ -334,6 +334,13 @@ limited to legacy snapshot reconciliation. Caller bindings use module ID
 history; a changed policy on replay fails closed rather than downgrading a
 captured side effect.
 
+A restored invocation identity conflict rejects with the actual
+`HostCallResumabilityError` class and `action: "reset"`. Native engine errors
+retain their identity across synchronous and asynchronous host-error paths;
+guest catch/finally handlers cannot turn them into successful recovery. Names,
+action fields and copied prototypes do not grant engine-error identity. Ordinary
+guest/host errors and cancellation retain their separate conversion rules.
+
 Recorded outcomes are reused. A pending `read-side-effect` call requires a
 matching external reconciliation proof and is not blindly invoked again;
 `re-issue` permits another invocation. Neither registration nor checkpointing

@@ -1139,6 +1139,38 @@ preemption promise. Required rejection identity and cooperative worker cleanup
 remain the accepted module behavior. Public integration requires separate review;
 exact profile and limits are in `src/commands/expr/README.md`.
 
+### Guarded production build
+
+The package build retains the dist guard and integration metadata check, then runs
+`node scripts/build.mjs` instead of raw `tsc -p tsconfig.build.json`. The runner
+uses the existing held-path policy before discovery and compiler reads; its
+explicit root names come from guarded TypeScript config matching, not an
+unguarded glob. Transitive imports, paths mappings and declaration references
+pass through the same host. Held subtrees are pruned; held case aliases and
+symlink/hardlink inputs are refused before payload reads. Boundary-owner
+authentication is preserved. This does not change source or retire any inputs.
+
+Compiler/declaration tooling remains trusted: the installed TypeScript library,
+hoisted `@types/node` and `undici-types` declarations/package metadata. Other external
+source reads are unavailable. Compiler options such as `--listEmittedFiles`,
+`--noEmit` and `--emitDeclarationOnly` are retained; output stays under `dist`.
+Nonempty project references are refused after configuration parsing, before
+source payload reads or emission; referenced targets are not opened. Empty or
+absent reference lists retain the normal one-shot behavior.
+The route is a one-shot build, not a full tsc CLI replacement: response files,
+watch/build/incremental modes, configuration/help/version-only modes and
+profiling/diagnostic-statistics/locale CLI modes are refused rather than silently
+executed. Semantic diagnostics remain enabled according to the existing config.
+The maintained `test:runner` explicitly selects `scripts/build.test.mjs`;
+`test:unit` runs these controls before the runtime suite.
+
+This host assumes a stable trusted POSIX checkout/toolchain. Descriptor identity
+checks and cleanup are not an atomic filesystem sandbox or transactional emit.
+Direct raw tsc and the separate typecheck build helper do not inherit this host;
+this change makes no admission claim for those routes. Owned memory-fixture
+controls do not qualify a production build; independent review and a separately
+authorized production run remain required.
+
 ### Named imported verification-tool retirement
 
 On August 30, 2026, the root coordinator withdrew current maintenance support

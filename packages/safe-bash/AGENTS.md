@@ -252,7 +252,14 @@
   consumers; npm run typecheck requires existing built declarations. Rebuild after
   source changes. Typechecking is not runtime or service acceptance. Captured-data
   exclusions must remain exact and authenticated, not broad test-tree omissions.
-  npm run build emits ESM/declarations in dist.
+  npm run build retains the dist/integration checks and uses scripts/build.mjs
+  for ESM/declaration/map emit below dist. Its explicit source roots and compiler
+  reads share held-path admission; no raw-glob or transitive-import bypass. Keep
+  the closed trusted declaration roots, canonical/nonlink checks and falsey
+  cleanup identities. Nonempty project references are unsupported and must fail
+  before source payload reads or emission; this route is not a solution build.
+  Direct tsc and the separate typecheck build helper do not
+  inherit this host; owned fixture controls are not production-build clearance.
   Run scoped checks first; do not rerun competing owners' entire suites needlessly.
 - The default build excludes the exact experimental source paths listed in
   tsconfig.build.json. Preserve those files; admitting them requires separate

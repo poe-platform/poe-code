@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, linkSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import test from "node:test";
@@ -12,6 +12,115 @@ import * as distChecks from "./committed-archive.mjs";
 
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
+
+function withCopyRoot(run) {
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-copy-admission-")));
+  const source = join(directory, "source");
+  const destination = join(directory, "copy");
+  mkdirSync(source);
+  writeFileSync(join(source, "payload.ts"), "owned payload");
+  const reads = [];
+  const writes = [];
+  const fileSystem = {
+    lstatSync, readdirSync, mkdirSync,
+    readFileSync(path) { reads.push(path); return readFileSync(path); },
+    writeFileSync(path, bytes) { writes.push(path); writeFileSync(path, bytes); },
+  };
+  try { run({ directory, source, destination, fileSystem, reads, writes }); }
+  finally { rmSync(directory, { recursive: true, force: true }); }
+}
+
+test("copy admission accepts canonical tool-layout roots and exact returned inventory", () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  mkdirSync(join(source, "lib"));
+  writeFileSync(join(source, "lib", "tool.js"), "export {};\n");
+  writeFileSync(join(source, "package.json"), '{"name":"owned-tool"}');
+  const inventory = distChecks.copyRegularTree(source, destination, fileSystem);
+  assert.deepEqual(inventory.map(entry => entry.path).sort(), ["lib/tool.js", "package.json", "payload.ts"]);
+  assert.equal(reads.length, 3);
+  assert.equal(writes.length, 3);
+  for (const entry of inventory) {
+    const bytes = readFileSync(join(destination, entry.path));
+    assert.equal(entry.bytes, bytes.length);
+    assert.equal(entry.sha256, digest(bytes));
+    assert.deepEqual(bytes, readFileSync(join(source, entry.path)));
+  }
+}));
+
+for (const placement of ["root", "ancestor", "directory", "leaf"]) test(`copy admission rejects ${placement} symlinks before payload reads`, () => withCopyRoot(({ directory, source, destination, fileSystem, reads, writes }) => {
+  let supplied = source;
+  if (placement === "root") { supplied = join(directory, "alias"); symlinkSync(source, supplied); }
+  if (placement === "ancestor") { const alias = join(directory, "alias"); symlinkSync(directory, alias); supplied = join(alias, "source"); }
+  if (placement === "directory") symlinkSync(source, join(source, "nested"));
+  if (placement === "leaf") symlinkSync(join(source, "payload.ts"), join(source, "linked.ts"));
+  assert.throws(() => distChecks.copyRegularTree(supplied, destination, fileSystem));
+  assert.deepEqual(reads, []);
+  assert.deepEqual(writes, []);
+}));
+
+test("copy admission rejects root traversal, spelling and case aliases before payload reads", () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  for (const supplied of [source + "/../source", source + "/.", source + "/", source.replace("/source", "//source"), source.replace("/source", "/SOURCE"), relative("/", source)]) {
+    assert.throws(() => distChecks.copyRegularTree(supplied, destination, fileSystem));
+    assert.deepEqual(reads, [], supplied);
+    assert.deepEqual(writes, [], supplied);
+  }
+}));
+
+test("copy admission rejects hardlinked leaves before every payload read", () => withCopyRoot(({ source, destination, directory, fileSystem, reads, writes }) => {
+  linkSync(join(source, "payload.ts"), join(directory, "outside-link.ts"));
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), /single-link/);
+  assert.deepEqual(reads, []);
+  assert.deepEqual(writes, []);
+}));
+
+for (const defect of ["special", "oversize"]) test(`copy admission rejects ${defect} leaf metadata before payload reads`, () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  const filename = join(source, "payload.ts");
+  fileSystem.lstatSync = path => {
+    const stat = lstatSync(path);
+    if (path !== filename) return stat;
+    if (defect === "special") stat.isFile = () => false;
+    else stat.size = 32 * 1024 * 1024 + 1;
+    return stat;
+  };
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem));
+  assert.deepEqual(reads, []);
+  assert.deepEqual(writes, []);
+}));
+
+test("copy admission rejects same-tree folded path collisions before payload reads", () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  fileSystem.readdirSync = path => path === source ? ["payload.ts", "PAYLOAD.ts"] : readdirSync(path);
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), /copy case alias/);
+  assert.deepEqual(reads, []);
+  assert.deepEqual(writes, []);
+}));
+
+test("copy admission rejects nonliteral enumerated entries before payload reads", () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  fileSystem.readdirSync = path => path === source ? ["@(payload|frozen).ts"] : readdirSync(path);
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), /nonliteral/);
+  assert.deepEqual(reads, []);
+  assert.deepEqual(writes, []);
+}));
+
+for (const timing of ["before", "after"]) test(`copy admission rejects leaf identity drift ${timing} payload read before publication`, () => withCopyRoot(({ source, destination, fileSystem, reads, writes }) => {
+  let observations = 0;
+  fileSystem.lstatSync = path => {
+    const stat = lstatSync(path);
+    if (path === join(source, "payload.ts")) {
+      observations++;
+      if ((timing === "before" && observations > 1) || (timing === "after" && reads.length)) stat.ino++;
+    }
+    return stat;
+  };
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), /identity changed/);
+  assert.equal(reads.length, timing === "before" ? 0 : 1);
+  assert.deepEqual(writes, []);
+}));
+
+test("copy admission preserves payload read error identity without publication", () => withCopyRoot(({ source, destination, fileSystem, writes }) => {
+  const failure = new Error("owned copy read failure");
+  fileSystem.readFileSync = () => { throw failure; };
+  assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), error => error === failure);
+  assert.deepEqual(writes, []);
+}));
 
 function syntheticDist(entries) {
   const records = new Map([["", { kind: "directory" }], ["dist", { kind: "directory" }]]);

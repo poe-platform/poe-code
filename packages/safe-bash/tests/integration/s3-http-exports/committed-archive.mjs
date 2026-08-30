@@ -155,23 +155,40 @@ export function resolveTools() {
   return { packages, identities, npmCli, pack: npmRequire.resolve("libnpmpack"), tar: npmRequire("tar") };
 }
 
-export function copyRegularTree(source, destination) {
+export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
+  assertCanonicalRoot(source, fileSystem);
   const inventory = [];
+  const pending = [];
+  const folded = new Set();
+  const identity = stat => [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
   const visit = local => {
-    for (const entry of readdirSync(join(source, local), { withFileTypes: true })) {
-      const path = local ? `${local}/${entry.name}` : entry.name;
+    assertCanonicalRoot(join(source, local), fileSystem);
+    for (const name of fileSystem.readdirSync(join(source, local))) {
+      const path = local ? `${local}/${name}` : name;
       assertLiteralInputPath(path);
-      assert.ok(!entry.isSymbolicLink(), `unadmitted symlink: ${path}`);
-      if (entry.isDirectory()) visit(path);
+      assert.ok(!folded.has(path.toLowerCase()), `copy case alias: ${path}`);
+      folded.add(path.toLowerCase());
+      const stat = fileSystem.lstatSync(join(source, path));
+      if (stat.isDirectory()) visit(path);
       else {
-        const bytes = readRegularInput(source, path, 32 * 1024 * 1024);
-        mkdirSync(dirname(join(destination, path)), { recursive: true });
-        writeFileSync(join(destination, path), bytes);
-        inventory.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+        assert.ok(stat.isFile() && stat.nlink === 1, `copy input must be regular single-link: ${path}`);
+        assert.ok(Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= 32 * 1024 * 1024, `copy input byte budget: ${path}`);
+        pending.push({ path, identity: identity(stat) });
       }
     }
   };
   visit("");
+  for (const entry of pending) {
+    const absolute = join(source, entry.path);
+    assertCanonicalRoot(dirname(absolute), fileSystem);
+    assert.deepEqual(identity(fileSystem.lstatSync(absolute)), entry.identity, `copy input identity changed: ${entry.path}`);
+    const bytes = readRegularInput(source, entry.path, 32 * 1024 * 1024, fileSystem);
+    assert.deepEqual(identity(fileSystem.lstatSync(absolute)), entry.identity, `copy input identity changed: ${entry.path}`);
+    assert.equal(bytes.length, entry.identity[4], `copy input size changed: ${entry.path}`);
+    fileSystem.mkdirSync(dirname(join(destination, entry.path)), { recursive: true });
+    fileSystem.writeFileSync(join(destination, entry.path), bytes);
+    inventory.push({ path: entry.path, bytes: bytes.length, sha256: digest(bytes) });
+  }
   return inventory;
 }
 

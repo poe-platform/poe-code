@@ -496,9 +496,9 @@ function callMatchLikeMethod(
     throw new TypeError(`String#${methodName} requires a regex argument.`);
   if (methodName === "search") {
     const lastIndex = regex.lastIndex;
-    regex.lastIndex = 0;
+    if (!Object.is(lastIndex, 0)) regex.lastIndex = 0;
     const match = executeRegex(regex, value);
-    regex.lastIndex = lastIndex;
+    if (!Object.is(regex.lastIndex, lastIndex)) regex.lastIndex = lastIndex;
     return match?.index ?? -1;
   }
   if (methodName === "matchAll" && !regex.flags.includes("g"))

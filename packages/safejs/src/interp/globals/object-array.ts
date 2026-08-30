@@ -1,3 +1,4 @@
+import { sandboxErrorTypes } from "../../error/shape.js";
 import type { Budget } from "../budget.js";
 import { getSandboxIterator } from "../iteration.js";
 import {
@@ -121,7 +122,15 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
     }),
     String: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => options.budget.allocateString(String(value)),
+      call: ([value]) =>
+        options.budget.allocateString(
+          typeof value === "object" &&
+            value !== null &&
+            sandboxErrorTypes.has(value) &&
+            !Object.hasOwn(value, "toString")
+            ? Error.prototype.toString.call(value)
+            : String(value)
+        ),
       name: "String",
       properties: {
         raw: createSandboxClosure({

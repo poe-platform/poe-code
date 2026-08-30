@@ -1,3 +1,5 @@
+import { RegexCompileGuard, type CompileScope } from "../interp/regex/compile-guard.js";
+
 export type Position = {
   line: number;
   column: number;
@@ -31,6 +33,7 @@ export type Comment = {
 export type TokenizeOptions = {
   allowRegexLiterals?: boolean;
   comments?: Comment[];
+  compilation?: CompileScope;
 };
 
 const KEYWORDS = new Set([
@@ -815,44 +818,56 @@ class Lexer {
   }
 
   private scanRegexLiteral(start: Position): string {
-    this.advance();
-    let inCharacterClass = false;
-
-    while (!this.isAtEnd()) {
-      const char = this.currentChar();
-
-      if (char === "\\") {
-        this.advance();
-        if (!this.isAtEnd()) {
-          this.advance();
-        }
-        continue;
-      }
-
-      if (char === "[" && !inCharacterClass) {
-        inCharacterClass = true;
-        this.advance();
-        continue;
-      }
-
-      if (char === "]" && inCharacterClass) {
-        inCharacterClass = false;
-        this.advance();
-        continue;
-      }
-
-      if (char === "/" && !inCharacterClass) {
-        this.advance();
-        while (!this.isAtEnd() && isAsciiLetter(this.currentChar())) {
-          this.advance();
-        }
-        break;
-      }
-
+    const guard = new RegexCompileGuard(this.options.compilation);
+    try {
+      guard.work(1);
       this.advance();
+      const patternStart = this.index;
+      let inCharacterClass = false;
+      const advancePattern = () => {
+        const width = this.currentChar() === "\r" && this.peekChar(1) === "\n" ? 2 : 1;
+        guard.checkLength(this.index - patternStart + width);
+        guard.work(width);
+        this.advance();
+      };
+      while (!this.isAtEnd()) {
+        const char = this.currentChar();
+        if (char === "\\") {
+          advancePattern();
+          if (!this.isAtEnd()) advancePattern();
+          continue;
+        }
+        if (char === "[" && !inCharacterClass) {
+          inCharacterClass = true;
+          advancePattern();
+          continue;
+        }
+        if (char === "]" && inCharacterClass) {
+          inCharacterClass = false;
+          advancePattern();
+          continue;
+        }
+        if (char === "/" && !inCharacterClass) {
+          guard.work(1);
+          this.advance();
+          const flagsStart = this.index;
+          while (!this.isAtEnd() && isAsciiLetter(this.currentChar())) {
+            guard.checkLength(this.index - flagsStart + 1, true);
+            guard.work(1);
+            this.advance();
+          }
+          break;
+        }
+        advancePattern();
+      }
+      guard.allocate(this.index - start.offset);
+      guard.work(this.index - start.offset);
+      const raw = this.source.slice(start.offset, this.index);
+      guard.retainScratch();
+      return raw;
+    } finally {
+      guard.close();
     }
-
-    return this.source.slice(start.offset, this.index);
   }
 
   private pushToken(type: TokenType, start: Position, value: string): void {

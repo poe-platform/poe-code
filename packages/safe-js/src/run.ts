@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { hashSource } from "./parse/hash.js";
+import { hashParsedAst, hashSource } from "./parse/hash.js";
 import { withRunResources } from "./interp/resources.js";
 import { createReplayableRandom } from "./random.js";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./error/shape.js";
 import type { ParseResult } from "./parse.js";
 import {
+  findRegexLiteral,
   parseExecutableModule,
   type AwaitExpression,
   type CallExpression,
@@ -21,7 +22,8 @@ import {
   type Statement
 } from "./parse/parser.js";
 import { restore, type SafeJSSnapshot } from "./restore.js";
-import { Budget } from "./interp/budget.js";
+import { Budget, type CompileTicket } from "./interp/budget.js";
+import { CompileScope } from "./interp/regex/compile-guard.js";
 import {
   PromiseReplay,
   promiseReplayContext,
@@ -66,6 +68,7 @@ import {
   isSandboxClosure,
   isSandboxPromise,
   measureSandboxData,
+  reconcileCompiledValues,
   type SandboxValue,
   type SandboxPromise
 } from "./interp/values.js";
@@ -176,357 +179,387 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   const promiseTracker = createSandboxPromiseRejectionTracker();
   let completedSnapshot: RunSnapshot | undefined;
   const execute = async () => {
-    const promiseReplay = new PromiseReplay(options.snapshot?.promiseReplay);
-    return promiseReplayContext.run(promiseReplay, async () => {
-      const deactivateOtelSink = activateOtelSink(options.otelSink);
-      let leaveSnapshotRun: (() => void) | undefined;
-      let leaveHostReplay: (() => void) | undefined;
-      let leaveInputReplay: (() => void) | undefined;
-      let createFailureSnapshot: (() => RunSnapshot) | undefined;
-      let cancellationSnapshot: RunSnapshot | undefined;
-      let cancellationSnapshotError: { reason: unknown } | undefined;
-      let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
-      const captureCancellationSnapshot = () => {
-        try {
-          cancellationSnapshot = createFailureSnapshot?.();
-        } catch (reason) {
-          cancellationSnapshotError = { reason };
-        }
-      };
-      options.signal?.addEventListener("abort", captureCancellationSnapshot, { once: true });
-      try {
-        const restoredSnapshot =
-          options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
-        const executionSemantics =
-          restoredSnapshot?.executionSemantics === "jobs-v6" ? "jobs-v6" : EXECUTION_SEMANTICS;
-        const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
-          executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
-        if (restoredSnapshot !== undefined) {
-          leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
-        }
-        const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
-        budget.reset();
-        promiseReplay.attachBudget(budget);
-        const filename = options.filename ?? "<input>";
-        const module = parseExecutableModule(source, filename);
-        promiseReplay.validateNodes(module);
-        const sourceHash = hashSource(source);
-        const hostCalls = new HostCallJournal(
-          sourceHash,
-          readHostCallSnapshot(restoredSnapshot),
-          options.hostCallResumeProvider,
-          restoredSnapshot?.replay,
-          budget
-        );
-        leaveHostReplay = hostCalls.dispose.bind(hostCalls);
-        promiseReplay.validateCallbacks(hostCalls.callbackPositions());
-        const generator =
-          options.random ??
-          createReplayableRandom({ seed: options.randomSeed, snapshot: restoredSnapshot });
-        const random = { seed: generator.seed, initialState: generator.snapshot(), generator };
-        const interpreterSnapshot =
-          restoredSnapshot?.replay === undefined && hasLoopIterationSnapshot(restoredSnapshot)
-            ? {
-                ...(restoredSnapshot as RunSnapshot),
-                resumeNodeId: (restoredSnapshot as RunSnapshot).pendingAwaits?.[0]?.nodeId
-              }
-            : undefined;
-        const callerBindings = convertInitialInput(() =>
-          options.bindings === undefined
-            ? {}
-            : wrapCallerInjectedBindings(options.bindings, {
-                budget,
-                hostCalls,
-                moduleId: "<bindings>",
-                signal: options.signal,
-                lifecycle
-              })
-        );
-        const builtinBindings = {
-          ...createConsoleJsonGlobals({
-            budget,
-            hostCalls,
-            sink: options.sink
-          }),
-          ...createCollectionGlobals({ budget }),
-          Float32Array: createFloat32ArrayGlobal(budget),
-          ...createErrorGlobals({
-            budget
-          }),
-          ...createMathGlobals({
-            random: random?.generator.next
-          }),
-          ...createObjectArrayGlobals({
-            budget
-          }),
-          ...createMiscGlobals({
-            budget
-          }),
-          ...createPromiseGlobals({
-            budget
-          }),
-          ...createRegexGlobals()
+    const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
+    const operation = budget.acquireCompileOwner(true);
+    const compilation = new CompileScope(operation.owner);
+    try {
+      const promiseReplay = new PromiseReplay(options.snapshot?.promiseReplay);
+      return await promiseReplayContext.run(promiseReplay, async () => {
+        const deactivateOtelSink = activateOtelSink(options.otelSink);
+        let leaveSnapshotRun: (() => void) | undefined;
+        let leaveHostReplay: (() => void) | undefined;
+        let leaveInputReplay: (() => void) | undefined;
+        let createFailureSnapshot: (() => RunSnapshot) | undefined;
+        let cancellationSnapshot: RunSnapshot | undefined;
+        let cancellationSnapshotError: { reason: unknown } | undefined;
+        let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
+        const captureCancellationSnapshot = () => {
+          try {
+            cancellationSnapshot = createFailureSnapshot?.();
+          } catch (reason) {
+            cancellationSnapshotError = { reason };
+          }
         };
-        const importMeta = convertInitialInput(
-          () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
-        );
-        if (restoredSnapshot?.migration !== undefined) {
-          if (Object.hasOwn(importMeta, "migration"))
-            throw new TypeError("import.meta.migration is reserved for migrated checkpoint state.");
-          Object.defineProperty(importMeta, "migration", {
-            value: decodeReplayData(restoredSnapshot.migration.state),
-            enumerable: true,
-            configurable: true,
-            writable: true
-          });
-        }
-        const initialInputs = prepareReplayInputs(
-          {
-            bindings: callerBindings,
-            imports: convertInitialInput(() =>
-              resolveModuleImports(module, options.modules, {
-                budget,
-                hostCalls,
-                signal: options.signal,
-                allowMissing: restoredSnapshot?.initialInputs !== undefined
-              })
-            ),
-            entryPointArgs: convertInitialInput(() =>
-              options.entryPointArgs === undefined
-                ? undefined
-                : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[])
-            ),
-            importMeta
-          },
-          restoredSnapshot?.initialInputs,
-          (promise, id) => {
-            if (promise !== undefined) observeSandboxPromise(promise);
-            const operation = declareHostOperation(() => {
-              if (promise === undefined) throw new TypeError(`Missing initial promise '${id}'.`);
-              return promise.promise;
-            }, "read-side-effect");
-            const binding = wrapCallerInjectedBindings(
-              { [id]: operation },
-              {
-                budget,
-                hostCalls,
-                moduleId: "<inputs>",
-                signal: options.signal,
-                lifecycle
-              }
-            )[id]!;
-            if (!isSandboxClosure(binding))
-              throw new TypeError("Invalid initial promise operation.");
-            return binding.call([]) as SandboxPromise;
-          },
-          hostCalls.rebindHostCapability.bind(hostCalls)
-        );
-        hostCalls.validateHostCapabilities();
-        budget.setRetainedDataUsage(
-          initialInputs,
-          measureSandboxData(
+        options.signal?.addEventListener("abort", captureCancellationSnapshot, { once: true });
+        try {
+          const restoredSnapshot =
+            options.snapshot === undefined
+              ? undefined
+              : restore(options.snapshot, { source }, operation.owner);
+          const executionSemantics =
+            restoredSnapshot?.executionSemantics === "jobs-v6" ? "jobs-v6" : EXECUTION_SEMANTICS;
+          const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
+            executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
+          if (restoredSnapshot !== undefined) {
+            leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
+          }
+          promiseReplay.attachBudget(budget);
+          const filename = options.filename ?? "<input>";
+          const module = parseExecutableModule(source, filename, operation.owner);
+          promiseReplay.validateNodes(module);
+          const sourceHash =
+            findRegexLiteral(module) === undefined
+              ? hashSource(source, operation.owner)
+              : hashParsedAst(module);
+          const hostCalls = new HostCallJournal(
+            sourceHash,
+            readHostCallSnapshot(restoredSnapshot),
+            options.hostCallResumeProvider,
+            restoredSnapshot?.replay,
+            budget,
+            operation.owner
+          );
+          leaveHostReplay = hostCalls.dispose.bind(hostCalls);
+          promiseReplay.validateCallbacks(hostCalls.callbackPositions());
+          const generator =
+            options.random ??
+            createReplayableRandom({ seed: options.randomSeed, snapshot: restoredSnapshot });
+          const random = { seed: generator.seed, initialState: generator.snapshot(), generator };
+          const interpreterSnapshot =
+            restoredSnapshot?.replay === undefined && hasLoopIterationSnapshot(restoredSnapshot)
+              ? {
+                  ...(restoredSnapshot as RunSnapshot),
+                  resumeNodeId: (restoredSnapshot as RunSnapshot).pendingAwaits?.[0]?.nodeId
+                }
+              : undefined;
+          const callerBindings = convertInitialInput(() =>
+            options.bindings === undefined
+              ? {}
+              : wrapCallerInjectedBindings(options.bindings, {
+                  budget,
+                  compileOwner: operation.owner,
+                  hostCalls,
+                  moduleId: "<bindings>",
+                  signal: options.signal,
+                  lifecycle
+                })
+          );
+          const builtinBindings = {
+            ...createConsoleJsonGlobals({
+              compileOwner: operation.owner,
+              budget,
+              hostCalls,
+              sink: options.sink
+            }),
+            ...createCollectionGlobals({ budget }),
+            Float32Array: createFloat32ArrayGlobal(budget),
+            ...createErrorGlobals({
+              budget
+            }),
+            ...createMathGlobals({
+              random: random?.generator.next
+            }),
+            ...createObjectArrayGlobals({
+              budget
+            }),
+            ...createMiscGlobals({
+              budget
+            }),
+            ...createPromiseGlobals({
+              budget
+            }),
+            ...createRegexGlobals(operation.owner)
+          };
+          const importMeta = convertInitialInput(
+            () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
+          );
+          if (restoredSnapshot?.migration !== undefined) {
+            if (Object.hasOwn(importMeta, "migration"))
+              throw new TypeError(
+                "import.meta.migration is reserved for migrated checkpoint state."
+              );
+            Object.defineProperty(importMeta, "migration", {
+              value: decodeReplayData(restoredSnapshot.migration.state, {}, compilation),
+              enumerable: true,
+              configurable: true,
+              writable: true
+            });
+          }
+          const initialInputs = prepareReplayInputs(
+            {
+              bindings: callerBindings,
+              imports: convertInitialInput(() =>
+                resolveModuleImports(module, options.modules, {
+                  budget,
+                  compileOwner: operation.owner,
+                  hostCalls,
+                  signal: options.signal,
+                  allowMissing: restoredSnapshot?.initialInputs !== undefined
+                })
+              ),
+              entryPointArgs: convertInitialInput(() =>
+                options.entryPointArgs === undefined
+                  ? undefined
+                  : (deepCopyToSandbox([...options.entryPointArgs]) as SandboxValue[])
+              ),
+              importMeta
+            },
+            restoredSnapshot?.initialInputs,
+            (promise, id) => {
+              if (promise !== undefined) observeSandboxPromise(promise);
+              const operation = declareHostOperation(() => {
+                if (promise === undefined) throw new TypeError(`Missing initial promise '${id}'.`);
+                return promise.promise;
+              }, "read-side-effect");
+              const binding = wrapCallerInjectedBindings(
+                { [id]: operation },
+                {
+                  budget,
+                  hostCalls,
+                  moduleId: "<inputs>",
+                  compileOwner: compilation.owner,
+                  signal: options.signal,
+                  lifecycle
+                }
+              )[id]!;
+              if (!isSandboxClosure(binding))
+                throw new TypeError("Invalid initial promise operation.");
+              return binding.call([]) as SandboxPromise;
+            },
+            hostCalls.rebindHostCapability.bind(hostCalls),
+            compilation
+          );
+          hostCalls.validateHostCapabilities();
+          const inputTickets = new Set<CompileTicket>();
+          const inputSize = measureSandboxData(
             [
               ...Object.values(initialInputs.values.bindings),
               ...Object.values(initialInputs.values.imports),
               ...(initialInputs.values.entryPointArgs ?? []),
               initialInputs.values.importMeta
             ],
-            { ignoreClosureCaptures: true }
-          )
-        );
-        leaveInputReplay = () => budget.setRetainedDataUsage(initialInputs, 0);
-        const entryPointArgs = initialInputs.values.entryPointArgs;
-        const cancelableCallerBindings = wrapCancelableBindings(
-          initialInputs.values.bindings,
-          options.signal
-        );
+            { ignoreClosureCaptures: true, compileTickets: inputTickets }
+          );
+          budget.reconcileCompileData(inputSize, inputTickets, inputTickets, initialInputs);
+          leaveInputReplay = () => budget.setRetainedDataUsage(initialInputs, 0);
+          const entryPointArgs = initialInputs.values.entryPointArgs;
+          const cancelableCallerBindings = wrapCancelableBindings(
+            initialInputs.values.bindings,
+            options.signal
+          );
 
-        const scope = new Scope(
-          builtinBindings,
-          undefined,
-          undefined,
-          { chargeData: false },
-          interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
-        );
-        const callerScope = scope.child(cancelableCallerBindings);
-        const executionScope = new Scope(
-          initialInputs.values.imports,
-          callerScope,
-          initialInputs.values.importMeta,
-          { functionBoundary: true }
-        );
-        const activeSnapshotScheduler = createSnapshotScheduler<RunSnapshot>({
-          snapshotBackend: options.snapshotBackend,
-          snapshotIntervalMs: options.snapshotIntervalMs,
-          snapshotPath: options.snapshotPath
-        });
-        snapshotScheduler = activeSnapshotScheduler;
-        createFailureSnapshot = () =>
-          createRunSnapshot({
+          const scope = new Scope(
+            builtinBindings,
+            undefined,
+            undefined,
+            { chargeData: false },
+            interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
+          );
+          const callerScope = scope.child(cancelableCallerBindings);
+          const executionScope = new Scope(
+            initialInputs.values.imports,
+            callerScope,
+            initialInputs.values.importMeta,
+            { functionBoundary: true }
+          );
+          const activeSnapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+            snapshotBackend: options.snapshotBackend,
+            snapshotIntervalMs: options.snapshotIntervalMs,
+            snapshotPath: options.snapshotPath
+          });
+          snapshotScheduler = activeSnapshotScheduler;
+          createFailureSnapshot = () =>
+            createRunSnapshot({
+              executionSemantics,
+              migration: restoredSnapshot?.migration,
+              bindings: executionScope.snapshot().bindings,
+              clock: options.clock,
+              hostCalls: hostCalls.snapshot(),
+              replay: hostCalls.snapshotReplay(),
+              initialInputs: initialInputs.snapshot,
+              promiseReplay: promiseReplay.snapshot(),
+              random,
+              sourceHash
+            });
+          let snapshotIteration = 0;
+
+          const topLevelResult = await interpret(createExecutableNode(module), {
+            compilation,
+            budget,
+            captureReplayState: random.generator.snapshot,
+            onYield: (yieldPoint) => {
+              snapshotIteration += 1;
+              safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
+                iteration: snapshotIteration
+              });
+              let snapshot: RunSnapshot | undefined;
+              const createSnapshot = () => {
+                if (snapshot !== undefined) {
+                  return snapshot;
+                }
+                const interpreterSnapshot = yieldPoint.snapshot();
+                snapshot = createRunSnapshot({
+                  executionSemantics,
+                  migration: restoredSnapshot?.migration,
+                  bindings: interpreterSnapshot.bindings,
+                  clock: options.clock,
+                  hostCalls: hostCalls.snapshot(),
+                  loopIterations: interpreterSnapshot.loopIterations,
+                  pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
+                  replay: hostCalls.snapshotReplay(),
+                  initialInputs: initialInputs.snapshot,
+                  promiseReplay: promiseReplay.snapshot(),
+                  random,
+                  randomResumeState:
+                    typeof yieldPoint.replayState === "number" ? yieldPoint.replayState : undefined,
+                  sourceHash
+                });
+                return snapshot;
+              };
+
+              activeSnapshotScheduler.onYield(createSnapshot);
+              dumpController.onYield(createSnapshot);
+            },
+            scope: executionScope,
+            signal: options.signal,
+            snapshot: interpreterSnapshot,
+            surfaceUnhandledThrows: true,
+            useScopeDirectly: true
+          });
+          const result =
+            entryPointArgs === undefined || !topLevelResult.ok
+              ? topLevelResult
+              : await callEntryPoint({
+                  args: entryPointArgs,
+                  budget,
+                  compilation,
+                  captureReplayState: random.generator.snapshot,
+                  filename,
+                  module,
+                  onYield: (yieldPoint) => {
+                    snapshotIteration += 1;
+                    safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
+                      iteration: snapshotIteration
+                    });
+                    let snapshot: RunSnapshot | undefined;
+                    const createSnapshot = () => {
+                      if (snapshot !== undefined) {
+                        return snapshot;
+                      }
+                      const interpreterSnapshot = yieldPoint.snapshot();
+                      snapshot = createRunSnapshot({
+                        executionSemantics,
+                        migration: restoredSnapshot?.migration,
+                        bindings: interpreterSnapshot.bindings,
+                        clock: options.clock,
+                        hostCalls: hostCalls.snapshot(),
+                        loopIterations: interpreterSnapshot.loopIterations,
+                        pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
+                        replay: hostCalls.snapshotReplay(),
+                        initialInputs: initialInputs.snapshot,
+                        promiseReplay: promiseReplay.snapshot(),
+                        random,
+                        randomResumeState:
+                          typeof yieldPoint.replayState === "number"
+                            ? yieldPoint.replayState
+                            : undefined,
+                        sourceHash
+                      });
+                      return snapshot;
+                    };
+
+                    activeSnapshotScheduler.onYield(createSnapshot);
+                    dumpController.onYield(createSnapshot);
+                  },
+                  scope: executionScope,
+                  signal: options.signal,
+                  snapshot: interpreterSnapshot
+                });
+          await throwIfReturnedPromiseRejected(result);
+          await throwIfUnhandledPromiseRejected(promiseTracker);
+          await activeSnapshotScheduler.finish();
+
+          let replay: HostCallReplay | undefined;
+          let replayError: string | undefined;
+          try {
+            replay = hostCalls.snapshotReplay();
+          } catch (error) {
+            if (!(error instanceof MissingReplayCapabilityError)) throw error;
+            replayError = error.message;
+          }
+          const snapshot = createRunSnapshot({
             executionSemantics,
             migration: restoredSnapshot?.migration,
             bindings: executionScope.snapshot().bindings,
             clock: options.clock,
             hostCalls: hostCalls.snapshot(),
-            replay: hostCalls.snapshotReplay(),
+            replay,
             initialInputs: initialInputs.snapshot,
             promiseReplay: promiseReplay.snapshot(),
             random,
             sourceHash
           });
-        let snapshotIteration = 0;
+          if (replayError !== undefined) snapshot.replayError = replayError;
+          dumpController.finalize(snapshot);
+          completedSnapshot = snapshot;
 
-        const topLevelResult = await interpret(createExecutableNode(module), {
-          budget,
-          captureReplayState: random.generator.snapshot,
-          onYield: (yieldPoint) => {
-            snapshotIteration += 1;
-            safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
-              iteration: snapshotIteration
-            });
-            let snapshot: RunSnapshot | undefined;
-            const createSnapshot = () => {
-              if (snapshot !== undefined) {
-                return snapshot;
-              }
-              const interpreterSnapshot = yieldPoint.snapshot();
-              snapshot = createRunSnapshot({
-                executionSemantics,
-                migration: restoredSnapshot?.migration,
-                bindings: interpreterSnapshot.bindings,
-                clock: options.clock,
-                hostCalls: hostCalls.snapshot(),
-                loopIterations: interpreterSnapshot.loopIterations,
-                pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
-                replay: hostCalls.snapshotReplay(),
-                initialInputs: initialInputs.snapshot,
-                promiseReplay: promiseReplay.snapshot(),
-                random,
-                randomResumeState:
-                  typeof yieldPoint.replayState === "number" ? yieldPoint.replayState : undefined,
-                sourceHash
-              });
-              return snapshot;
-            };
+          reconcileCompiledValues(
+            budget,
+            [
+              ...Object.values(result.snapshot.bindings),
+              ...(result.ok && "returnValue" in result ? [result.returnValue] : []),
+              ...budget.retainedValues()
+            ],
+            compilation
+          );
 
-            activeSnapshotScheduler.onYield(createSnapshot);
-            dumpController.onYield(createSnapshot);
-          },
-          scope: executionScope,
-          signal: options.signal,
-          snapshot: interpreterSnapshot,
-          surfaceUnhandledThrows: true,
-          useScopeDirectly: true
-        });
-        const result =
-          entryPointArgs === undefined || !topLevelResult.ok
-            ? topLevelResult
-            : await callEntryPoint({
-                args: entryPointArgs,
-                budget,
-                captureReplayState: random.generator.snapshot,
-                filename,
-                module,
-                onYield: (yieldPoint) => {
-                  snapshotIteration += 1;
-                  safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
-                    iteration: snapshotIteration
-                  });
-                  let snapshot: RunSnapshot | undefined;
-                  const createSnapshot = () => {
-                    if (snapshot !== undefined) {
-                      return snapshot;
-                    }
-                    const interpreterSnapshot = yieldPoint.snapshot();
-                    snapshot = createRunSnapshot({
-                      executionSemantics,
-                      migration: restoredSnapshot?.migration,
-                      bindings: interpreterSnapshot.bindings,
-                      clock: options.clock,
-                      hostCalls: hostCalls.snapshot(),
-                      loopIterations: interpreterSnapshot.loopIterations,
-                      pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
-                      replay: hostCalls.snapshotReplay(),
-                      initialInputs: initialInputs.snapshot,
-                      promiseReplay: promiseReplay.snapshot(),
-                      random,
-                      randomResumeState:
-                        typeof yieldPoint.replayState === "number"
-                          ? yieldPoint.replayState
-                          : undefined,
-                      sourceHash
-                    });
-                    return snapshot;
-                  };
-
-                  activeSnapshotScheduler.onYield(createSnapshot);
-                  dumpController.onYield(createSnapshot);
-                },
-                scope: executionScope,
-                signal: options.signal,
-                snapshot: interpreterSnapshot
-              });
-        await throwIfReturnedPromiseRejected(result);
-        await throwIfUnhandledPromiseRejected(promiseTracker);
-        await activeSnapshotScheduler.finish();
-
-        let replay: HostCallReplay | undefined;
-        let replayError: string | undefined;
-        try {
-          replay = hostCalls.snapshotReplay();
+          return {
+            ...result,
+            snapshot
+          };
         } catch (error) {
-          if (!(error instanceof MissingReplayCapabilityError)) throw error;
-          replayError = error.message;
-        }
-        const snapshot = createRunSnapshot({
-          executionSemantics,
-          migration: restoredSnapshot?.migration,
-          bindings: executionScope.snapshot().bindings,
-          clock: options.clock,
-          hostCalls: hostCalls.snapshot(),
-          replay,
-          initialInputs: initialInputs.snapshot,
-          promiseReplay: promiseReplay.snapshot(),
-          random,
-          sourceHash
-        });
-        if (replayError !== undefined) snapshot.replayError = replayError;
-        dumpController.finalize(snapshot);
-        completedSnapshot = snapshot;
-
-        return {
-          ...result,
-          snapshot
-        };
-      } catch (error) {
-        promiseReplay.fail(error);
-        materializeWrappedErrorCause(error);
-        if (createFailureSnapshot !== undefined && snapshotScheduler !== undefined) {
-          try {
-            if (cancellationSnapshotError !== undefined) throw cancellationSnapshotError.reason;
-            const snapshot = cancellationSnapshot ?? createFailureSnapshot();
-            dumpController.finalize(snapshot);
-            await snapshotScheduler.write(snapshot);
-          } catch (snapshotError) {
-            if (snapshotError instanceof UnsnapshotableValueError) {
-              console.warn(`Skipping failure snapshot: ${snapshotError.message}`);
-            } else {
-              console.warn("Failed to write failure snapshot.", snapshotError);
+          promiseReplay.fail(error);
+          materializeWrappedErrorCause(error);
+          if (createFailureSnapshot !== undefined && snapshotScheduler !== undefined) {
+            try {
+              if (cancellationSnapshotError !== undefined) throw cancellationSnapshotError.reason;
+              const snapshot = cancellationSnapshot ?? createFailureSnapshot();
+              dumpController.finalize(snapshot);
+              await snapshotScheduler.write(snapshot);
+            } catch (snapshotError) {
+              if (snapshotError instanceof UnsnapshotableValueError) {
+                console.warn(`Skipping failure snapshot: ${snapshotError.message}`);
+              } else {
+                console.warn("Failed to write failure snapshot.", snapshotError);
+              }
             }
           }
+          dumpController.fail(error);
+          throw error;
+        } finally {
+          lifecycle.hostCallbackContext.disable();
+          options.signal?.removeEventListener("abort", captureCancellationSnapshot);
+          leaveInputReplay?.();
+          leaveHostReplay?.();
+          promiseReplay.dispose();
+          leaveSnapshotRun?.();
+          deactivateOtelSink();
         }
-        dumpController.fail(error);
-        throw error;
-      } finally {
-        lifecycle.hostCallbackContext.disable();
-        options.signal?.removeEventListener("abort", captureCancellationSnapshot);
-        leaveInputReplay?.();
-        leaveHostReplay?.();
-        promiseReplay.dispose();
-        leaveSnapshotRun?.();
-        deactivateOtelSink();
-      }
-    });
+      });
+    } finally {
+      compilation.dispose();
+      operation.release();
+    }
   };
   const result = withRunResources(options.signal, () =>
     withSandboxPromiseRejectionTracker(promiseTracker, execute)
@@ -581,6 +614,7 @@ async function throwIfUnhandledPromiseRejected(
 }
 
 async function callEntryPoint(input: {
+  compilation: CompileScope;
   args: readonly SandboxValue[];
   budget: Budget;
   captureReplayState: () => number;
@@ -610,6 +644,7 @@ async function callEntryPoint(input: {
   });
 
   return interpret(createEntryPointAwait(input.args.length, input.module.span), {
+    compilation: input.compilation,
     signal: input.signal,
     budget: input.budget,
     captureReplayState: input.captureReplayState,

@@ -1,0 +1,953 @@
+{
+  "base": "ea469259a7d61ab2839457863c445bd9f95155cb",
+  "source": "const regex = /a/g;\nregex.lastIndex = 1;\nconst pair = [regex, regex];\nconst acknowledged = await wait();\nreturn [pair[0] === pair[1], regex.source, regex.flags, regex.lastIndex, acknowledged];",
+  "expected": [true, "a", "g", 1, 17],
+  "pending": {
+    "version": 1,
+    "sourceHash": "56c6650b",
+    "executionSemantics": "jobs-v7",
+    "bindings": {
+      "JSON": {
+        "parse": {
+          "kind": "fn",
+          "name": "parse"
+        },
+        "stringify": {
+          "kind": "fn",
+          "name": "stringify"
+        }
+      },
+      "console": {
+        "error": {
+          "kind": "fn",
+          "name": "error"
+        },
+        "log": {
+          "kind": "fn",
+          "name": "log"
+        }
+      },
+      "Map": {
+        "kind": "fn",
+        "name": "Map"
+      },
+      "Set": {
+        "kind": "fn",
+        "name": "Set"
+      },
+      "Float32Array": {
+        "kind": "fn",
+        "name": "Float32Array"
+      },
+      "Error": {
+        "kind": "fn",
+        "name": "Error"
+      },
+      "TypeError": {
+        "kind": "fn",
+        "name": "TypeError"
+      },
+      "RangeError": {
+        "kind": "fn",
+        "name": "RangeError"
+      },
+      "ReferenceError": {
+        "kind": "fn",
+        "name": "ReferenceError"
+      },
+      "SyntaxError": {
+        "kind": "fn",
+        "name": "SyntaxError"
+      },
+      "AggregateError": {
+        "kind": "fn",
+        "name": "AggregateError"
+      },
+      "Infinity": {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "Math": {
+        "E": 2.718281828459045,
+        "LN2": 0.6931471805599453,
+        "LN10": 2.302585092994046,
+        "LOG2E": 1.4426950408889634,
+        "LOG10E": 0.4342944819032518,
+        "PI": 3.141592653589793,
+        "SQRT1_2": 0.7071067811865476,
+        "SQRT2": 1.4142135623730951,
+        "random": {
+          "kind": "fn",
+          "name": "random"
+        },
+        "abs": {
+          "kind": "fn",
+          "name": "abs"
+        },
+        "acos": {
+          "kind": "fn",
+          "name": "acos"
+        },
+        "acosh": {
+          "kind": "fn",
+          "name": "acosh"
+        },
+        "asin": {
+          "kind": "fn",
+          "name": "asin"
+        },
+        "asinh": {
+          "kind": "fn",
+          "name": "asinh"
+        },
+        "atan": {
+          "kind": "fn",
+          "name": "atan"
+        },
+        "atan2": {
+          "kind": "fn",
+          "name": "atan2"
+        },
+        "atanh": {
+          "kind": "fn",
+          "name": "atanh"
+        },
+        "ceil": {
+          "kind": "fn",
+          "name": "ceil"
+        },
+        "cbrt": {
+          "kind": "fn",
+          "name": "cbrt"
+        },
+        "clz32": {
+          "kind": "fn",
+          "name": "clz32"
+        },
+        "cos": {
+          "kind": "fn",
+          "name": "cos"
+        },
+        "cosh": {
+          "kind": "fn",
+          "name": "cosh"
+        },
+        "exp": {
+          "kind": "fn",
+          "name": "exp"
+        },
+        "expm1": {
+          "kind": "fn",
+          "name": "expm1"
+        },
+        "floor": {
+          "kind": "fn",
+          "name": "floor"
+        },
+        "fround": {
+          "kind": "fn",
+          "name": "fround"
+        },
+        "hypot": {
+          "kind": "fn",
+          "name": "hypot"
+        },
+        "imul": {
+          "kind": "fn",
+          "name": "imul"
+        },
+        "log": {
+          "kind": "fn",
+          "name": "log"
+        },
+        "log1p": {
+          "kind": "fn",
+          "name": "log1p"
+        },
+        "log10": {
+          "kind": "fn",
+          "name": "log10"
+        },
+        "log2": {
+          "kind": "fn",
+          "name": "log2"
+        },
+        "max": {
+          "kind": "fn",
+          "name": "max"
+        },
+        "min": {
+          "kind": "fn",
+          "name": "min"
+        },
+        "pow": {
+          "kind": "fn",
+          "name": "pow"
+        },
+        "round": {
+          "kind": "fn",
+          "name": "round"
+        },
+        "sign": {
+          "kind": "fn",
+          "name": "sign"
+        },
+        "sin": {
+          "kind": "fn",
+          "name": "sin"
+        },
+        "sinh": {
+          "kind": "fn",
+          "name": "sinh"
+        },
+        "sqrt": {
+          "kind": "fn",
+          "name": "sqrt"
+        },
+        "tan": {
+          "kind": "fn",
+          "name": "tan"
+        },
+        "tanh": {
+          "kind": "fn",
+          "name": "tanh"
+        },
+        "trunc": {
+          "kind": "fn",
+          "name": "trunc"
+        }
+      },
+      "NaN": {
+        "kind": "number",
+        "value": "NaN"
+      },
+      "Object": {
+        "keys": {
+          "kind": "fn",
+          "name": "keys"
+        },
+        "values": {
+          "kind": "fn",
+          "name": "values"
+        },
+        "entries": {
+          "kind": "fn",
+          "name": "entries"
+        },
+        "hasOwn": {
+          "kind": "fn",
+          "name": "hasOwn"
+        },
+        "is": {
+          "kind": "fn",
+          "name": "is"
+        },
+        "fromEntries": {
+          "kind": "fn",
+          "name": "fromEntries"
+        },
+        "freeze": {
+          "kind": "fn",
+          "name": "freeze"
+        },
+        "isFrozen": {
+          "kind": "fn",
+          "name": "isFrozen"
+        },
+        "assign": {
+          "kind": "fn",
+          "name": "assign"
+        }
+      },
+      "Array": {
+        "kind": "fn",
+        "name": "Array"
+      },
+      "String": {
+        "kind": "fn",
+        "name": "String"
+      },
+      "Number": {
+        "kind": "fn",
+        "name": "Number"
+      },
+      "Boolean": {
+        "kind": "fn",
+        "name": "Boolean"
+      },
+      "structuredClone": {
+        "kind": "fn",
+        "name": "structuredClone"
+      },
+      "parseInt": {
+        "kind": "fn",
+        "name": "parseInt"
+      },
+      "parseFloat": {
+        "kind": "fn",
+        "name": "parseFloat"
+      },
+      "isNaN": {
+        "kind": "fn",
+        "name": "isNaN"
+      },
+      "isFinite": {
+        "kind": "fn",
+        "name": "isFinite"
+      },
+      "Promise": {
+        "kind": "fn",
+        "name": "Promise"
+      },
+      "RegExp": {
+        "kind": "fn",
+        "name": "RegExp"
+      },
+      "wait": {
+        "kind": "fn",
+        "name": "wait",
+        "async": true
+      },
+      "regex": {
+        "kind": "ref",
+        "id": 1
+      },
+      "pair": [
+        {
+          "kind": "ref",
+          "id": 1
+        },
+        {
+          "kind": "ref",
+          "id": 1
+        }
+      ]
+    },
+    "hostCalls": [
+      {
+        "id": "cce3e116-6a74-4bdc-89c0-06a8da01176c:1",
+        "runId": "cce3e116-6a74-4bdc-89c0-06a8da01176c",
+        "sourceHash": "56c6650b",
+        "moduleId": "<bindings>",
+        "operation": "wait",
+        "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "policy": "re-issue",
+        "lifecycle": "running",
+        "asynchronous": true
+      }
+    ],
+    "replay": {
+      "version": 1,
+      "calls": [
+        {
+          "id": "cce3e116-6a74-4bdc-89c0-06a8da01176c:1",
+          "runId": "cce3e116-6a74-4bdc-89c0-06a8da01176c",
+          "sourceHash": "56c6650b",
+          "moduleId": "<bindings>",
+          "operation": "wait",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "re-issue",
+          "lifecycle": "running",
+          "asynchronous": true
+        }
+      ]
+    },
+    "initialInputs": {
+      "root": {
+        "tag": "ref",
+        "id": 0
+      },
+      "nodes": [
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": true,
+          "properties": {
+            "bindings": {
+              "value": {
+                "tag": "ref",
+                "id": 1
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "imports": {
+              "value": {
+                "tag": "ref",
+                "id": 4
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "entryPointArgs": {
+              "value": {
+                "tag": "undefined"
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "importMeta": {
+              "value": {
+                "tag": "ref",
+                "id": 5
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            }
+          }
+        },
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": true,
+          "properties": {
+            "wait": {
+              "value": {
+                "tag": "ref",
+                "id": 2
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            }
+          }
+        },
+        {
+          "kind": "capability",
+          "id": "[\"bindings\",\"wait\"]",
+          "properties": {
+            "tag": "ref",
+            "id": 3
+          }
+        },
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": false,
+          "properties": {}
+        },
+        {
+          "kind": "object",
+          "nullPrototype": true,
+          "extensible": true,
+          "properties": {}
+        },
+        {
+          "kind": "object",
+          "nullPrototype": true,
+          "extensible": true,
+          "properties": {}
+        }
+      ]
+    },
+    "promiseReplay": {
+      "version": 1,
+      "steps": 15,
+      "promises": 1,
+      "settlements": []
+    },
+    "pendingAwaits": [
+      {
+        "nodeId": 20,
+        "span": {
+          "start": {
+            "line": 4,
+            "column": 22,
+            "offset": 91
+          },
+          "end": {
+            "line": 4,
+            "column": 34,
+            "offset": 103
+          }
+        }
+      }
+    ],
+    "random": {
+      "seed": 19,
+      "initialState": 19,
+      "resumeState": 19,
+      "state": 19
+    },
+    "heap": {
+      "1": {
+        "kind": "object",
+        "entries": {
+          "kind": "regex",
+          "source": "a",
+          "flags": "g",
+          "lastIndex": 1
+        }
+      }
+    }
+  },
+  "completed": {
+    "version": 1,
+    "sourceHash": "56c6650b",
+    "executionSemantics": "jobs-v7",
+    "bindings": {
+      "JSON": {
+        "parse": {
+          "kind": "fn",
+          "name": "parse"
+        },
+        "stringify": {
+          "kind": "fn",
+          "name": "stringify"
+        }
+      },
+      "console": {
+        "error": {
+          "kind": "fn",
+          "name": "error"
+        },
+        "log": {
+          "kind": "fn",
+          "name": "log"
+        }
+      },
+      "Map": {
+        "kind": "fn",
+        "name": "Map"
+      },
+      "Set": {
+        "kind": "fn",
+        "name": "Set"
+      },
+      "Float32Array": {
+        "kind": "fn",
+        "name": "Float32Array"
+      },
+      "Error": {
+        "kind": "fn",
+        "name": "Error"
+      },
+      "TypeError": {
+        "kind": "fn",
+        "name": "TypeError"
+      },
+      "RangeError": {
+        "kind": "fn",
+        "name": "RangeError"
+      },
+      "ReferenceError": {
+        "kind": "fn",
+        "name": "ReferenceError"
+      },
+      "SyntaxError": {
+        "kind": "fn",
+        "name": "SyntaxError"
+      },
+      "AggregateError": {
+        "kind": "fn",
+        "name": "AggregateError"
+      },
+      "Infinity": {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "Math": {
+        "E": 2.718281828459045,
+        "LN2": 0.6931471805599453,
+        "LN10": 2.302585092994046,
+        "LOG2E": 1.4426950408889634,
+        "LOG10E": 0.4342944819032518,
+        "PI": 3.141592653589793,
+        "SQRT1_2": 0.7071067811865476,
+        "SQRT2": 1.4142135623730951,
+        "random": {
+          "kind": "fn",
+          "name": "random"
+        },
+        "abs": {
+          "kind": "fn",
+          "name": "abs"
+        },
+        "acos": {
+          "kind": "fn",
+          "name": "acos"
+        },
+        "acosh": {
+          "kind": "fn",
+          "name": "acosh"
+        },
+        "asin": {
+          "kind": "fn",
+          "name": "asin"
+        },
+        "asinh": {
+          "kind": "fn",
+          "name": "asinh"
+        },
+        "atan": {
+          "kind": "fn",
+          "name": "atan"
+        },
+        "atan2": {
+          "kind": "fn",
+          "name": "atan2"
+        },
+        "atanh": {
+          "kind": "fn",
+          "name": "atanh"
+        },
+        "ceil": {
+          "kind": "fn",
+          "name": "ceil"
+        },
+        "cbrt": {
+          "kind": "fn",
+          "name": "cbrt"
+        },
+        "clz32": {
+          "kind": "fn",
+          "name": "clz32"
+        },
+        "cos": {
+          "kind": "fn",
+          "name": "cos"
+        },
+        "cosh": {
+          "kind": "fn",
+          "name": "cosh"
+        },
+        "exp": {
+          "kind": "fn",
+          "name": "exp"
+        },
+        "expm1": {
+          "kind": "fn",
+          "name": "expm1"
+        },
+        "floor": {
+          "kind": "fn",
+          "name": "floor"
+        },
+        "fround": {
+          "kind": "fn",
+          "name": "fround"
+        },
+        "hypot": {
+          "kind": "fn",
+          "name": "hypot"
+        },
+        "imul": {
+          "kind": "fn",
+          "name": "imul"
+        },
+        "log": {
+          "kind": "fn",
+          "name": "log"
+        },
+        "log1p": {
+          "kind": "fn",
+          "name": "log1p"
+        },
+        "log10": {
+          "kind": "fn",
+          "name": "log10"
+        },
+        "log2": {
+          "kind": "fn",
+          "name": "log2"
+        },
+        "max": {
+          "kind": "fn",
+          "name": "max"
+        },
+        "min": {
+          "kind": "fn",
+          "name": "min"
+        },
+        "pow": {
+          "kind": "fn",
+          "name": "pow"
+        },
+        "round": {
+          "kind": "fn",
+          "name": "round"
+        },
+        "sign": {
+          "kind": "fn",
+          "name": "sign"
+        },
+        "sin": {
+          "kind": "fn",
+          "name": "sin"
+        },
+        "sinh": {
+          "kind": "fn",
+          "name": "sinh"
+        },
+        "sqrt": {
+          "kind": "fn",
+          "name": "sqrt"
+        },
+        "tan": {
+          "kind": "fn",
+          "name": "tan"
+        },
+        "tanh": {
+          "kind": "fn",
+          "name": "tanh"
+        },
+        "trunc": {
+          "kind": "fn",
+          "name": "trunc"
+        }
+      },
+      "NaN": {
+        "kind": "number",
+        "value": "NaN"
+      },
+      "Object": {
+        "keys": {
+          "kind": "fn",
+          "name": "keys"
+        },
+        "values": {
+          "kind": "fn",
+          "name": "values"
+        },
+        "entries": {
+          "kind": "fn",
+          "name": "entries"
+        },
+        "hasOwn": {
+          "kind": "fn",
+          "name": "hasOwn"
+        },
+        "is": {
+          "kind": "fn",
+          "name": "is"
+        },
+        "fromEntries": {
+          "kind": "fn",
+          "name": "fromEntries"
+        },
+        "freeze": {
+          "kind": "fn",
+          "name": "freeze"
+        },
+        "isFrozen": {
+          "kind": "fn",
+          "name": "isFrozen"
+        },
+        "assign": {
+          "kind": "fn",
+          "name": "assign"
+        }
+      },
+      "Array": {
+        "kind": "fn",
+        "name": "Array"
+      },
+      "String": {
+        "kind": "fn",
+        "name": "String"
+      },
+      "Number": {
+        "kind": "fn",
+        "name": "Number"
+      },
+      "Boolean": {
+        "kind": "fn",
+        "name": "Boolean"
+      },
+      "structuredClone": {
+        "kind": "fn",
+        "name": "structuredClone"
+      },
+      "parseInt": {
+        "kind": "fn",
+        "name": "parseInt"
+      },
+      "parseFloat": {
+        "kind": "fn",
+        "name": "parseFloat"
+      },
+      "isNaN": {
+        "kind": "fn",
+        "name": "isNaN"
+      },
+      "isFinite": {
+        "kind": "fn",
+        "name": "isFinite"
+      },
+      "Promise": {
+        "kind": "fn",
+        "name": "Promise"
+      },
+      "RegExp": {
+        "kind": "fn",
+        "name": "RegExp"
+      },
+      "wait": {
+        "kind": "fn",
+        "name": "wait",
+        "async": true
+      },
+      "regex": {
+        "kind": "ref",
+        "id": 1
+      },
+      "pair": [
+        {
+          "kind": "ref",
+          "id": 1
+        },
+        {
+          "kind": "ref",
+          "id": 1
+        }
+      ],
+      "acknowledged": 17
+    },
+    "replay": {
+      "version": 1,
+      "calls": [
+        {
+          "id": "cce3e116-6a74-4bdc-89c0-06a8da01176c:1",
+          "runId": "cce3e116-6a74-4bdc-89c0-06a8da01176c",
+          "sourceHash": "56c6650b",
+          "moduleId": "<bindings>",
+          "operation": "wait",
+          "argumentDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "policy": "re-issue",
+          "lifecycle": "consumed",
+          "asynchronous": true,
+          "outcome": {
+            "status": "fulfilled",
+            "data": {
+              "root": 17,
+              "nodes": []
+            }
+          }
+        }
+      ]
+    },
+    "initialInputs": {
+      "root": {
+        "tag": "ref",
+        "id": 0
+      },
+      "nodes": [
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": true,
+          "properties": {
+            "bindings": {
+              "value": {
+                "tag": "ref",
+                "id": 1
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "imports": {
+              "value": {
+                "tag": "ref",
+                "id": 4
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "entryPointArgs": {
+              "value": {
+                "tag": "undefined"
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            },
+            "importMeta": {
+              "value": {
+                "tag": "ref",
+                "id": 5
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            }
+          }
+        },
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": true,
+          "properties": {
+            "wait": {
+              "value": {
+                "tag": "ref",
+                "id": 2
+              },
+              "configurable": true,
+              "enumerable": true,
+              "writable": true
+            }
+          }
+        },
+        {
+          "kind": "capability",
+          "id": "[\"bindings\",\"wait\"]",
+          "properties": {
+            "tag": "ref",
+            "id": 3
+          }
+        },
+        {
+          "kind": "object",
+          "nullPrototype": false,
+          "extensible": false,
+          "properties": {}
+        },
+        {
+          "kind": "object",
+          "nullPrototype": true,
+          "extensible": true,
+          "properties": {}
+        },
+        {
+          "kind": "object",
+          "nullPrototype": true,
+          "extensible": true,
+          "properties": {}
+        }
+      ]
+    },
+    "promiseReplay": {
+      "version": 1,
+      "steps": 31,
+      "promises": 1,
+      "settlements": [
+        {
+          "id": 1,
+          "step": 15
+        }
+      ]
+    },
+    "random": {
+      "seed": 19,
+      "initialState": 19,
+      "state": 19
+    },
+    "heap": {
+      "1": {
+        "kind": "object",
+        "entries": {
+          "kind": "regex",
+          "source": "a",
+          "flags": "g",
+          "lastIndex": 1
+        }
+      }
+    }
+  }
+}

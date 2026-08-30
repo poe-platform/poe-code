@@ -19,6 +19,7 @@ import type {
 import { bindPattern } from "./patterns.js";
 import { getThenable, resolveSandboxValue } from "./promise.js";
 import { runAsyncPrefix, suspendJob } from "./jobs.js";
+import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue } from "./cancel.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
@@ -34,6 +35,7 @@ import {
   createSandboxGenerator,
   createSandboxPromise,
   allocateProducedSandboxValue,
+  reconcileCompiledValues,
   isSandboxPromise,
   type SandboxCallContext,
   type SandboxValue
@@ -55,6 +57,7 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  compilation?: CompileScope;
   activeLoopIterations: Map<number, LoopIterationSnapshot>;
   budget: Budget;
   callStack: string[];
@@ -152,6 +155,7 @@ export function createInterpretedClosure(
             thisValue,
             {
               ...context,
+              compilation: callContext?.compilation ?? context.compilation,
               callStack: [...(callContext?.stack ?? context.callStack)]
             },
             evaluateNode
@@ -174,6 +178,7 @@ export function createInterpretedClosure(
     call: (args, callContext) => {
       const invocationContext = {
         ...context,
+        compilation: callContext?.compilation ?? context.compilation,
         callStack: [...(callContext?.stack ?? context.callStack)]
       };
       if (!node.async)
@@ -232,6 +237,7 @@ function createGeneratorClosure(
     call: async (args, callContext) => {
       const closureContext = {
         ...context,
+        compilation: callContext?.compilation ?? context.compilation,
         callStack: [...(callContext?.stack ?? context.callStack)]
       };
       const scope = await createClosureScope(
@@ -312,27 +318,45 @@ async function executeClosure(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<SandboxValue> {
-  const scope = await createClosureScope(node, args, thisValue, context, evaluateNode);
+  const parent = context.compilation;
+  const operation = context.budget.acquireCompileOwner(false, parent?.owner);
+  const compilation = new CompileScope(operation.owner, parent);
+  context = { ...context, compilation };
+  try {
+    const scope = await createClosureScope(node, args, thisValue, context, evaluateNode);
 
-  const result = await evaluateNode(node.body, {
-    ...context,
-    functionBody: node.body.type === "BlockStatement" ? node.body : undefined,
-    scope
-  });
+    const result = await evaluateNode(node.body, {
+      ...context,
+      functionBody: node.body.type === "BlockStatement" ? node.body : undefined,
+      scope
+    });
 
-  if (result.kind === "error") {
-    throw result.error;
+    const value = "hasValue" in result && result.hasValue ? result.value : undefined;
+    reconcileCompiledValues(
+      context.budget,
+      [...scope.retainedValues(), ...context.budget.retainedValues(), value],
+      compilation,
+      parent,
+      [value]
+    );
+
+    if (result.kind === "error") {
+      throw result.error;
+    }
+
+    if (result.kind === "throw") {
+      throw result.value;
+    }
+
+    if (isBlockBody(node.body)) {
+      return result.hasValue ? result.value : undefined;
+    }
+
+    return result.value;
+  } finally {
+    compilation.dispose();
+    operation.release();
   }
-
-  if (result.kind === "throw") {
-    throw result.value;
-  }
-
-  if (isBlockBody(node.body)) {
-    return result.hasValue ? result.value : undefined;
-  }
-
-  return result.value;
 }
 
 async function createClosureScope(

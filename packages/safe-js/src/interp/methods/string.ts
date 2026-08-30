@@ -1,5 +1,6 @@
 import type { Expression } from "../../parse.js";
 import { Budget } from "../budget.js";
+import { CompileScope } from "../regex/compile-guard.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -99,7 +100,18 @@ export function getStringMember(
     sandbox: true,
     name: `String#${property}`,
     ...(property === "localeCompare" ? { length: 1 } : {}),
-    call: (args) => callStringMethod(value, property, args, budget)
+    call: (args, context) =>
+      callStringMethod(
+        value,
+        property,
+        args,
+        budget,
+        context === undefined
+          ? undefined
+          : async (closure, closureArgs) =>
+              await closure.call(closureArgs, { ...context, thisValue: undefined }),
+        context?.compilation
+      )
   });
 }
 
@@ -129,119 +141,131 @@ export function callStringMethod(
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[]
-  ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs)
+  ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs),
+  parent?: CompileScope
 ): SandboxValue | Promise<SandboxValue> {
   if (methodName === "replace" || methodName === "replaceAll") {
     return callReplaceLikeMethod(value, methodName, args, budget, callClosure);
   }
 
-  if (methodName === "split") {
-    return callSplit(value, args, budget);
-  }
-
-  if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
-    return callMatchLikeMethod(value, methodName, args);
-  }
-
-  if (methodName === "localeCompare") {
-    if (isSandboxClosure(args[0])) {
-      throw new TypeError("String#localeCompare does not support function comparison values.");
+  const operation = budget.acquireCompileOwner(false, parent?.owner);
+  const compilation = new CompileScope(operation.owner);
+  try {
+    if (methodName === "split") {
+      return callSplit(value, args, budget, compilation);
     }
-    const comparison = budget.allocateString(String(deepCopyFromSandbox(args[0])));
-    const locales: string[] = Reflect.apply(Intl.getCanonicalLocales, Intl, [
-      deepCopyFromSandbox(args[1])
-    ]);
-    const options = args[2];
-    const nativeOptions =
-      options === undefined || options === null
-        ? options
-        : Object.fromEntries(
-            [
-              "usage",
-              "localeMatcher",
-              "collation",
-              "numeric",
-              "caseFirst",
-              "sensitivity",
-              "ignorePunctuation"
-            ].map((property) => {
-              const descriptor = Object.getOwnPropertyDescriptor(options, property);
-              if (descriptor !== undefined && !("value" in descriptor)) {
-                throw new TypeError("String#localeCompare only supports data option properties.");
-              }
-              const option: SandboxValue = descriptor?.value;
-              return [
-                property,
-                option === undefined
-                  ? undefined
-                  : property === "numeric" || property === "ignorePunctuation"
-                    ? Boolean(option)
-                    : deepCopyFromSandbox(option)
-              ];
-            })
-          );
-    return Reflect.apply(String.prototype.localeCompare, value, [
-      comparison,
-      locales,
-      nativeOptions
-    ]);
-  }
 
-  if (args.some(isSandboxClosure)) {
-    throw new TypeError(`String#${methodName} does not support function arguments.`);
-  }
-
-  switch (methodName) {
-    case "at": {
-      const result = value.at(asNumber(args[0]));
-      return result === undefined ? undefined : budget.allocateString(result);
+    if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
+      return callMatchLikeMethod(value, methodName, args, compilation);
     }
-    case "charAt":
-      return budget.allocateString(value.charAt(asNumber(args[0])));
-    case "charCodeAt":
-      return value.charCodeAt(asNumber(args[0]));
-    case "codePointAt":
-      return value.codePointAt(asNumber(args[0]));
-    case "concat":
-      return budget.allocateString(value.concat(...args.map(String)));
-    case "endsWith":
-      return value.endsWith(String(args[0]), asNumberOrUndefined(args[1]));
-    case "includes":
-      return value.includes(String(args[0]), asNumberOrUndefined(args[1]));
-    case "indexOf":
-      return value.indexOf(String(args[0]), asNumberOrUndefined(args[1]));
-    case "lastIndexOf":
-      return value.lastIndexOf(String(args[0]), asNumberOrUndefined(args[1]));
-    case "normalize":
-      return budget.allocateString(value.normalize(asStringOrUndefined(args[0])));
-    case "padEnd":
-      return budget.allocateString(value.padEnd(asNumber(args[0]), asStringOrUndefined(args[1])));
-    case "padStart":
-      return budget.allocateString(value.padStart(asNumber(args[0]), asStringOrUndefined(args[1])));
-    case "repeat":
-      return budget.allocateString(value.repeat(asNumber(args[0])));
-    case "slice":
-      return budget.allocateString(
-        value.slice(asNumberOrUndefined(args[0]), asNumberOrUndefined(args[1]))
+
+    if (methodName === "localeCompare") {
+      if (isSandboxClosure(args[0])) {
+        throw new TypeError("String#localeCompare does not support function comparison values.");
+      }
+      const comparison = budget.allocateString(
+        String(deepCopyFromSandbox(args[0], { compilation }))
       );
-    case "startsWith":
-      return value.startsWith(String(args[0]), asNumberOrUndefined(args[1]));
-    case "substr":
-      return budget.allocateString(value.substr(asNumber(args[0]), asNumberOrUndefined(args[1])));
-    case "substring":
-      return budget.allocateString(
-        value.substring(asNumber(args[0]), asNumberOrUndefined(args[1]))
-      );
-    case "toLowerCase":
-      return budget.allocateString(value.toLowerCase());
-    case "toUpperCase":
-      return budget.allocateString(value.toUpperCase());
-    case "trim":
-      return budget.allocateString(value.trim());
-    case "trimEnd":
-      return budget.allocateString(value.trimEnd());
-    case "trimStart":
-      return budget.allocateString(value.trimStart());
+      const locales: string[] = Reflect.apply(Intl.getCanonicalLocales, Intl, [
+        deepCopyFromSandbox(args[1], { compilation })
+      ]);
+      const options = args[2];
+      const nativeOptions =
+        options === undefined || options === null
+          ? options
+          : Object.fromEntries(
+              [
+                "usage",
+                "localeMatcher",
+                "collation",
+                "numeric",
+                "caseFirst",
+                "sensitivity",
+                "ignorePunctuation"
+              ].map((property) => {
+                const descriptor = Object.getOwnPropertyDescriptor(options, property);
+                if (descriptor !== undefined && !("value" in descriptor)) {
+                  throw new TypeError("String#localeCompare only supports data option properties.");
+                }
+                const option: SandboxValue = descriptor?.value;
+                return [
+                  property,
+                  option === undefined
+                    ? undefined
+                    : property === "numeric" || property === "ignorePunctuation"
+                      ? Boolean(option)
+                      : deepCopyFromSandbox(option, { compilation })
+                ];
+              })
+            );
+      return Reflect.apply(String.prototype.localeCompare, value, [
+        comparison,
+        locales,
+        nativeOptions
+      ]);
+    }
+
+    if (args.some(isSandboxClosure)) {
+      throw new TypeError(`String#${methodName} does not support function arguments.`);
+    }
+
+    switch (methodName) {
+      case "at": {
+        const result = value.at(asNumber(args[0]));
+        return result === undefined ? undefined : budget.allocateString(result);
+      }
+      case "charAt":
+        return budget.allocateString(value.charAt(asNumber(args[0])));
+      case "charCodeAt":
+        return value.charCodeAt(asNumber(args[0]));
+      case "codePointAt":
+        return value.codePointAt(asNumber(args[0]));
+      case "concat":
+        return budget.allocateString(value.concat(...args.map(String)));
+      case "endsWith":
+        return value.endsWith(String(args[0]), asNumberOrUndefined(args[1]));
+      case "includes":
+        return value.includes(String(args[0]), asNumberOrUndefined(args[1]));
+      case "indexOf":
+        return value.indexOf(String(args[0]), asNumberOrUndefined(args[1]));
+      case "lastIndexOf":
+        return value.lastIndexOf(String(args[0]), asNumberOrUndefined(args[1]));
+      case "normalize":
+        return budget.allocateString(value.normalize(asStringOrUndefined(args[0])));
+      case "padEnd":
+        return budget.allocateString(value.padEnd(asNumber(args[0]), asStringOrUndefined(args[1])));
+      case "padStart":
+        return budget.allocateString(
+          value.padStart(asNumber(args[0]), asStringOrUndefined(args[1]))
+        );
+      case "repeat":
+        return budget.allocateString(value.repeat(asNumber(args[0])));
+      case "slice":
+        return budget.allocateString(
+          value.slice(asNumberOrUndefined(args[0]), asNumberOrUndefined(args[1]))
+        );
+      case "startsWith":
+        return value.startsWith(String(args[0]), asNumberOrUndefined(args[1]));
+      case "substr":
+        return budget.allocateString(value.substr(asNumber(args[0]), asNumberOrUndefined(args[1])));
+      case "substring":
+        return budget.allocateString(
+          value.substring(asNumber(args[0]), asNumberOrUndefined(args[1]))
+        );
+      case "toLowerCase":
+        return budget.allocateString(value.toLowerCase());
+      case "toUpperCase":
+        return budget.allocateString(value.toUpperCase());
+      case "trim":
+        return budget.allocateString(value.trim());
+      case "trimEnd":
+        return budget.allocateString(value.trimEnd());
+      case "trimStart":
+        return budget.allocateString(value.trimStart());
+    }
+  } finally {
+    compilation.dispose();
+    operation.release();
   }
 }
 
@@ -413,14 +437,21 @@ function findReplacementOffsets(value: string, searchValue: string, replaceAll: 
   return offsets;
 }
 
-function callSplit(value: string, args: readonly SandboxValue[], budget: Budget): SandboxValue[] {
+function callSplit(
+  value: string,
+  args: readonly SandboxValue[],
+  budget: Budget,
+  compilation: CompileScope
+): SandboxValue[] {
   if (args.some(isSandboxClosure))
     throw new TypeError("String#split does not support function arguments.");
   if (isSandboxRegex(args[0])) {
     const regex = args[0];
     const splitter = createSandboxRegex(
       regex.source,
-      regex.flags.includes("g") ? regex.flags : `${regex.flags}g`
+      regex.flags.includes("g") ? regex.flags : `${regex.flags}g`,
+      0,
+      compilation
     );
     const limit = asNumberOrUndefined(args[1]) ?? 2 ** 32 - 1;
     const result: SandboxValue[] = [];
@@ -457,7 +488,8 @@ function callSplit(value: string, args: readonly SandboxValue[], budget: Budget)
 function callMatchLikeMethod(
   value: string,
   methodName: "match" | "matchAll" | "search",
-  args: readonly SandboxValue[]
+  args: readonly SandboxValue[],
+  compilation: CompileScope
 ): SandboxValue {
   const regex = args[0];
   if (!isSandboxRegex(regex))
@@ -476,7 +508,7 @@ function callMatchLikeMethod(
   if (methodName === "match") regex.lastIndex = 0;
   const matcher =
     methodName === "matchAll"
-      ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex)
+      ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex, compilation)
       : regex;
   const matches = collectRegexMatches(matcher, value, true);
   if (methodName === "match" && matches.length === 0) return null;

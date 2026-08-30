@@ -1,6 +1,8 @@
 import { HostCallJournal, type HostCallRecord, type HostCallReplay } from "../interp/host-call.js";
 import { decodeReplayData, type ReplayData } from "./replay-data.js";
 import { validateSnapshotData } from "./validation.js";
+import type { CompileOwner } from "../interp/budget.js";
+import { CompileScope } from "../interp/regex/compile-guard.js";
 
 export type SnapshotMigrationResolution =
   | { callId: string; disposition: "not-performed" }
@@ -39,12 +41,20 @@ export function validateMigrationSemantics(value: unknown): asserts value is str
 export function validateMigrationJournal(
   sourceHash: string,
   replay: unknown,
-  hostCalls: unknown = []
+  hostCalls: unknown = [],
+  owner?: CompileOwner
 ): HostCallReplay {
   if (replay === undefined)
     throw new TypeError("Migration requires a complete host replay journal.");
   if (!Array.isArray(hostCalls)) throw new TypeError("Invalid migration hostCalls.");
-  const journal = new HostCallJournal(sourceHash, hostCalls as HostCallRecord[], undefined, replay);
+  const journal = new HostCallJournal(
+    sourceHash,
+    hostCalls as HostCallRecord[],
+    undefined,
+    replay,
+    owner?.budget,
+    owner
+  );
   try {
     const restored = journal.snapshotReplay();
     for (const call of restored.calls) {
@@ -107,7 +117,8 @@ export function validateMigrationReconciliation(
 
 export function validateSnapshotMigration(
   value: unknown,
-  sourceHash: string
+  sourceHash: string,
+  owner?: CompileOwner
 ): SnapshotMigration | undefined {
   if (value === undefined) return undefined;
   validateSnapshotData(value);
@@ -120,7 +131,12 @@ export function validateSnapshotMigration(
     migration.history.length === 0
   )
     throw new TypeError("Invalid snapshot migration history.");
-  decodeReplayData(migration.state);
+  const compilation = new CompileScope(owner);
+  try {
+    decodeReplayData(migration.state, {}, compilation);
+  } finally {
+    compilation.dispose();
+  }
   let previousTarget: string | undefined;
   for (const entry of migration.history) {
     if (
@@ -134,7 +150,7 @@ export function validateSnapshotMigration(
     )
       throw new TypeError("Invalid snapshot migration ancestry.");
     validateMigrationSemantics(entry.executionSemantics);
-    const replay = validateMigrationJournal(entry.sourceHash, entry.replay);
+    const replay = validateMigrationJournal(entry.sourceHash, entry.replay, [], owner);
     validateMigrationReconciliation(
       entry.reconciliation,
       entry.reconciliation?.checkpointDigest,

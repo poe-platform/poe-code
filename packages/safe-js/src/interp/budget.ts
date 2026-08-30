@@ -19,6 +19,12 @@ export type BudgetOptions = {
 };
 
 export const REGEX_STEP_LIMIT = 2_000;
+export const REGEX_COMPILE_LIMITS = Object.freeze({
+  sourceLength: 4_096,
+  flagsLength: 8,
+  depth: 64,
+  allocations: 16_384
+});
 const DEADLINE_CHECK_INTERVAL = 1_024;
 
 export class SandboxError extends Error {
@@ -68,6 +74,15 @@ type BudgetLimits = {
   dataSize?: number;
 };
 
+export type CompileOwner = {
+  readonly budget: Budget;
+  readonly generation: number;
+};
+
+export type CompileTicket = {
+  readonly owner: CompileOwner;
+};
+
 export class Budget {
   readonly deadline?: number;
   readonly limits: Readonly<BudgetLimits>;
@@ -83,6 +98,12 @@ export class Budget {
   private retainedDataSize = 0;
   private readonly retainedData = new Map<object, number>();
   private readonly retainedValueSources = new Map<object, () => Iterable<unknown>>();
+  private compileGeneration = 0;
+  private activeCompileOwner?: CompileOwner;
+  private compileUses = 0;
+  private provisionalScopes = 0;
+  private readonly compileTickets = new Map<CompileTicket, number>();
+  private readonly completedCompileTickets = new Set<CompileTicket>();
 
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
@@ -176,6 +197,144 @@ export class Budget {
     for (const values of this.retainedValueSources.values()) yield* values();
   }
 
+  acquireCompileOwner(
+    reset = false,
+    owner?: CompileOwner
+  ): {
+    owner: CompileOwner;
+    release: () => void;
+  } {
+    if (
+      (owner !== undefined &&
+        (owner.budget !== this || owner.generation !== this.compileGeneration)) ||
+      (this.activeCompileOwner !== undefined && this.activeCompileOwner !== owner) ||
+      (reset && (this.compileUses !== 0 || owner !== undefined))
+    ) {
+      throw new SandboxError("reentry");
+    }
+    if (reset) this.reset();
+    const selected = owner ?? Object.freeze({ budget: this, generation: this.compileGeneration });
+    this.activeCompileOwner = selected;
+    this.compileUses += 1;
+    let released = false;
+    return {
+      owner: selected,
+      release: () => {
+        if (released) return;
+        released = true;
+        this.compileUses -= 1;
+        if (this.compileUses === 0) this.activeCompileOwner = undefined;
+      }
+    };
+  }
+
+  createCompileTicket(owner: CompileOwner): CompileTicket {
+    if (
+      owner.budget !== this ||
+      owner.generation !== this.compileGeneration ||
+      this.activeCompileOwner !== owner
+    ) {
+      throw new SandboxError("reentry");
+    }
+    const ticket = Object.freeze({ owner });
+    this.compileTickets.set(ticket, 0);
+    return ticket;
+  }
+
+  compileTicketUsage(ticket: CompileTicket): number {
+    return ticket.owner.generation === this.compileGeneration
+      ? (this.compileTickets.get(ticket) ?? 0)
+      : 0;
+  }
+
+  resizeCompileTicket(ticket: CompileTicket, usage: number): void {
+    if (ticket.owner.generation !== this.compileGeneration || !this.compileTickets.has(ticket)) {
+      throw new SandboxError("reentry");
+    }
+    this.setRetainedDataUsage(ticket, usage);
+    this.compileTickets.set(ticket, usage);
+  }
+
+  discardCompileTicket(ticket: CompileTicket): void {
+    if (ticket.owner.generation !== this.compileGeneration) return;
+    const usage = this.compileTickets.get(ticket);
+    if (usage === undefined) return;
+    this.compileTickets.delete(ticket);
+    this.completedCompileTickets.delete(ticket);
+    this.retainedData.delete(ticket);
+    this.retainedDataSize -= usage;
+    this.currentDataSize -= usage;
+  }
+
+  reconcileCompileData(
+    usage: number,
+    included: ReadonlySet<CompileTicket>,
+    transferred: ReadonlySet<CompileTicket> = included,
+    retainedOwner?: object,
+    complete = false
+  ): ReadonlySet<CompileTicket> {
+    let includedUsage = 0;
+    let transferredUsage = 0;
+    let discardedUsage = 0;
+    const releasing: CompileTicket[] = [];
+    const retained = new Set<CompileTicket>();
+    for (const ticket of included) {
+      const charge = this.compileTicketUsage(ticket);
+      includedUsage += charge;
+      if (
+        charge > 0 &&
+        transferred.has(ticket) &&
+        (this.provisionalScopes === 0 || retainedOwner !== undefined)
+      ) {
+        releasing.push(ticket);
+        transferredUsage += charge;
+      } else if (charge > 0 && complete && transferred.has(ticket)) {
+        retained.add(ticket);
+      }
+    }
+    if (retainedOwner === undefined) {
+      for (const ticket of this.completedCompileTickets) {
+        if (included.has(ticket)) continue;
+        releasing.push(ticket);
+        discardedUsage += this.compileTicketUsage(ticket);
+      }
+    }
+    const oldOwnerUsage =
+      retainedOwner === undefined ? 0 : (this.retainedData.get(retainedOwner) ?? 0);
+    const nextRetained =
+      this.retainedDataSize -
+      transferredUsage -
+      discardedUsage +
+      (retainedOwner === undefined ? 0 : usage - oldOwnerUsage);
+    const measured =
+      retainedOwner === undefined
+        ? usage - includedUsage + transferredUsage
+        : this.currentDataSize - this.retainedDataSize;
+    const total = measured + nextRetained;
+    this.checkDataUsage(total);
+    for (const ticket of releasing) {
+      this.compileTickets.delete(ticket);
+      this.completedCompileTickets.delete(ticket);
+      this.retainedData.delete(ticket);
+    }
+    if (retainedOwner !== undefined) {
+      if (usage === 0) this.retainedData.delete(retainedOwner);
+      else this.retainedData.set(retainedOwner, usage);
+    }
+    this.retainedDataSize = nextRetained;
+    this.currentDataSize = total;
+    this.peakDataSize = Math.max(this.peakDataSize, total);
+    for (const ticket of retained) this.completedCompileTickets.add(ticket);
+    return retained;
+  }
+
+  chargeDataUsage(usage: number): void {
+    const total = this.currentDataSize + usage;
+    this.checkDataUsage(total);
+    this.currentDataSize = total;
+    this.peakDataSize = Math.max(this.peakDataSize, total);
+  }
+
   provisionDataUsage(usage: number): () => void {
     const previous = this.currentDataSize;
     const previousRetained = this.retainedDataSize;
@@ -183,11 +342,15 @@ export class Budget {
     this.checkDataUsage(next);
     this.currentDataSize = next;
     this.peakDataSize = Math.max(this.peakDataSize, next);
+    const generation = this.compileGeneration;
+    this.provisionalScopes += 1;
 
     let released = false;
     return () => {
       if (released) return;
       released = true;
+      if (generation !== this.compileGeneration) return;
+      this.provisionalScopes -= 1;
       this.currentDataSize = previous + this.retainedDataSize - previousRetained;
     };
   }
@@ -201,6 +364,11 @@ export class Budget {
   }
 
   reset(): void {
+    if (this.compileUses !== 0) throw new SandboxError("reentry");
+    this.compileGeneration += 1;
+    this.provisionalScopes = 0;
+    this.compileTickets.clear();
+    this.completedCompileTickets.clear();
     this.stepsUsed = 0;
     this.peakCallDepth = 0;
     this.currentCallDepth = 0;

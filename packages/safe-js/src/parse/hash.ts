@@ -1,15 +1,17 @@
 import { parse, parseModule, type Module, type ParseResult } from "./parser.js";
+import { SandboxError, type CompileOwner } from "../interp/budget.js";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 
 const IGNORED_KEYS = new Set(["nodeId", "raw", "span"]);
 
-export function hashSource(source: string): string {
+export function hashSource(source: string, owner?: CompileOwner): string {
   try {
-    return hashParsedAst(parse(source));
-  } catch {
-    return hashParsedAst(parseModule(source));
+    return hashParsedAst(parse(source, "<input>", owner));
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    return hashParsedAst(parseModule(source, "<input>", owner));
   }
 }
 

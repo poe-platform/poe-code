@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
@@ -181,172 +182,181 @@ export function decodeReplayData(
     resolveCapability?: (id: string) => SandboxClosure | undefined;
     resolvePromise?: (id: string) => SandboxPromise | undefined;
     onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void;
-  } = {}
+  } = {},
+  parent?: CompileScope
 ): SandboxValue {
-  validateSnapshotData(input);
-  const graph = record(input);
-  const nodes = list(own(graph, "nodes"));
-  const restored = new Map<number, SandboxValue>();
-  const decode = (entry: unknown, depth = 0): SandboxValue => {
-    if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
-    if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
-    if (typeof entry === "number" && Number.isFinite(entry)) return entry;
-    const atom = record(entry);
-    if (own(atom, "tag") === "promise-capability") {
-      const id = own(atom, "id");
-      if (typeof id !== "string" || id.length === 0)
-        throw new TypeError("Invalid replay promise capability reference.");
-      const promise = options.resolvePromise?.(id);
-      if (!isSandboxPromise(promise))
-        throw new TypeError(`Missing replay promise capability '${id}'.`);
-      return promise;
-    }
-    if (own(atom, "tag") === "capability") {
-      const id = own(atom, "id");
-      if (typeof id !== "string" || id.length === 0)
-        throw new TypeError("Invalid replay capability reference.");
-      const capability = options.resolveCapability?.(id);
-      if (!isSandboxClosure(capability)) throw new TypeError(`Missing replay capability '${id}'.`);
-      return capability;
-    }
-    if (own(atom, "tag") === "undefined") return undefined;
-    if (atom.tag === "number") {
-      switch (own(atom, "value")) {
-        case "NaN":
-          return NaN;
-        case "Infinity":
-          return Infinity;
-        case "-Infinity":
-          return -Infinity;
-        case "-0":
-          return -0;
-        default:
-          throw new TypeError("Invalid replay number.");
+  const compilation = new CompileScope(parent?.owner);
+  try {
+    validateSnapshotData(input);
+    const graph = record(input);
+    const nodes = list(own(graph, "nodes"));
+    const restored = new Map<number, SandboxValue>();
+    const decode = (entry: unknown, depth = 0): SandboxValue => {
+      if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
+      if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
+      if (typeof entry === "number" && Number.isFinite(entry)) return entry;
+      const atom = record(entry);
+      if (own(atom, "tag") === "promise-capability") {
+        const id = own(atom, "id");
+        if (typeof id !== "string" || id.length === 0)
+          throw new TypeError("Invalid replay promise capability reference.");
+        const promise = options.resolvePromise?.(id);
+        if (!isSandboxPromise(promise))
+          throw new TypeError(`Missing replay promise capability '${id}'.`);
+        return promise;
       }
-    }
-    if (
-      atom.tag !== "ref" ||
-      !Number.isSafeInteger(atom.id) ||
-      Number(atom.id) < 0 ||
-      Number(atom.id) >= nodes.length
-    ) {
-      throw new TypeError("Invalid replay data reference.");
-    }
-    const id = Number(atom.id);
-    if (restored.has(id)) return restored.get(id);
-    const node = record(nodes[id]);
-    const kind = own(node, "kind");
-    if (
-      Object.hasOwn(node, "errorType") &&
-      (kind !== "object" || !sandboxErrorNames.includes(node.errorType as SandboxErrorName))
-    ) {
-      throw new TypeError("Invalid replay error metadata.");
-    }
-    const child = (value: unknown) => decode(value, depth + 1);
-    if (kind === "capability") {
-      const capabilityId = own(node, "id");
-      if (typeof capabilityId !== "string" || capabilityId.length === 0)
-        throw new TypeError("Invalid replay capability reference.");
-      const capability = options.resolveCapability?.(capabilityId);
-      if (!isSandboxClosure(capability))
-        throw new TypeError(`Missing replay capability '${capabilityId}'.`);
-      if (record(own(node, "properties")).tag === "undefined") {
-        restored.set(id, capability);
+      if (own(atom, "tag") === "capability") {
+        const id = own(atom, "id");
+        if (typeof id !== "string" || id.length === 0)
+          throw new TypeError("Invalid replay capability reference.");
+        const capability = options.resolveCapability?.(id);
+        if (!isSandboxClosure(capability))
+          throw new TypeError(`Missing replay capability '${id}'.`);
         return capability;
       }
-      const copy = createSandboxClosure({
-        ...capability,
-        boundTarget: capability.boundTarget,
-        cancellationSignal: capability.cancellationSignal,
-        sandbox: capability.sandbox,
-        retainedValues: () => [capability],
-        properties: (closure) => {
-          restored.set(id, closure);
-          const properties = child(own(node, "properties"));
-          if (
-            properties === null ||
-            typeof properties !== "object" ||
-            Array.isArray(properties) ||
-            isSandboxClosure(properties)
-          )
-            throw new TypeError("Invalid replay capability properties.");
-          return properties as Record<string, SandboxValue>;
+      if (own(atom, "tag") === "undefined") return undefined;
+      if (atom.tag === "number") {
+        switch (own(atom, "value")) {
+          case "NaN":
+            return NaN;
+          case "Infinity":
+            return Infinity;
+          case "-Infinity":
+            return -Infinity;
+          case "-0":
+            return -0;
+          default:
+            throw new TypeError("Invalid replay number.");
         }
-      });
-      options.onCapabilityRestored?.(capability, copy);
-      return copy;
-    }
-    if (kind === "float32array") {
-      if (typeof node.extensible !== "boolean")
-        throw new TypeError("Invalid Float32Array extensibility.");
-      const result = decodeFloat32Storage(node, child);
+      }
+      if (
+        atom.tag !== "ref" ||
+        !Number.isSafeInteger(atom.id) ||
+        Number(atom.id) < 0 ||
+        Number(atom.id) >= nodes.length
+      ) {
+        throw new TypeError("Invalid replay data reference.");
+      }
+      const id = Number(atom.id);
+      if (restored.has(id)) return restored.get(id);
+      const node = record(nodes[id]);
+      const kind = own(node, "kind");
+      if (
+        Object.hasOwn(node, "errorType") &&
+        (kind !== "object" || !sandboxErrorNames.includes(node.errorType as SandboxErrorName))
+      ) {
+        throw new TypeError("Invalid replay error metadata.");
+      }
+      const child = (value: unknown) => decode(value, depth + 1);
+      if (kind === "capability") {
+        const capabilityId = own(node, "id");
+        if (typeof capabilityId !== "string" || capabilityId.length === 0)
+          throw new TypeError("Invalid replay capability reference.");
+        const capability = options.resolveCapability?.(capabilityId);
+        if (!isSandboxClosure(capability))
+          throw new TypeError(`Missing replay capability '${capabilityId}'.`);
+        if (record(own(node, "properties")).tag === "undefined") {
+          restored.set(id, capability);
+          return capability;
+        }
+        const copy = createSandboxClosure({
+          ...capability,
+          boundTarget: capability.boundTarget,
+          cancellationSignal: capability.cancellationSignal,
+          sandbox: capability.sandbox,
+          retainedValues: () => [capability],
+          properties: (closure) => {
+            restored.set(id, closure);
+            const properties = child(own(node, "properties"));
+            if (
+              properties === null ||
+              typeof properties !== "object" ||
+              Array.isArray(properties) ||
+              isSandboxClosure(properties)
+            )
+              throw new TypeError("Invalid replay capability properties.");
+            return properties as Record<string, SandboxValue>;
+          }
+        });
+        options.onCapabilityRestored?.(capability, copy);
+        return copy;
+      }
+      if (kind === "float32array") {
+        if (typeof node.extensible !== "boolean")
+          throw new TypeError("Invalid Float32Array extensibility.");
+        const result = decodeFloat32Storage(node, child);
+        restored.set(id, result);
+        defineProperties(result, record(own(node, "properties")), child);
+        if (!node.extensible) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "map") {
+        const result = createSandboxMap();
+        restored.set(id, result);
+        for (const pair of list(own(node, "entries"))) {
+          const entries = list(pair);
+          if (entries.length !== 2) throw new TypeError("Invalid replay map entry.");
+          result.entries.set(child(entries[0]), child(entries[1]));
+        }
+        return result;
+      }
+      if (kind === "set") {
+        const result = createSandboxSet();
+        restored.set(id, result);
+        for (const value of list(own(node, "values"))) result.values.add(child(value));
+        return result;
+      }
+      if (kind === "regex") {
+        if (
+          typeof node.source !== "string" ||
+          typeof node.flags !== "string" ||
+          typeof node.lastIndex !== "number" ||
+          !Number.isFinite(node.lastIndex)
+        ) {
+          throw new TypeError("Invalid replay regular expression.");
+        }
+        const result = createSandboxRegex(node.source, node.flags, node.lastIndex, compilation);
+        restored.set(id, result);
+        return result;
+      }
+      if (kind === "arguments") {
+        const data = record(own(node, "data"));
+        validateArgumentsProperties(data, "arguments");
+        if (data.kind !== "arguments") throw new TypeError("Invalid replay arguments.");
+        const args = createSandboxArguments([]);
+        restored.set(id, args);
+        if (!data.lengthBeforeCallee) delete args.length;
+        defineProperties(args, record(data.properties), child);
+        if (data.iterator === null) Reflect.deleteProperty(args, Symbol.iterator);
+        else
+          Object.defineProperty(args, Symbol.iterator, {
+            ...record(data.iterator),
+            value: Array.prototype.values
+          });
+        if (!data.extensible) Object.preventExtensions(args);
+        return args;
+      }
+      if (kind !== "array" && kind !== "object") throw new TypeError("Invalid replay data node.");
+      if (typeof node.extensible !== "boolean" || typeof node.nullPrototype !== "boolean") {
+        throw new TypeError("Invalid replay object metadata.");
+      }
+      const result =
+        kind === "array" ? [] : Object.create(node.nullPrototype ? null : Object.prototype);
+      if (Object.hasOwn(node, "errorType")) {
+        sandboxErrorTypes.set(result, node.errorType as SandboxErrorName);
+      }
+      if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
       restored.set(id, result);
       defineProperties(result, record(own(node, "properties")), child);
       if (!node.extensible) Object.preventExtensions(result);
       return result;
-    }
-    if (kind === "map") {
-      const result = createSandboxMap();
-      restored.set(id, result);
-      for (const pair of list(own(node, "entries"))) {
-        const entries = list(pair);
-        if (entries.length !== 2) throw new TypeError("Invalid replay map entry.");
-        result.entries.set(child(entries[0]), child(entries[1]));
-      }
-      return result;
-    }
-    if (kind === "set") {
-      const result = createSandboxSet();
-      restored.set(id, result);
-      for (const value of list(own(node, "values"))) result.values.add(child(value));
-      return result;
-    }
-    if (kind === "regex") {
-      if (
-        typeof node.source !== "string" ||
-        typeof node.flags !== "string" ||
-        typeof node.lastIndex !== "number" ||
-        !Number.isFinite(node.lastIndex)
-      ) {
-        throw new TypeError("Invalid replay regular expression.");
-      }
-      const result = createSandboxRegex(node.source, node.flags, node.lastIndex);
-      restored.set(id, result);
-      return result;
-    }
-    if (kind === "arguments") {
-      const data = record(own(node, "data"));
-      validateArgumentsProperties(data, "arguments");
-      if (data.kind !== "arguments") throw new TypeError("Invalid replay arguments.");
-      const args = createSandboxArguments([]);
-      restored.set(id, args);
-      if (!data.lengthBeforeCallee) delete args.length;
-      defineProperties(args, record(data.properties), child);
-      if (data.iterator === null) Reflect.deleteProperty(args, Symbol.iterator);
-      else
-        Object.defineProperty(args, Symbol.iterator, {
-          ...record(data.iterator),
-          value: Array.prototype.values
-        });
-      if (!data.extensible) Object.preventExtensions(args);
-      return args;
-    }
-    if (kind !== "array" && kind !== "object") throw new TypeError("Invalid replay data node.");
-    if (typeof node.extensible !== "boolean" || typeof node.nullPrototype !== "boolean") {
-      throw new TypeError("Invalid replay object metadata.");
-    }
-    const result =
-      kind === "array" ? [] : Object.create(node.nullPrototype ? null : Object.prototype);
-    if (Object.hasOwn(node, "errorType")) {
-      sandboxErrorTypes.set(result, node.errorType as SandboxErrorName);
-    }
-    if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
-    restored.set(id, result);
-    defineProperties(result, record(own(node, "properties")), child);
-    if (!node.extensible) Object.preventExtensions(result);
+    };
+    const result = decode(own(graph, "root"));
+    if (parent !== undefined) compilation.forward(compilation.tickets, parent);
     return result;
-  };
-  return decode(own(graph, "root"));
+  } finally {
+    compilation.dispose();
+  }
 }
 
 function defineProperties(

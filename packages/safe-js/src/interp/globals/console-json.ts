@@ -1,4 +1,5 @@
-import type { Budget } from "../budget.js";
+import type { Budget, CompileOwner } from "../budget.js";
+import { CompileScope } from "../regex/compile-guard.js";
 import type { HostCallJournal } from "../host-call.js";
 import { wrapCallerInjectedBindings } from "../host-bridge.js";
 import {
@@ -20,6 +21,7 @@ export type ConsoleSink = {
 
 export type ConsoleJsonGlobalsOptions = {
   budget: Budget;
+  compileOwner?: CompileOwner;
   sink?: ConsoleSink;
   hostCalls?: HostCallJournal;
 };
@@ -48,17 +50,37 @@ export function createConsoleJsonGlobals(
         ? {
             error: createSandboxClosure({
               sandbox: true,
-              call: async (args) => {
-                sink.error(...args.map((value) => deepCopyFromSandbox(value)));
-                return undefined;
+              call: async (args, context) => {
+                const operation = options.budget.acquireCompileOwner(
+                  false,
+                  options.compileOwner ?? context?.compilation?.owner
+                );
+                const compilation = new CompileScope(operation.owner);
+                try {
+                  sink.error(...args.map((value) => deepCopyFromSandbox(value, { compilation })));
+                  return undefined;
+                } finally {
+                  compilation.dispose();
+                  operation.release();
+                }
               },
               name: "error"
             }),
             log: createSandboxClosure({
               sandbox: true,
-              call: async (args) => {
-                sink.log(...args.map((value) => deepCopyFromSandbox(value)));
-                return undefined;
+              call: async (args, context) => {
+                const operation = options.budget.acquireCompileOwner(
+                  false,
+                  options.compileOwner ?? context?.compilation?.owner
+                );
+                const compilation = new CompileScope(operation.owner);
+                try {
+                  sink.log(...args.map((value) => deepCopyFromSandbox(value, { compilation })));
+                  return undefined;
+                } finally {
+                  compilation.dispose();
+                  operation.release();
+                }
               },
               name: "log"
             })
@@ -76,6 +98,7 @@ export function createConsoleJsonGlobals(
             },
             {
               budget: options.budget,
+              compileOwner: options.compileOwner,
               hostCalls: options.hostCalls,
               moduleId: "<console>"
             }

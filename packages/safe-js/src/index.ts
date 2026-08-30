@@ -1,5 +1,25 @@
+import { parseModule as parseModuleInternal, type Module } from "./parse/parser.js";
+import { restore as restoreInternal, type SafeJSSnapshot, type RestoreOptions } from "./restore.js";
+import {
+  deepCopyFromSandbox as copyFromSandboxInternal,
+  type SandboxPromise,
+  type SandboxValue
+} from "./interp/values.js";
+
 export { parse } from "./parse.js";
-export { parseModule } from "./parse/parser.js";
+export const parseModule: (source: string, filename?: string) => Module = parseModuleInternal;
+export const restore: <TSnapshot extends SafeJSSnapshot>(
+  snapshot: TSnapshot,
+  options: RestoreOptions
+) => TSnapshot = restoreInternal;
+type PublicCopyOptions = Omit<
+  NonNullable<Parameters<typeof copyFromSandboxInternal>[1]>,
+  "compilation"
+>;
+export const deepCopyFromSandbox: {
+  (value: SandboxPromise, options?: PublicCopyOptions): Promise<unknown>;
+  (value: SandboxValue, options?: PublicCopyOptions): unknown;
+} = copyFromSandboxInternal;
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
 export { createReplayableRandom, type ReplayableRandom } from "./random.js";
@@ -28,7 +48,6 @@ export type {
   PendingHostCallPolicyRegistration
 } from "./snapshot/policy.js";
 export { dump, type DumpOptions } from "./dump.js";
-export { restore } from "./restore.js";
 export { inspectSnapshotMigration, migrateSnapshot } from "./migrate.js";
 export { migrateSnapshotFile, type SnapshotMigrationFileOptions } from "./migration-file.js";
 export type {
@@ -42,7 +61,7 @@ export type { SnapshotValidationCode } from "./snapshot/validation.js";
 export { Budget, SandboxError } from "./interp/budget.js";
 export type { BudgetName, BudgetOptions } from "./interp/budget.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";
-export { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
+export { deepCopyToSandbox } from "./interp/values.js";
 export { runHarness, runHarnessPair } from "./runner/run-harness.js";
 export { extractBlock } from "./loader/extract-block.js";
 export { findExportedConstInitializer } from "./loader/find-exported.js";

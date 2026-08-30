@@ -1,5 +1,5 @@
 import { attachErrorSpan } from "../error/shape.js";
-import type { Budget } from "../interp/budget.js";
+import type { Budget, CompileOwner } from "../interp/budget.js";
 import type { HostCallJournal } from "../interp/host-call.js";
 import { wrapCancelableBindings } from "../interp/cancel.js";
 import {
@@ -54,6 +54,7 @@ export function resolveModuleImports(
   modules: ModuleRegistry | undefined,
   options: {
     budget: Budget;
+    compileOwner?: CompileOwner;
     hostCalls?: HostCallJournal;
     signal?: AbortSignal;
     allowMissing?: boolean;
@@ -81,6 +82,7 @@ function bindImportDeclaration(
   bindings: Record<string, SandboxValue>,
   options: {
     budget: Budget;
+    compileOwner?: CompileOwner;
     hostCalls?: HostCallJournal;
     signal?: AbortSignal;
     allowMissing?: boolean;
@@ -103,6 +105,7 @@ function bindImportDeclaration(
       wrapCancelableBindings(
         wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
           budget: options.budget,
+          compileOwner: options.compileOwner,
           hostCalls: options.hostCalls,
           moduleId: moduleName,
           signal: options.signal

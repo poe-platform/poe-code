@@ -1,3 +1,5 @@
+import { RegexCompileGuard, type CompileScope } from "./compile-guard.js";
+
 export type RegexFlags = {
   global: boolean;
   ignoreCase: boolean;
@@ -31,24 +33,46 @@ export type RegexPattern = {
   body: RegexNode;
 };
 
-export function parseRegex(source: string, flags = ""): RegexPattern {
-  const parsedFlags = parseFlags(flags);
-  const parser = new RegexParser(source);
-  const body = parser.parse();
-
-  return {
-    source,
-    flags: parsedFlags,
-    captureCount: parser.captureCount,
-    body
-  };
+export function parseRegex(
+  source: string,
+  flags = "",
+  compilation?: CompileScope,
+  valueUnits = 0
+): RegexPattern {
+  const guard = new RegexCompileGuard(compilation);
+  try {
+    guard.checkLength(source.length);
+    guard.checkLength(flags.length, true);
+    guard.allocate(5 + valueUnits);
+    const parsedFlags = parseFlags(flags, guard);
+    const parser = new RegexParser(source, guard);
+    const body = parser.parse();
+    guard.allocate(5 + source.length);
+    const pattern = { source, flags: parsedFlags, captureCount: parser.captureCount, body };
+    guard.retain(pattern, valueUnits);
+    return pattern;
+  } finally {
+    guard.close();
+  }
 }
 
 class RegexParser {
   captureCount = 0;
-  private position = 0;
+  private cursor = 0;
 
-  constructor(private readonly source: string) {}
+  constructor(
+    private readonly source: string,
+    private readonly guard: RegexCompileGuard
+  ) {}
+
+  private get position(): number {
+    return this.cursor;
+  }
+
+  private set position(next: number) {
+    this.guard.work(Math.max(0, next - this.cursor));
+    this.cursor = next;
+  }
 
   parse(): RegexNode {
     const body = this.parseAlternation();
@@ -62,25 +86,35 @@ class RegexParser {
   }
 
   private parseAlternation(): RegexNode {
+    this.guard.allocate(1);
+    this.guard.array(1);
     const alternatives = [this.parseSequence()];
     while (this.peek() === "|") {
       this.position += 1;
+      this.guard.array(alternatives.length + 1);
       alternatives.push(this.parseSequence());
     }
 
-    return alternatives.length === 1 ? alternatives[0] : { type: "alternation", alternatives };
+    if (alternatives.length === 1) return alternatives[0];
+    this.guard.allocate(3);
+    return { type: "alternation", alternatives };
   }
 
   private parseSequence(): RegexNode {
+    this.guard.allocate(1);
     const elements: RegexNode[] = [];
     while (!this.atEnd() && this.peek() !== ")" && this.peek() !== "|") {
+      this.guard.array(elements.length + 1);
       elements.push(this.parseQuantifiedAtom());
     }
 
     if (elements.length === 0) {
+      this.guard.allocate(2);
       return { type: "empty" };
     }
-    return elements.length === 1 ? elements[0] : { type: "sequence", elements };
+    if (elements.length === 1) return elements[0];
+    this.guard.allocate(3);
+    return { type: "sequence", elements };
   }
 
   private parseQuantifiedAtom(): RegexNode {
@@ -105,6 +139,7 @@ class RegexParser {
       this.position += 1;
     }
 
+    this.guard.allocate(Object.hasOwn(quantifier, "max") ? 6 : 5);
     return { type: "quantifier", body, ...quantifier, greedy };
   }
 
@@ -112,10 +147,13 @@ class RegexParser {
     const character = this.take();
     switch (character) {
       case ".":
+        this.guard.allocate(2);
         return { type: "dot" };
       case "^":
+        this.guard.allocate(3);
         return { type: "anchor", kind: "start" };
       case "$":
+        this.guard.allocate(3);
         return { type: "anchor", kind: "end" };
       case "(":
         return this.parseGroup(this.position - 1);
@@ -124,6 +162,7 @@ class RegexParser {
       case "\\":
         return this.parseEscape(false, this.position - 1);
       default:
+        this.guard.allocate(3 + character.length);
         return { type: "literal", value: character };
     }
   }
@@ -131,6 +170,8 @@ class RegexParser {
   private parseGroup(start: number): RegexNode {
     let capturing = true;
     if (this.peek() === "?") {
+      this.guard.allocate(Math.min(3, this.source.length - this.position));
+      this.guard.work(Math.min(3, this.source.length - this.position));
       const extension = this.source.slice(this.position, this.position + 3);
       if (extension.startsWith("?:")) {
         capturing = false;
@@ -146,13 +187,21 @@ class RegexParser {
       }
     }
 
+    if (capturing) this.guard.allocate(1);
     const index = capturing ? ++this.captureCount : undefined;
-    const body = this.parseAlternation();
+    this.guard.enterGroup();
+    let body: RegexNode;
+    try {
+      body = this.parseAlternation();
+    } finally {
+      this.guard.leaveGroup();
+    }
     if (this.peek() !== ")") {
       this.fail("Unterminated group", start);
     }
     this.position += 1;
 
+    this.guard.allocate(5);
     return { type: "group", capturing, index, body };
   }
 
@@ -162,13 +211,16 @@ class RegexParser {
       this.position += 1;
     }
 
+    this.guard.allocate(1);
     const items: CharacterClassItem[] = [];
     while (!this.atEnd()) {
       if (this.peek() === "]") {
         this.position += 1;
+        this.guard.allocate(4);
         return { type: "characterClass", negated, items };
       }
 
+      this.guard.array(items.length + 1);
       const left = this.parseClassItem(start);
       if (this.peek() === "-" && this.source[this.position + 1] !== "]") {
         const rangePosition = this.position;
@@ -180,6 +232,7 @@ class RegexParser {
         if (left.value.charCodeAt(0) > right.value.charCodeAt(0)) {
           this.fail("Character class range is out of order", rangePosition);
         }
+        this.guard.allocate(4 + left.value.length + right.value.length);
         items.push({ type: "range", from: left.value, to: right.value });
       } else {
         items.push(left);
@@ -198,6 +251,7 @@ class RegexParser {
       this.position += 1;
       const escaped = this.parseEscape(true, escapeStart);
       if (escaped.type === "literal") {
+        this.guard.allocate(3 + escaped.value.length);
         return { type: "character", value: escaped.value };
       }
       if (escaped.type === "characterClass" && escaped.items.length === 1) {
@@ -206,6 +260,7 @@ class RegexParser {
       this.fail("Unsupported character class escape", escapeStart);
     }
 
+    this.guard.allocate(4);
     return { type: "character", value: this.take() };
   }
 
@@ -222,12 +277,15 @@ class RegexParser {
       this.fail("Unicode property escapes are not supported", start);
     }
     if (escaped === "x") {
+      this.guard.allocate(4);
       return { type: "literal", value: this.parseHexEscape(2, "hexadecimal", start) };
     }
     if (escaped === "u") {
+      this.guard.allocate(4);
       return { type: "literal", value: this.parseHexEscape(4, "Unicode", start) };
     }
 
+    this.guard.allocate(25);
     const kinds: Partial<Record<string, { kind: CharacterKind; negated: boolean }>> = {
       d: { kind: "digit", negated: false },
       D: { kind: "digit", negated: true },
@@ -238,12 +296,16 @@ class RegexParser {
     };
     const kind = kinds[escaped];
     if (kind !== undefined) {
+      this.guard.allocate(9);
+      this.guard.array(1);
       return { type: "characterClass", negated: false, items: [{ type: "kind", ...kind }] };
     }
     if (!inCharacterClass && (escaped === "b" || escaped === "B")) {
+      this.guard.allocate(3);
       return { type: "wordBoundary", negated: escaped === "B" };
     }
 
+    this.guard.allocate(8);
     const controls: Partial<Record<string, string>> = {
       b: "\b",
       f: "\f",
@@ -253,11 +315,14 @@ class RegexParser {
       v: "\v",
       "0": "\0"
     };
+    this.guard.allocate(4);
     return { type: "literal", value: controls[escaped] ?? escaped };
   }
 
   private parseHexEscape(length: number, name: string, start: number): string {
     const end = this.position + length;
+    this.guard.allocate(Math.min(length, this.source.length - this.position));
+    this.guard.work(Math.min(length, this.source.length - this.position));
     const digits = this.source.slice(this.position, end);
     if (digits.length !== length || !allHexDigits(digits)) {
       this.fail(`Invalid ${name} escape`, start);
@@ -270,14 +335,17 @@ class RegexParser {
     const character = this.peek();
     if (character === "*") {
       this.position += 1;
+      this.guard.allocate(2);
       return { min: 0 };
     }
     if (character === "+") {
       this.position += 1;
+      this.guard.allocate(2);
       return { min: 1 };
     }
     if (character === "?") {
       this.position += 1;
+      this.guard.allocate(3);
       return { min: 0, max: 1 };
     }
     if (character !== "{") {
@@ -294,6 +362,7 @@ class RegexParser {
 
     if (this.peek() === "}") {
       this.position += 1;
+      this.guard.allocate(3);
       return { min, max: min };
     }
     if (this.peek() !== ",") {
@@ -308,6 +377,7 @@ class RegexParser {
     if (max !== undefined && min > max) {
       this.fail("Quantifier range is out of order", start);
     }
+    this.guard.allocate(3);
     return { min, max };
   }
 
@@ -320,6 +390,8 @@ class RegexParser {
       return undefined;
     }
 
+    this.guard.allocate(this.position - start);
+    this.guard.work(this.position - start);
     const value = Number(this.source.slice(start, this.position));
     if (!Number.isSafeInteger(value)) {
       this.fail("Quantifier is too large", start);
@@ -346,7 +418,8 @@ class RegexParser {
   }
 }
 
-function parseFlags(flags: string): RegexFlags {
+function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
+  guard.allocate(10);
   const parsed: RegexFlags = {
     global: false,
     ignoreCase: false,
@@ -361,6 +434,7 @@ function parseFlags(flags: string): RegexFlags {
   };
 
   for (let position = 0; position < flags.length; position += 1) {
+    guard.work(1);
     const flag = flags[position];
     const name = names[flag];
     if (name === undefined) {

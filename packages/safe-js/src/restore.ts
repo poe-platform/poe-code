@@ -1,4 +1,5 @@
 import { hashSource } from "./parse/hash.js";
+import type { CompileOwner } from "./interp/budget.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { SnapshotValidationError, validateDumpEnvelope } from "./snapshot/validation.js";
 import { EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
@@ -42,11 +43,12 @@ export class SnapshotMismatchError extends Error {
 
 export function restore<TSnapshot extends SafeJSSnapshot>(
   snapshot: TSnapshot,
-  options: RestoreOptions
+  options: RestoreOptions,
+  owner?: CompileOwner
 ): TSnapshot {
   assertSnapshotInactive(snapshot);
   validateDumpEnvelope(snapshot);
-  validateSnapshotMigration(snapshot.migration, snapshot.sourceHash);
+  validateSnapshotMigration(snapshot.migration, snapshot.sourceHash, owner);
 
   if (
     snapshot.executionSemantics !== EXECUTION_SEMANTICS &&
@@ -63,7 +65,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
     );
   }
 
-  const currentSourceHash = hashSource(options.source);
+  const currentSourceHash = hashSource(options.source, owner);
 
   if (snapshot.sourceHash !== currentSourceHash) {
     throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);

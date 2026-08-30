@@ -10,6 +10,8 @@ import {
 } from "./parse-export.js";
 import { createImportMeta, isImportMetaTokenSequence } from "./parse-import-meta.js";
 import { parseRegex } from "../interp/regex/parse.js";
+import { CompileScope, RegexCompileGuard } from "../interp/regex/compile-guard.js";
+import { SandboxError, type CompileOwner } from "../interp/budget.js";
 
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 
@@ -564,9 +566,12 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "while"
 ]);
 
-export function parse(source: string, filename = "<input>"): ParseResult {
+export function parse(source: string, filename = "<input>", owner?: CompileOwner): ParseResult {
+  const compilation = new CompileScope(owner);
   try {
-    const result = assignIds(parseTokens(tokenize(source, { allowRegexLiterals: true })));
+    const result = assignIds(
+      parseTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+    );
     const regexLiteral = findRegexLiteral(result);
     if (regexLiteral !== undefined) {
       throw new Error(
@@ -576,56 +581,72 @@ export function parse(source: string, filename = "<input>"): ParseResult {
     throwIfImportMetaAssignment(result);
     return result;
   } catch (error) {
-    if (error instanceof DisallowedSyntaxError) {
+    if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
       throw error;
     }
     if (error instanceof Error) {
       throw formatParseError(source, filename, error);
     }
     throw error;
+  } finally {
+    compilation.dispose();
   }
 }
 
-export function parseModule(source: string, filename = "<input>"): Module {
+export function parseModule(source: string, filename = "<input>", owner?: CompileOwner): Module {
+  const compilation = new CompileScope(owner);
   try {
-    return assignIds(parseModuleTokens(tokenize(source, { allowRegexLiterals: true })));
+    return assignIds(
+      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+    );
   } catch (error) {
-    if (error instanceof DisallowedSyntaxError) {
+    if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
       throw error;
     }
     if (error instanceof Error) {
       throw formatParseError(source, filename, error);
     }
     throw error;
+  } finally {
+    compilation.dispose();
   }
 }
 
-export function parseExecutableModule(source: string, filename = "<input>"): Module {
+export function parseExecutableModule(
+  source: string,
+  filename = "<input>",
+  owner?: CompileOwner
+): Module {
+  const compilation = new CompileScope(owner);
   try {
-    const result = assignIds(parseModuleTokens(tokenize(source, { allowRegexLiterals: true })));
+    const result = assignIds(
+      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+    );
     throwIfImportMetaAssignment(result);
     return result;
   } catch (error) {
-    if (error instanceof DisallowedSyntaxError) {
+    if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
       throw error;
     }
     if (error instanceof Error) {
       throw formatParseError(source, filename, error);
     }
     throw error;
+  } finally {
+    compilation.dispose();
   }
 }
 
-function parseTokens(tokens: Token[]): ParseResult {
-  return new Parser(tokens).parseTopLevel();
+function parseTokens(tokens: Token[], compilation?: CompileScope): ParseResult {
+  return new Parser(tokens, compilation).parseTopLevel();
 }
 
-function parseModuleTokens(tokens: Token[]): Module {
-  return new Parser(tokens).parseModule();
+function parseModuleTokens(tokens: Token[], compilation?: CompileScope): Module {
+  return new Parser(tokens, compilation).parseModule();
 }
 
-function parseExpressionTokens(tokens: Token[]): Expression {
-  return new Parser(tokens).parseExpressionOnly();
+function parseExpressionTokens(tokens: Token[], compilation?: CompileScope): Expression {
+  return new Parser(tokens, compilation).parseExpressionOnly();
 }
 
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
@@ -642,7 +663,10 @@ class Parser {
   private readonly functionScopes = new WeakSet<ParserScope>();
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
 
-  constructor(private readonly tokens: Token[]) {
+  constructor(
+    private readonly tokens: Token[],
+    private readonly compilation?: CompileScope
+  ) {
     this.functionScopes.add(this.scopes[0]!);
   }
 
@@ -2537,7 +2561,11 @@ class Parser {
       }
 
       if (this.currentToken().type === "template") {
-        const quasi = createTemplateLiteral(this.currentToken(), { allowMalformedEscapes: true });
+        const quasi = createTemplateLiteral(
+          this.currentToken(),
+          { allowMalformedEscapes: true },
+          this.compilation
+        );
         this.index += 1;
         expression = {
           node: {
@@ -2633,7 +2661,7 @@ class Parser {
     if (token.type === "regex") {
       this.index += 1;
       return {
-        node: createRegexLiteral(token),
+        node: createRegexLiteral(token, this.compilation),
         parenthesized: false
       };
     }
@@ -2641,7 +2669,7 @@ class Parser {
     if (token.type === "template") {
       this.index += 1;
       return {
-        node: createTemplateLiteral(token, { allowMalformedEscapes: false }),
+        node: createTemplateLiteral(token, { allowMalformedEscapes: false }, this.compilation),
         parenthesized: false
       };
     }
@@ -4095,10 +4123,16 @@ function createStringLiteral(token: Token): StringLiteral {
   };
 }
 
-function createRegexLiteral(token: Token): RegexLiteral {
+function createRegexLiteral(token: Token, parent?: CompileScope): RegexLiteral {
+  const compilation = new CompileScope(parent?.owner);
+  const guard = new RegexCompileGuard(compilation);
   const lastSlash = token.value.lastIndexOf("/");
   try {
-    parseRegex(token.value.slice(1, lastSlash), token.value.slice(lastSlash + 1));
+    guard.checkLength(Math.max(0, lastSlash - 1));
+    guard.checkLength(token.value.length - lastSlash - 1, true);
+    guard.allocate(Math.max(0, token.value.length - 2));
+    guard.work(Math.max(0, token.value.length - 2));
+    parseRegex(token.value.slice(1, lastSlash), token.value.slice(lastSlash + 1), compilation);
   } catch (error) {
     if (error instanceof SyntaxError) {
       const relativePosition = readRegexErrorPosition(error.message);
@@ -4110,6 +4144,9 @@ function createRegexLiteral(token: Token): RegexLiteral {
       }
     }
     throw error;
+  } finally {
+    guard.close();
+    compilation.dispose();
   }
   return {
     type: "RegexLiteral",
@@ -4173,7 +4210,8 @@ function createLiteralFromToken(
 
 function createTemplateLiteral(
   token: Token,
-  options: { allowMalformedEscapes: boolean } = { allowMalformedEscapes: false }
+  options: { allowMalformedEscapes: boolean } = { allowMalformedEscapes: false },
+  compilation?: CompileScope
 ): TemplateLiteral {
   const raw = token.value;
   const expressions: Expression[] = [];
@@ -4196,7 +4234,8 @@ function createTemplateLiteral(
       expressions.push(
         parseEmbeddedExpression(
           raw.slice(expressionStart, expressionEnd),
-          positionWithinRaw(token.start, raw, expressionStart)
+          positionWithinRaw(token.start, raw, expressionStart),
+          compilation
         )
       );
       quasiStart = expressionEnd + 1;
@@ -4660,16 +4699,20 @@ function decodeHexEscape(value: string, start: number): { value: string; end: nu
   };
 }
 
-function parseEmbeddedExpression(source: string, base: Position): Expression {
-  const tokens = tokenize(source, { allowRegexLiterals: true }).map((token) => ({
+function parseEmbeddedExpression(
+  source: string,
+  base: Position,
+  compilation?: CompileScope
+): Expression {
+  const tokens = tokenize(source, { allowRegexLiterals: true, compilation }).map((token) => ({
     ...token,
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return parseExpressionTokens(tokens);
+  return parseExpressionTokens(tokens, compilation);
 }
 
-function findRegexLiteral(node: unknown): RegexLiteral | undefined {
+export function findRegexLiteral(node: unknown): RegexLiteral | undefined {
   if (node === null || node === undefined) {
     return undefined;
   }

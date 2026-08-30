@@ -9,6 +9,7 @@ import {
   type SandboxValue
 } from "../interp/values.js";
 import { decodeReplayData, encodeReplayData, type ReplayData } from "./replay-data.js";
+import { CompileScope } from "../interp/regex/compile-guard.js";
 
 const validationPromise = createSandboxPromise(Promise.resolve(undefined));
 
@@ -23,7 +24,8 @@ export function prepareReplayInputs(
   current: ReplayInputs,
   saved?: unknown,
   preparePromise?: (promise: SandboxPromise | undefined, id: string) => SandboxPromise,
-  onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void
+  onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void,
+  compilation?: CompileScope
 ): {
   values: ReplayInputs;
   snapshot: ReplayData;
@@ -52,10 +54,14 @@ export function prepareReplayInputs(
       values:
         promises.size === 0
           ? current
-          : (decodeReplayData(snapshot, {
-              resolveCapability: (id) => capabilities.get(id),
-              resolvePromise: (id) => promises.get(id)
-            }) as ReplayInputs),
+          : (decodeReplayData(
+              snapshot,
+              {
+                resolveCapability: (id) => capabilities.get(id),
+                resolvePromise: (id) => promises.get(id)
+              },
+              compilation
+            ) as ReplayInputs),
       snapshot
     };
   }
@@ -96,24 +102,37 @@ export function prepareReplayInputs(
     const value = readCapability(id);
     return isSandboxClosure(value) ? value : undefined;
   };
-  const validated = decodeReplayData(saved, {
-    resolveCapability,
-    resolvePromise: (id) => {
-      readCapability(id);
-      return validationPromise;
-    }
-  });
-  assertReplayInputShape(validated);
-  const restored = decodeReplayData(saved, {
-    resolveCapability,
-    onCapabilityRestored,
-    resolvePromise: (id) => {
-      const value = readCapability(id);
-      if (!promises.has(id) && preparePromise !== undefined)
-        promises.set(id, preparePromise(isSandboxPromise(value) ? value : undefined, id));
-      return promises.get(id);
-    }
-  });
+  const validationScope = new CompileScope(compilation?.owner);
+  try {
+    const validated = decodeReplayData(
+      saved,
+      {
+        resolveCapability,
+        resolvePromise: (id) => {
+          readCapability(id);
+          return validationPromise;
+        }
+      },
+      validationScope
+    );
+    assertReplayInputShape(validated);
+  } finally {
+    validationScope.dispose();
+  }
+  const restored = decodeReplayData(
+    saved,
+    {
+      resolveCapability,
+      onCapabilityRestored,
+      resolvePromise: (id) => {
+        const value = readCapability(id);
+        if (!promises.has(id) && preparePromise !== undefined)
+          promises.set(id, preparePromise(isSandboxPromise(value) ? value : undefined, id));
+        return promises.get(id);
+      }
+    },
+    compilation
+  );
   return { values: restored as ReplayInputs, snapshot: structuredClone(saved) as ReplayData };
 }
 

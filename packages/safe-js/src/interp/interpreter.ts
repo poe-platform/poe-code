@@ -78,7 +78,8 @@ import {
 } from "./async.js";
 import type { GeneratorCompletion } from "./generator.js";
 import { HostCallResumabilityError } from "./host-call.js";
-import { Budget, SandboxError } from "./budget.js";
+import { Budget, SandboxError, type CompileOwner } from "./budget.js";
+import { CompileScope, RegexCompileGuard } from "./regex/compile-guard.js";
 import {
   coerceThrownValue,
   createCapturedException,
@@ -139,7 +140,7 @@ import {
   isSandboxPromise,
   isSandboxRegex,
   isSandboxSet,
-  measureSandboxData,
+  reconcileCompiledValues,
   type SandboxArray,
   type SandboxClosure,
   type SandboxMap,
@@ -199,6 +200,8 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  compilation?: CompileScope;
+  compileOwner?: CompileOwner;
   captureReplayState?: () => unknown;
   bindings?: Record<string, InterpreterValue>;
   budget?: Budget;
@@ -294,109 +297,122 @@ export async function interpret(
   options: InterpretOptions = {}
 ): Promise<InterpreterResult> {
   const budget = options.budget ?? new Budget();
-  const scope =
-    options.scope === undefined
-      ? new Scope(
-          options.bindings,
-          undefined,
-          undefined,
-          {
-            chargeData: false
-          },
-          options.snapshot?.bindings
-        ).child({}, { functionBoundary: true })
-      : options.useScopeDirectly === true && options.bindings === undefined
-        ? options.scope
-        : options.scope.child(options.bindings ?? {}, {
-            functionBoundary: true
-          });
-  const stats = { nodeVisits: 0 } as InterpreterStats;
-  Object.defineProperties(stats, {
-    currentDataSize: { enumerable: false, value: 0, writable: true },
-    peakDataSize: { enumerable: false, value: 0, writable: true }
-  });
-  const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
-  const jobs = new SandboxJobQueue();
-  hoistVarDeclarations(node, scope);
-  const context = {
-    budget,
-    callStack: [],
-    onYield: options.onYield,
-    captureReplayState: options.captureReplayState,
-    rootNode: node,
-    scope,
-    signal: options.signal,
-    stats,
-    activeLoopIterations,
-    restoredLoopIterations: new Map(
-      Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
-        Number(nodeId),
-        iteration
-      ])
-    ),
-    generatorResume: options.generatorResume,
-    generatorYield: options.generatorYield,
-    resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
-  };
-  const evaluation = await withCancellationSignal(options.signal, () =>
-    jobs.run(() => evaluateNode(node, context))
+  const operation = budget.acquireCompileOwner(
+    false,
+    options.compileOwner ?? options.compilation?.owner
   );
-  await jobs.drain();
-  const snapshot = scope.snapshot();
-  reconcileDataBudget(
-    budget,
-    stats,
-    scope,
-    "hasValue" in evaluation && evaluation.hasValue ? evaluation.value : undefined
-  );
-
-  if (evaluation.kind === "error") {
-    return {
-      ok: false,
-      error: evaluation.error,
-      snapshot,
-      stats
+  const compilation = new CompileScope(operation.owner, options.compilation);
+  try {
+    const scope =
+      options.scope === undefined
+        ? new Scope(
+            options.bindings,
+            undefined,
+            undefined,
+            {
+              chargeData: false
+            },
+            options.snapshot?.bindings
+          ).child({}, { functionBoundary: true })
+        : options.useScopeDirectly === true && options.bindings === undefined
+          ? options.scope
+          : options.scope.child(options.bindings ?? {}, {
+              functionBoundary: true
+            });
+    const stats = { nodeVisits: 0 } as InterpreterStats;
+    Object.defineProperties(stats, {
+      currentDataSize: { enumerable: false, value: 0, writable: true },
+      peakDataSize: { enumerable: false, value: 0, writable: true }
+    });
+    const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
+    const jobs = new SandboxJobQueue();
+    hoistVarDeclarations(node, scope);
+    const context = {
+      compilation,
+      budget,
+      callStack: [],
+      onYield: options.onYield,
+      captureReplayState: options.captureReplayState,
+      rootNode: node,
+      scope,
+      signal: options.signal,
+      stats,
+      activeLoopIterations,
+      restoredLoopIterations: new Map(
+        Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
+          Number(nodeId),
+          iteration
+        ])
+      ),
+      generatorResume: options.generatorResume,
+      generatorYield: options.generatorYield,
+      resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
     };
-  }
+    const evaluation = await withCancellationSignal(options.signal, () =>
+      jobs.run(() => evaluateNode(node, context))
+    );
+    await jobs.drain();
+    const snapshot = scope.snapshot();
+    reconcileDataBudget(
+      budget,
+      stats,
+      scope,
+      "hasValue" in evaluation && evaluation.hasValue ? evaluation.value : undefined,
+      compilation,
+      options.compilation
+    );
 
-  if (evaluation.kind === "throw") {
-    if (options.surfaceUnhandledThrows === true) {
-      throw surfaceThrownValue(evaluation.value, budget, evaluation.stackFrames, evaluation.span);
+    if (evaluation.kind === "error") {
+      return {
+        ok: false,
+        error: evaluation.error,
+        snapshot,
+        stats
+      };
     }
 
-    throw evaluation.value;
-  }
+    if (evaluation.kind === "throw") {
+      if (options.surfaceUnhandledThrows === true) {
+        throw surfaceThrownValue(evaluation.value, budget, evaluation.stackFrames, evaluation.span);
+      }
 
-  if (
-    (evaluation.kind === "break" || evaluation.kind === "continue") &&
-    evaluation.label !== undefined
-  ) {
-    return {
-      ok: false,
-      error: createError(
-        "LABEL_NOT_FOUND",
-        evaluation.node ?? node,
-        `Label '${evaluation.label}' not found`
-      ),
-      snapshot,
-      stats
-    };
-  }
+      throw evaluation.value;
+    }
 
-  if (evaluation.hasValue) {
+    if (
+      (evaluation.kind === "break" || evaluation.kind === "continue") &&
+      evaluation.label !== undefined
+    ) {
+      return {
+        ok: false,
+        error: createError(
+          "LABEL_NOT_FOUND",
+          evaluation.node ?? node,
+          `Label '${evaluation.label}' not found`
+        ),
+        snapshot,
+        stats
+      };
+    }
+
+    if (evaluation.hasValue) {
+      return {
+        ok: true,
+        returnValue: evaluation.value,
+        snapshot,
+        stats
+      };
+    }
+
     return {
       ok: true,
-      returnValue: evaluation.value,
       snapshot,
       stats
     };
+  } finally {
+    compilation.dispose();
+    operation.release();
   }
-
-  return {
-    ok: true,
-    snapshot,
-    stats
-  };
 }
 
 export { Scope } from "./scope.js";
@@ -423,13 +439,26 @@ async function evaluateNode(
     };
   }
 
+  const compilation = new CompileScope(context.compilation?.owner, context.compilation);
+  const evaluationContext = {
+    ...context,
+    compilation,
+    get generatorResume() {
+      return context.generatorResume;
+    },
+    set generatorResume(value) {
+      context.generatorResume = value;
+    }
+  };
   try {
-    const result = await handler(node as never, context);
+    const result = await handler(node as never, evaluationContext);
     reconcileDataBudget(
       context.budget,
       context.stats,
       context.scope,
-      "hasValue" in result && result.hasValue ? result.value : undefined
+      "hasValue" in result && result.hasValue ? result.value : undefined,
+      compilation,
+      context.compilation
     );
     return result;
   } catch (error) {
@@ -453,6 +482,15 @@ async function evaluateNode(
       ? coerceThrownValue(error.reason, context.budget, error.stackFrames, node.span, error.sandbox)
       : coerceThrownValue(error, context.budget, context.callStack, node.span, true);
 
+    reconcileDataBudget(
+      context.budget,
+      context.stats,
+      context.scope,
+      exception,
+      compilation,
+      context.compilation
+    );
+
     return {
       kind: "throw",
       hasValue: true,
@@ -460,6 +498,8 @@ async function evaluateNode(
       stackFrames: isCapturedException(error) ? error.stackFrames : context.callStack,
       value: exception
     };
+  } finally {
+    compilation.dispose();
   }
 }
 
@@ -467,10 +507,16 @@ function reconcileDataBudget(
   budget: Budget,
   stats: InterpreterStats,
   scope: Scope,
-  transient: SandboxValue | undefined
+  transient: SandboxValue | undefined,
+  compilation?: CompileScope,
+  parent?: CompileScope
 ): void {
-  budget.reconcileDataUsage(
-    measureSandboxData([...scope.retainedValues(), ...budget.retainedValues(), transient])
+  reconcileCompiledValues(
+    budget,
+    [...scope.retainedValues(), ...budget.retainedValues(), transient],
+    compilation,
+    parent,
+    [transient]
   );
   stats.currentDataSize = budget.currentDataSize;
   stats.peakDataSize = budget.peakDataSize;
@@ -492,14 +538,28 @@ async function evaluatePrimitiveLiteral(
 
 async function evaluateRegexLiteral(
   node: RegexLiteral,
-  _context: EvaluationContext
+  context: EvaluationContext
 ): Promise<EvaluationResult> {
   const lastSlash = node.raw.lastIndexOf("/");
-  return {
-    kind: "normal",
-    hasValue: true,
-    value: createSandboxRegex(node.raw.slice(1, lastSlash), node.raw.slice(lastSlash + 1))
-  };
+  const guard = new RegexCompileGuard(context.compilation);
+  try {
+    guard.checkLength(Math.max(0, lastSlash - 1));
+    guard.checkLength(node.raw.length - lastSlash - 1, true);
+    guard.allocate(Math.max(0, node.raw.length - 2));
+    guard.work(Math.max(0, node.raw.length - 2));
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: createSandboxRegex(
+        node.raw.slice(1, lastSlash),
+        node.raw.slice(lastSlash + 1),
+        0,
+        context.compilation
+      )
+    };
+  } finally {
+    guard.close();
+  }
 }
 
 async function evaluateEmptyStatement(
@@ -2775,7 +2835,8 @@ async function evaluateStringMethodCall(
         args.value,
         context.budget,
         (closure, closureArgs) =>
-          invokeSandboxClosure(closure, closureArgs, context, context.callStack)
+          invokeSandboxClosure(closure, closureArgs, context, context.callStack),
+        context.compilation
       )
     };
   } catch (error) {
@@ -3463,6 +3524,7 @@ async function invokeSandboxClosure(
       {
         stack,
         thisValue,
+        compilation: context.compilation,
         invokeClosure: (
           closure: SandboxClosure,
           argumentsList: readonly SandboxValue[],

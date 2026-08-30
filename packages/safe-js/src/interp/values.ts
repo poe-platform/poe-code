@@ -1,5 +1,7 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
-import type { Budget } from "./budget.js";
+import type { Budget, CompileTicket } from "./budget.js";
+import { types as nodeTypes } from "node:util";
+import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
 import {
   copyFloat32Storage,
   float32DataProperties,
@@ -78,6 +80,7 @@ export type SandboxRegex = {
 };
 
 export type SandboxCallContext = {
+  readonly compilation?: CompileScope;
   readonly span?: {
     readonly end: {
       readonly column: number;
@@ -141,6 +144,7 @@ export type SandboxGenerator = {
 
 type CopyFromSandboxOptions = {
   wrapClosure?: (value: SandboxClosure) => unknown;
+  compilation?: CompileScope;
 };
 
 type CopyState<TValue> = {
@@ -336,11 +340,22 @@ export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSe
   return Object.freeze(set);
 }
 
-export function createSandboxRegex(source: string, flags = "", lastIndex = 0): SandboxRegex {
+export function createSandboxRegex(
+  source: string,
+  flags = "",
+  lastIndex = 0,
+  compilation?: CompileScope
+): SandboxRegex {
+  if (typeof source !== "string" || typeof flags !== "string") {
+    throw new TypeError(
+      "Invalid sandbox RegExp source or flags: expected own string data properties."
+    );
+  }
+  const pattern = parseRegex(source, flags, compilation, 7 + source.length + flags.length);
   const regex = { kind: "regex", source, flags, lastIndex } as SandboxRegex;
   Object.defineProperties(regex, {
     [sandboxRegexBrand]: { value: true },
-    [sandboxRegexPattern]: { value: parseRegex(source, flags) }
+    [sandboxRegexPattern]: { value: pattern }
   });
   return Object.seal(regex);
 }
@@ -397,7 +412,11 @@ export function allocateProducedSandboxValue(value: SandboxValue, budget: Budget
 
 export function measureSandboxData(
   values: Iterable<unknown>,
-  options: { ignoreClosures?: boolean; ignoreClosureCaptures?: boolean } = {}
+  options: {
+    ignoreClosures?: boolean;
+    ignoreClosureCaptures?: boolean;
+    compileTickets?: Set<CompileTicket>;
+  } = {}
 ): number {
   const seen = new WeakSet<object>();
   let usage = 0;
@@ -460,7 +479,14 @@ export function measureSandboxData(
     }
     if (isSandboxPromise(value)) return;
     if (isSandboxRegex(value)) {
-      usage += value.source.length + value.flags.length;
+      const { source, flags } = captureRegexData(value);
+      const compiled = regexCompiledData(getSandboxRegexPattern(value));
+      const staged =
+        compiled.ticket === undefined
+          ? 0
+          : compiled.ticket.owner.budget.compileTicketUsage(compiled.ticket);
+      usage += Math.max(6 + source.length + flags.length + compiled.units, staged - 1);
+      if (compiled.ticket !== undefined) options.compileTickets?.add(compiled.ticket);
       return;
     }
 
@@ -478,6 +504,57 @@ export function measureSandboxData(
 
   for (const value of values) visit(value);
   return usage;
+}
+
+export function reconcileCompiledValues(
+  budget: Budget,
+  values: Iterable<unknown>,
+  compilation?: CompileScope,
+  parent?: CompileScope,
+  escaping: Iterable<unknown> = []
+): void {
+  while (parent?.closed) parent = parent.parent;
+  const included = new Set<CompileTicket>();
+  const usage = measureSandboxData(values, { compileTickets: included });
+  const kept = new Set<CompileTicket>();
+  if (parent !== undefined) measureSandboxData(escaping, { compileTickets: kept });
+  const transferred = new Set<CompileTicket>();
+  for (const ticket of included) {
+    if (!kept.has(ticket)) {
+      transferred.add(ticket);
+    }
+  }
+  const retained = budget.reconcileCompileData(
+    usage,
+    included,
+    transferred,
+    undefined,
+    parent === undefined
+  );
+  for (const ticket of retained) compilation?.tickets.delete(ticket);
+  if (compilation !== undefined && parent !== undefined) compilation.forward(included, parent);
+}
+
+function captureRegexData(value: object): { source: string; flags: string; lastIndex: number } {
+  const source = Object.getOwnPropertyDescriptor(value, "source");
+  const flags = Object.getOwnPropertyDescriptor(value, "flags");
+  if (
+    source === undefined ||
+    !("value" in source) ||
+    typeof source.value !== "string" ||
+    flags === undefined ||
+    !("value" in flags) ||
+    typeof flags.value !== "string"
+  ) {
+    throw new TypeError(
+      "Invalid sandbox RegExp source or flags: expected own string data properties."
+    );
+  }
+  const cursor = Object.getOwnPropertyDescriptor(value, "lastIndex");
+  if (cursor === undefined || !("value" in cursor)) {
+    throw new TypeError("Invalid sandbox RegExp lastIndex: expected an own data property.");
+  }
+  return { source: source.value, flags: flags.value, lastIndex: cursor.value as number };
 }
 
 export function deepCopyFromSandbox(
@@ -700,6 +777,26 @@ function copyFromSandbox(
     return value;
   }
 
+  if (nodeTypes.isProxy(value)) throw new TypeError("Unsupported proxy sandbox value.");
+  const regexBrand = Object.getOwnPropertyDescriptor(value, sandboxRegexBrand);
+  if (regexBrand !== undefined) {
+    if (!("value" in regexBrand) || regexBrand.value !== true) {
+      throw new TypeError("Invalid sandbox RegExp brand.");
+    }
+    const { source, flags, lastIndex } = captureRegexData(value);
+    const guard = new RegexCompileGuard(options.compilation);
+    try {
+      guard.preflight(source, flags);
+      guard.allocate(1 + source.length + flags.length);
+      const regex = new RegExp(source, flags);
+      regex.lastIndex = lastIndex;
+      guard.retainScratch();
+      return regex;
+    } finally {
+      guard.close();
+    }
+  }
+
   if (isFloat32Array(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
@@ -734,14 +831,22 @@ function copyFromSandbox(
 
   if (isSandboxPromise(value)) {
     observeSandboxPromise(value);
-    return value.promise.then(
-      (resolved) => copyFromSandbox(resolved, { seen: new WeakMap() }, "<root>", options),
-      (reason: SandboxValue) =>
-        Promise.reject(
-          reason instanceof SandboxError
-            ? reason
-            : copyFromSandbox(reason, { seen: new WeakMap() }, "<root>", options)
-        )
+    const copySettlement = (settled: SandboxValue): unknown => {
+      const owner = options.compilation?.owner;
+      const operation = owner?.budget.acquireCompileOwner(false, owner);
+      const compilation = new CompileScope(operation?.owner);
+      try {
+        return copyFromSandbox(settled, { seen: new WeakMap() }, "<root>", {
+          ...options,
+          compilation
+        });
+      } finally {
+        compilation.dispose();
+        operation?.release();
+      }
+    };
+    return value.promise.then(copySettlement, (reason: SandboxValue) =>
+      Promise.reject(reason instanceof SandboxError ? reason : copySettlement(reason))
     );
   }
 
@@ -750,9 +855,7 @@ function copyFromSandbox(
   }
 
   if (isSandboxRegex(value)) {
-    const regex = new RegExp(value.source, value.flags);
-    regex.lastIndex = value.lastIndex;
-    return regex;
+    throw new TypeError("Invalid sandbox RegExp brand.");
   }
 
   if (isSandboxMap(value)) {

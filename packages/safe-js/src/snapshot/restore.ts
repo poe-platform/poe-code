@@ -1,4 +1,5 @@
-import { Budget } from "../interp/budget.js";
+import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
+import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
@@ -12,7 +13,7 @@ import {
   createSandboxPromise,
   createSandboxRegex,
   createSandboxSet,
-  measureSandboxData,
+  reconcileCompiledValues,
   type SandboxClosure,
   type SandboxGenerator,
   type SandboxPromise,
@@ -93,6 +94,7 @@ export type RestoredSnapshot = {
 
 type RestoreState = {
   budget: Budget;
+  compilation: CompileScope;
   heap: Record<string, SerializedHeapValue>;
   heapValueById: Map<number, RuntimeSnapshotValue>;
   moduleBindings: Record<string, SandboxValue>;
@@ -103,84 +105,104 @@ type RestoreState = {
   scopeFrameById: Map<SnapshotId, RuntimeScopeFrame>;
 };
 
-export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): RestoredSnapshot {
+export function restore(
+  snapshot: SerializedSnapshot,
+  options: RestoreOptions,
+  owner?: CompileOwner
+): RestoredSnapshot {
   const budget = options.budget ?? new Budget();
-  validateSnapshotSourceHash(snapshot);
-  let currentSourceHash: string;
+  const operation = budget.acquireCompileOwner(false, owner);
+  const compilation = new CompileScope(operation.owner);
   try {
-    currentSourceHash = hashSource(options.source);
-  } catch {
-    throw new Error(
-      `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, but current source could not be hashed); pass --reset to discard`
-    );
-  }
+    validateSnapshotSourceHash(snapshot);
+    let currentSourceHash: string;
+    try {
+      currentSourceHash = hashSource(options.source, operation.owner);
+    } catch (error) {
+      if (error instanceof SandboxError) throw error;
+      throw new Error(
+        `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, but current source could not be hashed); pass --reset to discard`
+      );
+    }
 
-  if (snapshot.sourceHash !== currentSourceHash) {
-    throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);
-  }
+    if (snapshot.sourceHash !== currentSourceHash) {
+      throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);
+    }
 
-  const ast = parseModule(options.source);
-  const nodeById = indexAstNodes(ast);
-  validateInterpreterSnapshot(snapshot, nodeById, budget);
-  const currentNode = nodeById.get(snapshot.currentAstNodeId);
+    const ast = parseModule(options.source, "<input>", operation.owner);
+    const nodeById = indexAstNodes(ast);
+    validateInterpreterSnapshot(snapshot, nodeById, budget);
+    const currentNode = nodeById.get(snapshot.currentAstNodeId);
 
-  if (currentNode === undefined) {
-    throw new Error(`Snapshot references unknown AST node ${snapshot.currentAstNodeId}.`);
-  }
+    if (currentNode === undefined) {
+      throw new Error(`Snapshot references unknown AST node ${snapshot.currentAstNodeId}.`);
+    }
 
-  const state: RestoreState = {
-    budget,
-    heap: snapshot.heap ?? {},
-    heapValueById: new Map(),
-    moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
+    const state: RestoreState = {
       budget,
-      signal: options.signal
-    }),
-    nodeById,
-    pendingPromiseById: new Map(),
-    serializedScopeById: new Map(snapshot.scopeChain.map((frame) => [frame.id, frame])),
-    scopeById: new Map(),
-    scopeFrameById: new Map()
-  };
+      compilation,
+      heap: snapshot.heap ?? {},
+      heapValueById: new Map(),
+      moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
+        budget,
+        compileOwner: operation.owner,
+        signal: options.signal
+      }),
+      nodeById,
+      pendingPromiseById: new Map(),
+      serializedScopeById: new Map(snapshot.scopeChain.map((frame) => [frame.id, frame])),
+      scopeById: new Map(),
+      scopeFrameById: new Map()
+    };
 
-  const pendingPromises = snapshot.pendingPromises.map((entry) =>
-    restorePendingPromise(entry, state)
-  );
-  const scopeChain = snapshot.scopeChain.map((frame) => restoreScopeFrame(frame, state));
-  const currentScopeId = snapshot.callStack.at(-1)?.scopeId ?? scopeChain.at(-1)?.id;
+    const pendingPromises = snapshot.pendingPromises.map((entry) =>
+      restorePendingPromise(entry, state)
+    );
+    const scopeChain = snapshot.scopeChain.map((frame) => restoreScopeFrame(frame, state));
+    const currentScopeId = snapshot.callStack.at(-1)?.scopeId ?? scopeChain.at(-1)?.id;
 
-  if (currentScopeId === undefined) {
-    throw new Error("Snapshot does not contain a scope to resume.");
+    if (currentScopeId === undefined) {
+      throw new Error("Snapshot does not contain a scope to resume.");
+    }
+
+    const currentScope = state.scopeById.get(currentScopeId);
+    if (currentScope === undefined) {
+      throw new Error(`Snapshot references unknown scope ${String(currentScopeId)}.`);
+    }
+
+    const callStack = snapshot.callStack.map((frame) => restoreCallFrame(frame, state));
+    reconcileCompiledValues(
+      budget,
+      [
+        ...currentScope.retainedValues(),
+        ...budget.retainedValues(),
+        ...pendingPromises.flatMap((pending) =>
+          Object.values(pending).filter(isSandboxSnapshotValue)
+        )
+      ],
+      compilation
+    );
+
+    return {
+      ast,
+      budget,
+      callStack,
+      currentAstNodeId: snapshot.currentAstNodeId,
+      currentNode,
+      currentScope,
+      moduleBindings: state.moduleBindings,
+      pendingPromises,
+      scopeChain: scopeChain.map((frame) => ({
+        ...frame,
+        scope: state.scopeById.get(frame.id) ?? currentScope
+      })),
+      signal: options.signal,
+      sourceHash: snapshot.sourceHash
+    };
+  } finally {
+    compilation.dispose();
+    operation.release();
   }
-
-  const currentScope = state.scopeById.get(currentScopeId);
-  if (currentScope === undefined) {
-    throw new Error(`Snapshot references unknown scope ${String(currentScopeId)}.`);
-  }
-
-  budget.reconcileDataUsage(
-    measureSandboxData([
-      ...currentScope.retainedValues(),
-      ...pendingPromises.flatMap((pending) => Object.values(pending).filter(isSandboxSnapshotValue))
-    ])
-  );
-
-  return {
-    ast,
-    budget,
-    callStack: snapshot.callStack.map((frame) => restoreCallFrame(frame, state)),
-    currentAstNodeId: snapshot.currentAstNodeId,
-    currentNode,
-    currentScope,
-    moduleBindings: state.moduleBindings,
-    pendingPromises,
-    scopeChain: scopeChain.map((frame) => ({
-      ...frame,
-      scope: state.scopeById.get(frame.id) ?? currentScope
-    })),
-    signal: options.signal,
-    sourceHash: snapshot.sourceHash
-  };
 }
 
 function isSandboxSnapshotValue(value: unknown): value is SandboxValue {
@@ -386,7 +408,7 @@ function deserializeValue(
   }
 
   if (isSerializedRegexValue(value)) {
-    return createSandboxRegex(value.source, value.flags, value.lastIndex);
+    return createSandboxRegex(value.source, value.flags, value.lastIndex, state.compilation);
   }
 
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
@@ -421,6 +443,7 @@ function restoreGeneratorValue(
       restoreParentScope(value.capturedScopeId, state);
     const result = await interpret(node.body, {
       budget: state.budget,
+      compileOwner: state.compilation.owner,
       ...(value.state === "suspended"
         ? {
             generatorResume: {
@@ -676,32 +699,64 @@ async function executeRestoredClosure(
   thisValue: SandboxValue,
   state: RestoreState
 ): Promise<SandboxValue> {
-  const capturedScope =
-    state.scopeById.get(capturedScopeId) ?? restoreParentScope(capturedScopeId, state);
-  const wrapperScope =
-    node.type === "FunctionExpression" && node.id !== undefined
-      ? capturedScope.child()
-      : capturedScope;
-  const scope = wrapperScope.child();
+  const operation = state.budget.acquireCompileOwner(false, state.compilation.owner);
+  const compilation = new CompileScope(operation.owner);
+  state = { ...state, compilation };
+  try {
+    const capturedScope =
+      state.scopeById.get(capturedScopeId) ?? restoreParentScope(capturedScopeId, state);
+    const wrapperScope =
+      node.type === "FunctionExpression" && node.id !== undefined
+        ? capturedScope.child()
+        : capturedScope;
+    const scope = wrapperScope.child();
 
-  if (node.type === "FunctionExpression" && node.id !== undefined) {
-    wrapperScope.declare(node.id.name, "const", closure);
-  }
-  if (node.type !== "ArrowFunctionExpression") {
-    scope.declare("this", "const", thisValue);
-    state.budget.allocateArrayLength(args.length);
-    scope.declare("arguments", "let", createSandboxArguments(args));
-  }
+    if (node.type === "FunctionExpression" && node.id !== undefined) {
+      wrapperScope.declare(node.id.name, "const", closure);
+    }
+    if (node.type !== "ArrowFunctionExpression") {
+      scope.declare("this", "const", thisValue);
+      state.budget.allocateArrayLength(args.length);
+      scope.declare("arguments", "let", createSandboxArguments(args));
+    }
 
-  for (let index = 0; index < node.params.length; index += 1) {
-    const param = node.params[index];
-    if (param.type === "RestElement") {
-      const rest = args.slice(index);
-      state.budget.allocateArrayLength(rest.length);
-      const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+    for (let index = 0; index < node.params.length; index += 1) {
+      const param = node.params[index];
+      if (param.type === "RestElement") {
+        const rest = args.slice(index);
+        state.budget.allocateArrayLength(rest.length);
+        const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+          evaluate: async (defaultNode) => {
+            const result = await interpret(defaultNode, {
+              budget: state.budget,
+              compilation,
+              scope,
+              useScopeDirectly: true
+            });
+            return result.ok
+              ? {
+                  kind: "normal",
+                  hasValue: "returnValue" in result,
+                  value: result.returnValue
+                }
+              : { kind: "error", error: result.error };
+          }
+        });
+        if (!binding.ok) {
+          if (binding.result.kind === "error") {
+            throw binding.result.error;
+          }
+          if (binding.result.kind === "throw") {
+            throw binding.result.value;
+          }
+        }
+        break;
+      }
+      const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
         evaluate: async (defaultNode) => {
           const result = await interpret(defaultNode, {
             budget: state.budget,
+            compilation,
             scope,
             useScopeDirectly: true
           });
@@ -722,44 +777,28 @@ async function executeRestoredClosure(
           throw binding.result.value;
         }
       }
-      break;
     }
-    const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
-      evaluate: async (defaultNode) => {
-        const result = await interpret(defaultNode, {
-          budget: state.budget,
-          scope,
-          useScopeDirectly: true
-        });
-        return result.ok
-          ? {
-              kind: "normal",
-              hasValue: "returnValue" in result,
-              value: result.returnValue
-            }
-          : { kind: "error", error: result.error };
-      }
+
+    const result = await interpret(node.body, {
+      budget: state.budget,
+      compilation,
+      scope
     });
-    if (!binding.ok) {
-      if (binding.result.kind === "error") {
-        throw binding.result.error;
-      }
-      if (binding.result.kind === "throw") {
-        throw binding.result.value;
-      }
+
+    if (!result.ok) {
+      throw new Error(result.error.message);
     }
+
+    reconcileCompiledValues(
+      state.budget,
+      [...scope.retainedValues(), ...state.budget.retainedValues(), result.returnValue],
+      compilation
+    );
+    return result.returnValue;
+  } finally {
+    compilation.dispose();
+    operation.release();
   }
-
-  const result = await interpret(node.body, {
-    budget: state.budget,
-    scope
-  });
-
-  if (!result.ok) {
-    throw new Error(result.error.message);
-  }
-
-  return result.returnValue;
 }
 
 function restorePromiseValue(
@@ -773,7 +812,7 @@ function restorePromiseValue(
 function restoreModuleBindings(
   moduleBindings: SerializedSnapshot["moduleBindings"],
   modules: ModuleRegistry | undefined,
-  options: { budget: Budget; signal?: AbortSignal }
+  options: { budget: Budget; compileOwner?: CompileOwner; signal?: AbortSignal }
 ): Record<string, SandboxValue> {
   const bindings = Object.create(null) as Record<string, SandboxValue>;
   const registry = normalizeModuleRegistry(modules);

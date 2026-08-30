@@ -1,6 +1,7 @@
 import { normalizeClosureResult } from "./async.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
-import { SandboxError, type Budget } from "./budget.js";
+import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
+import { CompileScope } from "./regex/compile-guard.js";
 import {
   checkFloat32Allocation,
   copyFloat32Storage,
@@ -68,6 +69,7 @@ type HostBridgeOptions = {
   registerCapabilities?: boolean;
   capabilityPath?: readonly string[];
   budget: Budget;
+  compileOwner?: CompileOwner;
   hostCalls?: HostCallJournal;
   moduleId?: string;
   operation?: string;
@@ -117,24 +119,29 @@ export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
   options: HostBridgeOptions
 ): Record<string, SandboxValue> {
-  options = { ...options, registerCapabilities: true };
-  const state = { seen: new WeakMap<object, SandboxValue>() };
-  const copied = Object.fromEntries(
-    Object.entries(bindings).map(([name, value]) => [
-      name,
-      typeof value === "function"
-        ? wrapCallerInjectedFunction(name, value, { ...options, capabilityPath: [name] }, state)
-        : copyHostValueToSandbox(
-            value,
-            [],
-            { ...options, operation: name, capabilityPath: [name] },
-            state,
-            "<root>"
-          )
-    ])
-  );
-  options.budget.provisionDataUsage(measureSandboxData(Object.values(copied)));
-  return copied;
+  const operation = options.budget.acquireCompileOwner(false, options.compileOwner);
+  options = { ...options, registerCapabilities: true, compileOwner: operation.owner };
+  try {
+    const state = { seen: new WeakMap<object, SandboxValue>() };
+    const copied = Object.fromEntries(
+      Object.entries(bindings).map(([name, value]) => [
+        name,
+        typeof value === "function"
+          ? wrapCallerInjectedFunction(name, value, { ...options, capabilityPath: [name] }, state)
+          : copyHostValueToSandbox(
+              value,
+              [],
+              { ...options, operation: name, capabilityPath: [name] },
+              state,
+              "<root>"
+            )
+      ])
+    );
+    options.budget.chargeDataUsage(measureSandboxData(Object.values(copied)));
+    return copied;
+  } finally {
+    operation.release();
+  }
 }
 
 function wrapCallerInjectedFunction(
@@ -152,6 +159,8 @@ function wrapCallerInjectedFunction(
     ...(isAsyncFunction(callable) ? { async: true as const } : {}),
     cancellationSignal: options.signal,
     call: (args, context) => {
+      const operationLease = options.budget.acquireCompileOwner(false, options.compileOwner);
+      const compilation = new CompileScope(operationLease.owner);
       try {
         if (options.signal?.aborted) throw readAbortReason(options.signal);
         const stackFrames = context?.stack ?? [];
@@ -166,8 +175,15 @@ function wrapCallerInjectedFunction(
           restored: []
         };
         const hostArgs = deepCopyFromSandbox([...args], {
+          compilation,
           wrapClosure: (closure) =>
-            wrapSandboxClosureForHost(closure, stackFrames, options.budget, callbacks)
+            wrapSandboxClosureForHost(
+              closure,
+              stackFrames,
+              options.budget,
+              operationLease.owner,
+              callbacks
+            )
         }) as unknown[];
 
         const hostCalls = options.hostCalls;
@@ -228,13 +244,33 @@ function wrapCallerInjectedFunction(
               return {
                 token,
                 start: () => {
-                  const callback = callbacks.entries.get(invocation.id);
-                  if (callback === undefined)
-                    throw new TypeError("Missing restored host callback.");
-                  const args = decodeReplayData(invocation.arguments, {
-                    resolveCapability: hostCalls.resolveCapability
-                  }) as SandboxValue[];
-                  void callback(args, token).then(resolve, reject);
+                  const callbackLease = options.budget.acquireCompileOwner(
+                    false,
+                    options.compileOwner
+                  );
+                  const callbackCompilation = new CompileScope(callbackLease.owner);
+                  try {
+                    const callback = callbacks.entries.get(invocation.id);
+                    if (callback === undefined)
+                      throw new TypeError("Missing restored host callback.");
+                    const args = decodeReplayData(
+                      invocation.arguments,
+                      {
+                        resolveCapability: hostCalls.resolveCapability
+                      },
+                      callbackCompilation
+                    ) as SandboxValue[];
+                    void callback(args, token)
+                      .then(resolve, reject)
+                      .finally(() => {
+                        callbackCompilation.dispose();
+                        callbackLease.release();
+                      });
+                  } catch (error) {
+                    callbackCompilation.dispose();
+                    callbackLease.release();
+                    throw error;
+                  }
                 }
               };
             })
@@ -256,6 +292,7 @@ function wrapCallerInjectedFunction(
           hostOperationReplayHandlers.get(value)?.bind(undefined, hostArgs)
         );
       } catch (error) {
+        compilation.dispose();
         if (
           isFatalBridgeError(error) ||
           (typeof error === "object" && error !== null && sandboxErrorTypes.has(error))
@@ -264,6 +301,9 @@ function wrapCallerInjectedFunction(
         }
 
         throw createHostErrorValue(error, context?.stack ?? [], options.budget, context?.span);
+      } finally {
+        compilation.dispose();
+        operationLease.release();
       }
     },
     name: bindingName,
@@ -535,7 +575,7 @@ function copyHostResultToSandbox(
     },
     "<root>"
   );
-  options.budget.provisionDataUsage(measureSandboxData([value]));
+  options.budget.chargeDataUsage(measureSandboxData([value]));
   return value;
 }
 
@@ -582,7 +622,7 @@ function createHostErrorValue(
         "<error>"
       ) as SandboxObject;
       Object.defineProperties(error, Object.getOwnPropertyDescriptors(copied));
-      budget.provisionDataUsage(measureSandboxData([error]));
+      budget.chargeDataUsage(measureSandboxData([error]));
     }
   }
 
@@ -621,16 +661,19 @@ function wrapSandboxClosureForHost(
   closure: SandboxClosure,
   stackFrames: readonly string[],
   budget: Budget,
+  compileOwner: CompileOwner,
   callbacks?: HostCallbacks
 ): (...args: readonly unknown[]) => Promise<unknown> {
   const existing = callbacks?.seen.get(closure);
   if (existing !== undefined) return existing;
   const id = (callbacks?.entries.size ?? 0) + 1;
   const invoke = async (sandboxArgs: SandboxValue[], token?: string) => {
+    const operation = budget.acquireCompileOwner(false, compileOwner);
+    const compilation = new CompileScope(operation.owner);
     let leaveRunning: (() => void) | undefined;
     let leaveCall: (() => void) | undefined;
     const wrapClosure = (nestedClosure: SandboxClosure) =>
-      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, callbacks);
+      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget, compileOwner, callbacks);
 
     try {
       leaveRunning = enterRunningState(closure);
@@ -638,12 +681,14 @@ function wrapSandboxClosureForHost(
       let result: ReturnType<SandboxClosure["call"]>;
       try {
         result = closure.call(sandboxArgs, {
+          compilation,
           stack: stackFrames,
           thisValue: undefined
         });
       } catch (error) {
         if (isSandboxLikeValue(error)) {
           throw deepCopyFromSandbox(error, {
+            compilation,
             wrapClosure
           });
         }
@@ -652,75 +697,84 @@ function wrapSandboxClosureForHost(
       }
 
       return await (deepCopyFromSandbox(normalizeClosureResult(result, budget), {
+        compilation,
         wrapClosure
       }) as Promise<unknown>);
     } catch (error) {
       if (isFatalBridgeError(error)) promiseReplayContext.getStore()?.fail(error);
       throw error;
     } finally {
+      compilation.dispose();
+      operation.release();
       leaveCall?.();
       leaveRunning?.();
       if (token !== undefined) promiseReplayContext.getStore()?.completeCallback(token);
     }
   };
   const wrapped = async (...args: readonly unknown[]) => {
-    const sandboxArgs = copyHostValueToSandbox(
-      [...args],
-      stackFrames,
-      {
-        budget,
-        hostCalls: callbacks?.journal
-      },
-      { seen: new WeakMap() },
-      "<callback>"
-    ) as SandboxValue[];
-    const restored =
-      callbacks?.nextReissuedInvocation === undefined
-        ? undefined
-        : callbacks.restored[callbacks.nextReissuedInvocation++];
-    if (restored !== undefined) {
-      if (
-        restored.id !== id ||
-        JSON.stringify(
-          encodeReplayData(sandboxArgs, {
-            identifyCapability: callbacks?.journal?.identifyCapability
-          })
-        ) !== JSON.stringify(restored.arguments)
-      ) {
-        const error = new HostCallResumabilityError(
-          callbacks!.record!,
-          "external-reconciliation",
-          "Host callback arguments changed while re-issuing the operation; external reconciliation is required."
-        );
-        promiseReplayContext.getStore()?.fail(error);
-        throw error;
-      }
-      return await restored.result;
-    }
-    const replay = promiseReplayContext.getStore();
-    const catchUp = replay?.waitForLiveExecution();
-    if (catchUp !== undefined) await catchUp;
-    const token =
-      callbacks?.record === undefined
-        ? undefined
-        : callbacks.journal?.recordCallback(
-            callbacks.record,
-            id,
-            sandboxArgs,
-            replay?.currentStep ?? 0
+    const operation = budget.acquireCompileOwner(false, compileOwner);
+    try {
+      const sandboxArgs = copyHostValueToSandbox(
+        [...args],
+        stackFrames,
+        {
+          budget,
+          compileOwner,
+          hostCalls: callbacks?.journal
+        },
+        { seen: new WeakMap() },
+        "<callback>"
+      ) as SandboxValue[];
+      const restored =
+        callbacks?.nextReissuedInvocation === undefined
+          ? undefined
+          : callbacks.restored[callbacks.nextReissuedInvocation++];
+      if (restored !== undefined) {
+        if (
+          restored.id !== id ||
+          JSON.stringify(
+            encodeReplayData(sandboxArgs, {
+              identifyCapability: callbacks?.journal?.identifyCapability
+            })
+          ) !== JSON.stringify(restored.arguments)
+        ) {
+          const error = new HostCallResumabilityError(
+            callbacks!.record!,
+            "external-reconciliation",
+            "Host callback arguments changed while re-issuing the operation; external reconciliation is required."
           );
-    if (token !== undefined) replay?.beginCallback(token);
-    const pending = invoke(sandboxArgs, token);
-    callbacks?.active.add(pending);
-    void pending.then(
-      () => {
-        callbacks?.active.delete(pending);
-      },
-      () => {
-        callbacks?.active.delete(pending);
+          promiseReplayContext.getStore()?.fail(error);
+          throw error;
+        }
+        return await restored.result;
       }
-    );
-    return pending;
+      const replay = promiseReplayContext.getStore();
+      const catchUp = replay?.waitForLiveExecution();
+      if (catchUp !== undefined) await catchUp;
+      const token =
+        callbacks?.record === undefined
+          ? undefined
+          : callbacks.journal?.recordCallback(
+              callbacks.record,
+              id,
+              sandboxArgs,
+              replay?.currentStep ?? 0
+            );
+      if (token !== undefined) replay?.beginCallback(token);
+      const pending = invoke(sandboxArgs, token);
+      callbacks?.active.add(pending);
+      void pending.then(
+        () => {
+          callbacks?.active.delete(pending);
+        },
+        () => {
+          callbacks?.active.delete(pending);
+        }
+      );
+      return await pending;
+    } finally {
+      operation.release();
+    }
   };
   if (closure.length !== undefined)
     Object.defineProperty(wrapped, "length", { value: closure.length });

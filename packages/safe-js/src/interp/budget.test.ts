@@ -1,6 +1,99 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { allocateRegexSteps, Budget, REGEX_STEP_LIMIT, SandboxError } from "./budget.js";
+import { createConsoleJsonGlobals } from "./globals/console-json.js";
+import { createSandboxRegex, isSandboxClosure, measureSandboxData } from "./values.js";
+import { interpret } from "./interpreter.js";
+import { parseModule } from "../parse/parser.js";
+import { Scope } from "./scope.js";
+
+async function observeCompileCleanup() {
+  const budget = new Budget({ dataSize: 10 });
+  budget.reconcileDataUsage(8);
+  const regex = createSandboxRegex("a");
+  const primary = new Error("primary");
+  const unrelated = {};
+  const globals = createConsoleJsonGlobals({
+    budget,
+    sink: { log: () => undefined, error: () => undefined }
+  });
+  const log = globals.console.log;
+  if (!isSandboxClosure(log)) throw new Error("Missing console.log");
+  let stepsAtThrow = 0;
+  const native = vi.spyOn(globalThis, "RegExp").mockImplementation(function () {
+    const resume = budget.suspendChecks();
+    budget.setRetainedDataUsage(unrelated, 10);
+    resume();
+    stepsAtThrow = budget.stepsUsed;
+    throw primary;
+  });
+  let result: unknown;
+  try {
+    result = log.call([regex]);
+  } finally {
+    native.mockRestore();
+  }
+  const failure = await Promise.resolve(result).then(
+    () => undefined,
+    (reason: unknown) => reason
+  );
+  return { budget, primary, failure, stepsAtThrow };
+}
+
+describe("compile preimage budget", () => {
+  it("CONTROL cleanup preserves primary failure, unrelated charges and work", async () => {
+    const receipt = await observeCompileCleanup();
+    expect(receipt.failure).toBe(receipt.primary);
+    expect(receipt.budget.currentDataSize).toBe(18);
+    expect(receipt.budget.stepsUsed).toBe(receipt.stepsAtThrow);
+  });
+  it("RED native compile is reserved before constructor failure", async () => {
+    const receipt = await observeCompileCleanup();
+    expect(receipt.failure).toBe(receipt.primary);
+    expect(receipt.budget.currentDataSize).toBe(18);
+    expect(receipt.budget.peakDataSize).toBe(20);
+  });
+  it("RED stale provisional release cannot overwrite a reused Budget", () => {
+    const budget = new Budget();
+    budget.reconcileDataUsage(3);
+    const release = budget.provisionDataUsage(2);
+    budget.reset();
+    budget.reconcileDataUsage(7);
+    release();
+    release();
+    expect(budget.currentDataSize).toBe(7);
+  });
+  it.each(["return /a/", "return await (async () => { await 1; return /a/; })()"])(
+    "RED nonzero provisional release preserves completed result: %s",
+    async (source) => {
+      const budget = new Budget({ dataSize: 1000 });
+      const base = "x".repeat(100);
+      const sibling = createSandboxRegex("b");
+      const baseline = measureSandboxData([base, sibling]);
+      expect(measureSandboxData([base, sibling, sibling])).toBe(baseline);
+      const scope = new Scope({ base, sibling, alias: sibling });
+      expect(measureSandboxData(scope.retainedValues())).toBe(baseline);
+      budget.reconcileDataUsage(baseline);
+      const release = budget.provisionDataUsage(3);
+      const statement = parseModule(source).body[0];
+      if (statement.type !== "ReturnStatement") throw new Error("Missing return statement");
+      const result = await interpret(statement, { budget, scope, useScopeDirectly: true });
+      expect(result).toMatchObject({ ok: true, returnValue: { source: "a" } });
+      const retained = budget.currentDataSize;
+      expect(retained).toBeGreaterThan(baseline);
+      const work = budget.stepsUsed;
+      release();
+      release();
+      expect(budget.currentDataSize).toBe(retained);
+      expect(budget.stepsUsed).toBe(work);
+      const fresh = parseModule("return alias").body[0];
+      if (fresh.type !== "ReturnStatement") throw new Error("Missing return statement");
+      const measured = await interpret(fresh, { budget, scope, useScopeDirectly: true });
+      expect(measured).toMatchObject({ ok: true, returnValue: sibling });
+      expect(budget.currentDataSize).toBe(baseline);
+    }
+  );
+});
 
 function expectSandboxError(action: () => unknown, expected: Partial<SandboxError>): void {
   try {

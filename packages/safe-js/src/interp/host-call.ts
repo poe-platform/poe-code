@@ -9,7 +9,8 @@ import {
   type SandboxClosure,
   type SandboxValue
 } from "./values.js";
-import type { Budget } from "./budget.js";
+import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
+import { CompileScope } from "./regex/compile-guard.js";
 import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import { validateSnapshotData } from "../snapshot/validation.js";
 import {
@@ -149,61 +150,77 @@ export class HostCallJournal {
     records: readonly HostCallRecord[] = [],
     private readonly resumeProvider?: HostCallResumeProvider,
     replay?: unknown,
-    private budget?: Budget
+    private budget?: Budget,
+    private compileOwner?: CompileOwner
   ) {
-    this.recordedReplay = replay !== undefined;
-    if (replay !== undefined) {
-      const replayRecords = restoreReplayCalls(
-        replay,
-        this.encodedOutcomes,
-        this.callbackSizes,
-        this.requiredHostCapabilities
-      );
-      const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
-      validateRestoredRecords(records, restoredRunId, sourceHash);
-      for (const record of records) {
-        const replayRecord = replayRecords[readCallOrdinal(record) - 1];
-        if (
-          replayRecord === undefined ||
-          !callIdentityMatches(record, replayRecord) ||
-          record.lifecycle !== replayRecord.lifecycle
-        ) {
-          throw new HostCallResumabilityError(
-            record,
-            "reset",
-            `Host call ${record.id} conflicts with the replay journal; reset is required.`
-          );
-        }
-      }
-      records = replayRecords;
-    }
-    this.runId = records[0]?.runId ?? randomUUID();
-    this.records = records.map((record) => ({
-      ...record,
-      ...(record.functions === undefined ? {} : { functions: [...record.functions] }),
-      ...(record.callbacks === undefined ? {} : { callbacks: structuredClone(record.callbacks) }),
-      ...(record.outcome === undefined ? {} : { outcome: copyOutcome(record.outcome) })
-    }));
-    validateRestoredRecords(this.records, this.runId, sourceHash);
-    this.retainedSize = this.records.length;
+    const operation = budget?.acquireCompileOwner(false, compileOwner);
+    this.compileOwner = operation?.owner;
+    const compilation = new CompileScope(operation?.owner);
     try {
-      this.budget?.setRetainedDataUsage(this, this.retainedSize);
-      for (const record of this.records) {
-        if (record.outcome !== undefined) this.retainOutcome(record, record.outcome);
-        for (const [index, callback] of (record.callbacks ?? []).entries()) {
-          this.retainedSize +=
-            1 +
-            (this.callbackSizes.get(`${record.id}/callback/${index + 1}`) ??
-              measureSandboxData([decodeReplayData(callback.arguments)]));
+      this.recordedReplay = replay !== undefined;
+      if (replay !== undefined) {
+        const replayRecords = restoreReplayCalls(
+          replay,
+          this.encodedOutcomes,
+          this.callbackSizes,
+          this.requiredHostCapabilities,
+          compilation
+        );
+        const restoredRunId = replayRecords[0]?.runId ?? records[0]?.runId ?? randomUUID();
+        validateRestoredRecords(records, restoredRunId, sourceHash);
+        for (const record of records) {
+          const replayRecord = replayRecords[readCallOrdinal(record) - 1];
+          if (
+            replayRecord === undefined ||
+            !callIdentityMatches(record, replayRecord) ||
+            record.lifecycle !== replayRecord.lifecycle
+          ) {
+            throw new HostCallResumabilityError(
+              record,
+              "reset",
+              `Host call ${record.id} conflicts with the replay journal; reset is required.`
+            );
+          }
         }
+        records = replayRecords;
       }
-      this.budget?.setRetainedDataUsage(this, this.retainedSize);
-    } catch (error) {
-      this.dispose();
-      throw error;
+      this.runId = records[0]?.runId ?? randomUUID();
+      this.records = records.map((record) => ({
+        ...record,
+        ...(record.functions === undefined ? {} : { functions: [...record.functions] }),
+        ...(record.callbacks === undefined ? {} : { callbacks: structuredClone(record.callbacks) }),
+        ...(record.outcome === undefined ? {} : { outcome: copyOutcome(record.outcome) })
+      }));
+      validateRestoredRecords(this.records, this.runId, sourceHash);
+      this.retainedSize = this.records.length;
+      try {
+        this.budget?.setRetainedDataUsage(this, this.retainedSize);
+        for (const record of this.records) {
+          if (record.outcome !== undefined) this.retainOutcome(record, record.outcome);
+          for (const [index, callback] of (record.callbacks ?? []).entries()) {
+            let size = this.callbackSizes.get(`${record.id}/callback/${index + 1}`);
+            if (size === undefined) {
+              const validation = new CompileScope(operation?.owner);
+              try {
+                size = measureSandboxData([decodeReplayData(callback.arguments, {}, validation)]);
+              } finally {
+                validation.dispose();
+              }
+            }
+            this.retainedSize += 1 + size;
+          }
+        }
+        this.budget?.setRetainedDataUsage(this, this.retainedSize);
+      } catch (error) {
+        this.dispose();
+        throw error;
+      }
+      this.restored = [...this.records];
+      this.budget?.setRetainedValues(this, () => this.capabilities.values());
+    } finally {
+      compilation.dispose();
+      operation?.release();
     }
-    this.restored = [...this.records];
-    this.budget?.setRetainedValues(this, () => this.capabilities.values());
   }
 
   issue(input: {
@@ -473,18 +490,23 @@ export class HostCallJournal {
     return positions;
   }
 
-  private retainOutcome(record: HostCallRecord, outcome: HostCallOutcome): void {
+  private retainOutcome(
+    record: HostCallRecord,
+    outcome: HostCallOutcome,
+    budget = this.budget
+  ): void {
+    const included = new Set<CompileTicket>();
     const size = measureSandboxData(
       [outcome.status === "fulfilled" ? outcome.value : outcome.reason],
-      { ignoreClosures: true }
+      { ignoreClosures: true, compileTickets: included }
     );
     const retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
-    this.budget?.setRetainedDataUsage(this, retainedSize);
+    budget?.reconcileCompileData(retainedSize, included, included, this);
     let copied: HostCallOutcome;
     try {
       copied = copyOutcome(outcome);
     } catch (error) {
-      this.budget?.setRetainedDataUsage(this, this.retainedSize);
+      budget?.setRetainedDataUsage(this, this.retainedSize);
       throw error;
     }
     this.retainedSize = retainedSize;
@@ -498,10 +520,25 @@ export class HostCallJournal {
       return undefined;
     const encoded = this.encodedOutcomes.get(record.id);
     if (encoded !== undefined) {
-      const value = decodeReplayData(encoded.data, { resolveCapability: this.resolveCapability });
-      return encoded.status === "fulfilled"
-        ? { status: "fulfilled", value }
-        : { status: "rejected", reason: value };
+      const budget = this.compileOwner?.budget ?? this.budget;
+      const operation = budget?.acquireCompileOwner(false, this.compileOwner);
+      const compilation = new CompileScope(operation?.owner);
+      try {
+        const value = decodeReplayData(
+          encoded.data,
+          { resolveCapability: this.resolveCapability },
+          compilation
+        );
+        const outcome: HostCallOutcome =
+          encoded.status === "fulfilled"
+            ? { status: "fulfilled", value }
+            : { status: "rejected", reason: value };
+        this.retainOutcome(record, outcome, budget);
+        return outcome;
+      } finally {
+        compilation.dispose();
+        operation?.release();
+      }
     }
     const outcome = this.outcomes.get(record.id);
     return outcome === undefined ? undefined : copyOutcome(outcome);
@@ -545,7 +582,8 @@ function restoreReplayCalls(
   input: unknown,
   encodedOutcomes: Map<string, { status: "fulfilled" | "rejected"; data: ReplayData }>,
   callbackSizes: Map<string, number>,
-  requiredHostCapabilities = new Set<string>()
+  requiredHostCapabilities = new Set<string>(),
+  compilation?: CompileScope
 ): HostCallRecord[] {
   validateSnapshotData(input);
   if (
@@ -629,15 +667,18 @@ function restoreReplayCalls(
           !Number.isSafeInteger(callback.id) ||
           callback.id < 1 ||
           !Number.isSafeInteger(callback.step) ||
-          callback.step < previousStep ||
-          !Array.isArray(decodeReplayData(callback.arguments, { resolveCapability }))
+          callback.step < previousStep
         )
           throw new TypeError("Invalid replay callback.");
         previousStep = callback.step;
-        callbackSizes.set(
-          `${entry.id}/callback/${index + 1}`,
-          measureSandboxData([decodeReplayData(callback.arguments, { resolveCapability })])
-        );
+        const validation = new CompileScope(compilation?.owner);
+        try {
+          const args = decodeReplayData(callback.arguments, { resolveCapability }, validation);
+          if (!Array.isArray(args)) throw new TypeError("Invalid replay callback.");
+          callbackSizes.set(`${entry.id}/callback/${index + 1}`, measureSandboxData([args]));
+        } finally {
+          validation.dispose();
+        }
       }
     }
     let outcome: HostCallOutcome | undefined;
@@ -648,7 +689,7 @@ function restoreReplayCalls(
         !["fulfilled", "rejected"].includes(entry.outcome.status)
       )
         throw new TypeError("Invalid replay call outcome.");
-      const value = decodeReplayData(entry.outcome.data, { resolveCapability });
+      const value = decodeReplayData(entry.outcome.data, { resolveCapability }, compilation);
       encodedOutcomes.set(entry.id, structuredClone(entry.outcome));
       outcome =
         entry.outcome.status === "fulfilled"

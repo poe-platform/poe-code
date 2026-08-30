@@ -1,4 +1,7 @@
-export { DisallowedSyntaxError, parse } from "./parse/parser.js";
+import { parse as parseInternal, type ParseResult as ParsedNode } from "./parse/parser.js";
+
+export { DisallowedSyntaxError } from "./parse/parser.js";
+export const parse: (source: string, filename?: string) => ParsedNode = parseInternal;
 export type {
   ArrayPattern,
   ArrayExpression,

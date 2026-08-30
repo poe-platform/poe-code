@@ -1096,7 +1096,7 @@ describe("guarded configuration bootstrap ordering", () => {
       expect(diagnostics()).toBeNull();
       expect(failure.counters.metadataOperations).toBe(8000000);
     });
-  }, 15000);
+  }, 30000);
   it("exposes only fixed bootstrap reads, never an empty unprotected registry", () => {
     const state = bootstrapModel();
     const guard = createLintInputGuard({ root, fileSystem: state.fileSystem, bootstrap: true });

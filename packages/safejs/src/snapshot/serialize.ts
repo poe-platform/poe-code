@@ -3,6 +3,8 @@ import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
+import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
+import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import {
   isSandboxArguments,
   isSandboxGenerator,
@@ -63,6 +65,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
   | SerializedArguments<SerializedSnapshotValue>
   | SerializedArray<SerializedSnapshotValue>
   | {
@@ -110,6 +113,7 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | Float32Array
   | boolean
   | null
   | number
@@ -177,6 +181,7 @@ export type SerializedSnapshot = {
 };
 
 type SerializationState = {
+  float32Buffers: WeakMap<ArrayBuffer, number>;
   ancestors: WeakMap<object, string>;
   heap: Record<string, SerializedHeapValue>;
   heapIds: WeakMap<object, number>;
@@ -209,6 +214,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
     }
   }
   const state: SerializationState = {
+    float32Buffers: new WeakMap(),
     ancestors: new WeakMap(),
     heap: Object.create(null) as Record<string, SerializedHeapValue>,
     heapIds: indexHeapContainers(input),
@@ -379,7 +385,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxMap(value) || isSandboxSet(value)) {
+  if (isSandboxMap(value) || isSandboxSet(value) || isFloat32Array(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -408,7 +414,12 @@ function serializeValue(
 }
 
 function serializeHeapReference(
-  value: RuntimeSnapshotValue[] | Record<string, RuntimeSnapshotValue> | SandboxMap | SandboxSet,
+  value:
+    | RuntimeSnapshotValue[]
+    | Record<string, RuntimeSnapshotValue>
+    | SandboxMap
+    | SandboxSet
+    | Float32Array,
   path: string,
   state: SerializationState
 ): SerializedReferenceValue | undefined {
@@ -420,7 +431,16 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxArguments(value)) {
+    if (isFloat32Array(value)) {
+      const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
+        kind: "ref" as const,
+        id
+      }));
+      const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
+      state.heap[String(id)] = { ...storage, entries };
+      for (const [key, descriptor] of float32DataProperties(value))
+        entries[key] = serializeValue(descriptor.value, `${path}.${key}`, state);
+    } else if (isSandboxArguments(value)) {
       state.heap[String(id)] = serializeArguments(value, (entry, key) =>
         serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state)
       );
@@ -552,6 +572,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
@@ -584,6 +605,7 @@ function collectContainerStats(
   if (
     !Array.isArray(value) &&
     !isPlainObject(value) &&
+    !isFloat32Array(value) &&
     !isSandboxMap(value) &&
     !isSandboxSet(value)
   ) {

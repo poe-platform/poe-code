@@ -6,6 +6,7 @@ import {
   type SandboxValue
 } from "./values.js";
 import { enterRunningState } from "./running-state.js";
+import { isFloat32Array } from "./float32.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
@@ -20,6 +21,9 @@ export type SandboxIterator = {
 };
 
 export function getSandboxIterator(value: SandboxValue): SandboxIterator | undefined {
+  if (isFloat32Array(value)) {
+    return syncIterator(Float32Array.prototype.values.call(value));
+  }
   if (isSandboxGenerator(value)) {
     return generatorIterator(value);
   }

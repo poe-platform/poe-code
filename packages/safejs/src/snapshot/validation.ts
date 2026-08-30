@@ -4,6 +4,7 @@ import type { Budget } from "../interp/budget.js";
 import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { validateFloat32Storage } from "./float32array.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
@@ -118,6 +119,11 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
+    if (entry.kind === "float32array") {
+      validateFloat32Storage(entry);
+      requireRecord(entry.entries, `${path}.entries`);
+      continue;
+    }
     if (entry.kind === "arguments") {
       validateArgumentsProperties(entry, path);
       continue;
@@ -504,12 +510,16 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set", "float32array"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
   if (record.kind === "array") validateArrayHeap(record, path, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
+  if (record.kind === "float32array") {
+    validateFloat32Storage(record);
+    requireRecord(record.entries, `${path}.entries`);
+  }
   if (record.kind === "map") {
     const entries = requireArray(record.entries, `${path}.entries`, state);
     entries.forEach((entry, index) => {

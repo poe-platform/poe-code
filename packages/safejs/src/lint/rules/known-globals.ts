@@ -8,6 +8,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "isNaN",
   "JSON",
   "Map",
+  "Float32Array",
   "Math",
   "NaN",
   "Number",

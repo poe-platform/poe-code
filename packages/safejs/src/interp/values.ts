@@ -1,5 +1,11 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
+import {
+  copyFloat32Storage,
+  float32DataProperties,
+  float32Storage,
+  isFloat32Array
+} from "./float32.js";
 import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
 import { observeSandboxPromise, trackSandboxPromise } from "./promise-tracker.js";
@@ -34,6 +40,7 @@ export type SandboxPrimitive = string | number | boolean | null | undefined;
 
 export type SandboxValue =
   | SandboxPrimitive
+  | Float32Array
   | SandboxObject
   | SandboxArray
   | SandboxClosure
@@ -400,6 +407,18 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (isFloat32Array(value)) {
+      const storage = float32Storage(value);
+      if (!seen.has(storage.buffer)) {
+        seen.add(storage.buffer);
+        usage += storage.byteLength;
+      }
+      for (const [key, descriptor] of float32DataProperties(value)) {
+        usage += key.length + 1;
+        visit(descriptor.value);
+      }
+      return;
+    }
     if (Array.isArray(value)) {
       usage += value.length;
       for (let index = 0; index < value.length; index += 1) {
@@ -540,6 +559,27 @@ function copyToSandbox(
     return sandboxPromise;
   }
 
+  if (isFloat32Array(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = copyFloat32Storage(value, state);
+    state.seen.set(value, copy);
+    for (const [key, descriptor] of float32DataProperties(value)) {
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: copyToSandbox(
+          descriptor.value,
+          state,
+          joinPath(path, key),
+          cloneSandboxCollections,
+          depth + 1
+        )
+      });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
   if (value instanceof Map) {
     const existing = state.seen.get(value);
     if (existing !== undefined) {
@@ -651,6 +691,21 @@ function copyFromSandbox(
   assertSandboxDataDepth(depth);
   if (isSandboxPrimitive(value)) {
     return value;
+  }
+
+  if (isFloat32Array(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = copyFloat32Storage(value, state);
+    state.seen.set(value, copy);
+    for (const [key, descriptor] of float32DataProperties(value)) {
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1)
+      });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
   }
 
   if (isSandboxClosure(value)) {
@@ -798,6 +853,17 @@ function isHostPromise(value: unknown): value is Promise<unknown> {
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
   if (typeof value === "string") {
     budget.allocateString(value);
+    return;
+  }
+
+  if (isFloat32Array(value)) {
+    if (seen.has(value)) return;
+    seen.add(value);
+    budget.allocateArrayLength(Math.ceil(float32Storage(value).byteLength / 4));
+    for (const [key, descriptor] of float32DataProperties(value)) {
+      budget.allocateString(key);
+      allocateSandboxValue(descriptor.value, budget, seen);
+    }
     return;
   }
 

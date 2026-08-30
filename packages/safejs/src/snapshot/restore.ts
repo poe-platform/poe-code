@@ -1,4 +1,5 @@
 import { Budget } from "../interp/budget.js";
+import { decodeFloat32Storage } from "./float32array.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
 import { Scope } from "../interp/interpreter.js";
@@ -501,6 +502,22 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   const serialized = state.heap[String(id)];
   if (serialized === undefined) {
     throw new Error(`Snapshot references unknown heap value ${id}.`);
+  }
+
+  if (serialized.kind === "float32array") {
+    const value = decodeFloat32Storage(serialized, (reference) =>
+      deserializeValue(reference as SerializedSnapshotValue, state)
+    );
+    state.heapValueById.set(id, value);
+    for (const [key, entry] of Object.entries(serialized.entries)) {
+      Object.defineProperty(value, key, {
+        value: deserializeValue(entry, state),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    }
+    return value;
   }
 
   if (serialized.kind === "array") {

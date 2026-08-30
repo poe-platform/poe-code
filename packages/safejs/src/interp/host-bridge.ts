@@ -1,6 +1,13 @@
 import { normalizeClosureResult } from "./async.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
+import {
+  checkFloat32Allocation,
+  copyFloat32Storage,
+  float32DataProperties,
+  float32Storage,
+  isFloat32Array
+} from "./float32.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
@@ -871,6 +878,28 @@ function copyHostValueToSandbox(
       },
       state
     );
+  }
+
+  if (isFloat32Array(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    checkFloat32Allocation(Math.ceil(float32Storage(value).byteLength / 4), budget);
+    const copy = copyFloat32Storage(value, state);
+    state.seen.set(value, copy);
+    for (const [key, descriptor] of float32DataProperties(value)) {
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: copyHostValueToSandbox(
+          descriptor.value,
+          stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
+          state,
+          joinPath(path, key)
+        )
+      });
+    }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
   }
 
   if (!options.errorData && isPromiseLike(value)) {

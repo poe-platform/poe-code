@@ -1,5 +1,7 @@
 import { sandboxErrorTypes } from "../../error/shape.js";
 import type { Budget } from "../budget.js";
+import { isFloat32Array } from "../float32.js";
+import { setFloat32Member } from "./float32array.js";
 import { getSandboxIterator } from "../iteration.js";
 import {
   allocateProducedSandboxValue,
@@ -256,6 +258,10 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
     }
 
     for (const [key, value] of getOwnEnumerableEntries(source)) {
+      if (isFloat32Array(target)) {
+        setFloat32Member(target, key, value);
+        continue;
+      }
       Object.defineProperty(target, key, {
         configurable: true,
         enumerable: true,

@@ -125,6 +125,12 @@ import {
 import { isSandboxErrorConstructor, isSandboxErrorConstructorInstance } from "./globals/error.js";
 import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
 import {
+  getFloat32Member,
+  isFloat32ArrayConstructor,
+  setFloat32Member
+} from "./globals/float32array.js";
+import { isFloat32Array } from "./float32.js";
+import {
   createSandboxRegex,
   allocateProducedSandboxValue,
   isSandboxClosure,
@@ -1656,7 +1662,12 @@ function forInObject(value: SandboxValue): object | undefined {
   if (value === null || value === undefined || isSandboxClosure(value) || isSandboxPromise(value)) {
     return undefined;
   }
-  if (typeof value === "string" || Array.isArray(value) || isPlainForInObject(value)) {
+  if (
+    typeof value === "string" ||
+    Array.isArray(value) ||
+    isFloat32Array(value) ||
+    isPlainForInObject(value)
+  ) {
     return Object(value);
   }
   return undefined;
@@ -2341,6 +2352,7 @@ function getPropertyValue(
   if (typeof target === "string") return getStringMember(target, property, context.budget);
   if (typeof target === "number") return getNumberMember(target, property, context.budget);
   if (typeof target === "boolean") return undefined;
+  if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
   if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
   if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
@@ -2658,6 +2670,15 @@ async function evaluateMemberCallExpression(
     );
   }
 
+  if (isFloat32Array(member.object)) {
+    return evaluateResolvedCallExpression(
+      node,
+      getFloat32Member(member.object, member.property, context.budget),
+      context,
+      member.object
+    );
+  }
+
   if (isSandboxSet(member.object)) {
     return evaluatePrimitiveMemberCall(
       node,
@@ -2964,6 +2985,7 @@ function applyBinaryOperator(
       if (isSandboxMapConstructor(right) && isSandboxMap(left)) {
         return true;
       }
+      if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
       if (isSandboxSetConstructor(right) && isSandboxSet(left)) {
         return true;
       }
@@ -3275,6 +3297,10 @@ function setSandboxProperty(
   property: string | number,
   value: SandboxValue
 ): void {
+  if (isFloat32Array(target)) {
+    setFloat32Member(target, property, value);
+    return;
+  }
   if (isSandboxRegex(target)) {
     setRegexMember(target, property, value);
     return;

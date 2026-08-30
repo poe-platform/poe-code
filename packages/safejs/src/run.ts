@@ -43,6 +43,7 @@ import {
 } from "./interp/host-call.js";
 import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/console-json.js";
 import { createCollectionGlobals } from "./interp/globals/collections.js";
+import { createFloat32ArrayGlobal } from "./interp/globals/float32array.js";
 import { createErrorGlobals } from "./interp/globals/error.js";
 import { createMathGlobals } from "./interp/globals/math.js";
 import { createRegexGlobals } from "./interp/globals/regex.js";
@@ -248,6 +249,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             sink: options.sink
           }),
           ...createCollectionGlobals({ budget }),
+          Float32Array: createFloat32ArrayGlobal(budget),
           ...createErrorGlobals({
             budget
           }),

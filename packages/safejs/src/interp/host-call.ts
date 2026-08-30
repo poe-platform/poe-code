@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { float32DataProperties, float32Storage, isFloat32Array } from "./float32.js";
 import {
   cloneSandboxValue,
   createSandboxClosure,
@@ -772,6 +773,22 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
   if (seen.has(value)) throw new TypeError("Host call arguments cannot contain cycles.");
   seen.add(value);
   try {
+    if (isFloat32Array(value)) {
+      const storage = float32Storage(value);
+      const properties = Object.create(null) as Record<string, unknown>;
+      for (const [key, descriptor] of float32DataProperties(value).sort(([left], [right]) =>
+        left < right ? -1 : left > right ? 1 : 0
+      )) {
+        defineOwnDataProperty(properties, key, normalize(descriptor.value, seen));
+      }
+      return Object.assign(Object.create(null), {
+        $type: "float32array",
+        bytes: normalize(Array.from(new Uint8Array(storage.buffer)), seen),
+        byteOffset: storage.byteOffset,
+        length: storage.length,
+        properties
+      });
+    }
     if (Array.isArray(value)) {
       const normalized = new Array<unknown>(value.length);
       Object.setPrototypeOf(normalized, null);

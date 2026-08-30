@@ -5,6 +5,8 @@ import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
+import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
+import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
 
 const SKIP_VALUE = Symbol("SafeJS.skip-dump-value");
 
@@ -18,6 +20,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | (Float32Data<DumpValue> & { entries: Record<string, DumpValue> })
   | SerializedArguments<DumpValue>
   | SerializedArray<DumpValue>
   | {
@@ -27,6 +30,7 @@ type DumpHeapValue =
     };
 
 type DumpState = {
+  float32Buffers: WeakMap<ArrayBuffer, number>;
   heap: Record<string, DumpHeapValue>;
   heapIds: WeakMap<object, number>;
   serializedHeapIds: Set<number>;
@@ -62,6 +66,7 @@ export function serializeSafeJSSnapshot(snapshot: DumpableSnapshot): string {
 
 function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
   const state: DumpState = {
+    float32Buffers: new WeakMap(),
     heap: {},
     heapIds: indexHeapContainers(snapshot),
     serializedHeapIds: new Set()
@@ -117,6 +122,8 @@ function serializeDumpValue(
     return SKIP_VALUE;
   }
 
+  if (isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
+
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference !== undefined) {
@@ -139,7 +146,7 @@ function serializeDumpValue(
 }
 
 function serializeHeapReference(
-  value: unknown[] | Record<string, unknown>,
+  value: unknown[] | Record<string, unknown> | Float32Array,
   path: string,
   state: DumpState
 ):
@@ -156,7 +163,18 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxArguments(value)) {
+    if (isFloat32Array(value)) {
+      const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
+        kind: "ref",
+        id
+      }));
+      const entries: Record<string, DumpValue> = Object.create(null);
+      state.heap[String(id)] = { ...storage, entries };
+      for (const [key, descriptor] of float32DataProperties(value)) {
+        const serialized = serializeDumpValue(descriptor.value, `${path}.${key}`, state);
+        entries[key] = serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
+      }
+    } else if (isSandboxArguments(value)) {
       state.heap[String(id)] = serializeArguments(value, (entry, key) => {
         const serialized = serializeDumpValue(entry, `${path}.${key}`, state);
         return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
@@ -217,6 +235,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       isSandboxArguments(value) ||
       sandboxErrorTypes.has(value)
@@ -238,7 +257,7 @@ function collectContainerStats(
     return;
   }
 
-  if (!Array.isArray(value) && !isPlainObject(value)) {
+  if (!Array.isArray(value) && !isPlainObject(value) && !isFloat32Array(value)) {
     return;
   }
 

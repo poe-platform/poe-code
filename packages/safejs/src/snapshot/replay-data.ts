@@ -1,4 +1,6 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
+import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import {
   createSandboxArguments,
@@ -35,6 +37,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
   | { kind: "capability"; id: string; properties: Atom }
   | {
       kind: "array" | "object";
@@ -61,6 +64,7 @@ export function encodeReplayData(
 ): ReplayData {
   const nodes: DataNode[] = [];
   const seen = new WeakMap<object, number>();
+  const float32Buffers = new WeakMap<ArrayBuffer, number>();
   const encode = (entry: SandboxValue, depth: number, path: readonly string[]): Atom => {
     if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
     if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
@@ -101,6 +105,21 @@ export function encodeReplayData(
         id: capabilityId!,
         properties: child(entry.properties, "properties")
       };
+    } else if (isFloat32Array(entry)) {
+      const storage = encodeFloat32Storage(entry, id, float32Buffers, (id) => ({
+        tag: "ref" as const,
+        id
+      }));
+      const properties: Properties = Object.create(null);
+      for (const [key, descriptor] of float32DataProperties(entry)) {
+        properties[key] = {
+          value: child(descriptor.value, key),
+          configurable: descriptor.configurable === true,
+          enumerable: descriptor.enumerable === true,
+          writable: descriptor.writable === true
+        };
+      }
+      nodes[id] = { ...storage, properties, extensible: Object.isExtensible(entry) };
     } else if (isSandboxMap(entry)) {
       nodes[id] = {
         kind: "map",
@@ -256,6 +275,15 @@ export function decodeReplayData(
       });
       options.onCapabilityRestored?.(capability, copy);
       return copy;
+    }
+    if (kind === "float32array") {
+      if (typeof node.extensible !== "boolean")
+        throw new TypeError("Invalid Float32Array extensibility.");
+      const result = decodeFloat32Storage(node, child);
+      restored.set(id, result);
+      defineProperties(result, record(own(node, "properties")), child);
+      if (!node.extensible) Object.preventExtensions(result);
+      return result;
     }
     if (kind === "map") {
       const result = createSandboxMap();

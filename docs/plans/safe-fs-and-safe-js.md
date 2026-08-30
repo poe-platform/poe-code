@@ -1,9 +1,10 @@
 # Shared safe-fs adapters and safe-js rename
 
-Status: The Node foundation is published in `poe-code@12.0.3`. SafeJS adapter
-integration exists in the working tree but is not part of that release.
-Cross-repository migration, the safe-js rename, browser support, and their release
-gates remain incomplete. Only the foundation release recorded below is verified.
+Status: The Node foundation (A, `poe-code@12.0.3`) and explicit SafeJS Node SDK/CLI
+integration (B, `poe-code@12.0.5`) are published and verified. C's filesystem-only
+browser packaging has frozen isolated packed-consumer proof; its full candidate
+and public release gates remain separate. Cross-repository migration, the safe-js
+rename and full browser SafeJS/safe-bash execution remain incomplete.
 
 ## Incremental release record — A (August 30, 2026)
 
@@ -24,13 +25,97 @@ gates remain incomplete. Only the foundation release recorded below is verified.
 - Candidate full suite: 26,266 passed and 41 existing skips, with no new hidden
   exclusions; 136 FS-focused tests passed per Node version. Normal commit/push
   hooks, the complete GitHub workflow, and published-artifact checks passed.
-- Whole-package browser support remains pending: the public root rejects an
-  unshimmed browser build on 11 Node built-ins. Helper-only Chrome evidence does
+- At A, whole-package browser support remained pending: the public root rejected
+  an unshimmed browser build on 11 Node built-ins. Helper-only Chrome evidence did
   not establish whole-package support. SafeJS SDK/CLI adapter integration,
-  SafeJS/safe-bash runtime migration, the rename and language/class work remain
-  separate, incomplete work; earlier unchecked requirements below still apply.
-- Release B is not authorized by this record: it awaits Erdos's private-d.ts
-  proof, a frozen independently reviewed candidate and all required green gates.
+  SafeJS/safe-bash runtime migration, the rename and language/class work were
+  separate, incomplete work; the later records distinguish delivered milestones.
+- This A record did not authorize B; its then-pending private-declaration and
+  candidate gates were subsequently completed as recorded below.
+
+## Incremental release record — B (August 30, 2026)
+
+- Published version: `poe-code@12.0.5`; commit and registry `gitHead`
+  `860467821d390fab7da8095de9f7fec8b43055de`; GitHub run `33297073653` succeeded.
+  Publication receipt: `/tmp/release-b-published.lQ2qcu/RECEIPT.md`.
+- The 26-path slice ships explicit Node adapter injection, independent virtual
+  `cwd`/confinement and borrowed cancellation, SDK filesystem configuration and
+  both CLIs. Node-mode defaults and Node >=18.18 support remain unchanged.
+- The full candidate passed 26,497 tests with 41 existing skips. Each of Node
+  18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0 passed 882 focused tests; fresh
+  published runtime, recovery, both CLIs and strict installed types passed.
+  Public index/core/CLI recovery retains host-call metadata without a metadata
+  routing rewrite or a universal exactly-once guarantee.
+- Nested workspace declaration imports are rewritten to canonical relative Node
+  declarations. Their installed NodeNext/Bundler proof is valid for B, not proof
+  that the SDK graph will follow future browser export conditions.
+- B's documentation successor is `8bdd30a7c804e646fdf2c569bc6bdabd408f301c`.
+  C documentation preserves that committed Node contract, not mutable working-tree
+  README or unrelated language/rename work.
+
+## C milestone — portable filesystem only
+
+The frozen C source/packaging proof follows B; no C release number is assumed.
+Public browser runtime targets and declarations must agree:
+
+| Route | Node/default | Browser |
+| --- | --- | --- |
+| `poe-code/safe-fs` | Existing complete Node surface | Portable core |
+| `poe-code/safe-fs/core` | Core with Node platform policy | Same portable graph as browser root |
+| `poe-code/safe-fs/node` | Same complete Node host surface as root | Runtime denied; empty declarations |
+| `poe-code/safejs` | Existing Node SDK | Runtime denied; empty declarations |
+| `poe-code/safejs/core` | Existing Node core | Runtime denied; empty declarations |
+| `poe-code/safejs/cli` | Existing Node CLI | Runtime denied; empty declarations |
+
+These are exact routes, not a broad SDK removal or new aliases. No other public
+export is changed. Mixed unsupported Node SDK/browser FS imports fail resolution,
+not later constructor/authority checks. Node root/core/node and the Node SafeJS
+entries share one split graph; browser FS root/core share one portable split
+graph. Identity is guaranteed within one installed graph/realm/condition, not
+across duplicate installations, independent bundles, workers or mixed profiles.
+
+Portable core exposes byte contracts, virtual paths, errors, memory, readonly,
+mount, overlay, WebDAV, `compareEntries`, and `createFsBridge`. Real host storage,
+Node bridge/path helpers, S3/transports and B's configuration registry/helpers
+stay Node-only. `createFsBridge(adapter, {codec, cwd?, signal?})` requires an
+explicit trusted codec and returns owned Uint8Array results; the Node bridge
+retains genuine Buffer behavior through the shared 21-operation implementation.
+Virtual `cwd` defaults to `/` and is not confinement. Signals are borrowed,
+composed and never aborted by the library. C adds no environment variables or
+codec dependency; safe-fs has zero external runtime dependencies, but installing
+the parent poe-code distribution is not a zero-dependency installation.
+
+The single `FsError` class uses immutable condition-selected platform policy:
+Node retains numeric errno; browser `errno` is present but undefined, typed
+`number | undefined`. Symbolic `code` is authoritative. Browser comparison uses
+registered built-in authority; a needed custom comparison rejects with `ENOTSUP`
+before callback invocation, without upgrading unknown identity. WebDAV rejects a
+custom comparison option at construction under browser policy. Secure browser
+entropy is required for overlay staging and portable `mkdtemp`, using Web Crypto
+UUID or random bytes, never `Math.random`; missing capability yields `ENOTSUP`
+before staged publication, not a promise of zero preceding reads/probes.
+
+Actual emitted declaration routing includes private `#safe-fs-platform` type
+leaves and public core/node profiles. Existing hard-relative Node SDK imports
+bypass root export conditions: changing conditional exports alone cannot make
+that declaration graph portable. C preserves B's Node rewriting and denies the
+three still-Node-only SDK browser routes. A future browser SDK needs its own
+profile-aware declaration graph plus owned execution/host-call metadata and the
+portable guest facade. No FS-only result claims those runtime gates have passed.
+
+Frozen proof: `/tmp/safe-fs-c86-denial.xBrLNK/FEYNMAN-HANDOFF.md` and
+`final-audit.json` record 45 foundation inputs plus 15 packaging paths against B's
+docs successor. The composed pack has 51 FS declarations and no second tsc FS
+JavaScript runtime. It passes all 17 package-lint rules and 17 negative publication
+controls, strict installed NodeNext/Bundler under four type profiles, 269 focused
+tests on each of five Node versions, and 17 Chromium checks with zero Node
+externals/globals. Original duplicate-bundle and unsupported-SDK red evidence is
+retained. This reuses verified B noncanonical output and is **not a full candidate
+build**. Feynman must assemble the exact frozen inputs, run full candidate gates,
+then verify the published artifact through the existing release path. Package
+README and this plan are a separate two-path docs increment, not foundation-source
+replacement. Future OWN/guest SDK packaging, browser shell and actual safe-bash
+migration/removal remain separately gated; no live author tree is overwritten.
 
 ## Exact requirement
 
@@ -98,10 +183,15 @@ establish a completed rename, browser port, or release.
 
 ## Runtime and packaging constraints
 
-- `packages/safejs/src/modules/fs.ts` now exposes
-  `makeFsModule({root?, fs?, adapter?})`; simultaneous `fs` and `adapter` reject.
-  Node-backed defaults and host-relative roots remain unchanged. Adapter paths and
-  relative roots start at virtual `/`; adapter aliases require authoritative
+- `packages/safejs/src/modules/fs.ts` exposes Node mode
+  `makeFsModule({root?, fs?})` and adapter mode
+  `makeFsModule({adapter, root?, cwd?, signal?})`. Simultaneous `fs` and `adapter`
+  reject, as do `cwd`/`signal` without an adapter. Node-backed defaults and
+  host-relative roots remain unchanged. Adapter `cwd` must be absolute virtual;
+  it defaults to the adapter root when rooted, otherwise `/`, and remains
+  independent of confinement. Relative roots start at virtual `/`. JSON config
+  permits optional absolute virtual `cwd`; a host signal is SDK-only, not JSON.
+  Adapter aliases require authoritative
   comparison, not the Node bridge's synthesized `dev`/`ino` fields. SafeJS owns
   guest conversions and host-call replay policy. This module remains Node-only.
 - A private workspace-only safe-fs does not itself distribute the dependency to
@@ -115,10 +205,12 @@ establish a completed rename, browser port, or release.
   identity-sensitive objects must not split across runtime copies. This does not
   require public aliases.
 
-## Browser boundary: observed state
+## Browser boundary: pre-C observations
 
-The browser requirement is not implemented. A lightweight export is not yet a
-portable export, and the existence of a memory backend is not browser evidence.
+This audit records the pre-C baseline. C supersedes the shared-FS Node dependency
+findings with its conditional portable graph, but does not establish browser
+SafeJS/shell support. A lightweight export or memory backend alone is not browser
+evidence; the full-runtime requirements below remain open.
 
 - `packages/safejs/src/core.ts` exports `run`, `lint`, `Budget`, and resumable
   randomness. Its graph still reaches `node:async_hooks` through `interp/jobs.ts`,
@@ -362,12 +454,13 @@ verification. Do not queue the next release before monitoring the current one to
 success. Partial slices may ship, but must state that browser execution remains
 incomplete until its real-browser gates pass.
 
-1. Finish the current shared-FS signal/error fixes and canonical
-   `poe-code/safe-fs` runtime/declaration packaging gate. Keep Node integration
-   behavior stable; do not claim browser readiness from this release.
-2. Make shared contracts, memory, and wrappers portable and ship separate portable
-   and Node entries, preserving public class/registry identity. This is the first
-   prerequisite for both browser filesystem consumers.
+1. **A/B complete:** shared-FS signal/error fixes, canonical Node packaging and
+   explicit Node SDK/CLI configuration/integration are released. Keep Node
+   behavior stable; those releases do not establish browser readiness.
+2. **C candidate/public gates pending:** ship the frozen portable contracts,
+   memory, wrappers, WebDAV and byte bridge with the exact routes and denials
+   above. Preserve class/registry identity and prove actual packed declarations.
+   This FS-only milestone is a prerequisite, not both browser runtimes.
 3. Isolate interpreter file/crypto/validation services, then land owned execution
    context in coherent tested changes. Context and validation cannot be stubbed
    out to publish a browser label. These two tracks may be authored separately
@@ -380,8 +473,9 @@ incomplete until its real-browser gates pass.
    and deletion of sibling implementations are gated by actual installed imports,
    not by the existence of extraction files. Do not assume virtual-bash publishes
    through the poe-code release workflow.
-6. Deliver remaining CLI/SDK adapter configuration and the safe-js rename in
-   separate tested slices, updating affected skills/templates and screenshots.
+6. B's Node CLI/SDK adapter configuration is complete. Deliver any further
+   browser configuration and the safe-js rename in separate tested slices,
+   updating affected skills/templates and screenshots.
    Browser and Node public-entry gates apply to the renamed artifacts too.
    Persistent browser backends remain extensions unless separately selected for
    implementation; their absence must not erase the original browser requirement.

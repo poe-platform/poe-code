@@ -1,6 +1,7 @@
 import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { EntryAuthority, EntryView } from "../mount/comparison.js";
 import { FsError } from "../../contracts/errors.js";
+import { assertCallbackAuthorityAllowed } from "../mount/comparison.js";
 
 export interface OwnedWebDavEntry {
   readonly storage: object;
@@ -78,6 +79,7 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
     if (!comparison || visited.has(left.filesystem)) continue;
     visited.add(left.filesystem);
     options.signal?.throwIfAborted();
+    assertCallbackAuthorityAllowed();
     const result = await comparison.call(left.filesystem, left.path, right.filesystem, right.path, options);
     options.signal?.throwIfAborted();
     if (result !== "same" && result !== "distinct" && result !== "unknown") {

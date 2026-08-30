@@ -8,7 +8,7 @@ import type {
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
-import { normalizePath, validatePath } from "../../contracts/path.js";
+import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 

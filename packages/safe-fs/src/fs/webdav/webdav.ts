@@ -1,5 +1,6 @@
 import { FsError, isErrnoCode, isFsError } from "../../contracts/errors.js";
 import { composeAbortSignals } from "../../contracts/abort.js";
+import type { PlatformComparisonCallback } from "#safe-fs-platform";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -9,7 +10,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar } from "./xml.js";
 import type { XmlElement } from "./xml.js";
-import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
+import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
 
 export type WebDavFetch = (url: string, init: RequestInit) => Promise<Response>;
@@ -43,8 +44,8 @@ export interface WebDavFileSystemOptions {
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
   readonly atomicEmptyDirectory?: WebDavAtomicEmptyDirectoryBinding;
-  readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
-    => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
+  readonly compareEntry?: PlatformComparisonCallback<(this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
+    => ReturnType<NonNullable<FileSystem["compareEntry"]>>>;
 }
 
 const timestampNamespace = "urn:virtual-bash:metadata";
@@ -165,6 +166,7 @@ export class WebDavFileSystem implements FileSystem {
     if (options.compareEntry !== undefined && typeof options.compareEntry !== "function") {
       throw new FsError("EINVAL", { message: "compareEntry must be a function" });
     }
+    if (options.compareEntry !== undefined) assertCallbackAuthorityAllowed();
     try {
       validateUrlText(options.baseUrl);
       this.base = new URL(options.baseUrl);

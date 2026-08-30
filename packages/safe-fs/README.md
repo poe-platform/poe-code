@@ -9,17 +9,67 @@ was first published and installed-artifact verified in `poe-code@12.0.3`.
 `poe-code@12.0.5` also publishes SafeJS SDK/CLI integration through explicit
 adapter injection and filesystem configuration. Its installed public runtime,
 types and both CLIs were verified on Node 18.18.2, 18.20.8, 20.20.0,
-22.22.2 and 24.14.0. Browser support, safe-bash
-runtime migration, removal of old copies and the `safe-js` rename remain pending.
+22.22.2 and 24.14.0. The C changes described below add a **filesystem-only browser
+profile**; they are not present in `12.0.5`. C's isolated packed-consumer proof is
+complete, but its full release candidate and published-artifact gates remain
+separate. Browser SafeJS/safe-bash execution, safe-bash runtime migration, removal
+of old copies and the `safe-js` rename remain pending.
 
 The package contains the existing implementations, not alternative backends.
 In particular, `RealFileSystem({ root })` is the existing machine-directory
 adapter. There is no shell, plugin registry, interpreter, runtime host-call
 dispatcher, or implicit filesystem selection.
 
-## Exports
+## C public routes and platform selection
 
-The public import is `poe-code/safe-fs`. Its root exports:
+| Public import | Node/default condition | `browser` condition |
+| --- | --- | --- |
+| `poe-code/safe-fs` | Existing full Node API, including host adapters and configuration | Portable core |
+| `poe-code/safe-fs/core` | Portable surface with Node platform policy | Portable core, same implementation as browser root |
+| `poe-code/safe-fs/node` | Full Node host API, same implementation as Node root | Runtime denied; empty declarations |
+| `poe-code/safejs` | Existing Node SDK, unchanged | Runtime denied; empty declarations |
+| `poe-code/safejs/core` | Existing Node core, unchanged | Runtime denied; empty declarations |
+| `poe-code/safejs/cli` | Existing Node CLI entry, unchanged | Runtime denied; empty declarations |
+
+Denial is limited to these named routes: it is not a wildcard removal of other
+poe-code exports. An unsupported SDK/browser-FS mixture must fail import
+resolution rather than appear to provide interoperable runtimes. Empty browser
+declarations expose no named API; the runtime export target is `null`.
+
+The portable surface includes contracts, errors, byte helpers, virtual path
+normalization/resolution, memory, readonly, mount, overlay, WebDAV, `compareEntries`,
+and `createFsBridge`. It does **not** include `RealFileSystem`, S3 and its
+transports, `createNodeFsBridge`, Node POSIX path helpers, or the Node configuration
+registry/helpers. `/core` selects a surface, not a forced browser policy:
+ordinary Node resolution retains numeric errno and Node comparison authority.
+The explicit `/node` route preserves the full Node API, not just the bridge.
+
+Build the browser graph with the `browser` export condition and browser platform.
+For TypeScript's `NodeNext` or `Bundler` resolution, select the matching
+`customConditions: ["browser"]` and DOM libraries; Node consumers keep their
+normal Node conditions/types. C routes the public declarations and the private
+`#safe-fs-platform` type import to the matching profile. No consumer source aliases
+or private workspace imports are required. Conditional exports cannot redirect
+hard-relative imports inside existing Node SDK declarations; those SDK graphs
+remain Node-only and are denied above, not certified by changing one export key.
+
+Within **one installed poe-code module graph, realm and selected condition**,
+Node root/core/node share one `FsError` constructor and authority registries;
+the existing Node SafeJS entries use that same implementation. Browser root/core
+likewise share one portable implementation. Node and browser profiles may be
+separate graphs, but independently bundling copies into one application, mixing
+conditions, duplicate installations, or crossing realms does not preserve identity.
+The package has no mutable global platform-policy setter.
+
+Safe-fs itself has zero external runtime package dependencies. Distribution via
+poe-code still entails the root package's installation dependencies; it is not a
+zero-dependency installation or a separate npm-scope publication. C adds no
+browser codec dependency and does not polyfill Node globals.
+
+## Node exports
+
+The public Node imports are `poe-code/safe-fs` and `poe-code/safe-fs/node`.
+They retain the following API:
 
 - `FileSystemConfig`, `FileSystemAdapterDescriptor`, `FileSystemAdapterRegistry`,
   `readConfigRecord`, `validateFileSystemConfig`, `createFileSystem`,
@@ -59,8 +109,10 @@ The public import is `poe-code/safe-fs`. Its root exports:
 
 Private workspace development subpaths are `/contracts`, `/node`, `/fs/memory`, `/fs/real`, `/fs/s3`,
 `/fs/s3/http`, `/fs/webdav`, `/fs/readonly`, `/fs/mount`, and `/fs/overlay`.
-These are not additional public `poe-code/safe-fs/*` exports. Within the workspace,
-they re-export the same modules as the root; constructors and authority registries
+These private routes do not imply matching public routes. Only the public root,
+`/core` and `/node` listed above are exposed; public `/node` is the full host API,
+not the private bridge-only development entry. Within the workspace, the entries
+reuse canonical modules; constructors and authority registries
 are not recreated. Streaming S3 request/output types are available from the root.
 Internal authority-registration helpers are deliberately not public exports.
 
@@ -85,6 +137,10 @@ async and checks the root before returning. Its existing string-root shorthand
 and the constructor's string-root shorthand are retained.
 
 ## Explicit Node configuration
+
+This configuration API and the SDK/CLI configuration below remain Node-only in C.
+Browser core requires explicit adapter construction; it does not expose the Node
+registry or interpret CLI configuration.
 
 `createFileSystem({ type, options? }, { registry })` validates a descriptor's
 options before constructing its adapter. The required registry is a caller-owned
@@ -148,6 +204,25 @@ unknown/conflicting authority must not be silently promoted to destructive safet
 These observations are not leases, transactions, or ABA protection. The preserved
 source contract is in `src/contracts/filesystem.md`.
 
+### Error and comparison policy
+
+`FsError.code` is the authoritative symbolic error code. The one canonical class
+has an `errno` property in both profiles: its exported `PlatformErrno` type is
+`number` under Node and `number | undefined` under browser conditions, where the
+value is `undefined`. Node preserves native numeric errno mappings; consumers
+must not infer a portable numeric value. `isFsError` recognizes the canonical
+constructor, optionally checking its code. Bridge argument errors and cancellation
+errors are not all `FsError`; the Node bridge contract below still applies.
+
+The portable `compareEntries` negotiates built-in entry identity through the same
+private registries as the wrappers. Known identity can be used without a callback;
+unknown identity is not upgraded to `same` or `distinct`. Node retains its
+async-local custom comparison authority. Browser policy rejects a needed custom
+`compareEntry` authority with `ENOTSUP` **before invoking it**; supplying WebDAV's
+custom comparison option is rejected at construction and excluded by its browser
+type. A replacement method is not silently trusted as a built-in authority.
+This is a backend capability difference, not a reduced shell or SafeJS language.
+
 ## Adapter configuration
 
 ### Memory and machine directory
@@ -188,7 +263,7 @@ not rollback, and can leave partial files. No native commands are executed.
 
 Factories accept the same options as their corresponding constructors.
 
-### S3 filesystem and injected transports
+### S3 filesystem and injected transports (Node only)
 
 `S3FileSystemOptions`:
 
@@ -270,7 +345,7 @@ supported; HTTP streaming PUT is not advertised.
 | `timeoutMs` | Default 30,000; positive, maximum 2,147,483,647 |
 | `overwritePolicy` | `lock` (default) or `etag` |
 | `atomicEmptyDirectory` | Optional trusted namespace-bound strict empty-directory remover |
-| `compareEntry` | Optional trusted backing-identity resolver |
+| `compareEntry` | Optional trusted backing-identity resolver on Node; unavailable under browser policy |
 
 Explicit `Authorization` or `Cookie` headers require HTTPS. URL userinfo,
 queries, fragments, and protocol-control header overrides are rejected. Requests
@@ -291,6 +366,78 @@ The `urn:virtual-bash:metadata` timestamp property, JSON payload version, ETag
 binding and DAV resource-id comparison are preserved. PUT streaming uses an
 explicit Fetch `duplex: "half"` body. Cancellation bounds outward waits but cannot
 forcibly stop uncooperative transports or undo accepted remote operations.
+
+In browsers, an injected Fetch implementation is still required. Server CORS
+policy must permit the methods and headers and expose required response headers;
+browser restrictions on credentials, forbidden headers, redirects, and streaming
+uploads still apply. A mock or loopback proof does not certify a deployed WebDAV
+server. S3 browser transport, origin-private storage and directory-handle adapters
+are not part of C.
+
+## Portable byte bridge
+
+`createFsBridge(filesystem, { codec, cwd?, signal? })` is exported by portable core.
+It shares the Node bridge's 21-operation implementation, but uses owned
+`Uint8Array` binary results rather than Buffer and accepts virtual string paths,
+not Node Buffer/file-URL path conversion. Its public types are `FsBridge`,
+`FsBridgeCodec`, `FsBridgeOptions`, `FsBridgeFileSystem`, `FsBridgeEncoding`,
+`FsBridgeDirent`, and `FsBridgeStats`.
+
+| Field | Meaning/default |
+| --- | --- |
+| `codec` | Required trusted object with `isEncoding(name)`, `encode(text, name)` and `decode(bytes, name)`; no default codec |
+| `cwd` | Absolute virtual path, default `/`; no NUL, not a host working directory |
+| `signal` | Optional borrowed cancellation signal, composed with operation signals; never aborted by the bridge |
+
+There is no bridge `root` option. `cwd` resolves relative paths; it does not
+confine absolute paths or parent traversal. Adapter scope and runtime confinement
+are separate. The Node bridge's operation and option restrictions below also
+apply to this bridge. The codec decides which encodings are supported; unsupported
+requested encodings reject before adapter I/O. Filename conversion also needs
+UTF-8 support. `isEncoding` returns a boolean, `encode` returns bytes, and `decode`
+returns a string. The `FsBridgeEncoding` type admits `ascii`, `utf8`, `utf-8`,
+`utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`,
+and `hex`; a codec need not implement them all. The supplied codec is trusted
+host code: a codec that misreports support or throws during conversion is not a
+rollback guarantee.
+
+For example, a deliberately UTF-8-only codec needs no dependency:
+
+```ts
+import {
+  MemoryFileSystem,
+  createFsBridge,
+  type FsBridgeCodec,
+} from "poe-code/safe-fs/core";
+
+const codec: FsBridgeCodec = {
+  isEncoding: encoding => encoding === "utf8" || encoding === "utf-8",
+  encode: text => new TextEncoder().encode(text),
+  decode: bytes => new TextDecoder().decode(new Uint8Array(bytes)),
+};
+const memory = new MemoryFileSystem();
+await memory.mkdir("/work");
+const bridge = createFsBridge(memory, { codec, cwd: "/work" });
+await bridge.writeFile("note", "hello", "utf8");
+const text = await bridge.readFile("note", "utf8");
+const bytes = await bridge.readFile("note");
+```
+
+Use browser Web APIs appropriate to the selected adapters: cancellation, URL,
+byte/stream primitives and injected Fetch for WebDAV. The example's
+`TextEncoder`/`TextDecoder` are an explicit host codec, not package-installed globals.
+The portable bridge is not a SafeJS guest facade or a shell adapter.
+
+### Secure entropy
+
+Browser overlay staging and portable bridge `mkdtemp` require secure entropy:
+`globalThis.crypto.randomUUID`, or UUID generation from `crypto.getRandomValues`.
+If neither exists, the operation fails with `FsError` code `ENOTSUP`; there is no
+`Math.random` fallback. `mkdtemp` needs entropy before creating a directory;
+overlay can already have read/probed its backing layers before refusing staged
+publication. Cancellation and entropy refusal do not imply rollback of arbitrary
+host effects. Node keeps its native crypto policy and the existing Node bridge's
+temporary-name generation.
 
 ## Neutral Node bridge
 
@@ -324,10 +471,10 @@ directory for default authority. Root, endpoints, credential providers, transpor
 headers, and backing filesystems are explicit. Node's host filesystem, network
 stack, clock and TLS configuration still apply; injected host callbacks are trusted.
 
-The source repository declares Node >=22. This extraction emits ES2022 ESM and
-does not change the root workspace's Node >=18.18 declaration. Focused tests run
-on Node 18.18.2, 20.20.0, 22.22.2, and 24.14.0. Cancellation composition does not
-require `AbortSignal.any`: the internal operation-scoped helper uses standard
+The original safe-bash source repository declares Node >=22. This extraction emits
+ES2022 ESM and does not change the root workspace's Node >=18.18 declaration.
+Focused tests run on Node 18.18.2, 20.20.0, 22.22.2, and 24.14.0. Cancellation
+composition does not require `AbortSignal.any`: the internal operation-scoped helper uses standard
 `AbortController` and event listeners, without Node imports or global patches.
 Paired tests remove and restore `AbortSignal.any` to exercise the capability gap
 on Node 19 and early Node 20; those versions are not silently excluded from the
@@ -342,16 +489,15 @@ instead of masking it with a close failure. A composed signal's original reason
 does not imply that every public
 method throws that reason directly.
 
-Browser runtime is a required consumer-build target. The cancellation helper is
-independently checked with DOM libraries and no Node ambient types, and runs as
-ESM with native browser cancellation primitives. The strict DOM source-alias
-check uses the canonical consumer route `poe-code/safe-fs`. WebDAV streaming
-uploads retain `duplex: "half"` through a local request-type intersection; global
-DOM `RequestInit` is not augmented. A properly built browser entry must still
-handle the package's existing Node-specific modules and explicit transports.
-These helper/type checks do not certify the complete browser bundle, native-disk
-adapter in browsers, or deployed-provider behavior; consumer build verification
-remains separately owned.
+C's filesystem-only proof checks actual emitted declarations through installed
+public imports under strict NodeNext/Bundler and Node/browser conditions, without
+source aliases. Its browser ESM bundle has no Node externals or Node globals and
+passes the recorded Chromium runtime checks. This is stronger than the earlier
+cancellation-helper/source-alias evidence, but does not certify the SafeJS engine,
+safe-bash shell, native-disk access in a browser, or deployed-provider behavior.
+WebDAV streaming uploads retain `duplex: "half"` through a local request-type
+intersection; global DOM `RequestInit` is not augmented. Full browser SDK work
+still needs owned execution/host-call metadata and a portable guest facade.
 
 The bridge retains its legacy `Dirent.path` property alongside `parentPath`; a
 type-only assertion accommodates the workspace's newer Node declarations without
@@ -373,30 +519,36 @@ bytes match the verified candidate. The 17/23 byte-identical adapter count and
 six transformations below describe this released foundation, not later browser
 portability work.
 
-Private workspace/deep imports and the not-yet-supported SafeJS `adapter` option
-remain rejected by public type checks. Unshimmed browser bundling of the public
-root encounters 11 Node built-ins; cancellation-helper Chrome checks are not
-whole-package browser certification. The complete goal is not released.
+In A, private workspace/deep imports and the then-unsupported SafeJS `adapter`
+option were rejected by public type checks. A's unshimmed browser root encountered
+11 Node built-ins; helper checks did not certify that root. B subsequently shipped
+the explicit Node integration described above. C's portable root/core and precise
+Node-only route denials supersede the browser boundary, not A's historical result.
+The complete cross-runtime/browser goal is not released.
 
 ## Provenance and validation
 
 `PROVENANCE.json` records source/destination paths and SHA-256 hashes from source
 HEAD `697ad092de111642aa376f74560da9927a0c9512`, with 31 upstream provenance
-records across the 51-file foundation. Of the 23 extracted `src/fs/**/*.ts`
-files, 17 remain byte-identical and six are transformed: mount, overlay, native
+records across the initial 51-file foundation. In A, of the 23 extracted `src/fs/**/*.ts`
+files, 17 were byte-identical and six were transformed: mount, overlay, native
 disk, S3 filesystem, S3 HTTP transport, and WebDAV. The transformations include
 cancellation lifetime, cleanup error precedence, and lint corrections; WebDAV
 also has the local DOM-compatible streaming-request type. Mount comparison/identity
 registries, private S3 authority, WebDAV resource-id bindings, and native identity
-symbols remain unchanged. Filesystem, error and path contracts and the filesystem
-contract document are also preserved.
+symbols were preserved in that foundation. These historical byte counts do not
+describe C. Current provenance separately records platform policy, portable path
+and bridge additions, transformations and tests. C retains one error class and
+private authority registries per graph while selecting immutable platform policy;
+the filesystem contract and persisted storage protocol strings remain preserved.
 
 Only filesystem-neutral byte-source helpers are selected from `contracts/io.ts`.
-The Node bridge drops `makeSafeJsFsModule`, renames the structural type to
+The extracted Node bridge drops `makeSafeJsFsModule`, renames the structural type to
 `NodeFsImplementation`, adjusts imports, removes an unused string validator, and
 adds the type-only Dirent assertion. Existing metadata names, native identity
 symbol and overlay staging prefix deliberately retain their original names.
-The bridge now disposes composed per-call signals. `src/contracts/abort.ts` and
+Both bridge profiles now use the shared operation implementation and dispose
+composed per-call signals. `src/contracts/abort.ts` and
 `src/contracts/cleanup.ts` are new package-owned helpers, not upstream
 extractions. Provenance records their hashes and each transformed extraction.
 Native read cleanup preserves an active read error, injected consumer error, or
@@ -420,15 +572,16 @@ flags and corrects its append-position behavior; it does not certify native
 host behavior or race safety. HTTP tests use loopback; WebDAV uses injected
 responses. Neither is an independent deployed-provider acceptance test.
 
-The canonical consumer route is **`poe-code/safe-fs`**, providing one
-filesystem module graph for consumers resolving the same poe-code installation.
-This foundation-only release does not migrate SafeJS or safe-bash consumers.
+The canonical consumer route is **`poe-code/safe-fs`**, with C's `/core` and `/node`
+facades sharing identity within the corresponding installed graph and condition.
+B migrated the Node SafeJS SDK/CLI integration; safe-bash migration remains separate.
 The private workspace name is transitional, not a separate
 npm bootstrap requirement. No sibling `file:` dependency, second bundled identity,
 private registry bypass, or local publication is introduced here. Root packaging
-and installed-artifact verification are complete for the Node foundation in
-`12.0.3`; browser packaging and runtime consumer integration remain pending.
+and installed-artifact verification are complete for A's Node foundation and B's
+Node integration. C has isolated packed filesystem/browser proof; its exact full
+candidate and published-artifact verification must still precede a C release claim.
 Old copies must remain until consumer integration is verified, then be removed;
 while those copies remain this is not a completed deduplication. Validate real
 providers and additional host profiles before claiming support beyond the
-verified Node foundation.
+verified profiles. No whole-browser-runtime support follows from the FS-only C milestone.

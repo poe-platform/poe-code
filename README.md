@@ -285,11 +285,30 @@ from `poe-code/safejs`. Both `poe-safejs` and `poe-code harness run` accept
 `--fs-config <path>` for explicit memory or host-directory configuration; the
 legacy `--fs` and `--fs-root` options retain their Node-backed behavior.
 
-The public entries target Node.js. Browser support, safe-bash runtime migration,
+The default public entries target Node.js. Full browser runtime support, safe-bash runtime migration,
 removal of legacy adapter copies and the `safe-js` rename remain pending.
 The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.
+
+#### C filesystem-only browser milestone
+
+The C milestone adds a portable browser build of `poe-code/safe-fs` and
+`poe-code/safe-fs/core`. Under the browser condition, both routes share one
+implementation, including `FsError`, authority registries and `createFsBridge`.
+The portable bridge requires an explicit host codec; this milestone adds no
+codec dependency. Default Node exports and the Node.js `>=18.18` baseline stay
+unchanged, including genuine Buffer results from `createNodeFsBridge`.
+
+The Node host entry `poe-code/safe-fs/node` and the still-Node-only
+`poe-code/safejs`, `poe-code/safejs/core` and `poe-code/safejs/cli` are deliberately
+unavailable at runtime under the browser condition and expose empty browser
+declarations. Their Node exports remain available. This is an exact route
+boundary, not removal of the SDK or its Node capabilities.
+
+Full browser SafeJS runtime support remains pending. Guest codec integration,
+portable SDK declaration closure and shared host-call policy/replay metadata
+require separate integration; a browser filesystem build does not prove them.
 
 ## Building from Source
 

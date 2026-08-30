@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { comparisonContext, platform } from "#safe-fs-platform";
 import { FsError } from "../../contracts/errors.js";
 import type { EntryComparison, FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import { compareIdentity } from "./identity.js";
@@ -20,7 +20,9 @@ export type EntryAuthority = (own: EntryView, peer: EntryView, options: FsOption
 
 const resolvers = new WeakMap<FileSystem, EntryViewResolver>();
 const authorities = new WeakMap<FileSystem, EntryAuthority>();
-const negotiating = new AsyncLocalStorage<boolean>();
+export function assertCallbackAuthorityAllowed(): void {
+  if (!platform.callbackAuthorities) throw new FsError("ENOTSUP", { message: "custom comparison authorities require Node context" });
+}
 
 export function registerEntryView(filesystem: FileSystem, resolver: EntryViewResolver): void {
   if (resolvers.has(filesystem)) throw new TypeError("entry view already registered");
@@ -69,10 +71,10 @@ export async function resolveEntryView(filesystem: FileSystem, path: string, opt
 
 export async function compareResolvedEntries(own: EntryView, peer: EntryView, options: FsOptions = {}): Promise<EntryComparison> {
   options.signal?.throwIfAborted();
-  if (negotiating.getStore()) return "unknown";
+  if (comparisonContext.active(options)) return "unknown";
   const identity = compareIdentity(own.stat, peer.stat);
   if (identity !== "unknown") return identity;
-  return negotiating.run(true, async () => {
+  return comparisonContext.run(options, async (options) => {
     const queried = new Set<EntryAuthority | FileSystem>();
     let result: EntryComparison = "unknown";
     for (const [left, right] of [[own, peer], [peer, own]] as const) {
@@ -84,7 +86,10 @@ export async function compareResolvedEntries(own: EntryView, peer: EntryView, op
       let answer: EntryComparison;
       try {
         if (authority) answer = await authority(left, right, options);
-        else if (left.filesystem.compareEntry) answer = await left.filesystem.compareEntry(left.path, right.filesystem, right.path, options);
+        else if (left.filesystem.compareEntry) {
+          assertCallbackAuthorityAllowed();
+          answer = await left.filesystem.compareEntry(left.path, right.filesystem, right.path, options);
+        }
         else continue;
       } catch (error) {
         options.signal?.throwIfAborted();
@@ -108,7 +113,7 @@ export async function compareEntries(
   filesystem: FileSystem, path: string, peer: FileSystem, peerPath: string, options: FsOptions = {},
 ): Promise<EntryComparison> {
   options.signal?.throwIfAborted();
-  if (negotiating.getStore()) return "unknown";
+  if (comparisonContext.active(options)) return "unknown";
   const own = await resolveEntryView(filesystem, path, options);
   const other = await resolveEntryView(peer, peerPath, options);
   return compareResolvedEntries(own, other, options);

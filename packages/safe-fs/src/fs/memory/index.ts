@@ -6,9 +6,9 @@ import type {
   WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
+import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import type { EntryAuthority } from "../mount/comparison.js";
-import { getOwnedS3Entry } from "../s3/authority.js";
+import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 
 interface Metadata {
@@ -68,6 +68,7 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
     explicit = true;
     if (!comparison) continue;
     options.signal?.throwIfAborted();
+    assertCallbackAuthorityAllowed();
     const result = await comparison.call(left.filesystem, left.path, right.filesystem, right.path, options);
     options.signal?.throwIfAborted();
     if (result !== "same" && result !== "distinct" && result !== "unknown") {

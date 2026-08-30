@@ -16,15 +16,27 @@
       "import": "./packages/memory/dist/index.js"
     },
     "./safejs": {
-      "types": "./packages/safejs/dist/index.d.ts",
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safejs/dist/index.d.ts"
+      },
+      "browser": null,
       "import": "./packages/safejs/dist/index.js"
     },
     "./safejs/core": {
-      "types": "./packages/safejs/dist/core.d.ts",
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safejs/dist/core.d.ts"
+      },
+      "browser": null,
       "import": "./packages/safejs/dist/core.js"
     },
     "./safejs/cli": {
-      "types": "./packages/safejs/dist/cli.d.ts",
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safejs/dist/cli.d.ts"
+      },
+      "browser": null,
       "import": "./packages/safejs/dist/cli.js"
     },
     "./agent": {
@@ -48,8 +60,28 @@
       "import": "./dist/skills.js"
     },
     "./safe-fs": {
-      "types": "./packages/safe-fs/dist/index.d.ts",
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/index.d.ts"
+      },
+      "browser": "./packages/safejs/dist/browser/safe-fs.js",
       "import": "./packages/safejs/dist/safe-fs.js"
+    },
+    "./safe-fs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/core.d.ts"
+      },
+      "browser": "./packages/safejs/dist/browser/safe-fs-core.js",
+      "import": "./packages/safejs/dist/safe-fs-core.js"
+    },
+    "./safe-fs/node": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node-host.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safejs/dist/safe-fs-node.js"
     }
   },
   "workspaces": [
@@ -338,5 +370,14 @@
     "ini": "5.0.0",
     "toml": "3.0.0",
     "vite": "6.4.3"
+  },
+  "imports": {
+    "#safe-fs-platform": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
+        "default": "./packages/safe-fs/dist/platform/node.d.ts"
+      },
+      "default": null
+    }
   }
 }

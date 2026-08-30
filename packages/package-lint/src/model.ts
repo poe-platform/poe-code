@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { BundleMetafile } from "./bundle-policy.js";
+import { collectCanonicalDeclarations, type BundleMetafile } from "./bundle-policy.js";
 import { parse as parseYaml } from "yaml";
 import {
   createNpmPacklistProvider,
@@ -49,6 +49,7 @@ export interface PackageInfo {
   ecosystem: Ecosystem;
   main: string | undefined;
   exports: unknown;
+  imports?: unknown;
   bin: Record<string, string>;
   files: string[];
   scripts: Record<string, string>;
@@ -259,6 +260,7 @@ async function loadPackage(
     ecosystem,
     main: typeof pkg.main === "string" ? pkg.main : undefined,
     exports: pkg.exports,
+    imports: pkg.imports,
     bin: toBinRecord(pkg.bin, typeof pkg.name === "string" ? pkg.name : relDir),
     files: Array.isArray(pkg.files)
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
@@ -627,11 +629,16 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   } catch {
     return undefined;
   }
+  let metafile: BundleMetafile;
   try {
-    return parseMetafile(JSON.parse(raw));
+    metafile = JSON.parse(raw) as BundleMetafile;
   } catch {
     return undefined;
   }
+  if (metafile.canonicalBundle || metafile.browserCanonicalBundle) {
+    Object.assign(metafile, await collectCanonicalDeclarations(rootDir, fs));
+  }
+  return parseMetafile(metafile);
 }
 
 /** All workspace packages plus the root package. */

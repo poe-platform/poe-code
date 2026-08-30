@@ -5,6 +5,12 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "imports": {
+    "#safe-fs-platform": {
+      "browser": "./src/platform/browser.ts",
+      "default": "./src/platform/node.ts"
+    }
+  },
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
     "./contracts": { "types": "./dist/contracts/index.d.ts", "import": "./dist/contracts/index.js" },

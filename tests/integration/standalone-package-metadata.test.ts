@@ -165,6 +165,8 @@ describe("standalone package publish metadata", () => {
       "./credentials",
       "./memory",
       "./safe-fs",
+      "./safe-fs/core",
+      "./safe-fs/node",
       "./safejs",
       "./safejs/cli",
       "./safejs/core",
@@ -221,7 +223,11 @@ describe("standalone package publish metadata", () => {
       ["./safejs/cli", "cli"]
     ]) {
       expect(rootPackage.exports?.[subpath]).toEqual({
-        types: `./packages/safejs/dist/${entrypoint}.d.ts`,
+        types: {
+          browser: "./packages/safe-fs/dist/node-unavailable.d.ts",
+          default: `./packages/safejs/dist/${entrypoint}.d.ts`
+        },
+        browser: null,
         import: `./packages/safejs/dist/${entrypoint}.js`
       });
     }

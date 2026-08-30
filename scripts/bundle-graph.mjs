@@ -7,11 +7,17 @@ export function resolveConsumerGraph(graph, canonical) {
       Object.entries(graph.alias).map(([specifier, source]) => [
         specifier,
         specifier === canonical.workspace || specifier.startsWith(`${canonical.workspace}/`)
-          ? canonical.specifier
+          ? (canonical.routes?.find((route) => route.workspace === specifier)?.specifier ??
+            canonical.specifier)
           : source
       ])
     ),
-    external: [...new Set([...graph.external, canonical.specifier])]
+    external: [
+      ...new Set([
+        ...graph.external,
+        ...(canonical.routes?.map((route) => route.specifier) ?? [canonical.specifier])
+      ])
+    ]
   };
 }
 

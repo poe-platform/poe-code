@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { makeWorkspace, memLintFs, pkgJson, packageFiles, withPackageFiles } from "../fixtures.js";
+import {
+  canonicalBundleFixture,
+  makeWorkspace,
+  memLintFs,
+  pkgJson,
+  packageFiles,
+  withPackageFiles
+} from "../fixtures.js";
 import { loadWorkspace, parseMetafile } from "../model.js";
 import { createNpmPacklistProvider } from "../packlist.js";
 import { bundleSelfContained } from "./bundle-self-contained.js";
@@ -64,51 +71,13 @@ describe("bundle-self-contained", () => {
   });
 
   async function canonicalFixture() {
-    const source = "packages/safe-fs/src/index.ts";
-    const entry = "packages/safejs/dist/safe-fs.js";
-    const chunk = "packages/safejs/dist/chunks/fs.js";
-    const types = "packages/safe-fs/dist/index.d.ts";
-    const manifest = {
-      name: "poe-code",
-      exports: { "./safe-fs": { import: `./${entry}`, types: `./${types}` } },
-      files: ["dist", "packages/safejs/dist", "packages/safe-fs/dist/**/*.d.ts"],
-      dependencies: { jose: "*" },
-      optionalDependencies: { braintrust: "*" }
-    };
-    const metafile = {
-      inputs: { "src/index.ts": {} } as Record<string, unknown>,
-      outputs: {
-        "dist/index.js": {
-          imports: [{ path: "poe-code/safe-fs", external: true, kind: "import-statement" }]
-        }
-      },
-      canonicalBundle: {
-        entryPoints: [source],
-        metafile: {
-          inputs: { [source]: {} },
-          outputs: {
-            [entry]: { entryPoint: source, imports: [{ path: chunk }], inputs: {} },
-            [chunk]: { imports: [{ path: "node:fs", external: true }], inputs: { [source]: {} } },
-            [`${entry}.map`]: { imports: [], inputs: {} },
-            [`${chunk}.map`]: { imports: [], inputs: {} }
-          } as Record<
-            string,
-            {
-              entryPoint?: string;
-              imports: { path: string; external?: boolean }[];
-              inputs: Record<string, unknown>;
-            }
-          >
-        }
-      }
-    };
-    const packed = [entry, chunk, `${entry}.map`, `${chunk}.map`, types];
+    const { manifest, metafile, packed, source, entry, chunk, types } = canonicalBundleFixture();
     const model = withPackageFiles(
       await makeWorkspace({
         "/repo/package.json": pkgJson(manifest),
         "/repo/packages/safe-fs/package.json": pkgJson({ name: "@poe-code/safe-fs", private: true })
       }),
-      [[".", packageFiles(".", packed)]]
+      [[".", packageFiles(".", [...packed])]]
     );
     return { model, metafile, source, entry, chunk, types };
   }
@@ -132,6 +101,7 @@ describe("bundle-self-contained", () => {
         "/repo/package.json": pkgJson({
           name: model.root.name,
           exports: model.root.exports,
+          imports: model.root.imports,
           files: model.root.files,
           dependencies: model.root.dependencies
         }),
@@ -181,7 +151,8 @@ describe("bundle-self-contained", () => {
   ])("rejects canonical packaging defect: %s", async (defect) => {
     const { model, metafile, source, entry, chunk, types } = await canonicalFixture();
     const exported = model.root.exports as Record<string, { import: string; types: string }>;
-    if (defect === "unknown-subpath") metafile.outputs["dist/index.js"].imports[0].path += "/node";
+    if (defect === "unknown-subpath")
+      metafile.outputs["dist/index.js"].imports[0].path += "/unlisted";
     if (defect === "missing-export") delete exported["./safe-fs"];
     if (defect === "wrong-export")
       exported["./safe-fs"].import = "./packages/safe-fs/dist/index.js";

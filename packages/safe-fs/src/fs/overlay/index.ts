@@ -1,15 +1,17 @@
-import { randomUUID } from "node:crypto";
+import { platform } from "#safe-fs-platform";
 import { finishCleanup } from "../../contracts/cleanup.js";
-import {
-  collectBytes, dirname, FsError, isPathWithin, normalizePath, readBytes, toFsError, validatePath,
-} from "../../contracts/index.js";
+import { collectBytes, readBytes } from "../../contracts/io.js";
+import type { ByteSource } from "../../contracts/io.js";
+import { FsError, toFsError } from "../../contracts/errors.js";
+import type { ErrnoCode } from "../../contracts/errors.js";
+import { dirname, isPathWithin, normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "../mount/identity.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import type {
-  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, ErrnoCode,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
   ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
-} from "../../contracts/index.js";
+} from "../../contracts/filesystem.js";
 
 export interface OverlayFileSystemOptions {
   readonly upper: FileSystem;
@@ -375,7 +377,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async staged<Result>(options: FsOptions, operation: (path: string) => Promise<Result>): Promise<Result> {
-    const root = `/.virtual-bash-overlay-${randomUUID()}`;
+    const root = `/.virtual-bash-overlay-${platform.randomUUID()}`;
     if (await this.maybeStat(this.#upper, root, options) || await this.maybeStat(this.#lower, root, options)) fail("EEXIST", root);
     this.activeStages.add(root);
     try {

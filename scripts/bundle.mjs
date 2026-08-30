@@ -6,13 +6,16 @@ import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
+import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
 import {
   canonicalFs,
+  collectCanonicalDeclarations,
   collectPackageFiles,
   findBundleIssues
 } from "../packages/package-lint/dist/bundle-policy.js";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { setBinExecutable } from "./set-bin-executable.mjs";
+import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -191,30 +194,23 @@ await assertSafeOutputDirectory(path.join(rootDir, "packages/safejs"));
 const safejsEntryPoints = {
   index: path.join(rootDir, "packages/safejs/src/index.ts"),
   core: path.join(rootDir, "packages/safejs/src/core.ts"),
-  cli: path.join(rootDir, "packages/safejs/src/cli.ts"),
-  "safe-fs": path.join(rootDir, canonicalFs.source)
+  cli: path.join(rootDir, "packages/safejs/src/cli.ts")
 };
-const safejsBuild = await esbuild.build({
-  absWorkingDir: rootDir,
-  entryPoints: safejsEntryPoints,
-  bundle: true,
-  splitting: true,
-  platform: "node",
-  target: "node18",
-  format: "esm",
-  outdir: path.join(rootDir, "packages/safejs/dist"),
-  chunkNames: "chunks/[name]-[hash]",
-  external: externalDeps,
-  alias: workspaceAliases,
-  sourcemap: true,
-  metafile: true,
-  write: false
-});
-await publishBundleOutputs(safejsBuild, {
-  outdir: path.join(rootDir, "packages/safejs/dist"),
-  entryPoints: Object.values(safejsEntryPoints),
-  workingDirectory: rootDir
-});
+const fsBuildOptions = resolveCanonicalFsBuilds(
+  rootDir,
+  { alias: workspaceAliases, external: externalDeps },
+  safejsEntryPoints
+);
+const fsBuilds = {};
+for (const [profile, options] of Object.entries(fsBuildOptions)) {
+  const result = await esbuild.build(options);
+  await publishBundleOutputs(result, {
+    outdir: options.outdir,
+    entryPoints: Object.values(options.entryPoints),
+    workingDirectory: rootDir
+  });
+  fsBuilds[profile] = result;
+}
 await setBinExecutable(path.join(rootDir, "packages/safejs"));
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
@@ -319,50 +315,12 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
-await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons);
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node" });
 for (const { dir } of packageJsons) {
-  await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons);
-}
-
-async function rewriteWorkspaceDts(dir, workspaces) {
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  await Promise.all(
-    entries.map(async (entry) => {
-      const abs = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        await rewriteWorkspaceDts(abs, workspaces);
-        return;
-      }
-      if (!entry.name.endsWith(".d.ts")) return;
-
-      let content = await readFile(abs, "utf8");
-      let changed = false;
-      for (const { dir: workspaceDir, pkg } of workspaces) {
-        const escapedName = pkg.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const pattern = new RegExp(`(["'])${escapedName}(?:/([^"']+))?\\1`, "g");
-        content = content.replace(pattern, (_match, quote, subpath) => {
-          changed = true;
-          const exportKey = subpath ? `./${subpath}` : ".";
-          const exportedTypes = pkg.exports?.[exportKey]?.types?.replace(/\.d\.ts$/, ".js");
-          const target = exportedTypes
-            ? path.join(rootDir, "packages", workspaceDir, exportedTypes)
-            : path.join(
-                rootDir,
-                "packages",
-                workspaceDir,
-                "dist",
-                subpath ? `${subpath}.js` : "index.js"
-              );
-          let relative = path.relative(path.dirname(abs), target).split(path.sep).join("/");
-          if (!relative.startsWith(".")) relative = `./${relative}`;
-          return `${quote}${relative}${quote}`;
-        });
-      }
-      if (changed) {
-        await writeFile(abs, content);
-      }
-    })
-  );
+  await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons, {
+    rootDir,
+    profile: "node"
+  });
 }
 
 // tokenfill is inlined into memory's bundle and resolves its corpus via
@@ -437,14 +395,24 @@ const metafile = {
   outputs: Object.assign(
     {},
     ...consumerBuilds.map((result) => result.metafile.outputs),
-    safejsBuild.metafile.outputs
+    ...Object.values(fsBuilds).map((result) => result.metafile.outputs)
   ),
   canonicalBundle: {
-    entryPoints: Object.values(safejsEntryPoints).map((entry) =>
+    entryPoints: Object.values(fsBuildOptions.node.entryPoints).map((entry) =>
       path.relative(rootDir, entry).split(path.sep).join("/")
     ),
-    metafile: safejsBuild.metafile
-  }
+    metafile: fsBuilds.node.metafile
+  },
+  browserCanonicalBundle: {
+    entryPoints: Object.values(fsBuildOptions.browser.entryPoints).map((entry) =>
+      path.relative(rootDir, entry).split(path.sep).join("/")
+    ),
+    metafile: fsBuilds.browser.metafile
+  },
+  ...(await collectCanonicalDeclarations(rootDir, {
+    readdir: (directory) => readdir(directory, { withFileTypes: true }),
+    readFile: (filename) => readFile(filename, "utf8")
+  }))
 };
 const packedFiles = await collectPackageFiles(rootDir, packageJson.files, {
   readdir: (directory) => readdir(directory, { withFileTypes: true }),

@@ -1,9 +1,12 @@
-import { ACCESS_MODES, FsError, readBytes } from "../../contracts/index.js";
+import { ACCESS_MODES } from "../../contracts/filesystem.js";
+import { FsError } from "../../contracts/errors.js";
+import { readBytes } from "../../contracts/io.js";
+import type { ByteSource } from "../../contracts/io.js";
 import type {
-  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat,
   FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-} from "../../contracts/index.js";
+} from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {

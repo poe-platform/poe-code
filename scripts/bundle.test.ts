@@ -7,6 +7,7 @@ import type { BuildOptions, BuildResult, Metafile, OutputFile } from "esbuild";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, expect, it, vi } from "vitest";
 import { resolveConsumerGraph } from "./bundle-graph.mjs";
+import { canonicalBundleFixture } from "../packages/package-lint/src/fixtures.js";
 
 afterEach(() => {
   vi.doUnmock("node:fs/promises");
@@ -20,19 +21,17 @@ it.each([false, true])(
   "validates all isolated root bundle groups before saving canonical evidence (invalid external: %s)",
   async (invalidExternal) => {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+    const fixture = canonicalBundleFixture();
     const volume = Volume.fromJSON({
-      [path.join(root, "package.json")]: JSON.stringify({
-        name: "poe-code",
-        exports: {
-          "./safe-fs": {
-            types: "./packages/safe-fs/dist/index.d.ts",
-            import: "./packages/safejs/dist/safe-fs.js"
-          }
-        },
-        files: ["dist", "packages/safejs/dist", "packages/safe-fs/dist/**/*.d.ts"]
-      }),
-      [path.join(root, "packages/safe-fs/dist/index.d.ts")]:
-        "export declare class FsError extends Error {}",
+      [path.join(root, "package.json")]: JSON.stringify(fixture.manifest),
+      ...Object.fromEntries(
+        Object.entries(fixture.metafile.canonicalTypes).map(([filename, imports]) => [
+          path.join(root, filename),
+          imports.length
+            ? imports.map((specifier) => `export * from "${specifier}";`).join("\n")
+            : "export {};\n"
+        ])
+      ),
       [path.join(root, "src/providers/proof.ts")]: "export {};"
     });
     for (const name of ["safe-fs", "safejs", "memory", "agent-mcp-config", "agent-skill-config"]) {
@@ -51,6 +50,11 @@ it.each([false, true])(
           })
         : Object.entries(options.entryPoints ?? {});
       const metafile: Metafile = { inputs: {}, outputs: {} };
+      if (options.splitting)
+        metafile.inputs[`packages/safe-fs/src/platform/${options.platform}.ts`] = {
+          bytes: 0,
+          imports: []
+        };
       const outputFiles: OutputFile[] = [];
       for (const [name, source] of entries) {
         const output = options.outfile ?? path.join(options.outdir!, `${name}.js`);
@@ -151,11 +155,11 @@ it("preserves the previous SafeJS bundle when compilation fails", async () => {
     path.join(root, "packages/safe-fs/src/index.ts")
   );
   expect(producer.alias!["@poe-code/safe-fs/node"]).toBe(
-    path.join(root, "packages/safe-fs/src/node/index.ts")
+    path.join(root, "packages/safe-fs/src/node-host.ts")
   );
   for (const [options] of build.mock.calls.slice(0, -1)) {
     expect(options.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
-    expect(options.alias!["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs");
+    expect(options.alias!["@poe-code/safe-fs/node"]).toBe("poe-code/safe-fs/node");
     expect(options.external).toContain("poe-code/safe-fs");
     expect(options.metafile).toBe(true);
   }

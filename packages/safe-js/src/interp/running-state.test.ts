@@ -10,7 +10,12 @@ import { getSandboxIterator } from "./iteration.js";
 import { callArrayMethod } from "./methods/array.js";
 import { callMapMethod, type MapMethodOptions } from "./methods/map.js";
 import { resolveSandboxValue } from "./promise.js";
-import { createSandboxClosure, createSandboxMap, type SandboxClosure } from "./values.js";
+import {
+  createSandboxClosure,
+  createSandboxMap,
+  type SandboxClosure,
+  type SandboxValue
+} from "./values.js";
 
 describe("interpreter running-state guards", () => {
   it("rejects recursive generator continuation and recovers after the callback throws", async () => {
@@ -95,27 +100,40 @@ describe("interpreter running-state guards", () => {
     expect(iterator.return?.()).toEqual({ value: undefined, done: true });
   });
 
-  it("rejects structural array mutation from a comparator and leaves the array usable", async () => {
+  it("permits native bounded comparator mutation and leaves the array usable", async () => {
     const budget = new Budget();
     const values = [3, 2, 1];
+    const native = [3, 2, 1];
+    let nativeChanged = false;
+    native.sort((left, right) => {
+      if (!nativeChanged) {
+        nativeChanged = true;
+        native.push(0);
+      }
+      return left - right;
+    });
+    let changed = false;
     const comparator = createSandboxClosure({
       name: "compare",
       call: async ([left, right]) => {
-        await callArrayMethod(values, "push", [0], options);
+        if (!changed) {
+          changed = true;
+          await callArrayMethod(values, "push", [0], options);
+        }
         return Number(left) - Number(right);
       }
     });
     const options = {
       budget,
-      callClosure: async (closure: SandboxClosure, args: readonly never[]) =>
+      callClosure: async (closure: SandboxClosure, args: readonly SandboxValue[]) =>
         await closure.call(args)
     };
 
-    await expect(callArrayMethod(values, "sort", [comparator], options)).rejects.toEqual(
-      expect.objectContaining({ code: "reentry", name: "SandboxError" })
-    );
-    await expect(callArrayMethod(values, "push", [4], options)).resolves.toBe(4);
-    expect(values).toEqual([3, 2, 1, 4]);
+    await expect(callArrayMethod(values, "sort", [comparator], options)).resolves.toBe(values);
+    expect(values).toStrictEqual(native);
+    native.push(4);
+    await expect(callArrayMethod(values, "push", [4], options)).resolves.toBe(5);
+    expect(values).toStrictEqual(native);
   });
 
   it("allows map mutation from forEach without using a stale collection cursor", async () => {

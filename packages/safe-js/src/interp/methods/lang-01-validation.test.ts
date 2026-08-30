@@ -5,7 +5,7 @@ import { restore } from "../../restore.js";
 import { run } from "../../run.js";
 import { serializeSafeJSSnapshot } from "../../snapshot/dump-format.js";
 import { Budget } from "../budget.js";
-import { assertCollectionMutable } from "../running-state.js";
+import { assertCollectionMutable, enterRunningState } from "../running-state.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -146,7 +146,7 @@ describe("LANG-01 independent nested readers", () => {
   );
 
   it.each(["map", "filter", "reduce", "find"] as const)(
-    "retains the outer guard after invalid nested %s callback",
+    "retains outer running protection after invalid nested %s callback",
     async (method) => {
       const values = [1];
       const options = createOptions();
@@ -155,7 +155,8 @@ describe("LANG-01 independent nested readers", () => {
           await expect(callArrayMethod(values, method, [], options)).rejects.toBeInstanceOf(
             TypeError
           );
-          expect(() => assertCollectionMutable(values)).toThrowError(
+          expect(() => assertCollectionMutable(values)).not.toThrow();
+          expect(() => enterRunningState(values)).toThrowError(
             expect.objectContaining({ code: "reentry" })
           );
           return 7;
@@ -167,18 +168,22 @@ describe("LANG-01 independent nested readers", () => {
   );
 
   it.each(["values.push(2)", "values.sort()", "values[0] = 2", "values.length = 0"])(
-    "preserves the mutation boundary: %s",
+    "matches native nested-reader mutation: %s",
     async (mutation) => {
-      await expect(
-        run(`
+      const source = `
         const values = [1];
-        return values.map(() => {
+        const result = values.map(() => {
           values.find(() => values.every(() => true));
           ${mutation};
           return 1;
         });
-      `)
-      ).rejects.toMatchObject({ name: "SandboxError", code: "reentry" });
+        return { result, values, keys: Object.keys(values) };
+      `;
+      const expected = Function('"use strict";\n' + source)();
+      const result = await run(source);
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw result.error;
+      expect(structuredClone(result.returnValue)).toStrictEqual(expected);
     }
   );
 
@@ -186,7 +191,7 @@ describe("LANG-01 independent nested readers", () => {
     [0, 1, 2],
     [2, 0, 1],
     [1, 2, 0]
-  ])("keeps overlapping readers locked through settlement order %j", async (...order) => {
+  ])("keeps overlapping readers running through settlement order %j", async (...order) => {
     const values = [1];
     const unrelated = [10];
     const options = createOptions();
@@ -214,24 +219,24 @@ describe("LANG-01 independent nested readers", () => {
       await expect(callArrayMethod(values, "map", [outer], options)).resolves.toEqual([9]);
       await expect(callArrayMethod(unrelated, "push", [11], options)).resolves.toBe(2);
       for (const [position, index] of order.entries()) {
-        expect(() => assertCollectionMutable(values)).toThrowError(
+        expect(() => assertCollectionMutable(values)).not.toThrow();
+        expect(() => enterRunningState(values)).toThrowError(
           expect.objectContaining({ code: "reentry" })
         );
         pending[index].resolve(undefined);
         if (index === 1) await expect(readers[index]).rejects.toBe(failure);
         else await expect(readers[index]).resolves.toEqual([index]);
         if (position < order.length - 1) {
-          await expect(callArrayMethod(values, "push", [3], options)).rejects.toMatchObject({
-            code: "reentry"
-          });
+          await expect(callArrayMethod(values, "push", [3], options)).resolves.toBe(position + 2);
         }
       }
-      await expect(callArrayMethod(values, "push", [2], options)).resolves.toBe(2);
+      expect(() => enterRunningState(values)()).not.toThrow();
+      await expect(callArrayMethod(values, "push", [2], options)).resolves.toBe(4);
     } finally {
       for (const wait of pending) wait.resolve(undefined);
       await Promise.allSettled(readers);
     }
-    expect(values).toEqual([1, 2]);
+    expect(values).toEqual([1, 3, 3, 2]);
     expect(unrelated).toEqual([10, 11]);
   });
 

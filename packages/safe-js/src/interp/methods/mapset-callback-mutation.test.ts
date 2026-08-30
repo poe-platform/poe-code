@@ -236,7 +236,7 @@ describe("owned callback traversal resources", () => {
     }
   );
 
-  it("bounds collection growth and preserves the array mutation lock", async () => {
+  it("bounds collection growth and preserves native array traversal during nested Set mutation", async () => {
     await expect(
       run(
         `
@@ -249,15 +249,32 @@ describe("owned callback traversal resources", () => {
       code: "budgetExceeded",
       budget: "arrayLength"
     });
-    await expect(
-      run(`
+    const source = `
       const values = [1];
       const work = new Set([1]);
-      values.forEach(function() {
-        work.forEach(function() { work.clear(); values.push(2); });
+      const visits = [];
+      values.forEach(function(entry, index, receiver) {
+        visits.push(["array", entry, index, receiver === values]);
+        work.forEach(function(value, key, collection) {
+          visits.push(["set", value, collection === work]);
+          work.clear();
+          values.push(2);
+        });
       });
-    `)
-    ).rejects.toMatchObject({ code: "reentry" });
+      return { values, visits, size: work.size };
+    `;
+    const expected = Function('"use strict";\n' + source)();
+    expect(expected).toStrictEqual({
+      values: [1, 2],
+      visits: [
+        ["array", 1, 0, true],
+        ["set", 1, true]
+      ],
+      size: 0
+    });
+    const actual = await run(source);
+    expect(actual.ok).toBe(true);
+    if (actual.ok) expect(structuredClone(actual.returnValue)).toStrictEqual(expected);
   });
 
   it.each(["Map", "Set"])(

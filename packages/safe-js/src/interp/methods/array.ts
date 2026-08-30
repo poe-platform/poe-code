@@ -9,7 +9,7 @@ import {
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
-import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
+import { assertCollectionMutable, enterRunningState } from "../running-state.js";
 
 const activeArrayCallbacks = new WeakMap<SandboxArray, { depth: number; leave: () => void }>();
 
@@ -155,7 +155,7 @@ export async function callArrayMethod(
   if (isCallbackArrayMethod(methodName)) {
     let callbackState = activeArrayCallbacks.get(value);
     if (callbackState === undefined) {
-      callbackState = { depth: 0, leave: enterCollectionCallback(value) };
+      callbackState = { depth: 0, leave: enterRunningState(value) };
       activeArrayCallbacks.set(value, callbackState);
     }
     callbackState.depth += 1;
@@ -460,24 +460,30 @@ async function mapArray(
 ): Promise<SandboxArray> {
   const length = value.length;
   const result = new Array(length) as SandboxArray;
+  options.budget.setRetainedValues(result, () => [result]);
 
-  for (let index = 0; index < length; index += 1) {
-    if (!(index in value)) {
-      continue;
+  try {
+    for (let index = 0; index < length; index += 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
+      }
+
+      result[index] = await callArrayCallback(
+        callback,
+        value[index],
+        index,
+        value,
+        options,
+        stack,
+        thisValue
+      );
     }
 
-    result[index] = await callArrayCallback(
-      callback,
-      value[index],
-      index,
-      value,
-      options,
-      stack,
-      thisValue
-    );
+    return result;
+  } finally {
+    options.budget.setRetainedValues(result, undefined);
   }
-
-  return result;
 }
 
 async function filterArray(
@@ -489,18 +495,25 @@ async function filterArray(
 ): Promise<SandboxArray> {
   const length = value.length;
   const result: SandboxArray = [];
+  options.budget.setRetainedValues(result, () => [result]);
 
-  for (let index = 0; index < length; index += 1) {
-    if (!(index in value)) {
-      continue;
+  try {
+    for (let index = 0; index < length; index += 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
+      }
+
+      const entry = value[index];
+      if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
+        result.push(entry);
+      }
     }
 
-    if (await callArrayCallback(callback, value[index], index, value, options, stack, thisValue)) {
-      result.push(value[index]);
-    }
+    return result;
+  } finally {
+    options.budget.setRetainedValues(result, undefined);
   }
-
-  return result;
 }
 
 async function findInArray(
@@ -510,8 +523,17 @@ async function findInArray(
   stack: readonly string[],
   thisValue: SandboxValue
 ): Promise<SandboxValue> {
-  const index = await findIndexInArray(value, callback, options, stack, thisValue);
-  return index < 0 ? undefined : value[index];
+  const length = value.length;
+
+  for (let index = 0; index < length; index += 1) {
+    options.budget.visitNode();
+    const entry = index in value ? value[index] : undefined;
+    if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
+      return entry;
+    }
+  }
+
+  return undefined;
 }
 
 async function findIndexInArray(
@@ -524,6 +546,7 @@ async function findIndexInArray(
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
+    options.budget.visitNode();
     const entry = index in value ? value[index] : undefined;
     if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return index;
@@ -543,6 +566,7 @@ async function findLastInArray(
   const length = value.length;
 
   for (let index = length - 1; index >= 0; index -= 1) {
+    options.budget.visitNode();
     const entry = index in value ? value[index] : undefined;
     if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return entry;
@@ -562,6 +586,7 @@ async function findLastIndexInArray(
   const length = value.length;
 
   for (let index = length - 1; index >= 0; index -= 1) {
+    options.budget.visitNode();
     const entry = index in value ? value[index] : undefined;
     if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
       return index;
@@ -581,6 +606,7 @@ async function someInArray(
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
+    options.budget.visitNode();
     if (!(index in value)) {
       continue;
     }
@@ -603,6 +629,7 @@ async function everyInArray(
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
+    options.budget.visitNode();
     if (!(index in value)) {
       continue;
     }
@@ -626,12 +653,12 @@ async function reduceArray(
   stack: readonly string[]
 ): Promise<SandboxValue> {
   const length = value.length;
-  const start = findNextDefinedIndex(value, 0, 1, length);
 
   if (hasInitialValue) {
-    return reduceFromLeft(value, callback, initialValue, start, length, options, stack);
+    return reduceFromLeft(value, callback, initialValue, 0, length, options, stack);
   }
 
+  const start = findNextDefinedIndex(value, 0, 1, length, options.budget);
   if (start < 0) {
     throw new TypeError("Reduce of empty array with no initial value.");
   }
@@ -648,12 +675,12 @@ async function reduceRightArray(
   stack: readonly string[]
 ): Promise<SandboxValue> {
   const length = value.length;
-  const start = findNextDefinedIndex(value, length - 1, -1, length);
 
   if (hasInitialValue) {
-    return reduceFromRight(value, callback, initialValue, start, length, options, stack);
+    return reduceFromRight(value, callback, initialValue, length - 1, length, options, stack);
   }
 
+  const start = findNextDefinedIndex(value, length - 1, -1, length, options.budget);
   if (start < 0) {
     throw new TypeError("Reduce of empty array with no initial value.");
   }
@@ -671,16 +698,23 @@ async function reduceFromLeft(
   stack: readonly string[]
 ): Promise<SandboxValue> {
   let current = accumulator;
+  const retainedAccumulator = {};
+  options.budget.setRetainedValues(retainedAccumulator, () => [current]);
 
-  for (let index = startIndex; index < length; index += 1) {
-    if (!(index in value)) {
-      continue;
+  try {
+    for (let index = startIndex; index < length; index += 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
+      }
+
+      current = await options.callClosure(callback, [current, value[index], index, value], stack);
     }
 
-    current = await options.callClosure(callback, [current, value[index], index, value], stack);
+    return current;
+  } finally {
+    options.budget.setRetainedValues(retainedAccumulator, undefined);
   }
-
-  return current;
 }
 
 async function reduceFromRight(
@@ -693,16 +727,23 @@ async function reduceFromRight(
   stack: readonly string[]
 ): Promise<SandboxValue> {
   let current = accumulator;
+  const retainedAccumulator = {};
+  options.budget.setRetainedValues(retainedAccumulator, () => [current]);
 
-  for (let index = Math.min(startIndex, length - 1); index >= 0; index -= 1) {
-    if (!(index in value)) {
-      continue;
+  try {
+    for (let index = Math.min(startIndex, length - 1); index >= 0; index -= 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
+      }
+
+      current = await options.callClosure(callback, [current, value[index], index, value], stack);
     }
 
-    current = await options.callClosure(callback, [current, value[index], index, value], stack);
+    return current;
+  } finally {
+    options.budget.setRetainedValues(retainedAccumulator, undefined);
   }
-
-  return current;
 }
 
 async function forEachArray(
@@ -715,6 +756,7 @@ async function forEachArray(
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
+    options.budget.visitNode();
     if (!(index in value)) {
       continue;
     }
@@ -732,39 +774,46 @@ async function flatMapArray(
 ): Promise<SandboxArray> {
   const length = value.length;
   const result: SandboxArray = [];
+  options.budget.setRetainedValues(result, () => [result]);
 
-  for (let index = 0; index < length; index += 1) {
-    if (!(index in value)) {
-      continue;
-    }
-
-    const mapped = await callArrayCallback(
-      callback,
-      value[index],
-      index,
-      value,
-      options,
-      stack,
-      thisValue
-    );
-    if (Array.isArray(mapped)) {
-      for (let mappedIndex = 0; mappedIndex < mapped.length; mappedIndex += 1) {
-        if (!(mappedIndex in mapped)) {
-          continue;
-        }
-
-        result.push(mapped[mappedIndex]);
-        options.budget.allocateArrayLength(result.length);
+  try {
+    for (let index = 0; index < length; index += 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
       }
 
-      continue;
+      const mapped = await callArrayCallback(
+        callback,
+        value[index],
+        index,
+        value,
+        options,
+        stack,
+        thisValue
+      );
+      if (Array.isArray(mapped)) {
+        for (let mappedIndex = 0; mappedIndex < mapped.length; mappedIndex += 1) {
+          options.budget.visitNode();
+          if (!(mappedIndex in mapped)) {
+            continue;
+          }
+
+          result.push(mapped[mappedIndex]);
+          options.budget.allocateArrayLength(result.length);
+        }
+
+        continue;
+      }
+
+      result.push(mapped);
+      options.budget.allocateArrayLength(result.length);
     }
 
-    result.push(mapped);
-    options.budget.allocateArrayLength(result.length);
+    return result;
+  } finally {
+    options.budget.setRetainedValues(result, undefined);
   }
-
-  return result;
 }
 
 function flattenArray(value: SandboxArray, depth: number, budget: Budget): SandboxArray {
@@ -801,48 +850,58 @@ async function sortArray(
   options: ArrayMethodOptions,
   stack: readonly string[]
 ): Promise<void> {
+  const length = value.length;
   const definedValues: SandboxValue[] = [];
   let undefinedCount = 0;
+  let currentEntry: SandboxValue;
+  options.budget.setRetainedValues(definedValues, () => [definedValues, currentEntry]);
 
-  for (let index = 0; index < value.length; index += 1) {
-    if (!(index in value)) {
-      continue;
+  try {
+    for (let index = 0; index < length; index += 1) {
+      options.budget.visitNode();
+      if (!(index in value)) {
+        continue;
+      }
+
+      const entry = value[index];
+      if (entry === undefined) {
+        undefinedCount += 1;
+        continue;
+      }
+
+      definedValues.push(entry);
     }
 
-    const entry = value[index];
-    if (entry === undefined) {
-      undefinedCount += 1;
-      continue;
+    for (let index = 1; index < definedValues.length; index += 1) {
+      currentEntry = definedValues[index];
+      let cursor = index - 1;
+
+      while (
+        cursor >= 0 &&
+        (await compareEntries(definedValues[cursor], currentEntry, comparator, options, stack)) > 0
+      ) {
+        definedValues[cursor + 1] = definedValues[cursor];
+        cursor -= 1;
+      }
+
+      definedValues[cursor + 1] = currentEntry;
+    }
+    currentEntry = undefined;
+
+    for (let index = 0; index < definedValues.length; index += 1) {
+      value[index] = definedValues[index];
     }
 
-    definedValues.push(entry);
-  }
-
-  for (let index = 1; index < definedValues.length; index += 1) {
-    const entry = definedValues[index];
-    let cursor = index - 1;
-
-    while (
-      cursor >= 0 &&
-      (await compareEntries(definedValues[cursor], entry, comparator, options, stack)) > 0
-    ) {
-      definedValues[cursor + 1] = definedValues[cursor];
-      cursor -= 1;
+    for (let index = 0; index < undefinedCount; index += 1) {
+      value[definedValues.length + index] = undefined;
     }
 
-    definedValues[cursor + 1] = entry;
-  }
-
-  for (let index = 0; index < definedValues.length; index += 1) {
-    value[index] = definedValues[index];
-  }
-
-  for (let index = 0; index < undefinedCount; index += 1) {
-    value[definedValues.length + index] = undefined;
-  }
-
-  for (let index = definedValues.length + undefinedCount; index < value.length; index += 1) {
-    delete value[index];
+    for (let index = definedValues.length + undefinedCount; index < length; index += 1) {
+      options.budget.visitNode();
+      delete value[index];
+    }
+  } finally {
+    options.budget.setRetainedValues(definedValues, undefined);
   }
 }
 
@@ -853,6 +912,7 @@ async function compareEntries(
   options: ArrayMethodOptions,
   stack: readonly string[]
 ): Promise<number> {
+  options.budget.visitNode();
   const result = Number(await options.callClosure(comparator, [left, right], stack));
   return Number.isNaN(result) ? 0 : result;
 }
@@ -873,9 +933,11 @@ function findNextDefinedIndex(
   value: SandboxArray,
   startIndex: number,
   direction: 1 | -1,
-  length: number
+  length: number,
+  budget: Budget
 ): number {
   for (let index = startIndex; direction > 0 ? index < length : index >= 0; index += direction) {
+    budget.visitNode();
     if (index in value) {
       return index;
     }

@@ -5,7 +5,11 @@ import { restore } from "../../restore.js";
 import { run } from "../../run.js";
 import { serializeSafeJSSnapshot } from "../../snapshot/dump-format.js";
 import { Budget } from "../budget.js";
-import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
+import {
+  assertCollectionMutable,
+  enterCollectionCallback,
+  enterRunningState
+} from "../running-state.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -62,7 +66,7 @@ describe.each(readMethods)("nested read-only %s", (outerMethod) => {
     if (result.ok) expect(structuredClone(result.returnValue)).toStrictEqual(expected);
   });
 
-  it("keeps the outer mutation lock after a nested early return", async () => {
+  it("permits native mutation after a nested early return", async () => {
     const source = `
       const values = [3, 1, 2];
       function outer(value) {
@@ -70,9 +74,13 @@ describe.each(readMethods)("nested read-only %s", (outerMethod) => {
         values.push(4);
         return value;
       }
-      return ${readCall(outerMethod, "values", "outer")};
+      const result = ${readCall(outerMethod, "values", "outer")};
+      return { result, values };
     `;
-    await expect(run(source)).rejects.toMatchObject({ name: "SandboxError", code: "reentry" });
+    const expected = Function('"use strict";\n' + source)();
+    const result = await run(source);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(structuredClone(result.returnValue)).toStrictEqual(expected);
   });
 });
 
@@ -192,19 +200,25 @@ describe("array callback lifetime", () => {
     "values[0] = 4",
     "values.length = 0",
     "delete values[0]"
-  ])("retains the mutation restriction for %s", async (mutation) => {
-    await expect(
-      run(`
+  ])("preserves native nested callback semantics for %s", async (mutation) => {
+    const source = `
       const values = [3, 1, 2];
-      values.map(() => {
-        values.map(() => { ${mutation}; return 1; });
-        return 1;
+      let changed = false;
+      const result = values.map(() => {
+        return values.map(() => {
+          if (!changed) { changed = true; ${mutation}; }
+          return 1;
+        });
       });
-    `)
-    ).rejects.toMatchObject({ name: "SandboxError", code: "reentry" });
+      return { result, values, keys: Object.keys(values) };
+    `;
+    const expected = Function('"use strict";\n' + source)();
+    const result = await run(source);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(structuredClone(result.returnValue)).toStrictEqual(expected);
   });
 
-  it("keeps a nested reader locked when the outer reader finishes first", async () => {
+  it("keeps nested running protection without locking mutation when the outer reader finishes", async () => {
     const values = [1];
     const options = createOptions();
     const entered = deferred();
@@ -226,18 +240,18 @@ describe("array callback lifetime", () => {
     });
     try {
       await expect(callArrayMethod(values, "map", [outer], options)).resolves.toEqual([1]);
-      expect(() => assertCollectionMutable(values)).toThrow(
-        expect.objectContaining({ code: "reentry" })
-      );
+      expect(() => assertCollectionMutable(values)).not.toThrow();
+      expect(() => enterRunningState(values)).toThrow(expect.objectContaining({ code: "reentry" }));
     } finally {
       pending.resolve(undefined);
       await nested?.catch(() => undefined);
     }
+    expect(() => enterRunningState(values)()).not.toThrow();
     expect(() => assertCollectionMutable(values)).not.toThrow();
     await expect(callArrayMethod(values, "push", [3], options)).resolves.toBe(2);
   });
 
-  it("retains the outer lock after an inner error and releases it after the outer error", async () => {
+  it("retains outer running protection after an inner error without preventing mutation", async () => {
     const values = [1];
     const options = createOptions();
     const failure = new Error("inner");
@@ -251,16 +265,18 @@ describe("array callback lifetime", () => {
       call: async () => {
         await expect(callArrayMethod(values, "map", [inner], options)).rejects.toBe(failure);
         innerCompleted = true;
-        await expect(callArrayMethod(values, "push", [2], options)).rejects.toMatchObject({
-          code: "reentry"
-        });
+        expect(() => enterRunningState(values)).toThrow(
+          expect.objectContaining({ code: "reentry" })
+        );
+        await expect(callArrayMethod(values, "push", [2], options)).resolves.toBe(2);
         throw failure;
       }
     });
     await expect(callArrayMethod(values, "map", [outer], options)).rejects.toBe(failure);
     expect(innerCompleted).toBe(true);
-    expect(values).toEqual([1]);
-    await expect(callArrayMethod(values, "push", [2], options)).resolves.toBe(2);
+    expect(values).toEqual([1, 2]);
+    expect(() => enterRunningState(values)()).not.toThrow();
+    await expect(callArrayMethod(values, "push", [3], options)).resolves.toBe(3);
   });
 
   it("does not bypass a separately held collection guard", async () => {

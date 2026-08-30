@@ -87,6 +87,20 @@ earlier real-commit catalog failures remain recorded separately. These unit
 results do not certify the later packed phase: acceptance still requires the
 complete wrapper against the actual new commit and its unchanged-input checks.
 
+The real implementation commit `ee3395114856c82acc584dc113f3ebf92991d1dc`
+passes that complete job: 25 current consumer groups, 20 configured emitted
+runtime programs, archive 11/11, metadata 318/318 with 22 native rows, stream
+18/18 and moved packed-consumer 21/21. Required negative type/source-fallback,
+repeat-pack, lifecycle and unchanged-input controls pass. The stream comparison
+remains 124/164 strict and 164/164 strengthened semantic, not universal strict
+native parity. Scoped peer13 ownership 339/339, extra affected 150/150, Git
+prerequisites 15/15, public types, S3 committed/WORKTREE and installed SDK/shell
+identity/recovery also pass. The wider FS cohort still has four protected
+historical failures (2,281/2,285 pass); the retained broad 136 failures/25
+cancellations and 33 unchanged source/test type diagnostics are not waived.
+Frozen measured evidence is in `/tmp/safe-bash-catalog-repair.2014Ee`; later
+commit acceptance must use its own receipt, not inherit this commit's result.
+
 ### DU staging-input typing
 
 `staged-types.json` separately authenticates fourteen literal DU recipe inputs

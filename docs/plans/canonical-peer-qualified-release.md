@@ -145,3 +145,42 @@ same-graph SDK/shell identity/recovery. Any newly exposed unowned packed-phase
 blocker requires a separate exact-scope approval, not a fabricated commit,
 historical hash reseal, exclusion or implicit harness expansion. Final measured
 results belong to the new frozen receipt tied to that actual commit.
+
+## Measured implementation-commit result
+
+The normal four-path commit is
+`ee3395114856c82acc584dc113f3ebf92991d1dc`, on local main, parent e2233cf9.
+No remote is configured and nothing is pushed. Its real-clone wrapper snapshot
+is `qualified-current-consumers-u6J1iG` in the system temporary directory.
+The complete wrapper exits zero with source, test, root-dist and index checks
+unchanged. It passes 25 current consumer compilations and their 20 configured
+emitted runtime programs, three current negative type groups, archive 11/11,
+metadata 318/318 with all 22 native rows, generated stream 18/18, and moved
+packed consumer 21/21. Packed positive types, all seven negative diagnostics,
+source-fallback refusal, repeat packing and existing lifecycle controls pass.
+Stream evidence remains 82 distinct primary inputs, 164 executions, 124 strict
+and 164 strengthened-semantic matches. All 40 strict diagnostic differences and
+the independent secondary profile are retained, not relabeled strict passes.
+
+At that same actual commit, build and all 80 harness controls pass. The 27-file
+owned cohort passes 339/339, extra 11-file affected cohort 150/150, and four Git
+prerequisite files 15/15. Maintained public types and S3 committed/WORKTREE
+profiles pass. A freshly packed shell with the actual installed 13.0.0 peer
+passes 20 SDK/shell identity/recovery tests, one module-URL identity test and
+strict public type checks. These overlapping cohorts are not additive.
+
+The wider 111-file FS cohort remains 2,281 passing and four protected historical
+failures out of 2,285, with no cancellations/skips. Source/test type diagnostics
+remain byte-identical to the same 33 baseline diagnostics. The unrelated broad
+136 failures/25 cancellations are preserved historical observations, not a new
+full-suite result or waiver. Protected fixtures, the unrelated dirty tracked
+file, untracked-path census and the original 845/573 assertion maps are unchanged;
+untracked contents and ignored trees are not individually hashed.
+
+Measured artifacts include `qualified-measured.json`,
+`acceptance-ee339511/checks.json`, `installed-proof/receipt.json`,
+`coverage-and-scope.json` and the exact commit receipt in the new evidence stage.
+Only this plan and the owned README receive the measured-outcome follow-up.
+The final documentation commit must independently rerun the real wrapper and
+scoped checks before its own final receipt is frozen. No product implementation,
+dependency, assertion input or qualification exclusion changes in that follow-up.

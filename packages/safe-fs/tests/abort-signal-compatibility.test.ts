@@ -263,7 +263,7 @@ describe.each(["native environment", "AbortSignal.any unavailable"])("%s", (prof
     const fetch = vi.fn<WebDavFetch>(async () => {
       throw new Error("Unexpected transport call");
     });
-    const filesystem = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch });
+    const filesystem = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch, requestStreamSupport: true });
     const caller = new AbortController();
     vi.spyOn(globalThis, "ReadableStream").mockImplementation(() => {
       throw failure;
@@ -313,7 +313,7 @@ describe.each(["native environment", "AbortSignal.any unavailable"])("%s", (prof
       }
       return new Response(null, { status: 201 });
     });
-    const filesystem = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch });
+    const filesystem = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch, requestStreamSupport: true });
     const caller = new AbortController();
     await filesystem.writeStream("/file", toByteSource(bytes), {
       flag: "wx",

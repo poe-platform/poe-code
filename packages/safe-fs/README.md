@@ -347,6 +347,7 @@ supported; HTTP streaming PUT is not advertised.
 | --- | --- |
 | `baseUrl` | Required explicit HTTP(S) collection URL |
 | `fetch` | Required trusted `(url, init) => Promise<Response>`; no global fallback |
+| `requestStreamSupport` | `"native"`, `true`, or `false`; omitted uses `"native"` only when `fetch === globalThis.fetch` at construction, otherwise `false` |
 | `headers` | Optional explicit headers, copied at construction |
 | `maxResponseBytes` | Default 64 MiB, positive safe integer |
 | `maxXmlBytes` | Default 2 MiB, positive safe integer |
@@ -382,6 +383,64 @@ browser restrictions on credentials, forbidden headers, redirects, and streaming
 uploads still apply. A mock or loopback proof does not certify a deployed WebDAV
 server. S3 browser transport, origin-private storage and directory-handle adapters
 are not part of C.
+
+#### Breaking change: declare custom request-stream support
+
+Unannotated custom or bound Fetch functions no longer enable `writeStream`.
+They reject with `ENOTSUP` before source iterator acquisition or any filesystem
+I/O, including preparation reads, locks, directory creation, temporary writes,
+and PUT. An already-aborted caller signal still rejects with `ECANCELED` first.
+Ordinary byte `writeFile` and other non-streaming operations are unchanged.
+The required `fetch` option remains required; no transport is installed implicitly.
+
+Direct current-realm native Fetch is recognized by exact function identity:
+
+```ts
+const filesystem = new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch });
+```
+
+For a bound function or wrapper that faithfully delegates to the current realm's
+native Fetch, explicitly declare that delegation:
+
+```ts
+const filesystem = new WebDavFileSystem({
+  baseUrl,
+  fetch: globalThis.fetch.bind(globalThis),
+  requestStreamSupport: "native"
+});
+```
+
+Native mode probes the current realm's Request constructor using a separate
+empty stream. It requires the duplex option to be read without implicit string
+Content-Type conversion. The probe performs no network request and never touches
+the caller's source. Unsupported native body handling rejects with `ENOTSUP`.
+A passing probe is not a promise that a particular URL, protocol, server, or
+arbitrary injected transport accepts streaming uploads. Native Chromium HTTP/2
+can stream while HTTP/1 can still reject at the transport layer. Browser CORS
+and redirect constraints continue to apply.
+
+A trusted custom transport that independently preserves and consumes
+ReadableStream bodies may declare support without using the native probe:
+
+```ts
+const filesystem = new WebDavFileSystem({
+  baseUrl,
+  fetch: faithfulStreamingTransport,
+  requestStreamSupport: true
+});
+```
+
+`true` is an explicit host assertion, not a capability inferred from native
+Request and not protection against dishonest transport code. A false assertion
+can still cause remote effects before an error. Use `false` to disable streaming
+even for an otherwise supported transport. No user-agent/function-source guessing,
+global polyfill, or automatic buffering fallback is used. Source errors,
+cancellation, and iterator cleanup retain their existing behavior after the gate.
+
+`requestStreamSupport` is a programmatic WebDAV adapter option, alongside the
+injected function; this change adds no environment variable, CLI flag, or built-in
+JSON filesystem-adapter configuration. Embeddings registering a custom WebDAV
+factory must pass the appropriate trusted declaration themselves.
 
 ## Portable byte bridge
 

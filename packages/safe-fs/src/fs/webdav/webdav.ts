@@ -37,6 +37,7 @@ export interface WebDavAtomicEmptyDirectoryBinding {
 export interface WebDavFileSystemOptions {
   readonly baseUrl: string;
   readonly fetch: WebDavFetch;
+  readonly requestStreamSupport?: "native" | boolean;
   readonly headers?: Readonly<Record<string, string>>;
   readonly maxResponseBytes?: number;
   readonly maxXmlBytes?: number;
@@ -68,6 +69,24 @@ function positive(value: number, name: string, zero = false): number {
     throw new FsError("EINVAL", { message: `${name} must be a ${zero ? "nonnegative" : "positive"} safe integer` });
   }
   return value;
+}
+
+function nativeRequestStreamsSupported(url: string): boolean {
+  let body: ReadableStream<Uint8Array> | undefined;
+  try {
+    body = new ReadableStream<Uint8Array>({ start(destination) { destination.close(); } });
+    let duplexAccessed = false;
+    const init: RequestInit & { duplex: "half" } = {
+      method: "PUT", body,
+      get duplex(): "half" { duplexAccessed = true; return "half"; },
+    };
+    const request = new Request(url, init);
+    return duplexAccessed && !request.headers.has("Content-Type");
+  } catch {
+    return false;
+  } finally {
+    if (body && !body.locked) void body.cancel().catch(() => {});
+  }
 }
 
 function strongEtag(value: string | null | undefined, path: string): string {
@@ -151,6 +170,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly base: URL;
   private readonly baseSegments: string[];
   private readonly transport: WebDavFetch;
+  private readonly requestStreamSupport: "native" | boolean;
   private readonly headers: Headers;
   private readonly maxResponseBytes: number;
   private readonly maxXmlBytes: number;
@@ -163,6 +183,10 @@ export class WebDavFileSystem implements FileSystem {
 
   constructor(options: WebDavFileSystemOptions) {
     if (typeof options.fetch !== "function") throw new FsError("EINVAL", { message: "an explicit fetch transport is required" });
+    if (options.requestStreamSupport !== undefined && options.requestStreamSupport !== "native"
+      && typeof options.requestStreamSupport !== "boolean") {
+      throw new FsError("EINVAL", { message: "requestStreamSupport must be native or a boolean" });
+    }
     if (options.compareEntry !== undefined && typeof options.compareEntry !== "function") {
       throw new FsError("EINVAL", { message: "compareEntry must be a function" });
     }
@@ -195,7 +219,8 @@ export class WebDavFileSystem implements FileSystem {
       }
       this.atomicEmptyDirectory = Object.freeze({ namespaceUrl: this.base.href, removeEmptyDirectory: binding.removeEmptyDirectory });
     }
-    this.transport = options.fetch;
+    this.transport = options.fetch === globalThis.fetch ? options.fetch.bind(globalThis) : options.fetch;
+    this.requestStreamSupport = options.requestStreamSupport ?? (options.fetch === globalThis.fetch ? "native" : false);
     this.maxResponseBytes = positive(options.maxResponseBytes ?? 64 * 1024 * 1024, "maxResponseBytes");
     this.maxXmlBytes = positive(options.maxXmlBytes ?? 2 * 1024 * 1024, "maxXmlBytes");
     this.maxEntries = positive(options.maxEntries ?? 10_000, "maxEntries");
@@ -719,6 +744,11 @@ export class WebDavFileSystem implements FileSystem {
   }
 
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
+    if (options.signal?.aborted) fail("ECANCELED", "writeStream", path);
+    if (this.requestStreamSupport === false
+      || (this.requestStreamSupport === "native" && !nativeRequestStreamsSupported(this.base.href))) {
+      fail("ENOTSUP", "writeStream", path, "transport does not declare supported request streams");
+    }
     const { normalized, headers, prefix } = await this.prepareWrite(path, options);
     const timeout = AbortSignal.timeout(this.timeoutMs);
     const controller = new AbortController();

@@ -30,7 +30,10 @@ const proofs = [];
 const pending = new Map();
 let saved;
 let model = input.model;
-const finish = result => { process.stdout.write(serialize({ ...result, calls, hostTrace, acknowledgements, requests, proofs, saved, model, apiMode: input.apiMode, publicRuntimeURL })); process.exit(0); };
+let leftReceiptBefore;
+const finish = result => { process.stdout.write(serialize({ ...result, calls, hostTrace, acknowledgements, requests, proofs, saved, model,
+  leftReceiptUnchanged: leftReceiptBefore === undefined || leftReceiptBefore.equals(serialize(model.receipts.left)),
+  apiMode: input.apiMode, publicRuntimeURL })); process.exit(0); };
 const timer = setTimeout(() => finish({ status: 'timeout', pending: [...pending.keys()] }), 3000);
 function deferred() {
   let resolve, reject;
@@ -49,6 +52,18 @@ function ackBoundary(label) {
   acknowledgements.push('boundary:' + label);
   hostTrace.push(['ack', 'boundary', label]);
 }
+function observeLeft(value) {
+  const nodes = [value, value.events, ...value.events];
+  return {
+    nodes,
+    prototypes: nodes.map(node => Object.getPrototypeOf(node) === null ? 'null'
+      : Object.getPrototypeOf(node) === Array.prototype ? 'array'
+      : Object.getPrototypeOf(node) === Object.prototype ? 'ordinary' : 'other'),
+    extensible: nodes.map(node => Object.isExtensible(node)),
+    keys: nodes.map(node => Reflect.ownKeys(node)),
+    descriptors: nodes.map(node => Object.getOwnPropertyDescriptors(node))
+  };
+}
 try {
   if (input.mode === 'capture' || input.mode === 'raw') {
     const actualError = new Error(input.profile.receipts.right.reason.message);
@@ -56,6 +71,8 @@ try {
     reason.name = actualError.name;
     model = { actualError, reason, reasonAgain: reason, reasonGraph: [reason, { reason }],
       receipts: { left: structuredClone(input.profile.receipts.left), right: { status: 'rejected', reason } } };
+    leftReceiptBefore = serialize(model.receipts.left);
+    model.nativeLeft = observeLeft(model.receipts.left.value);
     const nativeLeft = deferred();
     const nativeRight = deferred();
     const nativeGraph = fixture(nativeLeft.promise, nativeRight.promise);
@@ -105,6 +122,8 @@ try {
     });
     const rightRecord = result.snapshot.hostCalls.find(call => call.moduleId === '<inputs>' && call.operation === JSON.stringify(['bindings', 'incoming', 'remote']));
     const capturedReason = rightRecord.outcome.reason;
+    const leftRecord = result.snapshot.hostCalls.find(call => call.moduleId === '<inputs>' && call.operation === JSON.stringify(['entryPointArgs', '0', 'primary']));
+    model.capturedLeft = observeLeft(leftRecord.outcome.value);
     const completed = JSON.parse(await api.dump(result));
     model.capturedReasonGraph = completed.replay.calls.find(call => call.id === rightRecord.id).outcome.data;
     model.capturedReason = capturedReason;
@@ -141,7 +160,19 @@ try {
     if (entry === undefined) throw Error('Missing pending proof for ' + key);
     const originalOutcome = model.receipts[key];
     const completeReason = model.decodedReasonGraph.reason;
-    const outcome = key !== 'right' || input.projection === 'native-fields' ? originalOutcome
+    let outcome;
+    if (key === 'left') {
+      leftReceiptBefore = serialize(originalOutcome);
+      model.nativeLeft = observeLeft(originalOutcome.value);
+      const value = input.leftDomain === 'raw-left' ? originalOutcome.value
+        : input.leftDomain === 'genuine-null-left'
+          ? Object.assign(Object.create(null), { name: originalOutcome.value.name,
+              events: originalOutcome.value.events.map(event => Object.assign(Object.create(null), event)) })
+          : api.deepCopyToSandbox(originalOutcome.value);
+      model.suppliedLeft = observeLeft(value);
+      model.leftUsesOriginalRecord = value === originalOutcome.value;
+      outcome = { status: 'fulfilled', value };
+    } else outcome = input.projection === 'native-fields' ? originalOutcome
       : input.projection === 'minimal'
         ? { status: 'rejected', reason: { name: completeReason.name, message: completeReason.message } }
         : { status: 'rejected', reason: completeReason };
@@ -191,7 +222,12 @@ try {
 finally { clearTimeout(timer); }
 `;
 
-async function observe(mode: string, projection?: string, snapshot?: unknown) {
+async function observe(
+  mode: string,
+  projection?: string,
+  snapshot?: unknown,
+  leftDomain = "modeled"
+) {
   const observation = await new Promise<Observation>((accept, reject) => {
     const child = spawn(process.execPath, ["--input-type=module", "-e", childProgram], {
       cwd: repositoryRoot,
@@ -224,6 +260,7 @@ async function observe(mode: string, projection?: string, snapshot?: unknown) {
         profile,
         mode,
         projection,
+        leftDomain,
         snapshot,
         model: captured?.model,
         apiMode
@@ -234,6 +271,7 @@ async function observe(mode: string, projection?: string, snapshot?: unknown) {
     JSON.stringify({
       mode,
       projection,
+      leftDomain,
       apiMode,
       publicRuntimeURL: observation.publicRuntimeURL,
       typedV8Base64: serialize(observation).toString("base64"),
@@ -246,6 +284,31 @@ async function observe(mode: string, projection?: string, snapshot?: unknown) {
     })
   );
   return observation;
+}
+
+function expectLeftProvenance(provenance: Observation, nullPrototype: boolean) {
+  const native = profile.receipts.left.value;
+  const expectedNodes = [native, native.events, ...native.events];
+  expect(provenance.nodes).toEqual(expectedNodes);
+  const recordPrototype = nullPrototype ? "null" : "ordinary";
+  expect(provenance.prototypes).toEqual([
+    recordPrototype,
+    "array",
+    recordPrototype,
+    recordPrototype
+  ]);
+  expect(provenance.extensible).toEqual([true, true, true, true]);
+  expect(provenance.keys).toEqual(expectedNodes.map((node) => Reflect.ownKeys(node)));
+  expect(provenance.descriptors).toEqual(
+    expectedNodes.map((node) => Object.getOwnPropertyDescriptors(node))
+  );
+  expect(provenance.nodes[0].events).toBe(provenance.nodes[1]);
+  expect(provenance.nodes[1][0]).toBe(provenance.nodes[2]);
+  expect(provenance.nodes[1][1]).toBe(provenance.nodes[3]);
+  expect(provenance.nodes[2]).not.toBe(provenance.nodes[3]);
+  expect(provenance.descriptors[0].events.value).toBe(provenance.nodes[1]);
+  expect(provenance.descriptors[1][0].value).toBe(provenance.nodes[2]);
+  expect(provenance.descriptors[1][1].value).toBe(provenance.nodes[3]);
 }
 
 beforeAll(async () => {
@@ -305,6 +368,9 @@ describe("O12 exact modeled Error proof projection", () => {
   it("captures the unchanged original profile with complete native values and provenance", () => {
     expect(captured.status).toBe("ok");
     expect(captured.nativeReasonIsOriginal).toBe(true);
+    expect(captured.leftReceiptUnchanged).toBe(true);
+    expectLeftProvenance(captured.model.nativeLeft, false);
+    expectLeftProvenance(captured.model.capturedLeft, true);
     expect(captured.nativeValue).toEqual(profile.expected);
     expect(captured.value).toEqual(captured.nativeValue);
     expect(captured.model.reason.stack).toBe(captured.nativeReasonStack);
@@ -323,14 +389,30 @@ describe("O12 exact modeled Error proof projection", () => {
     ).toHaveLength(2);
   });
 
-  for (const projection of ["complete", "minimal", "native-fields"] as const)
-    for (const repeat of [1, 2]) {
-      it(`classifies ${projection} proof ${repeat} against the same capture and request`, async () => {
+  for (const { projection, repeats, leftDomain } of [
+    ...["complete", "minimal", "native-fields"].map((projection) => ({
+      projection,
+      repeats: [1, 2],
+      leftDomain: "modeled"
+    })),
+    { projection: "complete", repeats: [1], leftDomain: "raw-left" },
+    { projection: "complete", repeats: [1], leftDomain: "genuine-null-left" }
+  ])
+    for (const repeat of repeats) {
+      const title =
+        leftDomain === "modeled"
+          ? `classifies ${projection} proof ${repeat} against the same capture and request`
+          : `preserves ${leftDomain} proof provenance with the complete right receipt`;
+      it(title, async () => {
         expect(captured.status).toBe("ok");
         const before = serialize(captured.saved);
         const receiptBefore = serialize(captured.model.receiptSnapshot);
-        const resumed = await observe("restore", projection, captured.saved);
+        const resumed = await observe("restore", projection, captured.saved, leftDomain);
         expect(resumed.status).toBe("ok");
+        expect(resumed.leftReceiptUnchanged).toBe(true);
+        expectLeftProvenance(resumed.model.nativeLeft, false);
+        expectLeftProvenance(resumed.model.suppliedLeft, leftDomain !== "raw-left");
+        expect(resumed.model.leftUsesOriginalRecord).toBe(leftDomain === "raw-left");
         expect(resumed.model.receiptRecovery.value).toEqual(captured.value);
         expect(resumed.model.receiptRecovery.calls).toEqual([]);
         expect(resumed.model.receiptRecovery.requests).toEqual([]);
@@ -358,7 +440,7 @@ describe("O12 exact modeled Error proof projection", () => {
             nodes: [
               {
                 kind: "object",
-                nullPrototype: true,
+                nullPrototype: false,
                 extensible: true,
                 properties: {
                   name: { value: "Error", configurable: true, enumerable: true, writable: true },
@@ -440,7 +522,21 @@ describe("O12 exact modeled Error proof projection", () => {
         const calls = resumed.completed.replay.calls;
         expect(calls).toHaveLength(5);
         expect(calls.every((call: Observation) => call.lifecycle === "consumed")).toBe(true);
-        if (projection === "complete")
+        if (leftDomain === "raw-left") {
+          const expectedRawJournal = structuredClone(captured.completed.replay);
+          const expectedLeft = expectedRawJournal.calls.find(
+            (call: Observation) =>
+              call.moduleId === "<inputs>" &&
+              call.operation === JSON.stringify(["entryPointArgs", "0", "primary"])
+          ).outcome.data;
+          for (const nodeId of [0, 2, 3]) {
+            expect(expectedLeft.nodes[nodeId].kind).toBe("object");
+            expect(expectedLeft.nodes[nodeId].nullPrototype).toBe(true);
+            expectedLeft.nodes[nodeId].nullPrototype = false;
+          }
+          expect(resumed.completed.replay).toEqual(expectedRawJournal);
+          expect(resumed.completed.replay).not.toEqual(captured.completed.replay);
+        } else if (projection === "complete")
           expect(resumed.completed.replay).toEqual(captured.completed.replay);
         expect(resumed.completed.initialInputs).toEqual(captured.saved.initialInputs);
         const recorded = captured.saved.promiseReplay.settlements;
@@ -449,7 +545,7 @@ describe("O12 exact modeled Error proof projection", () => {
         );
         expect(serialize(captured.saved)).toEqual(before);
         expect(serialize(captured.model.receiptSnapshot)).toEqual(receiptBefore);
-        const completedReplay = await observe("restore", projection, resumed.completed);
+        const completedReplay = await observe("restore", projection, resumed.completed, leftDomain);
         expect(completedReplay.status).toBe("ok");
         expect(completedReplay.value).toEqual(expected);
         expect(completedReplay.calls).toEqual([]);

@@ -656,7 +656,9 @@ function copyToSandbox(
       return existing;
     }
 
-    const copy = createPlainObject(true);
+    const copy = createPlainObject(
+      !cloneSandboxCollections || Object.getPrototypeOf(value) === null
+    );
     state.seen.set(value, copy);
     const errorType = sandboxErrorTypes.get(value);
     if (errorType !== undefined) sandboxErrorTypes.set(copy, errorType);

@@ -15,13 +15,63 @@ const legacyCases = legacyCaptures.cases.flatMap((fixture) =>
 );
 
 describe("genuine v6 checkpoint compatibility", () => {
-  it.each(legacyCases)(
-    "retains $name/$kind replay, effects, input bytes, and subsequent checkpoint semantics",
-    async ({ kind, source, snapshot, completed }) => {
+  it.each(
+    legacyCases.flatMap((fixture) =>
+      [false, true].map((nullPrototype) => ({ ...fixture, nullPrototype }))
+    )
+  )(
+    "retains $name/$kind replay with nullPrototype=$nullPrototype and unchanged history",
+    async ({ kind, source, snapshot, completed, nullPrototype }) => {
       const before = JSON.stringify(snapshot);
-      const boundary = vi.fn(async (label: unknown) => ({ boundary: label }));
+      const completedBefore = JSON.stringify(completed);
+      const boundary = vi.fn(async (label: unknown) => {
+        const value = nullPrototype
+          ? Object.assign(Object.create(null), { boundary: label })
+          : { boundary: label };
+        expect(Object.getPrototypeOf(value)).toBe(nullPrototype ? null : Object.prototype);
+        return value;
+      });
       const readValue = vi.fn(async () => ({ value: 99 }));
       const provider = vi.fn();
+      const pendingCalls = snapshot.replay.calls.filter((call) => call.lifecycle === "running");
+      expect(pendingCalls).toHaveLength(kind === "saved" ? 1 : 0);
+      const pendingBoundary = pendingCalls[0];
+      if (kind === "saved") {
+        expect(pendingBoundary).toMatchObject({ operation: "boundary", policy: "re-issue" });
+        expect(pendingBoundary).not.toHaveProperty("outcome");
+      }
+      const expectedReplay = {
+        ...completed.replay,
+        calls: completed.replay.calls.map((call) =>
+          call.id === pendingBoundary?.id
+            ? {
+                ...call,
+                outcome: {
+                  status: "fulfilled",
+                  data: {
+                    root: { tag: "ref", id: 0 },
+                    nodes: [
+                      {
+                        kind: "object",
+                        nullPrototype,
+                        extensible: true,
+                        properties: {
+                          boundary: {
+                            value: "before",
+                            configurable: true,
+                            enumerable: true,
+                            writable: true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            : call
+        )
+      };
+      const recordedPrefix = snapshot.replay.calls.filter((call) => call.lifecycle === "consumed");
       const bindings = {
         boundary: declareHostOperation(boundary, "re-issue"),
         readValue: declareHostOperation(readValue, "re-issue")
@@ -38,11 +88,22 @@ describe("genuine v6 checkpoint compatibility", () => {
       expect(readValue).not.toHaveBeenCalled();
       expect(provider).not.toHaveBeenCalled();
       expect(result.snapshot).toMatchObject({
+        version: 1,
         executionSemantics: "jobs-v6",
         initialInputs: completed.initialInputs,
-        promiseReplay: completed.promiseReplay,
-        replay: completed.replay
+        promiseReplay: completed.promiseReplay
       });
+      expect(result.snapshot.replay).toStrictEqual(expectedReplay);
+      expect(result.snapshot.initialInputs).toStrictEqual(completed.initialInputs);
+      expect(result.snapshot.promiseReplay).toStrictEqual(completed.promiseReplay);
+      expect(result.snapshot.replay?.calls.slice(0, recordedPrefix.length)).toStrictEqual(
+        recordedPrefix
+      );
+      for (const call of recordedPrefix) {
+        if (call.operation === "readValue") {
+          expect(call).toHaveProperty("outcome.data.nodes.0.nullPrototype", true);
+        }
+      }
       const saved = JSON.parse(await dump(result));
       const serialized = JSON.stringify(saved);
       for (let repeat = 0; repeat < 2; repeat++) {
@@ -58,10 +119,16 @@ describe("genuine v6 checkpoint compatibility", () => {
           snapshot: { executionSemantics: "jobs-v6" }
         });
         expect(JSON.stringify(saved)).toBe(serialized);
+        expect(repeated.snapshot.replay).toStrictEqual(expectedReplay);
+        expect(repeated.snapshot.initialInputs).toStrictEqual(completed.initialInputs);
+        expect(repeated.snapshot.promiseReplay).toStrictEqual(completed.promiseReplay);
+        expect(repeated.snapshot.version).toBe(1);
         expect(boundary).not.toHaveBeenCalled();
         expect(readValue).not.toHaveBeenCalled();
         expect(provider).not.toHaveBeenCalled();
       }
+      expect(JSON.stringify(snapshot)).toBe(before);
+      expect(JSON.stringify(completed)).toBe(completedBefore);
     }
   );
 

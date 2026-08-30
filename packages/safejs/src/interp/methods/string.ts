@@ -3,6 +3,7 @@ import { Budget } from "../budget.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
+  deepCopyFromSandbox,
   isSandboxClosure,
   isSandboxRegex,
   type SandboxClosure,
@@ -23,6 +24,7 @@ type StringMethodName =
   | "includes"
   | "indexOf"
   | "lastIndexOf"
+  | "localeCompare"
   | "match"
   | "matchAll"
   | "normalize"
@@ -53,6 +55,7 @@ const stringMethodNames = new Set<StringMethodName>([
   "includes",
   "indexOf",
   "lastIndexOf",
+  "localeCompare",
   "match",
   "matchAll",
   "normalize",
@@ -95,6 +98,7 @@ export function getStringMember(
   return createSandboxClosure({
     sandbox: true,
     name: `String#${property}`,
+    ...(property === "localeCompare" ? { length: 1 } : {}),
     call: (args) => callStringMethod(value, property, args, budget)
   });
 }
@@ -137,6 +141,50 @@ export function callStringMethod(
 
   if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
     return callMatchLikeMethod(value, methodName, args);
+  }
+
+  if (methodName === "localeCompare") {
+    if (isSandboxClosure(args[0])) {
+      throw new TypeError("String#localeCompare does not support function comparison values.");
+    }
+    const comparison = budget.allocateString(String(deepCopyFromSandbox(args[0])));
+    const locales: string[] = Reflect.apply(Intl.getCanonicalLocales, Intl, [
+      deepCopyFromSandbox(args[1])
+    ]);
+    const options = args[2];
+    const nativeOptions =
+      options === undefined || options === null
+        ? options
+        : Object.fromEntries(
+            [
+              "usage",
+              "localeMatcher",
+              "collation",
+              "numeric",
+              "caseFirst",
+              "sensitivity",
+              "ignorePunctuation"
+            ].map((property) => {
+              const descriptor = Object.getOwnPropertyDescriptor(options, property);
+              if (descriptor !== undefined && !("value" in descriptor)) {
+                throw new TypeError("String#localeCompare only supports data option properties.");
+              }
+              const option: SandboxValue = descriptor?.value;
+              return [
+                property,
+                option === undefined
+                  ? undefined
+                  : property === "numeric" || property === "ignorePunctuation"
+                    ? Boolean(option)
+                    : deepCopyFromSandbox(option)
+              ];
+            })
+          );
+    return Reflect.apply(String.prototype.localeCompare, value, [
+      comparison,
+      locales,
+      nativeOptions
+    ]);
   }
 
   if (args.some(isSandboxClosure)) {
